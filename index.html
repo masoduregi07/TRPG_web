@@ -5555,6 +5555,11 @@ const Net = (() => {
             joined = true;
             return;
           }
+          // UI/보관함 요청과 무관한 전송 계층 생존 확인. 게임 로그에 남기지 않는다.
+          if (msg?.t === "ping") {
+            try { conn.send({ t: "pong", seq: msg.seq }); } catch {}
+            return;
+          }
           game.onMessage(connId, msg);
         });
         const gone = () => {
@@ -5582,10 +5587,21 @@ const Net = (() => {
     let stopped = false;
     let timer = null;
     let everConnected = false;
+    let ready = false, heartbeat = null, lastReceived = 0;
+
+    function stopHeartbeat() { clearInterval(heartbeat); heartbeat = null; }
 
     function schedule(ms) {
       clearTimeout(timer);
       timer = setTimeout(connect, ms);
+    }
+
+    function lostConnection(c, reason = "호스트 연결 끊김. 재연결 중…") {
+      if (stopped || conn !== c) return;
+      conn = null; ready = false; stopHeartbeat();
+      onStatus({ level: "wait", text: reason });
+      try { c.close(); } catch {}
+      schedule(3000);
     }
 
     function ensurePeer(cb) {
@@ -5613,36 +5629,48 @@ const Net = (() => {
 
     function connect() {
       if (stopped) return;
+      clearTimeout(timer); timer = null;
       onStatus({ level: "wait", text: everConnected ? "다시 연결하는 중…" : "호스트에 연결하는 중…" });
       ensurePeer(() => {
         if (stopped) return;
-        try { conn?.close(); } catch {}
+        const old = conn;
+        conn = null; ready = false; stopHeartbeat();
+        try { old?.close(); } catch {}
         const c = peer.connect(hostPeerId(room), { reliable: true, serialization: "json" });
         conn = c;
-        const openTimer = setTimeout(() => { if (!c.open && conn === c) { try { c.close(); } catch {} schedule(1000); } }, 10000);
+        const openTimer = setTimeout(() => { if (!c.open && conn === c) lostConnection(c); }, 10000);
         c.on("open", () => {
           clearTimeout(openTimer);
-          c.send({ t: "join", key, name });
+          try { c.send({ t: "join", key, name }); } catch { lostConnection(c); }
         });
         c.on("data", (msg) => {
-          if (msg?.t === "hello") { everConnected = true; onStatus({ level: "ok", text: "연결됨" }); }
-          if (msg?.t === "rejected" || msg?.t === "kicked") stopped = true;
+          if (conn !== c || stopped) return;
+          lastReceived = Date.now();
+          if (msg?.t === "pong") return;
+          if (msg?.t === "hello") {
+            ready = true; everConnected = true; onStatus({ level: "ok", text: "연결됨" });
+            stopHeartbeat();
+            heartbeat = setInterval(() => {
+              if (!ready || conn !== c || stopped) return;
+              if (Date.now() - lastReceived > 24000) return lostConnection(c, "응답 없음. 자동 재연결 중…");
+              try { c.send({ t: "ping", seq: Date.now() }); } catch { lostConnection(c); }
+            }, 8000);
+          }
+          if (msg?.t === "rejected" || msg?.t === "kicked") { stopped = true; ready = false; stopHeartbeat(); }
           onMessage(msg);
         });
         c.on("close", () => {
           clearTimeout(openTimer);
-          if (conn !== c || stopped) return;
-          onStatus({ level: "wait", text: "호스트 연결 끊김. 재연결 중…" });
-          schedule(3000);
+          lostConnection(c);
         });
-        c.on("error", () => {});
+        c.on("error", () => { clearTimeout(openTimer); lostConnection(c); });
       });
     }
 
     connect();
     return {
-      send(msg) { if (conn?.open) { try { conn.send(msg); return true; } catch {} } return false; },
-      stop() { stopped = true; clearTimeout(timer); try { conn?.close(); } catch {} try { peer?.destroy(); } catch {} },
+      send(msg) { if (ready && conn?.open) { try { conn.send(msg); return true; } catch { lostConnection(conn); } } return false; },
+      stop() { stopped = true; ready = false; clearTimeout(timer); stopHeartbeat(); try { conn?.close(); } catch {} try { peer?.destroy(); } catch {} },
     };
   }
 
@@ -8091,7 +8119,7 @@ const BannerArt = (() => {
       }
       case "sceneImg":
         app.sceneImgs[msg.ref] = msg.src;
-        if (msg.ref.startsWith("por:")) { if (app.snap) render(); }
+        if (msg.ref.startsWith("por:")) { if (app.snap) { render(); scheduleCopy(); } }
         else if (app.snap?.view) drawBanner(app.snap);
         return;
       case "notice": renderEntry({ kind: "system", text: msg.text }); unstamp(msg.text); return;
