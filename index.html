@@ -1415,6 +1415,13 @@ html.has-3d .topbar { box-shadow: none; }
 .coc-builder .doc-row { grid-template-columns: 78px minmax(0, 1fr); }
 .coc-builder .doc-k { letter-spacing: 0; text-align: center; line-height: 1.3; }
 .coc-builder .doc-row select { width: 100%; min-width: 0; margin: 0; padding: 6px 6px; border: 0; background: none; box-shadow: none; font-family: var(--font-body); font-size: 13px; color: var(--ink); }
+.coc-builder .occ-editor { min-width:0; width:100%; display:flex; flex-direction:column; }
+.coc-builder .occ-switch { display:flex; gap:4px; padding:4px 6px; }
+.coc-builder .occ-switch .btn { flex:1; padding:3px 5px; font-size:11px; }
+.coc-builder .occ-switch .btn.active { background:var(--ink); color:var(--paper-hi); }
+.coc-builder .occ-editor select[hidden] { display:none; }
+.coc-builder .occ-editor input { min-width:0; max-width:none; border-top:1px dashed rgba(43, 26, 12, .45); }
+.coc-builder .occ-editor input[hidden] { display:none; }
 .coc-builder .doc-row textarea { width: 100%; min-width: 222px; max-width: 480px; box-sizing: border-box; margin: 0; padding: 6px 9px; border: 0; resize: none; background: none; box-shadow: none;
   font-family: var(--font-body); font-size: 13px; line-height: 18px; color: var(--ink); field-sizing: content; min-height: 54px; }
 .coc-builder .doc-row textarea:focus, .coc-builder .doc-row select:focus { outline: 0; background: rgba(240, 164, 60, .12); }
@@ -2745,6 +2752,26 @@ const Rules = (() => {
     return out;
   }
 
+  /** 운명 캐릭터의 인적사항은 AI의 반복 출력에 의존하지 않고 게임에서 직접 무작위로 선택. */
+  function randomIdentity(r, previous, randInt) {
+    const surnames = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','문'];
+    const givenNames = ['서준','지우','하린','민재','도윤','수빈','예린','현우','지민','서현','주원','은서','유진','다온','하준','소율','예준','시우','가은','태윤','민서','연우','하늘','시현','아린','유나','정우','세아','준서','나윤','지안','채원','은호','지호','수아','규민','선우','예슬','다혜','태연'];
+    const freeJobs = ['탐험가','여행 작가','수리공','기록 보관사','거리 예술가','통역사','자영업자','요리사','안내인','고고학자','연구원','운송업자','발명가','사진가','자원봉사자','상인','도서 수집가','생존 전문가','무대 배우','지도 제작자'];
+    const choose = (values, old) => {
+      const possible = values.filter((x) => String(x) !== String(old ?? ''));
+      const pool = possible.length ? possible : values;
+      return pool[randInt(0, pool.length - 1)];
+    };
+    const names = surnames.flatMap((s) => givenNames.map((g) => s + g));
+    const jobs = [...new Set([...(r.backgrounds ?? []).map((x) => x.name), ...freeJobs])];
+    return {
+      name: choose(names, previous?.name),
+      age: String(choose(Array.from({ length: 58 }, (_, i) => i + 18), previous?.age)),
+      gender: choose(['여성', '남성'], previous?.gender),
+      background: choose(jobs, previous?.background),
+    };
+  }
+
   function rollChars(randInt) {
     const d = (n, plus) => { let t = 0; for (let i = 0; i < n; i++) t += randInt(1, 6); return (t + plus) * 5; };
     const chars = Object.fromEntries(CHARS.map((c) => [c.k, d(c.dice[0], c.dice[1])]));
@@ -2764,7 +2791,8 @@ const Rules = (() => {
     if (!name) return { ok: false, error: "캐릭터 이름 입력 필요." };
     if (!rolled?.chars) return { ok: false, error: "특성치 굴림 먼저." };
     const occ = r.backgrounds.find((b) => b.name === raw?.background) ?? null;
-    if (raw?.background && !occ) return { ok: false, error: "알 수 없는 직업." };
+    // 시나리오 목록에 없는 자유 직업은 특화 기능을 제한하지 않음.
+    const customOccupation = clip(raw?.background, 30);
     const chars = { ...rolled.chars };
     const alloc = {};
     for (const k of r.skills) {
@@ -2779,7 +2807,7 @@ const Rules = (() => {
     return {
       ok: true,
       character: {
-        name, concept: clip(raw?.concept, 200), age: clip(raw?.age, 8), gender: clip(raw?.gender, 8), background: occ?.name ?? "", hook: clip(raw?.hook, 200) || occ?.hook || "",
+        name, concept: clip(raw?.concept, 200), age: clip(raw?.age, 8), gender: clip(raw?.gender, 8), background: occ?.name ?? customOccupation, hook: clip(raw?.hook, 200) || occ?.hook || "",
         look: clip(raw?.look, 200), goal: clip(raw?.goal, 120), secret: occ?.secret ?? "", items: occ?.items ?? [],
         system: "coc7", chars, alloc, skills, stats: skills,
         hp: dv.hpMax, hpMax: dv.hpMax, san: dv.san, sanMax: dv.sanMax, sanStart: dv.san, db: dv.db, build: dv.build,
@@ -2846,7 +2874,7 @@ const Rules = (() => {
   return {
     SYSTEMS, NAMES, systemOf, CHARS, CHAR_KEYS, BASE, DIFFS, normDiff, charKey, isLuck, isSan, skillBase, validLoss, lossParts,
     COMBAT_SKILLS, isCombatSkill, hasCombat, dbBuild, parseDamage, rollDamage, npcCombat,
-    cocRules, pools, left, randomAllocation, rollChars, derived, validateCoc, target, d100, level, needRank, threshold, resolve, diceFx, lossRoll,
+    cocRules, pools, left, randomAllocation, randomIdentity, rollChars, derived, validateCoc, target, d100, level, needRank, threshold, resolve, diceFx, lossRoll,
   };
 })();
 
@@ -3880,11 +3908,11 @@ ${JSON.stringify(info)}` },
   }
 
   /* ---------------- 캐릭터 제안 ---------------- */
-  function charMessages(sc, rules, concept) {
-    const info = { 시나리오: sc.title, 소개: sc.summary ?? "", 캐릭터안내: rules.intro, 직업선택지: rules.backgrounds.map((b) => ({ 이름: b.name, 설명: b.description, 연결고리: b.hook })) };
+  function charMessages(sc, rules, concept, identity) {
+    const info = { 시나리오: sc.title, 소개: sc.summary ?? "", 캐릭터안내: rules.intro, 확정된무작위인적사항: identity, 직업선택지: rules.backgrounds.map((b) => ({ 이름: b.name, 설명: b.description, 연결고리: b.hook })) };
     return [
       { role: "system", content: `너는 크툴루의 부름(CoC) 7판 탐사자 제작을 돕는다. 시나리오 분위기에 어울리는 탐사자 하나를 한국어로 제안한다. 시나리오의 결말이나 비밀은 모르며, 추측해서 쓰지도 않는다.
-직업은 직업선택지의 이름 중 하나를 그대로 쓰거나, 선택지가 없으면 빈 문자열로 둔다. 특성치와 기능 수치는 쓰지 않는다 (플레이어가 굴리고 나눔).
+확정된무작위인적사항에 있는 이름·나이·성별·직업을 정확하게 유지한다. 직업이 직업선택지에 없더라도 자유 직업으로 인정한다. 이름·나이·성별·직업을 바꾸지 말고 그 인물에 맞는 성격과 시나리오 연결고리만 창작한다. 특성치와 기능 수치는 쓰지 않는다 (플레이어가 굴리고 나눔).
 아래 JSON 하나만 출력한다.
 {"name": "이름(16자 이내)", "age": "나이 (숫자)", "gender": "성별", "concept": "외모나 성격을 간단히, 명사형 종결 한 문장 (예: 자신만만하지만 손을 떠는 시골 의사)", "background": "직업 이름", "hook": "시나리오와의 연결고리, 명사형 종결 한 문장"}` },
       { role: "user", content: `[시나리오 정보]\n${JSON.stringify(info, null, 1)}\n\n[플레이어 요청]\n${concept || "자유롭게 제안해 줘"}` },
@@ -4307,6 +4335,7 @@ class HostGame {
     this.connPid = new Map(); // connId -> pid
     this.rate = new Map();    // connId -> timestamps
     this.suggestAt = new Map();
+    this.suggestHistory = new Map(); // 이전 제안과 인적사항이 연달아 겹치지 않도록
     this.ai = { timer: null, busy: false, again: false, epoch: 0, controller: null };
     this.aiApplying = false;
     this.undo = [];      // AI 차례 직전 상태 (최근 5개, 메모리에만): GM 노트에서 되돌리기
@@ -5217,13 +5246,15 @@ class HostGame {
     this.emit(pid, { t: "suggesting", on: true });
     try {
       const rules = Engine.charRules(this.sc);
-      const text = await this.aiCall(AI.charMessages(this.sc, rules, concept), { maxTokens: 500 });
-      const raw = AI.parseChar(text);
+      const identity = Rules.randomIdentity(rules, this.suggestHistory.get(pid), Engine.randInt);
+      const text = await this.aiCall(AI.charMessages(this.sc, rules, concept, identity), { maxTokens: 500 });
+      const raw = { ...AI.parseChar(text), ...identity };
       // 규칙에 안 맞는 능력치는 버리고 이름·컨셉만 살린다
       const p = this.data.players[pid], rolled = p?.cocRoll ?? { chars: Object.fromEntries(Rules.CHAR_KEYS.map((k) => [k, 50])), luck: 50 };
       let r = Engine.validateCharacter(this.sc, raw, { rolled });
       if (!r.ok) r = Engine.validateCharacter(this.sc, { ...raw, stats: {}, alloc: {}, name: raw.name || "이름 없음" }, { rolled });
       if (!r.ok) throw new Error(r.error);
+      this.suggestHistory.set(pid, identity);
       this.emit(pid, { t: "suggestion", data: r.character });
     } catch (e) {
       this.notice(pid, `제안 실패. ${e.message}`);
@@ -9133,7 +9164,7 @@ const BannerArt = (() => {
       const draft = defaultDraft(rules);
       draft.name = Engine.clip(profile.name, 16);
       for (const k of ["age", "gender", "concept", "hook", "look", "goal"]) draft[k] = Engine.clip(profile[k], 200);
-      draft.background = rules.backgrounds.some((b) => b.name === profile.background) ? profile.background : "";
+      draft.background = Engine.clip(profile.background, 30);
       draft.alloc = Object.fromEntries(Object.entries(profile.alloc ?? {}).filter(([k, v]) => rules.skills.includes(k) && Number.isInteger(v) && v >= 0 && v <= 100));
       return draft;
     },
@@ -9187,15 +9218,36 @@ const BannerArt = (() => {
     });
     const clearPicBtn = icBtn("button", "pic-clear", "trash", "초상 지우기", { type: "button", on: { click: () => send({ t: "portrait", src: null }) } });
     // 직업
-    const bg = el("select", {}, el("option", { value: "" }, "— 직업 선택 —"), rules.backgrounds.map((b) => el("option", { value: b.name }, b.name)));
+    const bg = el("select", { "aria-label": "직업 선택" }, el("option", { value: "" }, "— 직업 선택 —"), ...rules.backgrounds.map((b) => el("option", { value: b.name }, b.name)));
+    const bgCustom = el("input", { maxlength: 30, placeholder: "자유 직업 입력", "aria-label": "직업 직접 입력", hidden: true });
     bg.value = d.background;
     const occ = () => rules.backgrounds.find((x) => x.name === d.background) ?? null;
-    const showBg = () => {};   // 직업 설명문은 시트에 안 띄움 (기능 목록의 ● 로만 표시)
+    let bgMode = !rules.backgrounds.length || (d.background && !occ()) ? "custom" : "preset";
+    const bgPickBtn = el("button", { type: "button", class: "btn tiny ghost", disabled: !rules.backgrounds.length, on: { click: () => setBgMode("preset") } }, "직업 선택");
+    const bgTypeBtn = el("button", { type: "button", class: "btn tiny ghost", on: { click: () => setBgMode("custom") } }, "직접 입력");
+    const showBg = () => {
+      if (d.background) bgMode = occ() ? "preset" : "custom";
+      const custom = bgMode === "custom";
+      bgPickBtn.classList.toggle("active", !custom); bgPickBtn.setAttribute("aria-pressed", String(!custom));
+      bgTypeBtn.classList.toggle("active", custom); bgTypeBtn.setAttribute("aria-pressed", String(custom));
+      bg.hidden = custom;
+      if (!custom) bg.value = d.background || "";
+      bgCustom.hidden = !custom;
+      if (custom) bgCustom.value = d.background || "";
+    };
+    const setBgMode = (mode) => {
+      const prev = occ(); bgMode = mode;
+      d.background = mode === "custom" ? bgCustom.value : bg.value;
+      const o = occ();
+      if (!d.hook || d.hook === prev?.hook) { d.hook = o?.hook ?? ""; hook.value = d.hook; }
+      showBg(); saveDraft(); refreshCoc();
+    };
     bg.addEventListener("change", () => {
       const prev = occ(); d.background = bg.value; const o = occ();
       if (!d.hook || d.hook === prev?.hook) { d.hook = o?.hook ?? ""; hook.value = d.hook; }
       showBg(); saveDraft(); refreshCoc();
     });
+    bgCustom.addEventListener("input", () => { d.background = bgCustom.value.slice(0, 30); saveDraft(); refreshCoc(); });
     // 특성치 (호스트 굴림)
     const charGrid = el("div", { class: "coc-chars" }), derivedEl = el("div", { class: "coc-derived" });
     const rollBtn = icBtn("button", "dice-btn roll-chars", "die3", "특성치 굴리기", { type: "button", on: { click: () => { rollBtn.classList.remove("rolling"); void rollBtn.offsetWidth; rollBtn.classList.add("rolling"); send({ t: "rollChars" }); } } });
@@ -9303,7 +9355,7 @@ const BannerArt = (() => {
       saveDraft(); refreshCoc(); toast("캐릭터 서식 불러옴. 특성치는 이번 방 주사위를 사용.");
     } } }, "불러오기");
     const profileBox = el("div", { class: "character-profiles" }, profileSelect, profileSave, profileLoad);
-    app.builderEls = { coc: true, name, age, gender, concept, hook, look, bg, showBg, refreshStats: refreshCoc, refreshCoc, sugBtn, readyBtn, photoBox, clearPicBtn, photoPlus: true, file };
+    app.builderEls = { coc: true, name, age, gender, concept, hook, look, bg, bgCustom, showBg, refreshStats: refreshCoc, refreshCoc, sugBtn, readyBtn, photoBox, clearPicBtn, photoPlus: true, file };
     // 왼쪽 = 초상 + 공문서 칸(이름 · 직업 · 나이 · 성별 · 특징 및 성격) → 개인 목표 쪽지 → 혹시 기억이 나지 않는다면 │ 오른쪽 = 특성치(가로) → 기능 → 작성
     const docRow = (k, input, tag = "label") => el(tag, { class: "doc-row" }, el("span", { class: "doc-k" }, k), input);
     name.classList.add("id-name");
@@ -9316,7 +9368,7 @@ const BannerArt = (() => {
           el("div", { class: "doc-form", role: "group", "aria-label": "인적 사항" },
             docRow("이름", name),
             el("div", { class: "doc-row pair" }, el("label", { class: "doc-k", for: "cocAge" }, "나이"), age, el("span", { class: "doc-k" }, "성별"), gender),
-            rules.backgrounds.length ? docRow("직업", bg) : null,
+            docRow("직업", el("div", { class: "occ-editor" }, el("div", { class: "occ-switch", role: "group", "aria-label": "직업 입력 방식" }, bgPickBtn, bgTypeBtn), bg, bgCustom)),
             docRow("특징 및 성격", concept))),
         el("label", { class: "goal-memo" }, el("span", { class: "memo-k" }, "개인 목표"), goal),
         fate, profileBox),
