@@ -1419,6 +1419,7 @@ html.has-3d .topbar { box-shadow: none; }
 .coc-builder .occ-switch { display:flex; gap:4px; padding:4px 6px; }
 .coc-builder .occ-switch .btn { flex:1; padding:3px 5px; font-size:11px; }
 .coc-builder .occ-switch .btn.active { background:var(--ink); color:var(--paper-hi); }
+.coc-builder .occ-switch .btn.active:disabled { opacity:1; cursor:default; }
 .coc-builder .occ-editor select[hidden] { display:none; }
 .coc-builder .occ-editor input { min-width:0; max-width:none; border-top:1px dashed rgba(43, 26, 12, .45); }
 .coc-builder .occ-editor input[hidden] { display:none; }
@@ -1944,12 +1945,13 @@ html.has-3d .topbar { box-shadow: none; }
 .history-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 20px 8px 48px; margin:0 var(--cover); background:var(--paper); border-bottom:2px solid var(--paper-lo); }
 #historyDialog { box-sizing:border-box; width:min(960px,90vw); max-height:86vh; background:var(--paper); color:var(--ink); border:3px solid var(--ink); padding:20px; font:15px/1.6 var(--font-body); }
 #historyDialog::backdrop { background:rgba(0,0,0,.75); }
-.log-bottom, .log-top { position:absolute; right:calc(var(--cover) + 12px); z-index:5; width:35px; height:35px; padding:2px; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); font-size:23px; line-height:1; }
+.log-bottom, .log-top { position:absolute; left:50%; transform:translateX(-50%); z-index:5; display:grid; place-items:center; width:35px; height:35px; padding:0; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); font-size:23px; line-height:1; }
 .log-top { top:calc(var(--cover) + 12px); }
 .log-bottom[hidden], .log-top[hidden] { display:none; }
-.turn-status { margin:0 var(--cover); padding:4px 44px 4px 48px; display:flex; flex-wrap:wrap; gap:5px 16px; align-items:center; color:var(--blood); font:12px var(--font); }
+.turn-status { margin:0 var(--cover); padding:4px 44px 4px 48px; display:flex; flex-shrink:0; flex-wrap:nowrap; gap:5px 16px; align-items:center; position:relative; min-height:22px; color:var(--blood); font:12px var(--font); overflow:hidden; }
 .turn-status[hidden], .turn-status > [hidden] { display:none; }
-.turn-status #typingPresence { color:var(--ink-2); }
+.turn-status #typingPresence { color:var(--ink-2); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; min-width:0; }
+.log-pane .chat { flex-shrink:0; position:relative; z-index:4; }
 .room-code-row { display:flex; align-items:center; gap:7px; font-size:12px; border-top:1px dashed var(--paper-lo); padding-top:8px; }
 .room-code-row code { min-width:0; flex:1; font-size:13px; overflow-wrap:anywhere; }
 .room-code-row .btn { padding:3px 5px; }
@@ -2716,7 +2718,7 @@ const Rules = (() => {
       system: "coc7", stats: skills, skills, chars: CHAR_KEYS, mp: c.mp === true, intro: c.intro ?? "", combat,
       occMul: Number.isInteger(c.occupation_points) ? c.occupation_points : 4,     // 직업 포인트 = 교육 × 4
       intMul: Number.isInteger(c.interest_points) ? c.interest_points : 2,         // 관심 포인트 = 지능 × 2
-      skillMax: Number.isInteger(c.skill_max) ? c.skill_max : 90,
+      skillMax: Number.isInteger(c.skill_max) ? Math.max(40, Math.min(99, c.skill_max)) : 75,
       rerolls: Number.isInteger(c.rerolls) ? Math.max(0, Math.min(9, c.rerolls)) : 4,   // 기본 = 처음 + 4번 = 5번
       points: 0, max: 0, hp: 0, backgrounds: occs,
     };
@@ -2941,6 +2943,85 @@ const Engine = (() => {
 
   const clip = (s, n) => String(s ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, n);
 
+  /** 이름을 가진 새 인물이 실제 이야기 안에 등장하면 현재 사건의 NPC 목록에도 추가. */
+  function registerNpc(sc, sceneId, raw) {
+    if (!sc?.scenes?.[sceneId] || !raw || typeof raw !== "object") return null;
+    const name = clip(raw.name, 30), look = clip(raw.look, 300), personality = clip(raw.personality, 200);
+    if (name.length < 2 || !(look || personality)) return null;
+    sc.npcs ??= {};
+    const exists = Object.entries(sc.npcs).find(([id, n]) =>
+      (raw.id === "kpc" && (id.toLowerCase() === "kpc" || /^KPC\b/i.test(n?.name ?? ""))) ||
+      String(n?.name ?? "").replace(/\s/g, "") === name.replace(/\s/g, ""));
+    let id = exists?.[0] ?? "";
+    if (!id) {
+      if (Object.keys(sc.npcs).length >= 120) return null;
+      const preferred = /^[a-z][a-z0-9_]{0,30}$/.test(raw.id ?? "") ? raw.id : "";
+      if (preferred && (!sc.npcs[preferred] || preferred === "kpc")) id = preferred;
+      else {
+        let n = 1;
+        while (sc.npcs[`generated_npc_${n}`]) n++;
+        id = `generated_npc_${n}`;
+      }
+    }
+    const previous = sc.npcs[id] ?? {};
+    sc.npcs[id] = { ...previous, name, look: look || previous.look || "", personality: personality || previous.personality || "", secret: previous.secret ?? "" };
+    const scene = sc.scenes[sceneId];
+    scene.npcs ??= [];
+    if (!scene.npcs.includes(id)) scene.npcs.push(id);
+    return id;
+  }
+  /** YAML에 KPC가 텍스트로만 언급된 경우, AI GM이 채울 자리표시자를 먼저 준비. */
+  function ensureKpc(sc) {
+    if (!sc || !sc.scenes) return false;
+    const scenes = Object.entries(sc.scenes).filter(([, s]) => /\bKPC\b/i.test(s?.description ?? s?.intro ?? ""));
+    if (!scenes.length && !Object.values(sc.npcs ?? {}).some((n) => /^KPC\b/i.test(n?.name ?? ""))) return false;
+    sc.npcs ??= {};
+    const kpcId = Object.entries(sc.npcs).find(([id, n]) => id.toLowerCase() === "kpc" || /^KPC\b/i.test(n?.name ?? ""))?.[0] ?? "kpc";
+    const existed = !!sc.npcs[kpcId];
+    if (!existed) sc.npcs[kpcId] = { name: "KPC", look: "시나리오에 어울리는 인물. AI GM이 구체화할 예정.", personality: "시나리오의 관계에 어울리는 인물.", secret: "" };
+    for (const [, s] of scenes) {
+      s.npcs ??= [];
+      if (!s.npcs.includes(kpcId)) s.npcs.push(kpcId);
+    }
+    return !existed;
+  }
+  function nameExplorers(text, names) {
+    const list = [...new Set((names ?? []).map((n) => clip(n, 16)).filter(Boolean))];
+    if (!list.length) return String(text ?? "");
+    const who = list.join("·");
+    return String(text ?? "").replace(/탐사자들은/g, `${who}는`).replace(/탐사자들이/g, `${who}가`)
+      .replace(/탐사자들을/g, `${who}를`).replace(/탐사자들/g, who).replace(/탐사자/g, who);
+  }
+  /** 호스트의 긴급 개입은 현재 사건과 이미 선언된 플래그에만 반영. */
+  function emergencyEdit(sc, st, input) {
+    if (!input || typeof input !== "object") return false;
+    const s = sc?.scenes?.[st?.currentScene];
+    if (!s) return false;
+    const kind = String(input.kind ?? "");
+    if (kind === "scene_intro" || kind === "gm_note") {
+      const value = clip(input.text, 3000);
+      if (!value) return false;
+      s[kind === "scene_intro" ? "description" : "gm_only"] = value;
+      return true;
+    }
+    if (kind === "npc") return !!registerNpc(sc, st.currentScene, input);
+    if (kind === "clue") {
+      const id = clip(input.id, 40), value = clip(input.text, 1000);
+      if (!/^[a-z][\w-]{0,39}$/.test(id) || !value) return false;
+      s.clues ??= [];
+      const current = s.clues.find((c) => c.id === id);
+      if (!current && s.clues.length >= 80) return false;
+      if (current) current.text = value;
+      else s.clues.push({ id, text: value, reveal: "호스트 긴급 개입" });
+      return true;
+    }
+    if (kind === "flag" && Object.hasOwn(st.flags ?? {}, input.id) && typeof input.value === "boolean") {
+      st.flags[input.id] = input.value;
+      return true;
+    }
+    return false;
+  }
+
   /** 플레이어가 보낸 캐릭터를 규칙에 맞게 검증·정리 */
   const validateCharacter = (sc, raw, extra = {}) => Rules.validateCoc(sc, raw, extra.rolled, clip);
 
@@ -3113,7 +3194,7 @@ const Engine = (() => {
 
   /* ---------------- 진행 상태 ---------------- */
   function newState(sc) {
-    return { currentScene: sc.start, flags: { ...(sc.flags ?? {}) }, revealedClues: [], passedChecks: [], pendingChecks: [], pendingCheck: null, progressJournal: [], stallTurns: 0, visited: [sc.start], tokens: {}, revealedTiles: {} };
+    return { currentScene: sc.start, flags: { ...(sc.flags ?? {}) }, revealedClues: [], passedChecks: [], checkAttempts: [], pendingChecks: [], pendingCheck: null, progressJournal: [], stallTurns: 0, visited: [sc.start], tokens: {}, revealedTiles: {} };
   }
   // 이전 단일 대기 판정 저장본도 읽고, 이후에는 개별 항목을 지워 다른 플레이어의 차례를 보존.
   function pendingList(st) {
@@ -3173,22 +3254,36 @@ const Engine = (() => {
   }
   const findCheck = (sc, st, id) => (sceneOf(sc, st).checks ?? []).find((c) => c.id === id) ?? null;
 
-  function applyCheck(sc, st, checkId, roll) {
+  function canTryCheck(st, checkId, pid, isSan = false) {
+    if (!pid) return true;  // 사람 GM은 판정 요청 및 대리 판정 가능
+    if ((st.checkAttempts ?? []).some((a) => a.checkId === checkId && a.pid === pid)) return false;
+    return isSan || !(st.passedChecks ?? []).includes(checkId);
+  }
+  function applyCheck(sc, st, checkId, roll, pid = null) {
     const check = findCheck(sc, st, checkId);
     if (!check) return null;
     const ok = !!roll.ok;   // 성공 여부는 호출한 쪽(CoC 판정)이 정해서 넘김
+    const rewarded = !!st.passedChecks?.includes(check.id);
+    if (pid) {
+      st.checkAttempts ??= [];
+      const prior = st.checkAttempts.find((a) => a.checkId === check.id && a.pid === pid);
+      if (prior) prior.ok = ok;  // 밀어붙인 판정은 같은 사람의 최종 결과로 갱신
+      else st.checkAttempts.push({ checkId: check.id, pid, ok });
+      if (st.checkAttempts.length > 500) st.checkAttempts.splice(0, st.checkAttempts.length - 500);
+    }
     st.triedChecks ??= [];
     if (!st.triedChecks.includes(check.id)) st.triedChecks.push(check.id);   // 굴린 판정은 플레이어 메모에 남음
     if (ok) { st.passedChecks ??= []; if (!st.passedChecks.includes(check.id)) st.passedChecks.push(check.id); }
     const o = (ok ? check.success : check.fail) ?? {};
-    if (o.setFlag) st.flags[o.setFlag] = true;
-    const clue = o.reveal ? revealClue(sc, st, o.reveal) : null;
+    // 실패 분기에서는 대가와 서술·사건 분기만 적용. 단서·아이템·플래그 보상은 성공에서만.
+    if (ok && o.setFlag) st.flags[o.setFlag] = true;
+    const clue = ok && o.reveal ? revealClue(sc, st, o.reveal) : null;
     let moved = false;
     if (o.go && sc.scenes[o.go]) { st.currentScene = o.go; clearPending(st); moved = true; }
     // 대기열은 호스트가 이번 판정만 꺼낸다. 다른 사람의 요청은 지우지 않는다.
     // 판정 결과로 굴린 캐릭터가 물건을 얻거나 잃음 (give / take: 물건 이름 또는 목록)
     const list = (v) => (Array.isArray(v) ? v : v ? [v] : []).map((x) => clip(String(x), 30)).filter(Boolean);
-    return { check, ok, text: o.text ?? "", clue, moved, give: list(o.give), take: list(o.take) };
+    return { check, ok, text: o.text ?? "", clue, moved, give: ok && !rewarded ? list(o.give) : [], take: list(o.take) };
   }
 
   /* ---------------- 주사위 ---------------- */
@@ -3307,7 +3402,8 @@ const Engine = (() => {
 
   return {
     condOk, condText, normalize, charRules, validateCharacter, validateScenario, newState, pendingList, queuePending, takePending, clearPending, recordProgress, sceneOf,
-    availableExits, move, revealClue, findClueAnywhere, findCheck, applyCheck, rollDice, randInt,
+    availableExits, move, revealClue, findClueAnywhere, findCheck, applyCheck, canTryCheck, rollDice, randInt,
+    registerNpc, ensureKpc, nameExplorers, emergencyEdit,
     publicView, gmView, aiContext, charState, npcFight, clip, isImageURL, isAudioURL, bgmOf,
   };
 })();
@@ -3823,10 +3919,14 @@ const AI = (() => {
 23. 판정(request_check · improv_check)을 거는 응답의 narration은 판정 직전 상황까지만 쓰고, 성공이나 실패를 미리 서술하지 않는다. 판정과 move_to를 한 응답에 함께 넣지 않는다. 판정 who는 그 행동을 선언한 캐릭터.
 24. 전투: 싸움은 판정으로 푼다. 캐릭터가 공격하면 improv_check로 근접전(격투) · 사격(권총) · 투척 판정, 공격받으면 회피(또는 근접전으로 반격) 판정을 건다. NPC의 공격 · 회피 성공 여부는 "등장NPC"의 "전투" 기능 수치를 보고 네가 정해 서술한다. 판정 결과가 [최근 진행]에 나온 뒤에만 피해를 준다: hurt에 {"to": "맞은 캐릭터 또는 NPC 이름", "dice": "피해 식", "by": "무기"}. 캐릭터의 근접 공격 피해는 무기 식 + DB (맨손 1d3+DB, 칼 1d4+DB, 몽둥이 1d6+DB; DB라고 쓰면 시스템이 그 캐릭터의 피해보너스로 바꿈), 총은 DB 없이 (권총 1d10). NPC의 공격 피해는 그 NPC "전투"의 무기 식을 그대로 쓴다. 극단적 성공한 공격이면 "max": true. 숫자(피해량 · 남은 체력)는 시스템이 굴려 기록하므로 서술에 직접 쓰지 않는다. 치료(응급처치 성공 1, 의료 성공 1d3)는 heal에 {"to": "캐릭터", "dice": "1"}.
 25. 캐릭터 "상태"가 "의식불명"이나 "빈사"이면, 그 캐릭터가 살아남는지 · 깨어나는지 · 죽는지는 시나리오의 분위기와 이야기 흐름에 맞게 네가 정한다. 정했으면 fate에 {"to": "캐릭터", "state": "사망" 또는 "의식불명" 또는 "회복"}. 일행이 응급처치를 하거나 시간이 지나 깨어나면 "회복". 이미 죽은 캐릭터는 행동할 수 없다.
+26. 실제 캐릭터 이름이 [게임 상황]에 있으면 대명사 '탐사자'를 남용하지 않고 각 캐릭터의 이름으로 서술한다. 누구의 행동인지 확실하지 않으면 임의로 특정하지 않는다.
+27. 지금 사건에서 새 이름과 외모·성격 묘사를 가진 인물을 실제로 등장시켰다면 new_npcs 목록에 {"name": "인물 이름", "look": "외모", "personality": "성격"}를 넣는다. 이미 등장한 인물은 중복 추가하지 않는다. 원문·고정사실에 반하는 중요한 새 인물은 만들지 않는다.
+28. 'KPC'라는 자리표시자가 등장하면 시나리오 분위기·관계에 어울리는 실제 NPC 이름, 외모와 성격을 정해 등장시키고 new_npcs에 {"id":"kpc","name":"실제 이름","look":"외모","personality":"성격"}를 보낸다. 이 인물의 원래 비밀과 역할은 변경하지 않는다.
+29. 한 캐릭터가 판정에 실패하더라도 그 행동을 독립적으로 시도하는 다른 캐릭터에게 같은 판정을 요청할 수 있다. 이미 실패한 사람의 판정은 밀어붙이기 규칙과 구별한다. 판정 실패 뒤에는 성공 보상 단서나 소지품을 미리 공개하지 않는다.
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
 [출력 형식] 아래 JSON 하나만 출력한다.
-{"narration": "서술", "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
+{"narration": "서술", "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","look":"외모","personality":"성격"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
   }
 
   function logLine(e) {
@@ -3871,6 +3971,11 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
       obj.narration ??= "";
       const np = obj.new_place && typeof obj.new_place === "object" && str(obj.new_place.name)
         ? { name: str(obj.new_place.name).slice(0, 30), look: (str(obj.new_place.look) ?? "").slice(0, 400) } : null;
+      const newNpcs = (Array.isArray(obj.new_npcs) ? obj.new_npcs : []).filter((n) => n && typeof n === "object" &&
+        str(n.name) && (str(n.look) || str(n.personality))).slice(0, 4).map((n) => ({
+        ...(n.id === "kpc" ? { id: "kpc" } : {}), name: str(n.name).slice(0, 30),
+        look: (str(n.look) ?? "").slice(0, 300), personality: (str(n.personality) ?? "").slice(0, 200),
+      }));
       const io = obj.improv_check && typeof obj.improv_check === "object" ? obj.improv_check : null;
       const ic = io && (str(io.skill) || str(io.san))
         ? { skill: str(io.skill) ?? "", reason: (str(io.reason) ?? "").slice(0, 40), who: (str(io.who) ?? "").slice(0, 16),
@@ -3879,7 +3984,7 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
       return { ok: true, error: "", res: {
         narration: obj.narration.trim().slice(0, 3000),
         reveal_clue: str(obj.reveal_clue), request_check: rq?.id ? rq : null, move_to: str(obj.move_to), arrival: (str(obj.arrival) ?? "").trim().slice(0, 3000) || null,
-        improv_check: ic, new_place: np, left_place: obj.left_place === true,
+        improv_check: ic, new_place: np, new_npcs: newNpcs, left_place: obj.left_place === true,
         on_track: obj.on_track === true ? true : obj.on_track === false ? false : null,
         give_item: itemsOf(obj.give_item), take_item: itemsOf(obj.take_item), answers,
         hurt: dmgList(obj.hurt), heal: dmgList(obj.heal), fate: fateOf(obj.fate),
@@ -3887,7 +3992,7 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
     } catch (e) {
       const plain = String(text).replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/```(?:json)?/gi, "").trim();
       return { ok: false, error: e instanceof SyntaxError ? "JSON 문법 오류" : e?.message || "형식 오류",
-        res: { narration: plain.slice(0, 3000), reveal_clue: null, request_check: null, move_to: null, arrival: null, improv_check: null, new_place: null, left_place: false, on_track: null, give_item: [], take_item: [], answers: [], hurt: [], heal: [], fate: null } };
+        res: { narration: plain.slice(0, 3000), reveal_clue: null, request_check: null, move_to: null, arrival: null, improv_check: null, new_place: null, new_npcs: [], left_place: false, on_track: null, give_item: [], take_item: [], answers: [], hurt: [], heal: [], fate: null } };
     }
   }
 
@@ -4138,7 +4243,7 @@ const Turn = (() => {
     const plan = {
       narration: (r.narration ?? "").trim(), arrival: null, answers: [], clue: null, move: null, check: null,
       give: [], take: [], place: null, leavePlace: false, onTrack: r.on_track ?? null,
-      hurt: [], heal: [], fate: null,
+      hurt: [], heal: [], fate: null, newNpcs: [],
     };
 
     // ---- 사건 이동 ----
@@ -4147,6 +4252,10 @@ const Turn = (() => {
       else if (info.exits.includes(r.move_to)) { plan.move = r.move_to; plan.arrival = r.arrival || null; }
       else soft(`갈 수 없는 사건 '${r.move_to}' → 이동 무시`);
     }
+    // 새 이름과 묘사가 실제 공개 서술에 나온 인물만 등록 (KPC 자리표시자는 예외).
+    const npcText = [plan.narration, r.arrival ?? ""].join(" ");
+    plan.newNpcs = (r.new_npcs ?? []).filter((n) => (n.id === "kpc" || npcText.includes(n.name)) &&
+      !info.chars.some((c) => c.name === n.name)).slice(0, 4);
     // ---- 단서 ----
     if (r.reveal_clue) {
       if (info.clues.includes(r.reveal_clue)) plan.clue = r.reveal_clue;
@@ -4190,6 +4299,14 @@ const Turn = (() => {
       given.push({ pid: c.pid, name: c.name, item: g.item });
     }
     plan.give = given;
+    // 직전 AI 차례에 실패한 주사위 판정만 있다면 AI가 잘못 제안한 단서·아이템 보상을 무시한다.
+    // 벌칙으로 물건을 잃는 take_item이나 실패에 대한 상황 묘사는 그대로 허용한다.
+    if (info.onlyFailedRolls) {
+      if (plan.clue) soft("이번 차례의 주사위 판정이 모두 실패함 → 단서 보상 무시");
+      if (plan.give.length) soft("이번 차례의 주사위 판정이 모두 실패함 → 아이템 보상 무시");
+      plan.clue = null;
+      plan.give = [];
+    }
     for (const t of r.take_item ?? []) {
       const c = charOf(t.to);
       if (!c) { soft(`물건 잃을 캐릭터 '${t.to}'을(를) 모름 → 무시`); continue; }
@@ -4247,7 +4364,7 @@ const Turn = (() => {
     if (info.askOnly) {
       const dropped = [plan.clue && "단서", plan.move && "이동", plan.check && "판정", plan.take.length && "물건 잃음", plan.place && "장소", (plan.hurt.length || plan.heal.length || plan.fate) && "피해 · 생사"].filter(Boolean);
       if (dropped.length) soft(`질문뿐인 차례 → ${dropped.join(" · ")} 무시`);
-      Object.assign(plan, { clue: null, move: null, arrival: null, check: null, take: [], place: null, leavePlace: false, onTrack: null, hurt: [], heal: [], fate: null });
+      Object.assign(plan, { clue: null, move: null, arrival: null, check: null, take: [], place: null, leavePlace: false, onTrack: null, hurt: [], heal: [], fate: null, newNpcs: [] });
       // 물건 바로잡기만 허용: 최근 서술 · 판정 결과에 그 물건을 받은 이야기가 있을 때
       plan.give = plan.give.filter((g) => bare(info.recentText).includes(bare(g.item)));
       if (!plan.answers.length && plan.narration && info.askers.length === 1) {
@@ -4293,7 +4410,7 @@ const Turn = (() => {
 const MAX_PEOPLE = 4;
 const LOG_LIMIT = 2000;
 const PORTRAIT_MAX = 80_000;   // 초상 하나 최대
-const APP_BUILD = 6;          // 호스트·플레이어 코드가 섞이면 조용히 진행하지 않음
+const APP_BUILD = 7;          // 호스트·플레이어 코드가 섞이면 조용히 진행하지 않음
 
 function randomId(len = 10) {
   const abc = "abcdefghijkmnpqrstuvwxyz23456789";
@@ -4305,6 +4422,7 @@ function randomId(len = 10) {
 class HostGame {
   constructor(data, opts) {
     this.data = data;
+    Engine.ensureKpc(data.scenario);
     // 오래된 저장본에도 로그 순서를 부여한다. AI 처리 경계는 시간 대신 이 번호로 관리한다.
     let seq = 0;
     for (const e of data.log ?? []) {
@@ -4391,6 +4509,7 @@ class HostGame {
       if (!Number.isSafeInteger(g.stallTurns) || g.stallTurns < 0) g.stallTurns = 0;
       g.visited = [...new Set([obj.scenario?.start, ...(Array.isArray(g.visited) ? g.visited : []), g.currentScene])].filter((id) => obj.scenario?.scenes?.[id]);
       g.passedChecks ??= [];
+      g.checkAttempts ??= [];
       g.revealedTiles ??= {};
       g.tokens ??= {};
     }
@@ -4501,6 +4620,10 @@ class HostGame {
   notice(pid, text) { this.emit(pid, { t: "notice", text }); }
 
   addLog(entry) {
+    if (typeof entry.text === "string" && ["scene", "ai", "gm", "clue"].includes(entry.kind)) {
+      const names = Object.values(this.data.players).filter((p) => p.ready && p.character).map((p) => p.character.name);
+      entry = { ...entry, text: Engine.nameExplorers(entry.text, names) };
+    }
     const e = { id: randomId(16), at: Date.now(), ...entry, seq: ++this.data.logSeq,
       ...(this.aiApplying ? { aiOutput: true } : {}) };
     this.data.log.push(e);
@@ -4628,7 +4751,7 @@ class HostGame {
   /** 판정 결과를 시나리오에 반영 (단서 · 물건 · 사건 이동). 판정 기록 줄에 붙일 결과 글을 돌려줌 */
   applyCheckResult(pid, check, ok, gmOnly) {
     const d = this.data, p = d.players[pid];
-    const res = Engine.applyCheck(this.sc, d.game, check.id, { ok });
+    const res = Engine.applyCheck(this.sc, d.game, check.id, { ok }, pid);
     if (!res) return null;
     if (res.ok) d.game.offTrack = 0;
     if (res.text) this.addLog({ kind: "system", text: `→ ${res.text}` });
@@ -4653,7 +4776,7 @@ class HostGame {
       // 장기 광기 기준: 이 사건에서 처음 잃기 전의 이성
       d.game.sanBase ??= {};
       if (d.game.sanBase[pid]?.scene !== d.game.currentScene) d.game.sanBase[pid] = { scene: d.game.currentScene, base: before };
-      const res = check ? Engine.applyCheck(this.sc, d.game, check.id, { ok: r.ok }) : null;
+      const res = check ? Engine.applyCheck(this.sc, d.game, check.id, { ok: r.ok }, pid) : null;
       this.addLog({ kind: "roll", byId: pid, by, roll: rollOf(r.roll), dice: Rules.diceFx(r.roll), detail: `1d100 → ${r.roll.value} / 이성 ${before}`,
         text: `${spec.label} (이성 ${spec.san})${spec.improv ? " · 즉흥" : ""}`, result: `${r.ok ? "성공" : "실패"}${r.crit ? ` (${r.crit})` : ""} — 이성 -${loss} (${c.san}/${c.sanMax})${res?.text ? ` — ${res.text}` : ""}`, ok: r.ok, crit: r.crit, san: true });
       if (c.san === 0) { c.madness = "영구 광기"; this.addLog({ kind: "system", who: pid, mad: "영구 광기", text: `${c.name}: 이성 0 — 영구 광기.` }); }
@@ -4676,7 +4799,7 @@ class HostGame {
     const tgt = Rules.target(c, spec.skill), diff = Rules.normDiff(spec.difficulty) ?? "보통";
     const n = Math.max(-2, Math.min(2, (Number(spec.dice) || 0) + styleDice));
     const r = Rules.resolve(Engine.randInt, tgt, diff, n);
-    const res = check ? Engine.applyCheck(this.sc, d.game, check.id, { ok: r.ok }) : null;
+    const res = check ? Engine.applyCheck(this.sc, d.game, check.id, { ok: r.ok }, pid) : null;
     if (r.ok) d.game.offTrack = 0;
     const tag = `${spec.skill} ${tgt}${diff !== "보통" ? ` · ${diff} ${r.thr}` : ""}${n > 0 ? ` · 보너스 ${n}` : n < 0 ? ` · 페널티 ${-n}` : ""}${spec.improv ? " · 즉흥" : ""}`;
     const tens = r.roll.tens.length > 1 ? ` (10의 자리 ${r.roll.tens.map((t) => (t ? `${t}0` : "00")).join(" · ")})` : "";
@@ -5052,6 +5175,8 @@ class HostGame {
         if (!improv && !check) return this.notice(pid, "지금은 불가능한 판정.");
         const gmOnly = this.isHost(pid) && !d.hostPlays;
         if (!gmOnly && !(p.character && p.ready)) return this.notice(pid, "캐릭터 준비 먼저.");
+        if (check && !gmOnly && !Engine.canTryCheck(d.game, check.id, pid, !!check.san) && !pc)
+          return this.notice(pid, "이미 시도했거나 성공해 해결된 판정. 다른 캐릭터의 시도를 기다리세요.");
         // 요청된 판정은 그 주인만 굴림 (주인이 접속해 있지 않으면 누구나)
         d.game.retry = null;
         if (pc) Engine.takePending(d.game, checkId, pid, (who) => this.online(who));
@@ -5102,6 +5227,24 @@ class HostGame {
     // ---- 여기부터 호스트 전용 ----
     if (!host) return;
     switch (msg.t) {
+      case "emergencyEdit": {
+        if (!play) return;
+        if (!Engine.emergencyEdit(this.sc, d.game, msg)) return this.notice(pid, "긴급 개입 항목 또는 값이 올바르지 않음.");
+        this.invalidateAI();
+        this.note(`호스트 긴급 개입: ${String(msg.kind).slice(0, 30)}`);
+        this.addLog({ kind: "system", text: `호스트가 시나리오 설정을 조정함 (${String(msg.kind).slice(0, 30)}).` });
+        this.pushAll();
+        return;
+      }
+      case "emergencyNarrate": {
+        if (!play) return;
+        const body = Engine.clip(msg.text, 1200);
+        if (!body) return this.notice(pid, "서술을 입력해 주세요.");
+        this.invalidateAI();
+        this.addLog({ kind: "gm", by: "GM", text: body });
+        this.pushAll();
+        return;
+      }
       case "start": {
         if (d.phase !== "lobby") return;
         const readyCount = Object.entries(d.players).filter(([id, q]) => q.ready && (!this.isHost(id) || d.hostPlays)).length;
@@ -5389,6 +5532,8 @@ class HostGame {
       askers: uniq(since.filter((e) => e.kind === "say" && e.style === "ask").map((e) => e.byId)),
       askOnly,
       gotThisTurn: since.filter((e) => e.kind === "system").map((e) => /「(.+)」 얻음$/.exec(e.text)?.[1]).filter(Boolean),
+      onlyFailedRolls: since.some((e) => e.kind === "roll" && typeof e.ok === "boolean" && !e.dmg) &&
+        !since.some((e) => e.kind === "roll" && e.ok === true && !e.dmg),
       recentText: d.log.slice(-40).filter((e) => e.kind === "ai" || e.kind === "gm" || (e.kind === "roll" && e.result)).map((e) => `${e.text ?? ""}${e.result ?? ""}`).join(" "),
     };
     const recent = d.log.filter((e) => !e.secret && e.kind !== "ooc").slice(-25);
@@ -5448,6 +5593,11 @@ class HostGame {
   /** 검증된 계획을 상태에 반영 (예외가 나면 transaction이 되돌림) */
   applyPlan(plan) {
     const d = this.data;
+    // AI가 실제로 소개한 이름과 외모를 영속 NPC로 기록해 추후 대화·GM 노트에서 재사용.
+    for (const npc of plan.newNpcs ?? []) {
+      const targetScene = plan.move && this.sc.scenes[plan.move] ? plan.move : d.game.currentScene;
+      Engine.registerNpc(this.sc, targetScene, npc);
+    }
     d.game.retry = null;   // GM이 결과를 서술했으면 밀어붙이기 · 행운 기회 끝
     const clue = plan.clue ? Engine.revealClue(this.sc, d.game, plan.clue) : null;
     const answerLogs = () => { for (const a of plan.answers) this.addLog({ kind: "ai", by: "GM", text: a.text, to: a.toName, toId: a.toPid }); };
@@ -8500,14 +8650,30 @@ const BannerArt = (() => {
 
   /* ---------------- 로그 ---------------- */
   const logBox = $("#log");
-  function updateBottomButton() {
+  let scrollArrowTimer = null, scrollArrowUntil = 0;
+  function updateScrollArrows() {
     const btn = $("#logBottom"), top = $("#logTop");
     const distance = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight;
-    btn.hidden = distance < 120 || logBox.clientHeight === 0;
-    top.hidden = logBox.scrollTop < 120 || logBox.clientHeight === 0;
+    const duringScroll = Date.now() < scrollArrowUntil;
+    btn.hidden = !duringScroll || distance < 120 || logBox.clientHeight === 0;
+    top.hidden = !duringScroll || logBox.scrollTop < 120 || logBox.clientHeight === 0;
+  }
+  function markUserScroll() {
+    scrollArrowUntil = Date.now() + 2000;
+    clearTimeout(scrollArrowTimer);
+    scrollArrowTimer = setTimeout(() => { scrollArrowUntil = 0; updateScrollArrows(); }, 2000);
+    updateScrollArrows();
+  }
+  function updateBottomButton() {
+    const btn = $("#logBottom"), top = $("#logTop");
+    updateScrollArrows();
     const below = [$("#chatForm"), $("#gather"), $("#turnStatus")];
     btn.style.bottom = `${16 + below.reduce((sum, node) => sum + (node.hidden ? 0 : node.offsetHeight), 0)}px`;
   }
+  logBox.addEventListener("wheel", markUserScroll, { passive: true });
+  logBox.addEventListener("touchmove", markUserScroll, { passive: true });
+  logBox.addEventListener("pointerdown", markUserScroll, { passive: true });
+  logBox.addEventListener("keydown", (e) => { if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(e.key)) markUserScroll(); });
   logBox.addEventListener("scroll", updateBottomButton, { passive: true });
   window.addEventListener("resize", updateBottomButton);
   $("#logTop").addEventListener("click", () => { skipTyping(); logBox.scrollTop = 0; updateBottomButton(); });
@@ -9252,34 +9418,42 @@ const BannerArt = (() => {
     // 직업
     const bg = el("select", { "aria-label": "직업 선택" }, el("option", { value: "" }, "— 직업 선택 —"), ...rules.backgrounds.map((b) => el("option", { value: b.name }, b.name)));
     const bgCustom = el("input", { maxlength: 30, placeholder: "자유 직업 입력", "aria-label": "직업 직접 입력", hidden: true });
-    bg.value = d.background;
     const occ = () => rules.backgrounds.find((x) => x.name === d.background) ?? null;
-    let bgMode = !rules.backgrounds.length || (d.background && !occ()) ? "custom" : "preset";
+    let bgMode = !rules.backgrounds.length ? "custom" :
+      ["preset", "custom"].includes(d.occupationMode) ? d.occupationMode :
+        (d.background && !occ() ? "custom" : "preset");
+    let bgPresetValue = d.occupationPreset ?? (occ()?.name ?? "");
+    let bgCustomValue = d.occupationCustom ?? (d.background && !occ() ? d.background : "");
+    bg.value = bgPresetValue;
+    bgCustom.value = bgCustomValue;
     const bgPickBtn = el("button", { type: "button", class: "btn tiny ghost", disabled: !rules.backgrounds.length, on: { click: () => setBgMode("preset") } }, "직업 선택");
     const bgTypeBtn = el("button", { type: "button", class: "btn tiny ghost", on: { click: () => setBgMode("custom") } }, "직접 입력");
     const showBg = () => {
-      if (d.background) bgMode = occ() ? "preset" : "custom";
       const custom = bgMode === "custom";
       bgPickBtn.classList.toggle("active", !custom); bgPickBtn.setAttribute("aria-pressed", String(!custom));
       bgTypeBtn.classList.toggle("active", custom); bgTypeBtn.setAttribute("aria-pressed", String(custom));
+      bgPickBtn.disabled = !rules.backgrounds.length || !custom;
+      bgTypeBtn.disabled = custom;
       bg.hidden = custom;
-      if (!custom) bg.value = d.background || "";
+      if (!custom) bg.value = bgPresetValue;
       bgCustom.hidden = !custom;
-      if (custom) bgCustom.value = d.background || "";
+      if (custom) bgCustom.value = bgCustomValue;
     };
     const setBgMode = (mode) => {
+      if (bgMode === mode) return;
       const prev = occ(); bgMode = mode;
-      d.background = mode === "custom" ? bgCustom.value : bg.value;
+      d.occupationMode = mode;
+      d.background = mode === "custom" ? bgCustomValue : bgPresetValue;
       const o = occ();
       if (!d.hook || d.hook === prev?.hook) { d.hook = o?.hook ?? ""; hook.value = d.hook; }
       showBg(); saveDraft(); refreshCoc();
     };
     bg.addEventListener("change", () => {
-      const prev = occ(); d.background = bg.value; const o = occ();
+      const prev = occ(); bgPresetValue = bg.value; d.occupationPreset = bgPresetValue; d.background = bgPresetValue; const o = occ();
       if (!d.hook || d.hook === prev?.hook) { d.hook = o?.hook ?? ""; hook.value = d.hook; }
       showBg(); saveDraft(); refreshCoc();
     });
-    bgCustom.addEventListener("input", () => { d.background = bgCustom.value.slice(0, 30); saveDraft(); refreshCoc(); });
+    bgCustom.addEventListener("input", () => { bgCustomValue = bgCustom.value.slice(0, 30); d.occupationCustom = bgCustomValue; d.background = bgCustomValue; saveDraft(); refreshCoc(); });
     // 특성치 (호스트 굴림)
     const charGrid = el("div", { class: "coc-chars" }), derivedEl = el("div", { class: "coc-derived" });
     const rollBtn = icBtn("button", "dice-btn roll-chars", "die3", "특성치 굴리기", { type: "button", on: { click: () => { rollBtn.classList.remove("rolling"); void rollBtn.offsetWidth; rollBtn.classList.add("rolling"); send({ t: "rollChars" }); } } });
@@ -9835,6 +10009,47 @@ const BannerArt = (() => {
         parts.push(...secret);
         if (s.hostPlays) parts.push(el("button", { class: "btn tiny ghost", type: "button", on: { click: () => { app.gmSpoil = false; renderGM(app.snap); } } }, "다시 가리기"));
       }
+      // 보통은 AI GM이 진행하고, 어긋났을 때에만 호스트가 좁은 범위의 설정을 개입한다.
+      const ask = (label, initial = "") => {
+        const v = window.prompt(label, initial);
+        return v == null ? null : v.trim();
+      };
+      const emergency = el("details", { class: "gm-hints gm-emergency" },
+        el("summary", { class: "small" }, "긴급 개입 · 호스트 전용"),
+        el("p", { class: "small muted" }, "진행 중인 사건만 변경합니다. 개입 시 진행 중인 AI 응답은 취소됩니다."),
+        el("div", { class: "gm-actions" },
+          el("button", { class: "btn tiny", type: "button", on: { click: () => {
+            const text = ask("플레이어에게 보일 GM 서술"); if (text) send({ t: "emergencyNarrate", text });
+          } } }, "GM 직접 서술"),
+          el("button", { class: "btn tiny", type: "button", on: { click: () => {
+            const text = ask("현재 사건의 도입을 수정", s.view?.scene?.description ?? "");
+            if (text) send({ t: "emergencyEdit", kind: "scene_intro", text });
+          } } }, "사건 도입 수정"),
+          el("button", { class: "btn tiny", type: "button", on: { click: () => {
+            const text = ask("현재 사건의 GM 전용 메모", gm.gmOnly ?? "");
+            if (text) send({ t: "emergencyEdit", kind: "gm_note", text });
+          } } }, "GM 메모 수정"),
+          el("button", { class: "btn tiny", type: "button", on: { click: () => {
+            const name = ask("추가하거나 수정할 NPC 이름"); if (!name) return;
+            const look = ask("NPC 외모 묘사"); if (look == null) return;
+            const personality = ask("NPC 성격", "") ?? "";
+            if (look || personality) send({ t: "emergencyEdit", kind: "npc", name, look, personality });
+          } } }, "NPC 추가/수정"),
+          el("button", { class: "btn tiny", type: "button", on: { click: () => {
+            const name = ask("AI 대신 정할 KPC의 실제 이름"); if (!name) return;
+            const look = ask("KPC 외모 묘사"); if (!look) return;
+            const personality = ask("KPC 성격", "") ?? "";
+            send({ t: "emergencyEdit", kind: "npc", id: "kpc", name, look, personality });
+          } } }, "KPC 직접 지정"),
+          el("button", { class: "btn tiny", type: "button", on: { click: () => {
+            const id = ask("단서 ID (영문으로, 기존 ID면 수정)"); if (!id) return;
+            const text = ask("단서의 내용"); if (text) send({ t: "emergencyEdit", kind: "clue", id, text });
+          } } }, "단서 추가/수정")),
+        el("div", { class: "gm-actions" },
+          ...Object.entries(gm.flags ?? {}).map(([id, value]) => el("button", { class: "btn tiny ghost", type: "button",
+            title: "클릭하면 플래그를 반대로 변경합니다", on: { click: () => send({ t: "emergencyEdit", kind: "flag", id, value: !value }) } },
+          `${id}: ${value ? "켜짐" : "꺼짐"}`))));
+      parts.push(emergency);
       if (s.view.place) parts.push(el("h4", {}, "장면 안 위치"), gmPlace(s));
     } else {
       parts.push(el("p", { class: "small muted" }, "모험이 시작되면 장면·NPC 비밀과 단서 버튼이 여기 표시됨."));
