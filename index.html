@@ -1935,11 +1935,15 @@ html.has-3d .topbar { box-shadow: none; }
 #checkBox .chip.active.memo-btn:disabled { opacity: .5; }
 /* 웹 기록 보관함 / 단서 수첩 */
 .history-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 20px 8px 48px; margin:0 var(--cover); background:var(--paper); border-bottom:2px solid var(--paper-lo); }
-#historyDialog { width:min(960px,90vw); max-height:86vh; background:var(--paper); color:var(--ink); border:3px solid var(--ink); padding:20px; font:15px/1.6 var(--font-body); }
+#historyDialog { box-sizing:border-box; position:fixed; z-index:60; inset:60px 12px auto auto; margin:0; width:min(560px,calc(100vw - 24px)); max-width:calc(100vw - 24px); max-height:min(68vh,680px); overflow-x:hidden; overflow-y:auto; background:var(--paper); color:var(--ink); border:3px solid var(--ink); padding:clamp(12px,3vw,20px); font:15px/1.6 var(--font-body); box-shadow:12px 15px 0 rgba(0,0,0,.55); }
 #historyDialog::backdrop { background:rgba(0,0,0,.75); }
+.archive-head, #historyDialog .row { flex-wrap:wrap; }
+#historyDialog .row > button { max-width:100%; white-space:normal; }
+.log-bottom { position:absolute; right:calc(var(--cover) + 12px); z-index:5; padding:6px 12px; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); }
+.log-bottom[hidden] { display:none; }
 .archive-head { display:flex; align-items:center; justify-content:space-between; gap:20px; }
 .archive-head h2 { margin:0; font-size:20px; }
-#historyList { max-height:52vh; overflow-y:auto; margin-top:12px; }
+#historyList { max-height:38vh; overflow-y:auto; margin-top:12px; }
 .archive-entry { padding:10px 8px; border-top:1px dashed var(--paper-lo); overflow-wrap:anywhere; }
 .archive-entry small { color:var(--ink-2); }
 .archive-entry p { white-space:pre-wrap; margin:5px 0; }
@@ -2234,6 +2238,7 @@ html.has-3d .topbar { box-shadow: none; }
     <section class="log-pane">
       <span id="recentInfo" class="sr-only">최근 기록</span>
       <div id="log" class="log" aria-live="polite"></div>
+      <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동">↓ 맨 아래</button>
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="btn tiny" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
       <div id="thinking" class="thinking" hidden>GM이 숨을 고르는 중…</div>
       <form id="chatForm" class="chat">
@@ -4332,6 +4337,14 @@ class HostGame {
         ready: !!p.ready, restored: p.pid !== snap.hostPid,
       };
     }
+    const portraits = {};
+    for (const p of snap.players ?? []) {
+      const m = /^por:([a-z0-9]+):(\d+)$/.exec(p.portrait ?? "");
+      const src = copy.portraitImages?.[p.portrait];
+      if (m?.[1] === p.pid && Number.isSafeInteger(Number(m[2])) && typeof src === "string" && /^data:image\//.test(src) && src.length <= PORTRAIT_MAX) {
+        portraits[p.pid] = { src, at: Number(m[2]) };
+      }
+    }
     if (!players[snap.hostPid]) throw new Error("사본에 호스트 정보 없음.");
     for (const entries of [copy.history,copy.archivePending]) if(entries != null && (!Array.isArray(entries) || entries.some(e=>!e || typeof e !== 'object' || typeof e.kind !== 'string'))) throw new Error('사본 보관 기록 손상됨.');
     const historyCuts = copy.historyCuts ?? [];
@@ -4343,7 +4356,7 @@ class HostGame {
       kind: "trpg-host-save", v: 1, roomId: snap.roomId, createdAt: Date.now(), savedAt: Date.now(),
       mode: snap.mode ?? "human", hostPlays: !!snap.hostPlays, scenario, game,
       phase: snap.phase === "play" ? "play" : "lobby", hostPid: snap.hostPid, players,
-      banned: [], log: history.slice(-LOG_LIMIT), history, historyCuts, logSeq, historyGeneration: randomId(16),
+      banned: [], log: history.slice(-LOG_LIMIT), history, historyCuts, logSeq, historyGeneration: randomId(16), portraits,
     };
   }
 
@@ -5524,7 +5537,10 @@ const Net = (() => {
         conn.on("data", (msg) => {
           let size = 0;
           try { size = JSON.stringify(msg).length; } catch { return; }
-          if (size > MAX_MSG) return;
+          // 초상은 압축 후에도 최대 약 70KB라 일반 채팅(20KB)과 같은 제한을 쓰면
+          // 친구의 사진 업로드가 조용히 버려진다. 실제 형식/크기는 HostGame에서도 재검사한다.
+          const maxSize = msg?.t === "portrait" ? PORTRAIT_MAX + 1024 : MAX_MSG;
+          if (size > maxSize) return;
           const game = getGame();
           if (!game) return;
           if (!joined) {
@@ -7352,7 +7368,8 @@ const BannerArt = (() => {
     const a = el("a", { href: URL.createObjectURL(blob), download: filename });
     document.body.append(a);
     a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    // 모바일/느린 기기에서 다운로드가 시작되기 전 URL을 해제하지 않는다.
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 60_000);
   }
   function readFile(input) {
     return new Promise((res, rej) => {
@@ -7951,6 +7968,11 @@ const BannerArt = (() => {
     // 연결되기 전에도 마지막으로 본 화면을 보여 준다
     const copy = await DB.get(K.copy(room));
     if (copy?.snap) {
+      if (copy.portraitImages && typeof copy.portraitImages === "object") {
+        for (const [ref, src] of Object.entries(copy.portraitImages)) {
+          if (/^por:[a-z0-9]+:\d+$/.test(ref) && typeof src === "string" && src.startsWith("data:image/") && src.length <= PORTRAIT_MAX) app.sceneImgs[ref] = src;
+        }
+      }
       app.snap = copy.snap;
       historyGeneration = copy.historyGeneration ?? copy.snap.historyGeneration ?? "legacy";
       historyCuts = copy.historyCuts ?? [];
@@ -7974,19 +7996,26 @@ const BannerArt = (() => {
   $("#joinNameInput").addEventListener("keydown", (e) => e.key === "Enter" && $("#joinBtn").click());
 
   let copyTimer = null;
-  const makeCopy = (n = 800) => ({ kind: "trpg-player-copy", v: 1, savedAt: Date.now(), snap: app.snap, log: app.log.slice(-n), historyCuts, historyGeneration, archivePending: HistoryArchive.pending(archiveScope()) });
+  // 화면에 허용된 인물 사진만 사본에 함께 둔다. 호스트가 잠시 부재해도 재접속 화면에 남는다.
+  const portraitCacheForSave = () => Object.fromEntries((app.snap?.players ?? []).flatMap(p => {
+    const ref = p.portrait, src = ref && app.sceneImgs[ref];
+    return /^por:[a-z0-9]+:\d+$/.test(ref ?? "") && typeof src === "string" && src.startsWith("data:image/") && src.length <= PORTRAIT_MAX ? [[ref, src]] : [];
+  }));
+  const makeCopy = (n = 800, keepPortraits = true) => ({ kind: "trpg-player-copy", v: 1, savedAt: Date.now(), snap: app.snap, log: app.log.slice(-n), historyCuts, historyGeneration, archivePending: HistoryArchive.pending(archiveScope()), portraitImages: keepPortraits ? portraitCacheForSave() : {} });
   async function flushCopy() {
     clearTimeout(copyTimer);
     copyTimer = null;
     if (app.role !== "player" || !app.snap) return;
-    if (!(await DB.set(K.copy(app.room), makeCopy())) && !(await DB.set(K.copy(app.room), makeCopy(200)))) { archiveOK = false; updateHistoryStatus(); toast("사본 저장 실패. 보관함에서 내보내기 필요."); }
+    if (!(await DB.set(K.copy(app.room), makeCopy())) && !(await DB.set(K.copy(app.room), makeCopy(200, false)))) { archiveOK = false; updateHistoryStatus(); toast("사본 저장 실패. 보관함에서 내보내기 필요."); }
   }
   function scheduleCopy() { if (!copyTimer) copyTimer = setTimeout(flushCopy, 800); }
 
   /* ---------------- 송수신 ---------------- */
   function send(msg) {
-    if (app.role === "host") return app.game.hostAction(msg);
-    if (!app.net?.send(msg)) toast("호스트 연결 끊김. 재연결 후 다시 전송.");
+    if (app.role === "host") { app.game.hostAction(msg); return true; }
+    if (app.net?.send(msg)) return true;
+    toast("호스트 연결 끊김. 재연결 후 다시 전송.");
+    return false;
   }
 
   function setStatus(s) {
@@ -8061,7 +8090,7 @@ const BannerArt = (() => {
   let historyGeneration = 'legacy';
   const archiveScope = () => `${app.room}:${historyGeneration}:${app.role === 'host' ? 'host' : `player:${app.me ?? app.snap?.me ?? 'unknown'}`}`;
   let historyCuts = [], archiveOK = true, historyBefore = Infinity, historyMore = true, historyTotal = null, historyShown = [];
-  let historyBusy = false, historyFocus = null;
+  let historyBusy = false, historyFocus = null, historyEpoch = 0, historyDisplayLimit = 200;
   const historyDialog = $('#historyDialog');
   function adoptHistoryGeneration(next) {
     if (!next || next === historyGeneration) return;
@@ -8080,16 +8109,20 @@ const BannerArt = (() => {
   });
   function updateHistoryStatus() {
     $('#recentInfo').textContent = `최근 기록 ${Math.min(app.log.length, 300)}개 · ${archiveOK ? '이전 기록은 별도 보관' : '장기 보관 실패 · 백업 필요'}`;
-    $('#historyStatus').textContent = `전체 기록: ${historyTotal == null ? '호스트 확인 필요' : historyTotal + '개'} · 현재 목록 ${historyShown.length}개 · ${archiveOK ? '브라우저 장기 보관' : '저장 실패 · 브라우저를 닫기 전 내보내기 필요'}`;
-    $('#historyMore').disabled = historyBusy || !historyMore;
+    $('#historyStatus').textContent = `전체 기록: ${historyTotal == null ? '호스트 확인 필요' : historyTotal + '개'} · 현재 목록 ${historyShown.length}개 (화면 ${Math.min(historyShown.length, historyDisplayLimit)}개) · ${archiveOK ? '브라우저 장기 보관' : '저장 실패 · 브라우저를 닫기 전 내보내기 필요'}`;
+    $('#historyMore').disabled = historyBusy || (!historyMore && historyShown.length <= historyDisplayLimit);
     $('#historySync').disabled = historyBusy;
+    $('#historyExport').disabled = historyBusy;
   }
   function requestHistory(before = Infinity) {
     return new Promise((resolve, reject) => {
       const requestId = randomId(16);
       const timer = setTimeout(() => { historyRequests.delete(requestId); reject(new Error('호스트 기록 응답 없음. 연결 후 다시 시도.')); }, 12000);
       historyRequests.set(requestId, { resolve, reject, timer });
-      send({ t: 'history', requestId, before: Number.isFinite(before) ? before : null });
+      if (!send({ t: 'history', requestId, before: Number.isFinite(before) ? before : null })) {
+        clearTimeout(timer); historyRequests.delete(requestId);
+        reject(new Error('호스트와 연결되지 않아 기록을 불러올 수 없음.'));
+      }
     });
   }
   function acceptHistory(msg) {
@@ -8101,49 +8134,76 @@ const BannerArt = (() => {
   }
   function drawHistory() {
     const list = $('#historyList'); list.replaceChildren();
-    for (const e of historyShown) list.append(el('article', { class: 'archive-entry' },
+    // 수천 개의 DOM을 한꺼번에 만들면 채팅 입력과 타이핑 타이머까지 멈출 수 있다.
+    for (const e of historyShown.slice(-historyDisplayLimit)) list.append(el('article', { class: 'archive-entry' },
       el('small', {}, `${e.at ? new Date(e.at).toLocaleString('ko-KR') : ''} · ${e.by ?? KIND_NAME[e.kind] ?? e.kind}${e.secret ? ' · 비밀' : ''}`),
       el('p', {}, [e.title, e.text, e.detail, e.result].filter(Boolean).join('\n'))));
     if (!historyShown.length) list.append(el('p', { class:'muted' }, '보관된 기록 없음.'));
     updateHistoryStatus();
   }
-  async function loadHistory(all = false) {
-    if (historyBusy) return;
+  async function loadHistory(all = false, epoch = historyEpoch) {
+    if (historyBusy || epoch !== historyEpoch || !historyDialog.open) return false;
     historyBusy = true; updateHistoryStatus();
     try {
       let more;
       do {
         const page = await requestHistory(historyBefore);
+        // 보관함을 닫았다가 다시 열어도 이전 응답이 새 목록을 덮어쓰지 않는다.
+        if (epoch !== historyEpoch || !historyDialog.open) return false;
         historyCuts = page.cuts ?? historyCuts;
         historyShown = WebFeatures.merge(historyShown, page.entries, historyCuts);
         rememberHistory(page.entries);
         historyBefore = page.next; historyMore = page.more; historyTotal = page.total; more = page.more;
         drawHistory();
-        if (all && more) await new Promise(r => setTimeout(r, 250));
-      } while (all && more && historyDialog.open);
+        if (all && more) await new Promise(r => setTimeout(r, 100));
+      } while (all && more && historyDialog.open && epoch === historyEpoch);
+      if (epoch !== historyEpoch || !historyDialog.open) return false;
       $('#historyMessage').textContent = historyMore ? '과거 기록을 더 불러올 수 있음.' : '호스트가 보관한 공개 권한 내 전체 기록을 불러옴.';
-    } catch (e) { $('#historyMessage').textContent = e.message; }
-    finally { historyBusy = false; updateHistoryStatus(); }
+      return !historyMore;
+    } catch (e) {
+      if (epoch === historyEpoch) $('#historyMessage').textContent = e.message;
+      return false;
+    } finally {
+      if (epoch === historyEpoch) { historyBusy = false; updateHistoryStatus(); }
+    }
   }
   $('#historyOpen').addEventListener('click', async () => {
+    if (historyDialog.open) return;
+    const epoch = ++historyEpoch;
     historyFocus = document.activeElement;
-    historyDialog.showModal(); historyBefore = Infinity; historyMore = true; historyTotal = null;
+    // 모달은 모든 채팅 입력을 막는다. 진행 중에도 쓸 수 있는 비모달 보관함으로 연다.
+    historyDialog.show(); historyBefore = Infinity; historyMore = true; historyTotal = null; historyDisplayLimit = 200;
+    $('#historyMessage').textContent = '';
     historyShown = WebFeatures.merge([], app.log, historyCuts); drawHistory();
     try {
       const local = await HistoryArchive.read(archiveScope());
-      historyShown = WebFeatures.merge(local, app.log, historyCuts); drawHistory();
-    } catch { $('#historyMessage').textContent = '장기 보관소 읽기 실패. 현재 메모리 기록만 표시.'; }
-    await loadHistory(false);
+      if (epoch !== historyEpoch || !historyDialog.open) return;
+      if (historyBefore === Infinity) { historyShown = WebFeatures.merge(local, app.log, historyCuts); drawHistory(); }
+    } catch { if (epoch === historyEpoch) $('#historyMessage').textContent = '장기 보관소 읽기 실패. 현재 메모리 기록만 표시.'; }
+    if (historyBefore === Infinity && historyMore) await loadHistory(false, epoch);
   });
-  $('#historyMore').addEventListener('click', () => loadHistory(false));
+  $('#historyMore').addEventListener('click', () => {
+    if (historyShown.length > historyDisplayLimit) { historyDisplayLimit += 100; drawHistory(); return; }
+    historyDisplayLimit += 100;
+    loadHistory(false);
+  });
   $('#historySync').addEventListener('click', () => loadHistory(true));
   $('#historyClose').addEventListener('click', () => historyDialog.close());
-  historyDialog.addEventListener('close', () => historyFocus?.focus());
+  historyDialog.addEventListener('close', () => { ++historyEpoch; historyBusy = false; updateHistoryStatus(); historyFocus?.focus(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && historyDialog.open) historyDialog.close(); });
   $('#historyExport').addEventListener('click', async () => {
+    if (historyBusy) return;
+    const epoch = historyEpoch;
+    // 첫 페이지(100개)만 내보내는 일이 없도록 호스트 전체 기록을 끝까지 동기화한다.
+    const complete = !historyMore || await loadHistory(true, epoch);
+    if (epoch !== historyEpoch || !historyDialog.open) return;
     let local = [];
-    try { local = await HistoryArchive.read(archiveScope()); } catch { toast('보관소 읽기 실패. 현재 불러온 기록만 내보냄.'); }
+    try { local = await HistoryArchive.read(archiveScope()); }
+    catch { $('#historyMessage').textContent = '로컬 보관소 읽기 실패. 현재 목록만 내보냄.'; }
+    if (epoch !== historyEpoch || !historyDialog.open) return;
     const entries = WebFeatures.merge(local, WebFeatures.merge(HistoryArchive.pending(archiveScope()), WebFeatures.merge(historyShown, app.log)), historyCuts);
-    download(`trpg-보관기록-${app.room}-${today()}.json`, { kind:'trpg-history', v:1, roomId:app.room, savedAt:Date.now(), scope:'이 사용자의 공개 권한 내 보관 기록', entries });
+    download(`trpg-보관기록-${complete ? '전체' : '부분'}-${app.room}-${today()}.json`, { kind:'trpg-history', v:1, roomId:app.room, savedAt:Date.now(), scope:'이 사용자의 공개 권한 내 보관 기록', complete, entries });
+    $('#historyMessage').textContent = complete ? `기록 ${entries.length}개 내보내기 완료.` : `호스트 전체 기록 확인 실패. 이 브라우저에 있는 ${entries.length}개만 부분 내보냄.`;
   });
 
   function usagePanel() {
@@ -8209,6 +8269,21 @@ const BannerArt = (() => {
 
   /* ---------------- 로그 ---------------- */
   const logBox = $("#log");
+  function updateBottomButton() {
+    const btn = $("#logBottom");
+    const distance = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight;
+    btn.hidden = distance < 120 || logBox.clientHeight === 0;
+    const below = [$("#chatForm"), $("#gather"), $("#thinking")];
+    btn.style.bottom = `${16 + below.reduce((sum, node) => sum + (node.hidden ? 0 : node.offsetHeight), 0)}px`;
+  }
+  logBox.addEventListener("scroll", updateBottomButton, { passive: true });
+  window.addEventListener("resize", updateBottomButton);
+  $("#logBottom").addEventListener("click", () => {
+    skipTyping();
+    logBox.scrollTop = logBox.scrollHeight;
+    updateBottomButton();
+    $("#chatInput").focus();
+  });
   const KIND_NAME = { gm: "GM", ai: "GM", system: "", clue: "단서" };
   /* 타이핑 연출: 새로 들어온 시나리오 나레이션(사건 도입)과 AI GM 서술만. 차례로 한 줄씩, 기록을 누르면 바로 끝까지 */
   const typeQueue = [];
@@ -8229,19 +8304,27 @@ const BannerArt = (() => {
     const job = typeQueue.shift();
     typing = job ?? null;
     if (!job) return afterTyping();
-    const chars = [...job.text], base = Math.max(24, Math.min(58, 4200 / chars.length));   // 길수록 빠르게 (한 줄 약 4~5초)
+    const chars = [...job.text];
+    // 긴 AI 서술도 180번 안쪽의 타이핑 단계로 끝낸다. 한 글자씩 수천 번
+    // 레이아웃을 강제로 갱신하면 화면·채팅 입력이 장시간 멈출 수 있다.
+    const chunkSize = Math.max(1, Math.ceil(chars.length / 180));
+    const steps = Math.ceil(chars.length / chunkSize);
+    const base = Math.max(14, Math.min(58, 4200 / steps));
     const done = document.createTextNode(""), key = el("span", { class: "tw-key" });
     job.node.replaceChildren(done, key);
-    let n = 0;
+    let n = 0, ticks = 0;
     const tick = () => {
       if (job.done) return;
       const stick = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 80;
-      if (n) done.appendData(chars[n - 1]);  // 매 키 입력마다 앞부분 전체를 다시 조립하지 않음
-      key.textContent = chars[n];
+      if (key.textContent) done.appendData(key.textContent);
+      const end = Math.min(chars.length, n + chunkSize);
+      if (end - n > 1) done.appendData(chars.slice(n, end - 1).join(""));
+      key.textContent = chars[end - 1];
       key.classList.remove("hit"); void key.offsetWidth; key.classList.add("hit");
-      if (chars[n].trim() && n % 2 === 0) Sfx.play("typeKey");
+      if (key.textContent.trim() && ticks++ % 2 === 0) Sfx.play("typeKey");
       if (stick) logBox.scrollTop = logBox.scrollHeight;
-      const c = chars[n++];
+      const c = chars[end - 1];
+      n = end;
       if (n >= chars.length) return void (job.timer = setTimeout(() => finishType(job), 120));
       // 문장 끝 · 쉼표에서 멈칫, 띄어쓰기는 빠르게, 나머지는 조금씩 들쭉날쭉
       const wait = /[.!?。…]/.test(c) ? base * 5 : /[,，、·]/.test(c) ? base * 2.6 : c === " " ? base * .6 : base * (.7 + Math.random() * .7);
@@ -8361,6 +8444,7 @@ const BannerArt = (() => {
     if (hold) { node.classList.add("awaiting"); held.push({ node, e }); }
     logBox.append(node);
     if (atBottom) logBox.scrollTop = logBox.scrollHeight;
+    requestAnimationFrame(updateBottomButton);
   }
   function renderLogAll() {
     skipTyping(); DiceFX.skip(); cancelReleases(); held.splice(0);
@@ -8368,6 +8452,7 @@ const BannerArt = (() => {
     app.log.slice(-300).forEach(e => renderEntry(e));
     updateHistoryStatus();
     logBox.scrollTop = logBox.scrollHeight;
+    requestAnimationFrame(updateBottomButton);
   }
   /* AI GM 행동 모음창: 모래시계 + "지켜보는 중…" (1초마다 모래시계가 뒤집힘) */
   let gatherTimer = null;
@@ -8413,10 +8498,11 @@ const BannerArt = (() => {
     const mode = sayModeOf(text);
     const style = mode === "cmd" ? "talk" : mode;
     if (mode === "act" || mode === "ask" || mode === "think") text = text.slice(1).trim() || text;
-    send({ t: "chat", text, style });
+    if (!send({ t: "chat", text, style })) return;
     Sfx.play("quill");
     $("#chatInput").value = "";
     showSayMode();
+    $("#chatInput").focus();
   });
 
   /* ---------------- 테이블 렌더 ---------------- */
@@ -8817,7 +8903,8 @@ const BannerArt = (() => {
     e.preventDefault();
     const inp = $("#lcInput"), text = inp.value.trim();
     if (!text) return;
-    send({ t: "lobbyChat", text }); inp.value = "";
+    if (!send({ t: "lobbyChat", text })) return;
+    inp.value = "";
     Sfx.play("tap");
   });
   $("#bellBtn").addEventListener("click", () => { Sfx.play("bell"); send({ t: "start" }); });
