@@ -4293,6 +4293,7 @@ const Turn = (() => {
 const MAX_PEOPLE = 4;
 const LOG_LIMIT = 2000;
 const PORTRAIT_MAX = 80_000;   // 초상 하나 최대
+const APP_BUILD = 6;          // 호스트·플레이어 코드가 섞이면 조용히 진행하지 않음
 
 function randomId(len = 10) {
   const abc = "abcdefghijkmnpqrstuvwxyz23456789";
@@ -4371,6 +4372,28 @@ class HostGame {
     obj.v = 1;
     obj.log ??= [];
     obj.banned ??= [];
+    const g = obj.game;
+    if (g && typeof g === "object") {
+      // 이전에 만든 테이블도 현재 엔진의 진행 상태 형식을 사용한다.
+      if (!Array.isArray(g.pendingChecks)) g.pendingChecks = g.pendingCheck ? [g.pendingCheck] : [];
+      g.pendingChecks = g.pendingChecks.filter((p) => p && typeof p.checkId === "string").slice(0, 12);
+      g.pendingCheck = g.pendingChecks[0] ?? null;
+      if (!Array.isArray(g.progressJournal)) {
+        let scene = obj.scenario?.start ?? g.currentScene;
+        const journal = [];
+        for (const e of obj.log) {
+          if (e?.kind === "scene" && e.sceneId) scene = e.sceneId;
+          if (!["scene", "clue", "roll", "ai", "gm"].includes(e?.kind) || e.secret || e.toId || !e.text) continue;
+          journal.push({ scene, kind: e.kind, text: String(e.text).slice(0, 240), seq: e.seq ?? 0, at: e.at ?? obj.savedAt ?? Date.now() });
+        }
+        g.progressJournal = journal.slice(-64);
+      }
+      if (!Number.isSafeInteger(g.stallTurns) || g.stallTurns < 0) g.stallTurns = 0;
+      g.visited = [...new Set([obj.scenario?.start, ...(Array.isArray(g.visited) ? g.visited : []), g.currentScene])].filter((id) => obj.scenario?.scenes?.[id]);
+      g.passedChecks ??= [];
+      g.revealedTiles ??= {};
+      g.tokens ??= {};
+    }
     return obj;
   }
   static checkSave(obj) {
@@ -4834,7 +4857,7 @@ class HostGame {
   }
   sendInit(pid) {
     this.imgSent?.delete(pid);   // 새로 연결되면 그림도 다시
-    this.emit(pid, { t: "hello", pid });
+    this.emit(pid, { t: "hello", pid, build: APP_BUILD });
     this.emit(pid, { t: "loginit", entries: this.data.log.filter((e) => this.visible(e, pid)).slice(-300), cuts: this.data.historyCuts, generation: this.data.historyGeneration });
     this.sendImage(pid);
     this.sendSnap(pid, true);
@@ -4846,6 +4869,7 @@ class HostGame {
   /* ---------------- 연결 ---------------- */
   onConnect(connId, meta) {
     const d = this.data;
+    if (meta?.build !== APP_BUILD) return { ok: false, reason: "게임 버전이 다름. 최신 파일로 갱신 후 강력 새로고침해 다시 접속하세요." };
     const key = String(meta?.key ?? "");
     const name = Engine.clip(meta?.name, 16);
     if (!/^[a-z0-9]{16,64}$/.test(key)) return { ok: false, reason: "잘못된 접속 정보." };
@@ -5662,7 +5686,7 @@ const Net = (() => {
             if (msg?.t !== "join") return;
             clearTimeout(joinTimer);
             conns.set(connId, conn);
-            const r = game.onConnect(connId, { key: msg.key, name: msg.name });
+            const r = game.onConnect(connId, { key: msg.key, name: msg.name, build: msg.build });
             if (!r.ok) {
               try { conn.send({ t: "rejected", reason: r.reason }); } catch {}
               conns.delete(connId);
@@ -5758,13 +5782,20 @@ const Net = (() => {
         const openTimer = setTimeout(() => { if (!c.open && conn === c) lostConnection(c); }, 10000);
         c.on("open", () => {
           clearTimeout(openTimer);
-          try { c.send({ t: "join", key, name }); } catch { lostConnection(c); }
+          try { c.send({ t: "join", key, name, build: APP_BUILD }); } catch { lostConnection(c); }
         });
         c.on("data", (msg) => {
           if (conn !== c || stopped) return;
           lastReceived = Date.now();
           if (msg?.t === "pong") return;
           if (msg?.t === "hello") {
+            if (msg.build !== APP_BUILD) {
+              stopped = true; ready = false; stopHeartbeat();
+              onStatus({ level: "bad", text: "호스트가 이전 버전 게임을 실행 중. 호스트 새로고침 필요." });
+              onMessage({ t: "updateRequired" });
+              try { c.close(); } catch {}
+              return;
+            }
             ready = true; everConnected = true; onStatus({ level: "ok", text: "연결됨" });
             stopHeartbeat();
             heartbeat = setInterval(() => {
@@ -8217,6 +8248,7 @@ const BannerArt = (() => {
   function handleMsg(msg) {
     switch (msg?.t) {
       case "hello": app.me = msg.pid; return;
+      case "updateRequired": return showMessage("호스트 버전이 오래됨", "호스트에게 게임 페이지를 강력 새로고침하고 기존 테이블을 다시 열어 달라고 요청하세요. 플레이어도 새로고침하면 기존 캐릭터로 재접속합니다.");
       case "historyPage": acceptHistory(msg); return;
       case "loginit": {
         adoptHistoryGeneration(msg.generation);
