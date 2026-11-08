@@ -1935,15 +1935,13 @@ html.has-3d .topbar { box-shadow: none; }
 #checkBox .chip.active.memo-btn:disabled { opacity: .5; }
 /* 웹 기록 보관함 / 단서 수첩 */
 .history-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 20px 8px 48px; margin:0 var(--cover); background:var(--paper); border-bottom:2px solid var(--paper-lo); }
-#historyDialog { box-sizing:border-box; position:fixed; z-index:60; inset:60px 12px auto auto; margin:0; width:min(560px,calc(100vw - 24px)); max-width:calc(100vw - 24px); max-height:min(68vh,680px); overflow-x:hidden; overflow-y:auto; background:var(--paper); color:var(--ink); border:3px solid var(--ink); padding:clamp(12px,3vw,20px); font:15px/1.6 var(--font-body); box-shadow:12px 15px 0 rgba(0,0,0,.55); }
+#historyDialog { box-sizing:border-box; width:min(960px,90vw); max-height:86vh; background:var(--paper); color:var(--ink); border:3px solid var(--ink); padding:20px; font:15px/1.6 var(--font-body); }
 #historyDialog::backdrop { background:rgba(0,0,0,.75); }
-.archive-head, #historyDialog .row { flex-wrap:wrap; }
-#historyDialog .row > button { max-width:100%; white-space:normal; }
 .log-bottom { position:absolute; right:calc(var(--cover) + 12px); z-index:5; padding:6px 12px; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); }
 .log-bottom[hidden] { display:none; }
 .archive-head { display:flex; align-items:center; justify-content:space-between; gap:20px; }
 .archive-head h2 { margin:0; font-size:20px; }
-#historyList { max-height:38vh; overflow-y:auto; margin-top:12px; }
+#historyList { max-height:52vh; overflow-y:auto; margin-top:12px; }
 .archive-entry { padding:10px 8px; border-top:1px dashed var(--paper-lo); overflow-wrap:anywhere; }
 .archive-entry small { color:var(--ink-2); }
 .archive-entry p { white-space:pre-wrap; margin:5px 0; }
@@ -7363,13 +7361,39 @@ const BannerArt = (() => {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => (t.hidden = true), opt.ms ?? 2200);
   }
-  function download(filename, obj) {
-    const blob = new Blob([JSON.stringify(obj, null, 1)], { type: "application/json" });
+  function downloadBlob(filename, blob) {
     const a = el("a", { href: URL.createObjectURL(blob), download: filename });
     document.body.append(a);
     a.click();
     // 모바일/느린 기기에서 다운로드가 시작되기 전 URL을 해제하지 않는다.
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 60_000);
+  }
+  function download(filename, obj) {
+    downloadBlob(filename, new Blob([JSON.stringify(obj, null, 1)], { type: "application/json" }));
+  }
+  // 긴 보관 기록의 JSON 직렬화는 Worker에서 처리해 호스트의 게임/네트워크 루프를 막지 않는다.
+  async function downloadArchive(filename, data) {
+    if (typeof Worker === "undefined") return download(filename, data);
+    const code = `self.onmessage = e => {
+      try { self.postMessage({ blob: new Blob([JSON.stringify(e.data, null, 1)], { type: "application/json" }) }); }
+      catch (err) { self.postMessage({ error: String(err) }); }
+    };`;
+    const workerURL = URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
+    let worker;
+    try {
+      const blob = await new Promise((resolve, reject) => {
+        worker = new Worker(workerURL);
+        worker.onmessage = e => e.data?.blob ? resolve(e.data.blob) : reject(new Error(e.data?.error ?? "내보내기 실패"));
+        worker.onerror = () => reject(new Error("기록 파일 생성 실패"));
+        worker.postMessage(data);
+      });
+      downloadBlob(filename, blob);
+    } catch {
+      // Worker 사용이 제한된 브라우저도 다운로드 기능은 유지한다.
+      download(filename, data);
+    } finally {
+      worker?.terminate(); URL.revokeObjectURL(workerURL);
+    }
   }
   function readFile(input) {
     return new Promise((res, rej) => {
@@ -8171,8 +8195,8 @@ const BannerArt = (() => {
     if (historyDialog.open) return;
     const epoch = ++historyEpoch;
     historyFocus = document.activeElement;
-    // 모달은 모든 채팅 입력을 막는다. 진행 중에도 쓸 수 있는 비모달 보관함으로 연다.
-    historyDialog.show(); historyBefore = Infinity; historyMore = true; historyTotal = null; historyDisplayLimit = 200;
+    // 기존 보관함 모달 유지. 내보내기 시에는 자동으로 닫아 진행 조작을 즉시 돌려준다.
+    historyDialog.showModal(); historyBefore = Infinity; historyMore = true; historyTotal = null; historyDisplayLimit = 200;
     $('#historyMessage').textContent = '';
     historyShown = WebFeatures.merge([], app.log, historyCuts); drawHistory();
     try {
@@ -8193,17 +8217,22 @@ const BannerArt = (() => {
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && historyDialog.open) historyDialog.close(); });
   $('#historyExport').addEventListener('click', async () => {
     if (historyBusy) return;
-    const epoch = historyEpoch;
-    // 첫 페이지(100개)만 내보내는 일이 없도록 호스트 전체 기록을 끝까지 동기화한다.
-    const complete = !historyMore || await loadHistory(true, epoch);
-    if (epoch !== historyEpoch || !historyDialog.open) return;
+    // 호스트에 전체 기록을 연속 요청하면 진행 중인 P2P/AI 처리를 지연시킬 수 있다.
+    // 현재 사용자에게 보관된 기록만 저장하고 모달을 먼저 닫아 게임 조작을 복원한다.
+    const scope = archiveScope(), room = app.room, cuts = historyCuts.slice();
+    const shown = historyShown.slice(), recent = app.log.slice();
+    const pending = HistoryArchive.pending(scope);
+    let complete = app.role === 'host' || !historyMore;
+    historyDialog.close();
     let local = [];
-    try { local = await HistoryArchive.read(archiveScope()); }
-    catch { $('#historyMessage').textContent = '로컬 보관소 읽기 실패. 현재 목록만 내보냄.'; }
-    if (epoch !== historyEpoch || !historyDialog.open) return;
-    const entries = WebFeatures.merge(local, WebFeatures.merge(HistoryArchive.pending(archiveScope()), WebFeatures.merge(historyShown, app.log)), historyCuts);
-    download(`trpg-보관기록-${complete ? '전체' : '부분'}-${app.room}-${today()}.json`, { kind:'trpg-history', v:1, roomId:app.room, savedAt:Date.now(), scope:'이 사용자의 공개 권한 내 보관 기록', complete, entries });
-    $('#historyMessage').textContent = complete ? `기록 ${entries.length}개 내보내기 완료.` : `호스트 전체 기록 확인 실패. 이 브라우저에 있는 ${entries.length}개만 부분 내보냄.`;
+    try { local = await HistoryArchive.read(scope); }
+    catch { complete = false; toast('장기 보관소 읽기 실패. 현재 불러온 기록만 저장.'); }
+    const entries = WebFeatures.merge(local, WebFeatures.merge(pending, WebFeatures.merge(shown, recent)), cuts);
+    try {
+      await downloadArchive(`trpg-보관기록-${complete ? '전체' : '부분'}-${room}-${today()}.json`,
+        { kind:'trpg-history', v:1, roomId:room, savedAt:Date.now(), scope:'이 사용자의 공개 권한 내 보관 기록', complete, entries });
+      toast(`기록 ${entries.length}개 파일 저장${complete ? '' : ' · 로컬 보관분'}.`);
+    } catch { toast('기록 다운로드 실패. 보관함에서 다시 시도.'); }
   });
 
   function usagePanel() {
