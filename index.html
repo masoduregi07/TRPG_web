@@ -538,12 +538,6 @@ textarea.code { font: 12px/1.6 var(--font); }
 .ic-btn.up .ic-tip { top: auto; bottom: calc(100% + 6px); left: 50%; right: auto; translate: -50% 6px; }
 .ic-btn.up:hover .ic-tip, .ic-btn.up:focus-visible .ic-tip, .ic-btn.up.copied .ic-tip { translate: -50% 0; }
 /* 접속 램프: 켜짐 = 불꽃이 은은하게 일렁임 / 꺼짐 = 흑백 */
-.lamp { cursor: default; }
-.lamp.on .ic-svg { filter: drop-shadow(0 0 3px rgba(255, 196, 96, .8)) drop-shadow(0 0 9px rgba(255, 160, 60, .35)) drop-shadow(1px 2px 0 rgba(0, 0, 0, .45)); animation: lamp-flicker 2.6s steps(1) infinite; }
-.lamp.off .ic-svg { filter: grayscale(1) drop-shadow(1px 2px 0 rgba(0, 0, 0, .45)); opacity: .6; }
-.lamp:hover .ic-svg { transform: none; }
-@keyframes lamp-flicker { 0%, 100% { opacity: 1; } 37% { opacity: .88; } 41% { opacity: 1; } 73% { opacity: .93; } }
-@media (prefers-reduced-motion: reduce) { .lamp.on .ic-svg { animation: none; } }
 .ic-stamp {
   position: absolute; left: 50%; top: 50%; display: none; pointer-events: none;
   transform: translate(-50%, -50%) rotate(-14deg);
@@ -1414,8 +1408,6 @@ html.has-3d .topbar { box-shadow: none; }
 /* 16칸 도트 아이콘(톱니 · 랜턴): 자체 외곽선이 있어 금테 없이 그림자만 */
 .ic-btn .ic-svg.big { filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, .5)); }
 .ic-btn:hover .ic-svg.big, .ic-btn:focus-visible .ic-svg.big, .ic-btn.open .ic-svg.big { filter: brightness(1.12) drop-shadow(1px 2px 0 rgba(0, 0, 0, .5)); }
-.lamp.on .ic-svg.big { filter: drop-shadow(0 0 4px rgba(255, 170, 70, .55)) drop-shadow(1px 2px 0 rgba(0, 0, 0, .5)); }
-.lamp.off .ic-svg.big { filter: grayscale(1) drop-shadow(1px 2px 0 rgba(0, 0, 0, .5)); opacity: .75; }
 
 /* 캐릭터 시트 아이콘 버튼 (테이블 저장 아이콘과 같은 결) */
 .builder .lbl-row { display: flex; align-items: center; gap: 9px; }
@@ -2328,10 +2320,6 @@ html.has-3d .topbar { box-shadow: none; }
 .clue-index-item[open] .clue-arrow { clip-path:polygon(0 0,100% 0,100% 50%,75% 50%,75% 75%,25% 75%,25% 50%,0 50%); }
 .clue-index-row:focus-visible { outline:2px solid #823026; outline-offset:-2px; }
 .clue-open-body { margin:7px 0 12px 23px; padding-left:10px; border-left:3px solid #8a3326; }
-.clue-kind-dot { flex:none; width:10px; height:10px; margin-right:6px; border:1px dashed var(--ink-2); }
-.clue-kind-dot.p { background:#f2b48e; border:1px solid var(--ink); }
-.clue-kind-dot.l { background:#bcd88a; border:1px solid var(--ink); }
-.clue-kind-dot.p.l { background:linear-gradient(90deg,#f2b48e 50%,#bcd88a 50%); }
 .clue-kinds { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0 0 8px; font-size:12px; }
 /* 분류 = 색인 깃발 (위 책갈피 탭과 같은 색). 꺼짐 = 점선 빈 깃발 */
 .clue-flag { --c:#f2b48e; --ln:#80442a; padding:3px 12px 3px 8px; border:1px dashed #9a8566; background:transparent; box-shadow:none; color:#7a6548; font-family:var(--font); font-size:11px; line-height:1.3; cursor:pointer; clip-path:polygon(0 0,100% 0,calc(100% - 6px) 50%,100% 100%,0 100%); }
@@ -2342,10 +2330,6 @@ html.has-3d .topbar { box-shadow: none; }
 .clue-row-flags i { width:6px; height:12px; clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%); }
 .clue-row-flags i.p { background:#f2b48e; } .clue-row-flags i.l { background:#bcd88a; }
 .clue-kinds-label { color:var(--ink-2); }
-.clue-chip { display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 5px; border:2px solid var(--ink); background:#f4ecca; color:var(--ink); font:700 12px var(--font); box-shadow:2px 2px 0 rgba(0,0,0,.25); cursor:pointer; }
-.clue-chip i { display:grid; place-items:center; width:12px; height:12px; border:2px solid var(--ink); background:#fff; font-style:normal; font-size:10px; line-height:1; }
-.clue-chip.on.p { background:#f2b48e; } .clue-chip.on.l { background:#bcd88a; }
-.clue-chip.on i { background:var(--ink); color:#fff; }
 .clue-kinds-note { font-size:11px; color:var(--ink-2); } .clue-kinds-note.warn { color:var(--blood); }
 .clue-kinds-reset { padding:0; border:0; background:none; font:11px var(--font); color:var(--ink-2); text-decoration:underline; cursor:pointer; }
 .clue-original { padding:8px 9px; border:1px solid #b2a47e; background:rgba(255,250,223,.65); box-shadow:2px 2px 0 rgba(69,42,17,.12); }
@@ -3300,11 +3284,6 @@ const Engine = (() => {
   }
 
   /* ---------------- 캐릭터 규칙 ---------------- */
-  function allSkills(sc) {
-    const set = new Set();
-    for (const s of Object.values(sc.scenes ?? {})) for (const c of s?.checks ?? []) if (c?.skill) set.add(String(c.skill));
-    return [...set];
-  }
   const charRules = (sc) => Rules.cocRules(sc, clip);
 
   const clip = (s, n) => String(s ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, n);
@@ -3667,8 +3646,7 @@ const Engine = (() => {
   function revealClue(sc, st, clueId) {
     const clue = (sceneOf(sc, st).clues ?? []).find((c) => c.id === clueId);
     if (!clue || st.revealedClues.some((c) => c.id === clueId)) return null;
-    const context = nameContext(sc, st);
-    const r = { id:clue.id, text:clue.text, scene:st.currentScene, ...(typeof clue.title==='string'?{title:clue.title}:{}), categories:WebFeatures.clueCategories(clue,context) };
+    const r = { id:clue.id, text:clue.text, scene:st.currentScene, ...(typeof clue.title==='string'?{title:clue.title}:{}) };
     st.revealedClues.push(r);
     if (clue.setFlag) st.flags[clue.setFlag] = true;
     return r;
@@ -3740,15 +3718,6 @@ const Engine = (() => {
   }
 
   /* ---------------- 뷰 ---------------- */
-  /** 단서 자동 분류용 이름 목록 (시나리오 전체: 단서 본문에 이미 나온 이름과 맞춰 보기만 하므로 스포일러 없음) */
-  function nameContext(sc, st) {
-    const s = sceneOf(sc, st);
-    return {
-      scene: { title: s?.title },
-      npcs: Object.values(sc.npcs ?? {}).map((n) => ({ name: n?.name })),
-      places: Object.values(sc.scenes ?? {}).flatMap((x) => [x?.title, ...(Array.isArray(x?.places) ? x.places : [])]).filter((x) => typeof x === "string"),
-    };
-  }
   function publicView(sc, st) {
     const s = sceneOf(sc, st);
     return {
@@ -3756,10 +3725,9 @@ const Engine = (() => {
       npcs: (s.npcs ?? []).map((id) => ({ id, name: npcName(sc, id), look: sc.npcs[id].look ?? "", job: typeof sc.npcs[id].job === "string" ? sc.npcs[id].job.slice(0, 20) : "" })),
       clues: st.revealedClues.map(r=>{
         const source=findClueAnywhere(sc,r.id);
-        const clue={...r,...(typeof source?.title==='string'?{title:source.title}:{}),...(source?.category != null?{category:source.category}:{}),...(source?.categories != null?{categories:source.categories}:{})};
-        const categories=WebFeatures.clueCategories(clue,nameContext(sc,st));
+        const clue={...r,...(typeof source?.title==='string'?{title:source.title}:{})};
         const scene=r.scene ?? clueSceneOf(sc,r.id);
-        return {id:r.id,text:r.text,...(clue.title?{title:clue.title}:{}),categories,...(scene?{scene,sceneTitle:sceneTitle(sc,scene)}:{})};
+        return {id:r.id,text:r.text,...(clue.title?{title:clue.title}:{}),...(scene?{scene,sceneTitle:sceneTitle(sc,scene)}:{})};
       }),
       // 판정 목록은 스포일러: 플레이어에겐 GM이 요청했거나 이미 굴린 판정만 (결과와 함께)
       checks: (s.checks ?? []).filter((c) => pendingList(st).some((p) => p.checkId === c.id) || (st.triedChecks ?? []).includes(c.id)).map((c) => ({ id: c.id, label: c.label ?? c.skill ?? "이성 판정", skill: c.skill ?? (c.san ? "이성" : ""), ...(c.difficulty ? { difficulty: Rules.normDiff(c.difficulty) } : {}), ...(c.san ? { san: c.san } : {}), ...(c.dice ? { dice: c.dice } : {}),
@@ -4083,22 +4051,7 @@ const WebFeatures = (() => {
     return { title, preview: headed ? prefix[2] : original, original };
   }
   // 자동 분류: 명시(category) > 이름 일치(NPC · 캐릭터 · 장소 · 사건 제목) > 칭호 · 장소 낱말
-  const PERSON_WORDS = /[가-힣]{2,4}씨(?![가-힣])|박사|형사|의사|교수|신부|목사|선생|부인|사장|관리인|집사|경찰|간호사|기자|탐정|하녀|소년|소녀|노인|아이(?!템)|남자|여자|사내|목격자|용의자|피해자|희생자|실종자|사망자|범인|주인|아가씨|도련님/;
-  const PERSON_TITLE = /편지|일기|명단|증언|진술|초상|신분증|인물|사진|유서/;
-  const PLACE_WORDS = /식당|주방|부엌|침실|거실|욕실|현관|정원|마당|옥상|지하실|지하|다락|복도|계단|서재|응접실|사무실|교실|강당|병실|감방|숲|동굴|호수|섬|항구|광장|골목|마을|도시|교회|성당|병원|학교|도서관|저택|창고|공장|등대|묘지|무덤|터널|입구|출구|방안|방 안|건물|집 안/;
-  const PLACE_TITLE = /지도|시간표|도면|주소|노선|약도|장소/;
-  function clueCategories(clue, view = {}) {
-    const normalize = x => ({ person:'person', place:'place', '인물':'person', '장소':'place' })[x];
-    const raw = clue.category ?? clue.categories;
-    const explicit = (Array.isArray(raw) ? raw : [raw]).map(normalize).filter(Boolean);
-    if (explicit.length) return [...new Set(explicit)];
-    const text = String(clue.text ?? ''), title = clueText(clue).title, all = `${title} ${text}`;
-    const has = (name) => typeof name === 'string' && name.length > 1 && all.includes(name);
-    const person = PERSON_TITLE.test(title) || PERSON_WORDS.test(all) || (view.npcs ?? []).some(n => has(n.name)) || (view.people ?? []).some(has);
-    const place = PLACE_TITLE.test(title) || PLACE_WORDS.test(all) || has(view.scene?.title) || (view.places ?? []).some(has);
-    return [...(person ? ['person'] : []), ...(place ? ['place'] : [])];
-  }
-  return { identity, merge, page, endpoint, credentialId, addUsage, clueText, clueCategories };
+  return { identity, merge, page, endpoint, credentialId, addUsage, clueText };
 })();
 /* WEB_FEATURES_END */
 
@@ -5732,18 +5685,6 @@ class HostGame {
         this.pushAll(); this.save();
         return;
       }
-      case "dropItem": {
-        // 내 소지품 버리기 = 행동 선언 한 번 (기록에 행동으로 남고 GM 턴을 씀)
-        const c = p.character, item = String(msg.item ?? "");
-        if (d.phase !== "play" || !p.ready || !c?.items?.includes(item)) return;
-        c.items.splice(c.items.indexOf(item), 1);
-        if (c.itemInfo) delete c.itemInfo[item];
-        this.addLog({ kind: "say", byId: pid, by: this.speaker(pid), text: `「${item}」 버림`, style: "act", drop: item });
-        this.addLog({ kind: "system", who: pid, item, gain: false, text: `${c.name}: 「${item}」 잃음` });
-        this.pushAll(); this.save();
-        this.queueAI();
-        return;
-      }
       case "check": {
         if (!play) return;
         const checkId = String(msg.checkId), waiting = Engine.pendingList(d.game);
@@ -7170,7 +7111,7 @@ void main() {
     const Z = (u) => dir * u * (D - INS);
     const cover = newG(), face = newG(), edge = newG();
     boxG(cover, -L / 2, L / 2, 0, CT, dir < 0 ? -D : 0, dir < 0 ? 0 : D);
-    const x0 = -L / 2 + INS, x1 = L / 2 - INS, ref = [0, -5, 0];
+    const x0 = -L / 2 + INS, x1 = L / 2 - INS;
     for (let i = 0; i < NSEG; i++) {
       const u0 = i / NSEG, u1 = (i + 1) / NSEG, ya = top(u0), yb = top(u1), za = Z(u0), zb = Z(u1);
       // 윗면 (글줄 텍스처: 가로 = 폭 방향, 세로 = 길이 방향)
@@ -9294,7 +9235,6 @@ const BannerArt = (() => {
   }
   addEventListener('trpg-usage', () => document.querySelectorAll('.usage-panel').forEach(paintUsage));
 
-  const openClues = new Set();
   let notebookMode = 'all';
   let clueDrag = null, clueRenderLater = false;
   /* 단서 수첩 = 사건별 조사 일지: 발견한 사건마다 묶고, 제목 + 첫 줄 미리보기.
@@ -9494,7 +9434,6 @@ const BannerArt = (() => {
     b.addEventListener("pointerleave", () => { jumpHover = false; markUserScroll(2500); });
   }
   function updateBottomButton() {
-    const btn = $("#logBottom");
     updateScrollArrows();
     updateRail();
   }
@@ -10278,16 +10217,6 @@ const BannerArt = (() => {
   /* 테이블: 어두운 가로 판자 + 가로 도트 나뭇결 (저해상도 · 한 칸 4px)
    * 테이블 위치·크기는 --tl/--tt/--tw/--th 로 넘겨서 물건들이 테이블 기준으로 놓임 */
   const hexRGB = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-  function quantize(g, x, y, w, h, pal) {
-    const im = g.getImageData(x, y, w, h), d = im.data;
-    for (let i = 0; i < d.length; i += 4) {
-      if (d[i + 3] < 128) { d[i + 3] = 0; continue; }
-      let best = 0, bd = 1e9;
-      for (let k = 0; k < pal.length; k++) { const c = pal[k], q = (d[i] - c[0]) ** 2 + (d[i + 1] - c[1]) ** 2 + (d[i + 2] - c[2]) ** 2; if (q < bd) { bd = q; best = k; } }
-      d[i] = pal[best][0]; d[i + 1] = pal[best][1]; d[i + 2] = pal[best][2]; d[i + 3] = 255;
-    }
-    g.putImageData(im, x, y);
-  }
   const seeded = (n) => () => ((n = (n * 16807) % 2147483647) / 2147483647);
   function drawLobbyTable() {
     const cv = $("#lobbyPoly"), room = $("#lobbyRoom");
@@ -10832,11 +10761,9 @@ const BannerArt = (() => {
   }
   function sheet(s, p, mine) {
     const c = p.character;
-    const b = s.scenario.rules.backgrounds.find((x) => x.name === c.background);
     const canHp = mine || s.isHost;
     const no = s.players.findIndex((x) => x.pid === p.pid) + 1;
     const [state, col] = HP_STATE(c.hp, c.hpMax);
-    const hpBtn = (d, label, tip) => el("button", { class: "ink-btn", type: "button", title: tip, "aria-label": tip, on: { click: () => send({ t: "hp", pid: p.pid, delta: d }) } }, label);
     return el("div", { class: `dossier${mine ? " me" : ""}${p.online ? "" : " offline"}`, "data-pid": p.pid, style: `--spine:${spineOf(p.pid)}`, title: p.online ? "" : "오프라인" },
       el("div", { class: "dos-head" }, el("span", {}, `인물 기록 · No.${String(no).padStart(2, "0")}`), el("span", {}, "기록자 ", el("b", {}, p.name))),
       polaroid(portraitSrc(p), spineOf(p.pid), false),
@@ -11321,27 +11248,6 @@ const BannerArt = (() => {
     box.replaceChildren(...parts.filter(Boolean), styleD, details);
   }
 
-  /** 초상: 정사각형에 가까운 작은 JPEG로 (가운데 위쪽 기준으로 잘라 얼굴이 남게) */
-  function shrinkPortrait(src) {
-    return new Promise((resolve) => {
-      const im = new Image();
-      if (!src.startsWith("data:")) im.crossOrigin = "anonymous";
-      im.onload = () => {
-        try {
-          const W = 112, H = 132, r = Math.max(W / im.naturalWidth, H / im.naturalHeight);
-          const c = document.createElement("canvas"); c.width = W; c.height = H;
-          const g = c.getContext("2d"); g.imageSmoothingQuality = "high";
-          g.fillStyle = "#e7dfca"; g.fillRect(0, 0, W, H);   // 투명한 PNG(예: 캐릭터 꾸미기 사이트 그림)는 빈 사진 칸과 같은 종이색 바탕으로
-          const w = im.naturalWidth * r, h = im.naturalHeight * r;
-          g.drawImage(im, (W - w) / 2, Math.min(0, (H - h) * .3), w, h);
-          for (const q of [.85, .72, .6]) { const out = c.toDataURL("image/jpeg", q); if (out.length <= 70_000) return resolve(out); }
-        } catch { /* CORS 막힘 */ }
-        resolve(null);
-      };
-      im.onerror = () => resolve(null);
-      im.src = src;
-    });
-  }
   /** 초상 맞추기: 끌어서 위치 · 확대/축소 → 112×132로 잘라 돌려줌 (취소하면 null) */
   function editPortrait(src) {
     return new Promise((resolve) => {
