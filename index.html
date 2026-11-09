@@ -9805,11 +9805,12 @@ const BannerArt = (() => {
           el("button", { class: "st-btn st-inc", type: "button", "aria-label": `${k} 늘리기`, disabled: !canUp, on: { click: () => { d.alloc[k] = a + STEP; saveDraft(); refreshCoc(); } } }, iconSvg("st_inc")));
       }));
     }
-    // 혹시 기억이 나지 않는다면… (접힘) → 원하는 분위기 + [운명에 맡긴다] = AI 제안
+    // 운명에 맡겨보기 (기본 펼침) → 원하는 분위기 + 깃펜 [자동 입력] = AI 제안
     const sugInput = el("input", { class: "stamp-input", maxlength: 200, placeholder: "원하는 분위기를 적어본다. ex) 자신만만한 의사" });
-    const sugBtn = icBtn("button", "sug-btn", "quill", "운명에 맡긴다", { type: "button", id: "suggestBtn", on: { click: () => send({ t: "suggest", concept: sugInput.value }) } });
-    const fate = el("details", { class: "fate-box" }, el("summary", {}, "혹시 기억이 나지 않는다면..."), el("div", { class: "suggest-row" }, sugInput, sugBtn));
-    fate.addEventListener("toggle", () => { Sfx.play("page"); if (fate.open) sugInput.focus(); });
+    const sugBtn = icBtn("button", "sug-btn", "quill", "자동 입력", { type: "button", id: "suggestBtn", on: { click: () => send({ t: "suggest", concept: sugInput.value }) } });
+    const fate = el("details", { class: "fate-box", open: true }, el("summary", {}, "운명에 맡겨보기"), el("div", { class: "suggest-row" }, sugInput, sugBtn));
+    let fateInit = true;   // 처음부터 펼친 상태로 만들 때 나는 toggle은 무시 (소리·포커스 없음)
+    fate.addEventListener("toggle", () => { if (fateInit) { fateInit = false; if (fate.open) return; } Sfx.play("page"); if (fate.open) sugInput.focus(); });
     const readyBtn = el("button", { class: "btn primary", id: "readyBtn", on: { click: () => {
       const R = app.snap?.myRoll;
       if (!R) return toast("특성치 굴림 먼저.");
@@ -9868,7 +9869,7 @@ const BannerArt = (() => {
     if (!b || !app.snap) return;
     const aiOK = app.snap.isHost ? !!app.snap.gm?.aiReady : true;
     b.sugBtn.disabled = app.suggesting || !aiOK;
-    b.sugBtn.querySelector(".ic-tip").textContent = app.suggesting ? "운명을 읽는 중…" : "운명에 맡긴다";
+    b.sugBtn.querySelector(".ic-tip").textContent = app.suggesting ? "운명을 읽는 중…" : "자동 입력";
     b.sugBtn.classList.toggle("busy", !!app.suggesting);
     const sheet = document.querySelector("#lrMe .my-sheet");
     if (sheet) {
