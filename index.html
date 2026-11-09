@@ -1094,6 +1094,9 @@ textarea { margin-top: 8px; }
 .gather .hg { width: 18px; height: 18px; color: var(--blood); display: inline-block; transition: rotate .2s steps(2); }
 .gather .hg .ic-svg { display: block; width: 18px; height: 18px; }
 .gather.flip .hg { rotate: 180deg; }
+.stale-bar { margin: 6px var(--cover) 4px; padding: 6px 10px; background: #2a2118; color: var(--amber); border: 1px solid #4a3a28; font-family: var(--font); font-size: 12px; }
+.stale-bar[hidden] { display: none; }
+#chatForm.stale { opacity: .5; }
 .focus-tag { display: block; margin: 0 0 2px; color: var(--c, var(--blood)); font-family: var(--font); font-size: 12px; font-weight: 700; }
 .entry.ai.focus { margin-top: 4px; }
 .turn-board { margin: 6px var(--cover) 4px; padding: 7px 10px; background: var(--paper-hi); border: 2px solid var(--paper-lo); color: var(--ink); font-family: var(--font); font-size: 12px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); }
@@ -2269,6 +2272,7 @@ html.has-3d .topbar { box-shadow: none; }
       <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래">↓</button>
       <div id="turnBoard" class="turn-board" hidden></div>
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="btn tiny" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
+      <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면입니다. 호스트와 연결되면 최신 상태로 바뀝니다.</div>
       <div id="turnStatus" class="turn-status" hidden><span id="thinking" hidden>GM이 숨을 고르는 중…</span><span id="typingPresence" hidden aria-live="polite"></span></div>
       <form id="chatForm" class="chat">
         <div class="say-box" data-mode="talk">
@@ -8444,6 +8448,7 @@ const BannerArt = (() => {
         }
       }
       app.snap = copy.snap;
+      setStale(true);   // 호스트와 연결되기 전까지는 '마지막 저장본'일 뿐
       historyGeneration = copy.historyGeneration ?? copy.snap.historyGeneration ?? "legacy";
       historyCuts = copy.historyCuts ?? [];
       app.log = WebFeatures.merge(WebFeatures.merge(copy.history ?? [],copy.archivePending ?? []), copy.log ?? [], historyCuts);
@@ -8515,6 +8520,13 @@ const BannerArt = (() => {
     if (names.length) typingPresenceTimer = setTimeout(updateTypingPresence, 1200);
   }
 
+  /* 연결 전에 보여 주는 마지막 저장본 표시: 띠를 켜고 입력을 잠근다 (실제 스냅샷을 받으면 해제) */
+  function setStale(on) {
+    app.stale = !!on;
+    $("#staleBar").hidden = !on;
+    $("#chatForm").classList.toggle("stale", !!on);
+    for (const n of $("#chatForm").querySelectorAll("input, button, textarea")) n.disabled = !!on;
+  }
   function handleMsg(msg) {
     switch (msg?.t) {
       case "hello": app.me = msg.pid; return;
@@ -8544,6 +8556,7 @@ const BannerArt = (() => {
         // 저장된 사본 화면이 있어도, 호스트에게서 처음 받은 실제 스냅샷은 '처음'으로 취급해 화면 · 기록을 다시 그린다
         const first = !app.snap || !app.liveSnap, prev = app.liveSnap ? app.snap : null;
         app.liveSnap = true;
+        setStale(false);
         app.snap = msg.data; scheduleCopy();
         // GM 서술이 찍히는 동안엔 메모 · 카드 같은 결과 화면을 미뤘다가 다 찍히면 한 번에 (최대 10초)
         // 단, 게임 시작 · 사건 전환 · 내 캐릭터 준비처럼 화면 자체가 바뀌는 때는 바로
