@@ -23,3 +23,14 @@ test("JS가 찾는 #id는 모두 HTML에 있음", () => {
   const missing = [...wanted].filter((id) => !ids.has(id) && !scriptSource.includes(`id: "${id}"`) && !scriptSource.includes(`id:"${id}"`));
   assert.deepEqual(missing, []);
 });
+
+test("CDN: 정확한 버전 + SRI + crossorigin", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const tags = [...html.matchAll(/<(?:script|link)\b[^>]*cdn\.jsdelivr\.net[^>]*>/g)].map((m) => m[0]);
+  assert.ok(tags.length >= 3);
+  for (const t of tags) {
+    assert.match(t, /@\d+\.\d+\.\d+\//, `버전 고정 필요: ${t}`);
+    assert.match(t, /integrity="sha384-[A-Za-z0-9+/=]{64}"/, `integrity 필요: ${t}`);
+    assert.match(t, /crossorigin="anonymous"/, `crossorigin 필요: ${t}`);
+  }
+});
