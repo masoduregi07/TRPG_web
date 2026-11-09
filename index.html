@@ -1501,6 +1501,17 @@ html.has-3d .topbar { box-shadow: none; }
 /* 초상: 기울이지 않고 정위치 */
 .my-sheet .polaroid { transform: none; rotate: none; }
 .coc-builder .f-portrait { justify-items: start; align-self: start; }
+/* 인적 사항: 초상을 표 높이에 맞춰 늘림 · 이름 글씨 크게 · 나이 칸 좁게 + "세" */
+.coc-builder .id-block { align-items: stretch; }
+.coc-builder .f-portrait { align-self: stretch; display: flex; flex-direction: column; }
+.coc-builder .f-portrait .portrait-row, .coc-builder .f-portrait .portrait-photo { flex: 1; display: flex; flex-direction: column; }
+.coc-builder .f-portrait .polaroid { flex: 1; height: auto; min-height: 168px; display: flex; flex-direction: column; }
+.coc-builder .f-portrait .polaroid img, .coc-builder .f-portrait .polaroid-empty { flex: 1; height: auto; min-height: 139px; }
+.coc-builder .doc-row input.id-name { font-size: 17px; letter-spacing: 1px; }
+.coc-builder .doc-row.pair { grid-template-columns: 78px 86px 54px minmax(0, 1fr); }
+.coc-builder .age-wrap { display: flex; align-items: center; padding-right: 8px; }
+.coc-builder .age-wrap input { width: 44px; min-width: 0; field-sizing: fixed; }
+.coc-builder .age-wrap .age-u { font-family: var(--font-body); font-size: 13px; color: #7a6548; }
 /* 작성 완료 도장: 크게 떠 있다가 쾅 → 시트가 살짝 흔들림 */
 .ready-stamp { position: absolute; left: 50%; top: 46%; z-index: 20; display: grid; justify-items: center; pointer-events: none;
   font-family: var(--font); color: #a3221a; translate: -50% -50%; rotate: -12deg;
@@ -9640,7 +9651,9 @@ const BannerArt = (() => {
     const rules = s.scenario.rules, d = app.draft;
     const icBtn = (tag, cls, icon, tip, attrs = {}, ...kids) => el(tag, { class: `ic-btn ${cls}`, "aria-label": tip, ...attrs }, iconSvg(icon), el("span", { class: "ic-tip" }, tip), ...kids);
     const inp = (key, max, ph) => { const n = el("input", { maxlength: max, value: d[key] ?? "", placeholder: ph }); n.addEventListener("input", () => { d[key] = n.value; saveDraft(); }); return n; };
-    const name = inp("name", 16, "탐사자 이름"), age = inp("age", 8, "예: 34");
+    const name = inp("name", 16, "탐사자 이름"), age = inp("age", 3, "34");
+    age.inputMode = "numeric";
+    age.addEventListener("input", () => { const v = age.value.replace(/\D/g, ""); if (v !== age.value) { age.value = v; d.age = v; saveDraft(); } });
     // 성별: 여성 / 남성 중 하나를 누르면 잉크 동그라미로 표시
     d.gender = normGender(d.gender);
     const gender = el("div", { class: "gender-pick", role: "radiogroup", "aria-label": "성별" });
@@ -9823,7 +9836,7 @@ const BannerArt = (() => {
           el("div", { class: "f-portrait" }, el("div", { class: "portrait-row" }, photoBox, el("span", { class: "portrait-acts" }, clearPicBtn))),
           el("div", { class: "doc-form", role: "group", "aria-label": "인적 사항" },
             docRow("이름", name),
-            el("div", { class: "doc-row pair" }, el("label", { class: "doc-k", for: "cocAge" }, "나이"), age, el("span", { class: "doc-k" }, "성별"), gender),
+            el("div", { class: "doc-row pair" }, el("label", { class: "doc-k", for: "cocAge" }, "나이"), el("span", { class: "age-wrap" }, age, el("span", { class: "age-u", "aria-hidden": "true" }, "세")), el("span", { class: "doc-k" }, "성별"), gender),
             docRow("직업", el("div", { class: "occ-editor" }, el("div", { class: "occ-switch", role: "group", "aria-label": "직업 입력 방식" }, bgPickBtn, bgTypeBtn), bg, bgCustom)),
             docRow("특징 및 성격", concept))),
         el("label", { class: "goal-memo" }, el("span", { class: "memo-k" }, "개인 목표"), goal),
