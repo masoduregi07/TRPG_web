@@ -1094,6 +1094,18 @@ textarea { margin-top: 8px; }
 .gather .hg { width: 18px; height: 18px; color: var(--blood); display: inline-block; transition: rotate .2s steps(2); }
 .gather .hg .ic-svg { display: block; width: 18px; height: 18px; }
 .gather.flip .hg { rotate: 180deg; }
+.focus-tag { display: block; margin: 0 0 2px; color: var(--c, var(--blood)); font-family: var(--font); font-size: 12px; font-weight: 700; }
+.entry.ai.focus { margin-top: 4px; }
+.turn-board { margin: 6px var(--cover) 4px; padding: 7px 10px; background: var(--paper-hi); border: 2px solid var(--paper-lo); color: var(--ink); font-family: var(--font); font-size: 12px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); }
+.turn-board[hidden] { display: none; }
+.turn-board .tb-head { display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: 700; }
+.turn-board .tb-row { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; border-top: 1px dashed rgba(90, 60, 30, .3); }
+.turn-board .tb-n { width: 14px; color: var(--ink-2); }
+.turn-board .tb-name { min-width: 52px; font-weight: 700; }
+.turn-board .tb-tag { flex: none; padding: 0 5px; font-size: 11px; border: 1px solid var(--ink-2); color: var(--ink-2); }
+.turn-board .tb-row.done .tb-tag { background: #3c5a2a; border-color: #3c5a2a; color: #e8f0d8; }
+.turn-board .tb-row.wait { opacity: .55; }
+.turn-board .tb-text { flex: 1; overflow-wrap: anywhere; }
 
 /* 능력치 랜덤: 버튼 테두리 = 주사위, 안에는 눈만 */
 .points-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -2255,6 +2267,7 @@ html.has-3d .topbar { box-shadow: none; }
       <div id="log" class="log" aria-live="polite"></div>
       <button id="logTop" class="log-top btn small" type="button" hidden aria-label="채팅 맨 위로 이동" title="맨 위">↑</button>
       <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래">↓</button>
+      <div id="turnBoard" class="turn-board" hidden></div>
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="btn tiny" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
       <div id="turnStatus" class="turn-status" hidden><span id="thinking" hidden>GM이 숨을 고르는 중…</span><span id="typingPresence" hidden aria-live="polite"></span></div>
       <form id="chatForm" class="chat">
@@ -3945,13 +3958,14 @@ const AI = (() => {
 29. 한 캐릭터가 판정에 실패하더라도 그 행동을 독립적으로 시도하는 다른 캐릭터에게 같은 판정을 요청할 수 있다. 이미 실패한 사람의 판정은 밀어붙이기 규칙과 구별한다. 판정 실패 뒤에는 성공 보상 단서나 소지품을 미리 공개하지 않는다.
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
-[출력 형식] 아래 JSON 하나만 출력한다.
-{"narration": "서술", "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","look":"외모","personality":"성격"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
+[출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 narration은 ""로 두고 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 행동표가 없으면 results는 [].
+{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","look":"외모","personality":"성격"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
   }
 
   function logLine(e) {
     if (e.kind === "scene") return `[장면 전환] ${e.title}`;
     if (e.kind === "ai" && e.to) return `[GM → ${e.to}] ${e.text}`;
+    if (e.kind === "ai" && e.focus) return `[GM ▶ ${e.focus}] ${e.text}`;
     if (e.kind === "roll" && e.roll) {
       return `[주사위] ${e.by}: ${e.text ? e.text + " " : ""}${e.roll.expr} = ${e.roll.total}${e.result ? ` → ${e.result}` : ""}`;
     }
@@ -3987,7 +4001,8 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
     try {
       const { obj } = extractJSON(text);
       const answers = (Array.isArray(obj.answers) ? obj.answers : []).filter((a) => a && str(a.to) && str(a.text)).slice(0, 6).map((a) => ({ to: str(a.to).slice(0, 16), text: str(a.text).slice(0, 1200) }));
-      if (typeof obj.narration !== "string" && !answers.length) throw new Error("narration 없음");
+      const results = (Array.isArray(obj.results) ? obj.results : []).filter((r) => r && str(r.who) && str(r.text)).slice(0, 6).map((r) => ({ who: str(r.who).slice(0, 16), text: str(r.text).slice(0, 1500) }));
+      if (typeof obj.narration !== "string" && !answers.length && !results.length) throw new Error("narration 없음");
       obj.narration ??= "";
       const np = obj.new_place && typeof obj.new_place === "object" && str(obj.new_place.name)
         ? { name: str(obj.new_place.name).slice(0, 30), look: (str(obj.new_place.look) ?? "").slice(0, 400) } : null;
@@ -4002,7 +4017,7 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
             ...(str(io.difficulty) ? { difficulty: str(io.difficulty) } : {}), ...(Number.isFinite(Number(io.dice)) && io.dice != null ? { dice: Number(io.dice) } : {}), ...(str(io.san) ? { san: str(io.san) } : {}) } : null;
       const rc = obj.request_check, rq = typeof rc === "string" ? { id: str(rc), who: "" } : rc && typeof rc === "object" && str(rc.id) ? { id: str(rc.id), who: (str(rc.who) ?? "").slice(0, 16) } : null;
       return { ok: true, error: "", res: {
-        narration: obj.narration.trim().slice(0, 3000),
+        narration: obj.narration.trim().slice(0, 3000), results,
         reveal_clue: str(obj.reveal_clue), request_check: rq?.id ? rq : null, move_to: str(obj.move_to), arrival: (str(obj.arrival) ?? "").trim().slice(0, 3000) || null,
         improv_check: ic, new_place: np, new_npcs: newNpcs, left_place: obj.left_place === true,
         on_track: obj.on_track === true ? true : obj.on_track === false ? false : null,
@@ -4263,8 +4278,20 @@ const Turn = (() => {
     const plan = {
       narration: (r.narration ?? "").trim(), arrival: null, answers: [], clue: null, move: null, check: null,
       give: [], take: [], place: null, leavePlace: false, onTrack: r.on_track ?? null,
-      hurt: [], heal: [], fate: null, newNpcs: [],
+      hurt: [], heal: [], fate: null, newNpcs: [], blocks: [],
     };
+    // ---- 플레이어별 서술(results): 행동하지 않은 캐릭터 서술은 버리고, 같은 캐릭터는 합침 ----
+    for (const b of r.results ?? []) {
+      const c = charOf(b.who);
+      if (!c) { soft(`results의 '${b.who}'을(를) 모름 → 무시`); continue; }
+      if (info.actors.length && !info.actors.some((a) => a.pid === c.pid)) { soft(`이번 차례 행동 없는 ${c.name} 서술 → 제외`); continue; }
+      const ex = plan.blocks.find((x) => x.pid === c.pid);
+      if (ex) ex.text += ` ${b.text}`; else plan.blocks.push({ pid: c.pid, name: c.name, text: b.text });
+    }
+    if (plan.blocks.length) {
+      if (plan.narration) plan.blocks.unshift({ pid: null, name: "", text: plan.narration });
+      plan.narration = plan.blocks.map((b) => b.text).join("\n");
+    }
 
     // ---- 사건 이동 ----
     if (r.move_to) {
@@ -4392,6 +4419,7 @@ const Turn = (() => {
         plan.answers.push({ toPid: c?.pid ?? null, toName: c?.name ?? info.askers[0].name, text: plan.narration });
         plan.narration = "";
       }
+      plan.blocks = [];
     }
 
     // ---- 충돌 · 누락 ----
@@ -4405,7 +4433,7 @@ const Turn = (() => {
     }
     if (!info.askOnly && info.actors.length >= 2) {
       const text = [plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].join(" ");
-      const missing = info.actors.filter((a) => !text.includes(a.name)).map((a) => a.name);
+      const missing = info.actors.filter((a) => !plan.blocks.some((b) => b.pid === a.pid) && !text.includes(a.name)).map((a) => a.name);
       if (missing.length) (final ? soft : hard)(`행동한 캐릭터 누락: ${missing.join(", ")}`);
     }
     if (!plan.narration && !plan.arrival && !plan.answers.length) hard("서술 · 답변이 비어 있음");
@@ -4464,7 +4492,7 @@ class HostGame {
     this.onSave = opts.onSave ?? (() => {});    // 상태가 바뀔 때마다 (자동 저장)
     this.aiCall = opts.aiCall ?? null;          // async (messages, {maxTokens}) => text
     this.aiReady = opts.aiReady ?? (() => !!this.aiCall);
-    this.aiDebounceMs = opts.aiDebounceMs ?? globalThis.TRPG_AI_WAIT_MS ?? 10000;   // 행동 모으는 시간
+    this.aiDebounceMs = opts.aiDebounceMs ?? globalThis.TRPG_AI_WAIT_MS ?? 8000;   // 첫 행동 뒤 모으는 시간 (이후 행동마다 연장, 최대 aiDebounceMs×2.5)
     // 예전 저장본의 AI 그림 정리 (그림 생성 기능 없음)
     delete data.images;
     delete data.aiUsage;   // 예전 자체 하루 한도 (없앰)
@@ -4747,6 +4775,7 @@ class HostGame {
     this.ai.again = false;
     if (discardPending) this.data.game.aiCursor = this.data.logSeq;
     this.broadcast({ t: "gather", ms: 0 });
+    this.broadcast({ t: "board", rows: [] });
   }
   /** 소지품 얻기·잃기 (AI가 요청, 캐릭터 이름으로 찾음) */
   changeItem({ to, item }, add) {
@@ -5005,7 +5034,7 @@ class HostGame {
     this.sendImage(pid);
     this.sendSnap(pid, true);
     // 새로고침 · 재접속: 행동을 모으는 중이면 남은 시간, GM이 쓰는 중이면 그 표시도 이어서
-    if (this.ai.timer) this.emit(pid, { t: "gather", ms: Math.max(0, (this.ai.due ?? Date.now()) - Date.now()) });
+    if (this.ai.timer) { this.emit(pid, { t: "gather", ms: Math.max(0, (this.ai.due ?? Date.now()) - Date.now()) }); this.emit(pid, { t: "board", rows: this.turnBoard() }); }
     if (this.ai.busy) this.emit(pid, { t: "thinking", on: true });
   }
 
@@ -5342,6 +5371,7 @@ class HostGame {
         if (d.phase === "play") this.logScene();
         d.game.aiCursor = d.logSeq;
         this.broadcast({ t: "gather", ms: 0 });
+        this.broadcast({ t: "board", rows: [] });
         return this.pushAll();
       }
       case "finish": {
@@ -5351,6 +5381,7 @@ class HostGame {
         d.game.result = this.sessionResult();
         this.addLog({ kind: "system", text: "이야기 끝. 결과 정리." });
         this.broadcast({ t: "gather", ms: 0 });
+        this.broadcast({ t: "board", rows: [] });
         return this.pushAll();
       }
       case "unfinish": {
@@ -5369,6 +5400,7 @@ class HostGame {
         this.note(`되돌림: ${last.label}`);
         this.addLog({ kind: "system", text: "GM: 마지막 AI 서술을 되돌림." });
         this.broadcast({ t: "gather", ms: 0 });
+        this.broadcast({ t: "board", rows: [] });
         return this.pushAll();
       }
       case "kick": {
@@ -5491,13 +5523,52 @@ class HostGame {
     if (this.ai.busy) { this.ai.again = true; return; }
     if (!now && this.turnComplete()) now = true;   // 모두 행동함 → 기다리지 않음
     // 첫 행동부터 10초 모음창. 그 사이 들어온 행동·질문은 같이 묶음 (계속 말해도 밀리지 않음)
-    if (!now && this.ai.timer) return;
+    // 모으는 중에 새 행동이 오면 마지막 입력 뒤 5초까지 연장 (첫 행동 기준 최대 aiDebounceMs×2.5)
+    if (!now && this.ai.timer) {
+      const cap = (this.ai.first ?? Date.now()) + this.aiDebounceMs * 2.5;
+      const due = Math.min(Date.now() + Math.min(5000, this.aiDebounceMs), cap);
+      if (due <= (this.ai.due ?? 0) + 250) { this.broadcastBoard(); return; }
+      clearTimeout(this.ai.timer);
+      this.ai.timer = setTimeout(() => { this.ai.timer = null; this.ai.first = null; this.runAI(); }, due - Date.now());
+      this.ai.due = due;
+      this.broadcast({ t: "gather", ms: due - Date.now() });
+      this.broadcastBoard();
+      return;
+    }
     clearTimeout(this.ai.timer);
     const ms = now ? 50 : this.aiDebounceMs;
-    this.ai.timer = setTimeout(() => { this.ai.timer = null; this.runAI(); }, ms);
+    this.ai.first = Date.now();
+    this.ai.timer = setTimeout(() => { this.ai.timer = null; this.ai.first = null; this.runAI(); }, ms);
     this.ai.due = Date.now() + ms;
     // 모두의 화면에 "GM이 행동을 지켜보는 중…" (시계가 달라도 되게 남은 시간으로 보냄)
     this.broadcast({ t: "gather", ms: now ? 0 : ms });
+    this.broadcastBoard(now);
+  }
+
+  /** 이번 차례 행동표: 접속한 준비된 캐릭터별 최근 입력 (순서 = 첫 입력 순) */
+  turnBoard() {
+    const d = this.data, since = this.sinceAI();
+    const players = Object.entries(d.players).filter(([id, q]) => q.ready && q.character && !q.character.dead && !q.character.down && this.online(id) && !(this.isHost(id) && !d.hostPlays));
+    const kindOf = (e) => {
+      if (e.kind === "roll") return "판정";
+      if (e.toNpc) return "대사";
+      if (e.style === "ask") return "질문";
+      const t = e.text ?? "";
+      if (/(간다|가본다|가보|들어|나간|나가|열고|열어|연다|이동|향한|향해|올라|내려|뛰어)/.test(t)) return "이동";
+      if (/(조사|살펴|살핀|뒤져|찾|확인|관찰|읽|엿|조심스레|본다)/.test(t)) return "조사";
+      return "행동";
+    };
+    const input = (e) => (e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc)) || (e.kind === "roll" && e.result && !e.dmg);
+    const rows = players.map(([id, q]) => {
+      const e = [...since].reverse().find((x) => x.byId === id && input(x));
+      const first = since.find((x) => x.byId === id && input(x));
+      return { name: q.character.name, seq: first?.seq ?? Infinity, kind: e ? kindOf(e) : "", text: e ? Engine.clip((e.toNpc ? String(e.text).replace(/^@\S+\s*/, "") : e.text ?? e.result ?? "").replace(/^[*＊?？]\s*/, ""), 28) : "", done: !!e };
+    }).sort((a, b) => a.seq - b.seq);
+    return rows.map(({ seq, ...r }) => r);
+  }
+  broadcastBoard(clear = false) {
+    const rows = clear ? [] : this.turnBoard();
+    this.broadcast({ t: "board", rows: rows.some((r) => r.done) ? rows : [] });
   }
 
   broadcast(msg) { for (const pid of Object.keys(this.data.players)) if (this.online(pid)) this.emit(pid, msg); }
@@ -5534,6 +5605,13 @@ class HostGame {
     const todo = since.filter((e) => (e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc)) || (e.kind === "roll" && e.result && !e.dmg))
       .map((e) => e.kind === "roll" ? `${e.by}(판정): ${e.text} → ${e.result}` : `${e.by}(${e.toNpc ? `NPC에게 대사: ${e.toNpc}` : e.style === "ask" ? "질문" : "행동"}): ${e.text}`);
     if (todo.length) ctx.이번입력목록 = todo.slice(-8);
+    // 행동표: 2명 이상이 행동했으면 표 순서대로 서술하게 하고, 아직 입력 없는 캐릭터는 지어내지 못하게 명시
+    const board = this.turnBoard();
+    if (board.filter((r) => r.done).length >= 2) {
+      ctx.이번차례행동표 = board.filter((r) => r.done).map((r, i) => ({ 순서: i + 1, 캐릭터: r.name, 유형: r.kind, 원문: r.text }));
+      const idle = board.filter((r) => !r.done).map((r) => r.name);
+      if (idle.length) ctx.이번차례미입력 = idle.map((n) => `${n}: 이번 차례 행동 없음 (서술 금지)`);
+    }
 
     const nameOf = (pid) => d.players[pid]?.character?.name ?? d.players[pid]?.name ?? "";
     const uniq = (list) => [...new Map(list.filter((x) => d.players[x]?.character).map((x) => [x, { pid: x, name: nameOf(x) }])).values()];
@@ -5622,6 +5700,11 @@ class HostGame {
     }
     d.game.retry = null;   // GM이 결과를 서술했으면 밀어붙이기 · 행운 기회 끝
     const clue = plan.clue ? Engine.revealClue(this.sc, d.game, plan.clue) : null;
+    // 여러 명 행동이면 플레이어별 블록으로 (입력 순서). 한 명이면 기존처럼 한 덩어리
+    const narrate = () => {
+      if (plan.blocks?.length > 1 || (plan.blocks?.length === 1 && plan.blocks[0].name)) for (const b of plan.blocks) this.addLog({ kind: "ai", by: "GM", text: b.text, ...(b.name ? { focus: b.name, focusId: b.pid } : {}) });
+      else if (plan.narration) this.addLog({ kind: "ai", by: "GM", text: plan.narration });
+    };
     const answerLogs = () => { for (const a of plan.answers) this.addLog({ kind: "ai", by: "GM", text: a.text, to: a.toName, toId: a.toPid }); };
     const items = () => {   // 물건은 서술 바로 뒤에
       for (const g of plan.give) this.changeItem({ to: g.name, item: g.item }, true);
@@ -5630,14 +5713,14 @@ class HostGame {
     // 순서: 이번 행동의 결과 서술(지금 사건) → 질문 답변 → 물건 → 단서 → (사건 전환이면) 짧은 사건 카드 → 도착 서술 → 판정 요청
     const moving = !!plan.move && Engine.move(this.sc, d.game, plan.move);
     if (moving && plan.arrival) {
-      if (plan.narration) this.addLog({ kind: "ai", by: "GM", text: plan.narration });
+      narrate();
       answerLogs(); items();
       if (clue) this.addLog({ kind: "clue", text: clue.text });
       this.logScene({ brief: true });
       this.addLog({ kind: "ai", by: "GM", text: plan.arrival });
     } else {
       if (moving) { answerLogs(); if (clue) this.addLog({ kind: "clue", text: clue.text }); this.logScene({ brief: !!plan.narration }); }
-      if (plan.narration) this.addLog({ kind: "ai", by: "GM", text: plan.narration });
+      narrate();
       if (!moving) answerLogs();
       items();
       if (clue && !moving) this.addLog({ kind: "clue", text: clue.text });
@@ -5732,6 +5815,7 @@ class HostGame {
       return;
     }
     this.ai.busy = true;
+    this.broadcast({ t: "board", rows: [] });
     const controller = new AbortController();
     this.ai.controller = controller;
     const epoch = this.ai.epoch, game = this.data.game, scene = game.currentScene;
@@ -8485,6 +8569,7 @@ const BannerArt = (() => {
         return;
       }
       case "gather": keepBottom(() => showGather(Number(msg.ms) || 0)); return;
+      case "board": keepBottom(() => showBoard(Array.isArray(msg.rows) ? msg.rows : [])); return;
       case "suggesting": app.suggesting = !!msg.on; updateBuilder(); return;
       case "suggestion": applySuggestion(msg.data); return;
       case "rejected":
@@ -8871,10 +8956,11 @@ const BannerArt = (() => {
       const ink = e.kind === "say" && e.byId && app.snap?.players.some((p) => p.pid === e.byId) ? spineOf(e.byId) : null;
       // GM이 질문에 답할 때: 질문한 사람을 플레이어 색 꼬리표로
       const toInk = e.toId && app.snap?.players.some((p) => p.pid === e.toId) ? spineOf(e.toId) : "#2a3550";
-      node = el("div", { class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${placeIc ? " place-line" : ""}` }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
+      node = el("div", { class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}` }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
         e.style === "ask" ? el("span", { class: "ask-tag" }, "→ GM") : null,
         e.toNpc ? el("span", { class: "to-tag", style: "--c:#6f5230" }, `@${e.toNpc}`) : null,
-        e.to ? el("span", { class: "to-tag", style: `--c:${toInk}` }, `@${e.to}`) : null, placeIc, textNode);
+        e.to ? el("span", { class: "to-tag", style: `--c:${toInk}` }, `@${e.to}`) : null,
+        e.focus ? el("span", { class: "focus-tag", style: `--c:${e.focusId && app.snap?.players.some((p) => p.pid === e.focusId) ? spineOf(e.focusId) : "#8a1c14"}` }, `▶ ${e.focus}`) : null, placeIc, textNode);
     }
     if (hold) { node.classList.add("awaiting"); held.push({ node, e }); }
     logBox.append(node);
@@ -8906,6 +8992,19 @@ const BannerArt = (() => {
     $("#gatherNow").disabled = false;
     tick();
     gatherTimer = setInterval(tick, 250);
+  }
+  /* 이번 차례 정리 카드: 누가 무엇을 냈는지 (행동이 하나라도 들어오면 표시) */
+  function showBoard(rows) {
+    const box = $("#turnBoard");
+    if (!rows.length) { box.hidden = true; box.replaceChildren(); return; }
+    const done = rows.filter((r) => r.done).length;
+    box.replaceChildren(
+      el("div", { class: "tb-head" }, el("span", {}, "이번 차례 정리"), el("span", {}, `${done}/${rows.length} 제출`)),
+      ...rows.map((r, i) => el("div", { class: `tb-row ${r.done ? "done" : "wait"}` },
+        el("span", { class: "tb-n" }, String(i + 1)), el("span", { class: "tb-name" }, String(r.name ?? "")),
+        el("span", { class: "tb-tag" }, r.done ? String(r.kind || "행동") : "대기"),
+        el("span", { class: "tb-text" }, r.done ? String(r.text ?? "") : "아직 입력 없음"))));
+    box.hidden = false;
   }
   $("#gatherNow").addEventListener("click", () => { $("#gatherNow").disabled = true; send({ t: "aiNow" }); });
   /* 입력 종류는 앞 글자로: 평소 = 대사 · ~ = 비공개 생각 · * = 행동 · ? = GM 질문 · / = 명령 */
