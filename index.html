@@ -2106,7 +2106,10 @@ html.has-3d .topbar { box-shadow: none; }
 #clueBox > .clue-scene::before { display:none; }
 .clue-scene-h { display:inline-block; margin:10px 0 4px; padding:1px 8px; background:#6f5230; color:#f4ecd8; font-family:var(--font); font-size:11px; letter-spacing:2px; }
 #clueBox > .clue-scene:first-child .clue-scene-h { margin-top:2px; }
-.clue-scene-list { margin:0; padding:0; list-style:none; display:grid; }
+.clue-scene-list { margin:0; padding:0; list-style:none; display:grid; grid-template-columns:minmax(0,1fr); }
+/* 미리보기 한 줄(nowrap)이 칸을 넓히지 않게: 격자 칸 최소 폭 0 */
+#clueBox { grid-template-columns:minmax(0,1fr); }
+#clueBox > li, .clue-scene-list > li, .clue-index-item, .clue-index-row { min-width:0; }
 .clue-scene-list > .clue-group { padding-left:0; }
 .clue-scene-list > .clue-group::before { display:none; }
 .clue-index-row { flex-wrap:wrap; row-gap:1px; }
