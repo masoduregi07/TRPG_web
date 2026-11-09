@@ -8794,7 +8794,7 @@ const BannerArt = (() => {
           el('i',{'aria-hidden':'true'},on?'✓':''),label);
       };
       const kindRow=el('div',{class:'clue-kinds'},el('span',{class:'clue-kinds-label'},'분류'),chip('person','인물'),chip('place','장소'),
-        mine?el('span',{class:'clue-kinds-note'},'내가 지정함'):kinds.length?el('span',{class:'clue-kinds-note'},'자동 분류'):el('span',{class:'clue-kinds-note warn'},'← 분류되지 않음. 체크해 주세요'),
+        mine?el('span',{class:'clue-kinds-note'},'내가 지정함'):null,
         mine?el('button',{type:'button',class:'clue-kinds-reset',on:{click:(e)=>{e.preventDefault();setKinds(c.id,null);}}},'자동으로 되돌리기'):null);
       details.append(heading,el('div',{class:'clue-open-body'},kindRow,
         el('div',{class:'clue-original'},el('span',{class:'clue-original-label'},'원문'),el('p',{},content.original))));
