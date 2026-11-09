@@ -1962,6 +1962,8 @@ html.has-3d .topbar { box-shadow: none; }
 .log-top { top:calc(var(--cover) + 12px); }
 .log-top .jump-ic, .log-bottom .jump-ic { display:block; width:16px; height:16px; margin:0; pointer-events:none; }
 .log-bottom[hidden], .log-top[hidden] { display:none; }
+.jump-badge { position:absolute; top:-10px; right:-10px; min-width:18px; height:18px; padding:0 4px; box-sizing:border-box; background:var(--blood); color:#f3e6c8; border:2px solid var(--ink); font:11px/14px var(--font); text-align:center; pointer-events:none; }
+.jump-badge[hidden] { display:none; }
 .turn-status { margin:0 var(--cover); padding:4px 44px 4px 48px; display:flex; flex-shrink:0; flex-wrap:nowrap; gap:5px 16px; align-items:center; position:relative; min-height:22px; color:var(--blood); font:12px var(--font); overflow:hidden; }
 .turn-status[hidden], .turn-status > [hidden] { display:none; }
 .turn-status #typingPresence { color:var(--ink-2); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; min-width:0; }
@@ -2280,7 +2282,7 @@ html.has-3d .topbar { box-shadow: none; }
       <span id="recentInfo" class="sr-only">최근 기록</span>
       <div id="log" class="log" aria-live="polite"></div>
       <button id="logTop" class="log-top btn small" type="button" hidden aria-label="채팅 맨 위로 이동" title="맨 위"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="8,3.5 14.5,12.5 1.5,12.5" fill="currentColor"/></svg></button>
-      <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="1.5,3.5 14.5,3.5 8,12.5" fill="currentColor"/></svg></button>
+      <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="1.5,3.5 14.5,3.5 8,12.5" fill="currentColor"/></svg><span id="logUnread" class="jump-badge" hidden></span></button>
       <div id="turnBoard" class="turn-board" hidden></div>
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="btn tiny" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
       <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면입니다. 호스트와 연결되면 최신 상태로 바뀝니다.</div>
@@ -8817,11 +8819,17 @@ const BannerArt = (() => {
   /* ---------------- 로그 ---------------- */
   const logBox = $("#log");
   let scrollArrowTimer = null, scrollArrowUntil = 0;
+  let unread = 0;   // 과거 기록을 보는 동안 새로 올라온 기록 수
   function updateScrollArrows() {
     const btn = $("#logBottom"), top = $("#logTop");
     const distance = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight;
     const duringScroll = Date.now() < scrollArrowUntil;
-    btn.hidden = !duringScroll || distance < 120 || logBox.clientHeight === 0;
+    if (distance < 120) unread = 0;   // 맨 아래까지 봤으면 새 기록 수 초기화
+    const badge = $("#logUnread");
+    badge.hidden = !unread;
+    badge.textContent = unread > 99 ? "99+" : String(unread);
+    btn.setAttribute("aria-label", unread ? `채팅 최신 기록으로 이동 (새 기록 ${unread}개)` : "채팅 최신 기록으로 이동");
+    btn.hidden = (!duringScroll && !unread) || distance < 120 || logBox.clientHeight === 0;
     top.hidden = !duringScroll || logBox.scrollTop < 120 || logBox.clientHeight === 0;
   }
   function markUserScroll() {
@@ -9010,11 +9018,13 @@ const BannerArt = (() => {
     if (hold) { node.classList.add("awaiting"); held.push({ node, e }); }
     logBox.append(node);
     if (atBottom) logBox.scrollTop = logBox.scrollHeight;
+    else if (live) unread++;
     requestAnimationFrame(updateBottomButton);
   }
   function renderLogAll() {
     skipTyping(); DiceFX.skip(); cancelReleases(); held.splice(0);
     logBox.replaceChildren();
+    unread = 0;
     app.log.slice(-300).forEach(e => renderEntry(e));
     updateHistoryStatus();
     logBox.scrollTop = logBox.scrollHeight;
