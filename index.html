@@ -2011,6 +2011,30 @@ html.has-3d .topbar { box-shadow: none; }
 .ho.big .ho-body { max-height: none; font-size: 15px; line-height: 26px; }
 .ho-letter.big { background-position: 0 38px; background-image: repeating-linear-gradient(180deg, transparent 0 25px, rgba(90, 60, 30, .12) 25px 26px); }
 .ho.big .ho-img img { max-height: 70vh; }
+/* 도면 핸드아웃 */
+.ho-map { display: block; width: 100%; height: auto; font-family: var(--font); }
+.ho-map-card .ho-img { display: block; width: 320px; max-width: 100%; }
+.ho-map-card.big { width: min(640px, 92vw); }
+.ho-map-card.big .ho-img { width: 100%; }
+.hm-paper { fill: #f1e8cf; }
+.hm-grid { stroke: rgba(60, 90, 150, .14); stroke-width: .5; }
+.hm-room { fill: #efe3c3; stroke: #2b1a0c; stroke-width: 1.6; }
+.hm-label { font-size: 4.2px; fill: #3a2c20; text-anchor: middle; dominant-baseline: middle; }
+.hm-tray { font-size: 4px; fill: #7a6548; }
+.hm-tok circle { stroke: #f1e8cf; stroke-width: 1.2; }
+.hm-tok text { font-size: 4.6px; fill: #f4ecd8; text-anchor: middle; pointer-events: none; }
+.hm-tok.mine { cursor: grab; }
+.hm-tok.mine circle { stroke: #f6d27a; stroke-width: 1.6; }
+.hm-tok.drag { cursor: grabbing; }
+.ho-map.live { touch-action: none; }
+.ho-th-map { background: #f1e8cf; }
+.ho-th-map .ho-map { width: 100%; height: 100%; }
+.ho-th-map .hm-label, .ho-th-map .hm-tok text { display: none; }
+/* 인물 카드: 이름 옆 현재 위치 */
+.name-loc { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.dos-loc { display: inline-flex; align-items: center; gap: 2px; font: 11px var(--font); color: #553a23; white-space: nowrap; }
+.dos-loc .ic-svg { width: 12px; height: 12px; }
+.mate-txt .dos-loc { margin-left: 6px; font-size: 10px; }
 .ho-float { position: fixed; z-index: 95; left: 40px; top: 80px; min-width: 120px; min-height: 80px; max-width: 92vw; max-height: 88vh; resize: both; overflow: hidden; cursor: move;
   background: #1c120c; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #e9dcb7, 5px 6px 0 4px rgba(0, 0, 0, .45); touch-action: none; }
 .ho-float.top { z-index: 96; }
@@ -2659,6 +2683,16 @@ handouts:
     text: |-
       아버지, 노래가 또 들려요.
       내일 밤엔 문을 열어 볼게요. 걱정 마세요.
+  harbor_plan:
+    title: 항구와 등대 도면
+    kind: map         # 도면: 칸 단위 방. 플레이어가 자기 말을 옮기면 그 방이 현재 위치
+    size: [24, 14]    # 가로 · 세로 칸
+    rooms:
+      - { name: 부두, at: [1, 8, 9, 5] }
+      - { name: 어부의 오두막, at: [1, 2, 6, 5] }
+      - { name: 방파제, at: [10, 9, 8, 2] }
+      - { name: 철문 앞, at: [18, 7, 5, 6] }
+      - { name: 나선 계단, at: [18, 2, 5, 5] }
 
 scenes:
   harbor:
@@ -2683,6 +2717,7 @@ scenes:
       - id: rumor
         text: 마을 사람들은 밤마다 등대 꼭대기에서 여자의 노랫소리가 들린다며 수군거림.
         reveal: 어부에게 등대나 마을 소문을 물으면 공개
+        handout: harbor_plan
       - id: daughter
         text: 30년 전 폭풍우 치던 밤, 등대지기의 딸 '미라'가 등대에서 사라짐.
         reveal: 어부를 설득하거나 술을 사 주면 공개
@@ -3379,7 +3414,12 @@ const Engine = (() => {
     }
     return errors;
   }
-  const HANDOUT_KINDS = ["letter", "news", "note", "photo"];
+  const HANDOUT_KINDS = ["letter", "news", "note", "photo", "map"];
+  /** 도면 핸드아웃: size [가로, 세로] 칸(기본 24×16), rooms [{ name, at: [x, y, w, h] }] */
+  const mapSizeOf = (h) => Array.isArray(h?.size) && h.size.length === 2 && h.size.every((n) => Number.isFinite(+n) && +n >= 4 && +n <= 60) ? h.size.map(Number) : [24, 16];
+  const mapRoomsOf = (h) => (Array.isArray(h?.rooms) ? h.rooms : []).filter((r) => r && typeof r.name === "string" && Array.isArray(r.at) && r.at.length === 4 && r.at.every((n) => Number.isFinite(+n)))
+    .slice(0, 40).map((r) => ({ name: r.name.trim().slice(0, 20), at: r.at.map(Number) }));
+  const roomAt = (h, x, y) => mapRoomsOf(h).filter((r) => x >= r.at[0] && x <= r.at[0] + r.at[2] && y >= r.at[1] && y <= r.at[1] + r.at[3]).sort((a, b) => a.at[2] * a.at[3] - b.at[2] * b.at[3])[0]?.name ?? "";
   const HANDOUT_IMG_MAX = 400_000;
   const isImageURL = (u) => typeof u === "string" && /^(https?:\/\/\S+|data:image\/[a-z+]+;base64,[A-Za-z0-9+/=\s]+)$/i.test(u.trim());
   // 배경음: https 주소만 (mp3 · ogg · m4a · wav 등. 호스트 · 플레이어 모두 그 주소에서 직접 재생)
@@ -3424,7 +3464,16 @@ const Engine = (() => {
     for (const [hid, h] of Object.entries(hos)) {
       if (badId(hid)) errors.push(`핸드아웃 id '${hid}'는 글자·숫자·_·-만 사용.`);
       if (!isRecord(h) || typeof h.title !== "string" || !h.title.trim()) { errors.push(`핸드아웃 ${hid}: title 필요.`); continue; }
-      if (h.text == null && h.image == null) errors.push(`핸드아웃 ${hid}: text나 image 중 하나는 필요.`);
+      if (h.kind === "map") {
+        const [W, H] = mapSizeOf(h);
+        if (h.size != null && !(Array.isArray(h.size) && h.size.length === 2 && h.size.every((n) => +n >= 4 && +n <= 60))) errors.push(`핸드아웃 ${hid}: size는 [가로, 세로] 칸 (4~60).`);
+        if (!Array.isArray(h.rooms) || !h.rooms.length) errors.push(`핸드아웃 ${hid}: 도면(map)은 rooms 목록 필요 ({ name, at: [x, y, w, h] }).`);
+        else for (const r of h.rooms) {
+          if (!r || typeof r.name !== "string" || !Array.isArray(r.at) || r.at.length !== 4 || !r.at.every((n) => Number.isFinite(+n))) { errors.push(`핸드아웃 ${hid}: 방은 { name, at: [x, y, w, h] } 형식.`); continue; }
+          const [x, y, w, hh] = r.at.map(Number);
+          if (x < 0 || y < 0 || w <= 0 || hh <= 0 || x + w > W || y + hh > H) errors.push(`핸드아웃 ${hid}: 방 '${r.name}'이(가) 도면(${W}×${H}) 밖으로 나감.`);
+        }
+      } else if (h.text == null && h.image == null) errors.push(`핸드아웃 ${hid}: text나 image 중 하나는 필요.`);
       if (h.text != null && typeof h.text !== "string") errors.push(`핸드아웃 ${hid}: text는 글이어야 함.`);
       if (h.image != null && !isImageURL(h.image)) errors.push(`핸드아웃 ${hid}: image는 https:// 주소나 data:image/ 형식.`);
       else if (typeof h.image === "string" && h.image.startsWith("data:") && h.image.length > HANDOUT_IMG_MAX) errors.push(`핸드아웃 ${hid}: 그림이 너무 큼 (data: ${Math.round(HANDOUT_IMG_MAX / 1000)}KB 이하).`);
@@ -3741,7 +3790,7 @@ const Engine = (() => {
 
   return {
     condOk, condText, normalize, charRules, validateCharacter, validateScenario, newState, pendingList, queuePending, takePending, clearPending, recordProgress, sceneOf,
-    availableExits, move, revealClue, findClueAnywhere, HANDOUT_KINDS, findCheck, applyCheck, canTryCheck, rollDice, randInt,
+    availableExits, move, revealClue, findClueAnywhere, HANDOUT_KINDS, mapSizeOf, mapRoomsOf, roomAt, findCheck, applyCheck, canTryCheck, rollDice, randInt,
     registerNpc, ensureKpc, nameExplorers, emergencyEdit,
     publicView, gmView, aiContext, charState, npcFight, clip, isImageURL, isAudioURL, bgmOf,
   };
@@ -5122,6 +5171,7 @@ class HostGame {
     const h = this.handoutDef(id);
     const kind = Engine.HANDOUT_KINDS.includes(h.kind) ? h.kind : (h.image && !h.text ? "photo" : "letter");
     this.addLog({ kind: "handout", hid: id, title: String(h.title).slice(0, 60), hkind: kind, text: typeof h.text === "string" ? h.text.slice(0, 2000) : "",
+      ...(kind === "map" ? { size: Engine.mapSizeOf(h), rooms: Engine.mapRoomsOf(h) } : {}),
       image: this.handoutImage(id), ...(toIds ? { toIds } : {}), ...(by ? { shownBy: by } : {}) });
   }
   clueHandout(clue, finders) {
@@ -5148,7 +5198,8 @@ class HostGame {
       const h = this.handoutDef(id);
       return { id, title: String(h.title).slice(0, 60), kind: Engine.HANDOUT_KINDS.includes(h.kind) ? h.kind : (h.image && !h.text ? "photo" : "letter"),
         text: typeof h.text === "string" ? h.text.slice(0, 2000) : "", image: this.handoutImage(id), clue: st.clue, scene: st.scene, sceneTitle: this.sc.scenes[st.scene]?.title ?? st.scene,
-        to: st.pids === "all" ? "all" : st.pids.map(name), npcs: [...st.npcs], at: st.at };
+        to: st.pids === "all" ? "all" : st.pids.map(name), npcs: [...st.npcs], at: st.at,
+        ...(h.kind === "map" ? { size: Engine.mapSizeOf(h), rooms: Engine.mapRoomsOf(h), pos: { ...(g.mapPos?.[id] ?? {}) } } : {}) };
     });
   }
   /** 소지품 얻기·잃기 (AI가 요청, 캐릭터 이름으로 찾음) */
@@ -5355,7 +5406,8 @@ class HostGame {
       players: Object.entries(d.players).map(([id, p]) => ({
         pid: id, name: p.name, isHost: !!p.isHost, online: this.online(id), ready: !!p.ready,
         character: p.character && id !== pid && !this.isHost(pid) ? (({ goal, secret, ...c }) => c)(p.character) : p.character,   // 남의 목표·비밀은 안 보냄
-        portrait: d.portraits?.[id] ? `por:${id}:${d.portraits[id].at}` : null
+        portrait: d.portraits?.[id] ? `por:${id}:${d.portraits[id].at}` : null,
+        loc: (() => { const L = d.game?.mapLoc?.[id], st = L && d.game.handouts?.[L.hid]; return st && (this.isHost(pid) || st.pids === "all" || st.pids.includes(pid)) ? L.room || "" : null; })(),
       })),
       result: play ? d.game.result ?? null : null,   // 엔딩 뒤 결과 정리 (새로고침 · 재접속해도 그대로)
       view: play ? {
@@ -5583,6 +5635,18 @@ class HostGame {
         const list = (d.lobbyChat ??= []);
         list.push({ pid, name: p.name, text, at: Date.now() });
         if (list.length > 80) list.splice(0, list.length - 80);
+        this.pushAll(); this.save();
+        return;
+      }
+      case "mapMove": {
+        // 도면 핸드아웃 위 내 말 옮기기 → 그 칸의 방 = 내 현재 위치 (인물 카드 · AI 맥락)
+        const hid = String(msg.hid ?? ""), h = this.handoutDef(hid), st = d.game?.handouts?.[hid];
+        if (d.phase !== "play" || !p.character || !h || h.kind !== "map" || !st || (st.pids !== "all" && !st.pids.includes(pid))) return;
+        const [W, H] = Engine.mapSizeOf(h);
+        const x = Math.max(0, Math.min(W, Math.round(Number(msg.x) * 10) / 10)), y = Math.max(0, Math.min(H, Math.round(Number(msg.y) * 10) / 10));
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        ((d.game.mapPos ??= {})[hid] ??= {})[pid] = [x, y];
+        (d.game.mapLoc ??= {})[pid] = { hid, room: Engine.roomAt(h, x, y) };
         this.pushAll(); this.save();
         return;
       }
@@ -5966,7 +6030,8 @@ class HostGame {
     const hoName = (pid) => d.players[pid]?.character?.name ?? "";
     const hos = Object.entries(g.handouts ?? {}).filter(([id]) => this.handoutDef(id));
     if (hos.length) ctx.핸드아웃 = hos.map(([id, st]) => ({ id, 제목: this.handoutDef(id).title, 내용: String(this.handoutDef(id).text ?? "(그림)").slice(0, 300),
-      본캐릭터: st.pids === "all" ? "전원" : st.pids.map(hoName).filter(Boolean), 본NPC: st.npcs }));
+      본캐릭터: st.pids === "all" ? "전원" : st.pids.map(hoName).filter(Boolean), 본NPC: st.npcs,
+      ...(this.handoutDef(id).kind === "map" ? { 도면의방: Engine.mapRoomsOf(this.handoutDef(id)).map((r) => r.name), 말위치: Object.fromEntries(Object.entries(g.mapPos?.[id] ?? {}).map(([pid, [x, y]]) => [hoName(pid), Engine.roomAt(this.handoutDef(id), x, y) || "(방 밖)"])) } : {}) }));
     const mapInfo = Maps.aiView(this.sc, g, d.players);
     if (mapInfo) ctx.장면지도 = mapInfo;
     ctx.이미가본장소 = Object.values(d.places ?? {}).filter((p) => p.scene === g.currentScene).map((p) => p.name);
@@ -9206,10 +9271,17 @@ const BannerArt = (() => {
   }
   /* 핸드아웃 메모 (단서 수첩과 따로): 사건 순, 섬네일 + [종류] 제목 + 첫 줄. 누르면 크게 보기. 없으면 메모째 숨김 */
   function handoutThumb(h) {
+    if (h.kind === 'map') return el('span',{class:'ho-th ho-th-map','aria-hidden':'true'},mapSvg(h));
     const src = h.kind === 'photo' || h.image ? handoutSrc(h.image) : null;
     return el('span',{class:`ho-th ho-th-${h.kind}`,'aria-hidden':'true'}, h.image ? el('img',{src:src ?? 'data:image/gif;base64,R0lGODlhAQABAAAAACw=','data-ref':h.image.startsWith('ho:')?h.image:null,alt:''}) : null);
   }
+  function refreshMapView(v) {
+    const card = document.querySelector("#hoView .ho-map-card"); if (!card || card.querySelector(".hm-tok.drag")) return;
+    const h = (v.handouts ?? []).find((x) => x.id === card.dataset.hid); if (!h) return;
+    card.querySelector(".ho-img").replaceChildren(mapSvg(h, { live: true }));
+  }
   function renderHandoutBox(v) {
+    refreshMapView(v);
     const hos = [...(v.handouts ?? [])].sort((a,b)=>(a.at??0)-(b.at??0)), block = document.querySelector('[data-memo="handouts"]');
     block.hidden = !hos.length;
     $('#hoCount').textContent = String(hos.length);
@@ -9333,9 +9405,53 @@ const BannerArt = (() => {
   });
   const KIND_NAME = { gm: "GM", ai: "GM", system: "", clue: "단서" };
   /* 핸드아웃 카드: 편지(letter) · 신문(news) · 쪽지(note) · 사진(photo). 누르면 크게 보기 */
-  const HANDOUT_KIND_NAME = { letter: "편지", news: "신문", note: "쪽지", photo: "사진" };
+  const HANDOUT_KIND_NAME = { letter: "편지", news: "신문", note: "쪽지", photo: "사진", map: "도면" };
   const handoutSrc = (img) => !img ? null : img.startsWith("ho:") ? app.sceneImgs[img] ?? null : img;
+  /* 도면 핸드아웃: 칸 단위 방 사각형 + 방 이름, 플레이어 말(플레이어 색 원 + 이름 첫 글자).
+     크게 보기에서 내 말만 끌어 옮김 → 놓은 칸의 방이 내 현재 위치. 아직 안 놓은 내 말은 아래 대기 칸에 */
+  const MAP_U = 10;
+  function mapSvg(h, { live = false } = {}) {
+    const [W, H] = h.size ?? [24, 16], rooms = h.rooms ?? [], pos = h.pos ?? {}, me = app.snap?.me;
+    const meIn = live && app.snap?.players.some((q) => q.pid === me && q.character);
+    const trayH = meIn && !pos[me] ? 4 : 0;
+    const root = svg("svg", { class: `ho-map${live ? " live" : ""}`, viewBox: `-4 -4 ${W * MAP_U + 8} ${(H + trayH) * MAP_U + 8}`, role: "img", "aria-label": h.title });
+    root.append(svg("rect", { x: -4, y: -4, width: W * MAP_U + 8, height: (H + trayH) * MAP_U + 8, class: "hm-paper" }));
+    for (let x = 0; x <= W; x++) root.append(svg("line", { x1: x * MAP_U, y1: 0, x2: x * MAP_U, y2: H * MAP_U, class: "hm-grid" }));
+    for (let y = 0; y <= H; y++) root.append(svg("line", { x1: 0, y1: y * MAP_U, x2: W * MAP_U, y2: y * MAP_U, class: "hm-grid" }));
+    for (const r of rooms) {
+      const [x, y, w, hh] = r.at;
+      root.append(svg("rect", { x: x * MAP_U, y: y * MAP_U, width: w * MAP_U, height: hh * MAP_U, class: "hm-room" }));
+      const t = svg("text", { x: (x + w / 2) * MAP_U, y: y * MAP_U + 6, class: "hm-label" }); t.textContent = r.name; root.append(t);   // 방 이름은 위쪽 (가운데는 말 자리)
+    }
+    if (trayH) { const t = svg("text", { x: 4, y: (H + 2.6) * MAP_U, class: "hm-tray" }); t.textContent = "내 말 →"; root.append(t); }
+    const token = (pid, x, y) => {
+      const q = app.snap?.players.find((pp) => pp.pid === pid), mine = pid === me;
+      const g = svg("g", { class: `hm-tok${mine && live ? " mine" : ""}`, transform: `translate(${x * MAP_U} ${y * MAP_U})` });
+      g.append(svg("circle", { r: 4.6, fill: q ? spineOf(pid) : "#5a4936" }));
+      const t = svg("text", { y: 1.9 }); t.textContent = (q?.character?.name ?? "?").slice(0, 1); g.append(t);
+      const title = svg("title", {}); title.textContent = q?.character?.name ?? ""; g.append(title);
+      if (mine && live) mapDrag(root, g, h, W, H);
+      return g;
+    };
+    for (const [pid, [x, y]] of Object.entries(pos)) if (app.snap?.players.some((q) => q.pid === pid)) root.append(token(pid, x, y));
+    if (trayH) root.append(token(me, 7.5, H + 2));
+    return root;
+  }
+  function mapDrag(root, g, h, W, H) {
+    g.addEventListener("pointerdown", (e) => {
+      e.preventDefault(); e.stopPropagation(); g.setPointerCapture(e.pointerId); g.classList.add("drag");
+      const at = (ev) => { const pt = root.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const q = pt.matrixTransform(root.getScreenCTM().inverse()); return [Math.max(0, Math.min(W, q.x / MAP_U)), Math.max(0, Math.min(H, q.y / MAP_U))]; };
+      const mv = (ev) => { const [x, y] = at(ev); g.setAttribute("transform", `translate(${x * MAP_U} ${y * MAP_U})`); };
+      const up = (ev) => { g.removeEventListener("pointermove", mv); g.removeEventListener("pointerup", up); g.classList.remove("drag"); const [x, y] = at(ev); send({ t: "mapMove", hid: h.id, x, y }); };
+      g.addEventListener("pointermove", mv); g.addEventListener("pointerup", up);
+    });
+  }
   function handoutCard(h, { big = false } = {}) {
+    if (h.kind === "map") {
+      return el(big ? "div" : "button", { class: `ho ho-map-card${big ? " big" : ""}`, type: big ? null : "button", title: big ? null : "크게 보기 · 내 말 옮기기", "data-hid": h.id,
+        on: big ? {} : { click: () => openHandout(h) } },
+        el("span", { class: "ho-cap" }, `핸드아웃 · ${h.title}`), el("span", { class: "ho-img" }, mapSvg(h, { live: big })));
+    }
     const img = h.image ? el("img", { src: handoutSrc(h.image) ?? "data:image/gif;base64,R0lGODlhAQABAAAAACw=", "data-ref": h.image.startsWith("ho:") ? h.image : null, alt: h.title }) : null;
     const card = el(big ? "div" : "button", { class: `ho ho-${h.kind}${big ? " big" : ""}`, type: big ? null : "button", title: big ? null : "크게 보기",
       on: big ? {} : { click: () => openHandout(h) } },
@@ -9400,6 +9516,7 @@ const BannerArt = (() => {
     });
   }
   function openHandout(h) {
+    h = app.snap?.view?.handouts?.find((x) => x.id === h.id) ?? h;   // 도면은 최신 말 위치로
     $("#hoView")?.remove();
     const close = () => { box.remove(); document.removeEventListener("keydown", esc); };
     const esc = (e) => { if (e.key === "Escape") close(); };
@@ -9554,7 +9671,7 @@ const BannerArt = (() => {
           onLand: () => { shown.classList.remove("awaiting"); if (e.result) setTimeout(() => Sfx.play(e.crit === "대성공" ? "crit" : e.crit === "대실패" ? "fumble" : e.ok ? "success" : "fail"), 120); } }));
       }
     } else if (e.kind === "handout") {
-      node = el("div", { class: "entry handout-line" }, handoutCard({ id: e.hid, title: e.title, kind: e.hkind, text: e.text, image: e.image }));
+      node = el("div", { class: "entry handout-line" }, handoutCard({ id: e.hid, title: e.title, kind: e.hkind, text: e.text, image: e.image, size: e.size, rooms: e.rooms }));
     } else if (e.kind === "system" && e.item) {
       // 소지품 얻음·잃음: SYSTEM 줄 대신 꼬리표 (＋ 얻음 / − 잃음 줄 긋기)
       const owner = app.snap?.players.find((q) => q.pid === e.who);
@@ -10517,7 +10634,7 @@ const BannerArt = (() => {
       polaroid(portraitSrc(p), spineOf(p.pid), false),
       // 이름 크게 → [직업] 꼬리표 + 나이 · 성별 → 특징
       el("div", { class: "dos-body dos-id" },
-        el("b", { class: "sheet-name" }, c.name),
+        el("div", { class: "name-loc" }, el("b", { class: "sheet-name" }, c.name), p.loc != null ? el("span", { class: "dos-loc", title: "현재 위치" }, iconSvg("pin"), p.loc || "방 밖") : null),
         el("div", { class: "dos-meta" }, el("span", { class: "dos-job", title: c.background || null }, c.background || "—"),
           c.age || c.gender ? el("span", { class: "dos-ag" }, [c.age ? `${c.age}세` : "", c.gender].filter(Boolean).join(" · ")) : null),
         c.concept ? el("div", { class: "dos-trait hand", title: c.concept }, c.concept) : null),
@@ -10666,7 +10783,7 @@ const BannerArt = (() => {
       const row = el("button", { class: `mate${p.online ? "" : " offline"}${open ? " open" : ""}`, type: "button", "data-pid": p.pid, style: `--spine:${spineOf(p.pid)}`, "aria-expanded": String(open),
         title: open ? "인물 기록 접기" : "인물 기록 펼치기", on: { click: () => { app.openMate = open ? null : p.pid; renderCharCol(app.snap); } } },
         el("span", { class: "mate-pic" }, src ? el("img", { src, alt: "" }) : el("span", { class: "rail-empty" })),
-        el("span", { class: "mate-txt" }, el("b", {}, c.name), el("small", {}, `${c.background || "—"}${p.online ? "" : " · 오프라인"}`)),
+        el("span", { class: "mate-txt" }, el("b", {}, c.name, p.loc != null ? el("span", { class: "dos-loc" }, iconSvg("pin"), p.loc || "방 밖") : null), el("small", {}, `${c.background || "—"}${p.online ? "" : " · 오프라인"}`)),
         el("span", { class: "hpstamp", style: `--c:${col}` }, state));
       return el("div", { class: "mate-wrap" }, row, open ? sheet(s, p, false) : null);
     }));
