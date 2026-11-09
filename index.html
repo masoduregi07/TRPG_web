@@ -1988,6 +1988,30 @@ html.has-3d .topbar { box-shadow: none; }
   font-family: var(--font); font-size: 10px; line-height: 1.5; letter-spacing: 1px; color: #f1e6c6; background: #553a23; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .25); }
 #log .entry.system + .entry.system { margin-top: -6px; }
 #log .entry.system.place-line .place-ic { opacity: 1; color: #553a23; }
+/* 핸드아웃 카드 (기록 · 크게 보기) */
+#log .entry.handout-line { margin: 8px 0 6px 22px; }
+.ho { position: relative; display: grid; gap: 6px; justify-items: start; width: max-content; max-width: min(360px, 100%); padding: 10px 14px 12px; border: 0; cursor: pointer; text-align: left;
+  font-family: var(--font); color: #2a2018; background: #f3ead2; box-shadow: 0 0 0 1px rgba(90, 60, 30, .35), 3px 4px 0 rgba(0, 0, 0, .25); }
+.ho .ho-cap { font-size: 11px; color: #7a6548; }
+.ho .ho-body { display: block; font-family: var(--font-talk); font-size: 13px; line-height: 22px; white-space: pre-wrap; word-break: keep-all; max-height: 154px; overflow: hidden; }
+.ho .ho-img img { display: block; max-width: 100%; max-height: 220px; filter: sepia(.35) contrast(.95); }
+.ho-letter { background-image: repeating-linear-gradient(180deg, transparent 0 21px, rgba(90, 60, 30, .12) 21px 22px); background-position: 0 30px; rotate: -.6deg; }
+.ho-letter::after, .ho-note::after { content: ""; position: absolute; top: -7px; left: 40%; width: 46px; height: 13px; background: rgba(214, 196, 150, .85); rotate: 3deg; }
+.ho-news { background: #ece6d6; }
+.ho-news .ho-cap { justify-self: stretch; padding-bottom: 3px; border-bottom: 3px double rgba(42, 32, 24, .6); letter-spacing: 1px; }
+.ho-news .ho-body { font-family: var(--font); font-size: 12px; line-height: 19px; column-width: 160px; column-gap: 14px; }
+.ho-note { background: #f6e7b8; rotate: 1deg; }
+.ho-photo { padding: 8px 8px 6px; background: #f6f0e0; rotate: 1.2deg; }
+.ho-photo .ho-cap { order: 2; justify-self: center; }
+.ho-photo::before { content: ""; position: absolute; top: -6px; left: 50%; width: 10px; height: 10px; margin-left: -5px; background: var(--blood); box-shadow: 0 0 0 2px var(--ink); }
+.ho:not(.big):hover { box-shadow: 0 0 0 1px var(--blood), 3px 4px 0 rgba(0, 0, 0, .25); }
+.ho-view { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px; background: rgba(20, 12, 6, .72); }
+.ho.big { max-width: min(640px, 92vw); max-height: 88vh; overflow: auto; cursor: default; rotate: 0deg; padding: 18px 22px 20px; }
+.ho.big .ho-cap { font-size: 13px; }
+.ho.big .ho-body { max-height: none; font-size: 15px; line-height: 26px; }
+.ho-letter.big { background-position: 0 38px; background-image: repeating-linear-gradient(180deg, transparent 0 25px, rgba(90, 60, 30, .12) 25px 26px); }
+.ho.big .ho-img img { max-height: 70vh; }
+.ho-x { position: fixed; top: 18px; right: 22px; width: 36px; height: 36px; border: 0; cursor: pointer; font: 24px/1 var(--font); color: #f4ecd8; background: none; }
 /* 소지품 얻음·잃음 꼬리표 */
 #log .entry.system.item-line::before { display: none; }
 #log .entry.item-line { display: flex; align-items: center; gap: 6px; font-size: 12px; }
@@ -2579,6 +2603,18 @@ character:
 flags:
   has_key: false
 
+# 핸드아웃 (선택): 실물 자료. 단서에 handout: id 를 달면 그 단서와 함께 공개되고 단서 수첩에 모임
+#   kind: letter(편지·일기) / news(신문) / note(쪽지) / photo(사진). image는 https:// 주소나 data:image/
+#   to: all(기본, 전원) / finder(찾은 캐릭터만 — 이후 보여 주면 GM이 범위를 넓힘)
+handouts:
+  mira_note:
+    title: 미라의 쪽지
+    kind: note
+    to: finder
+    text: |-
+      아버지, 노래가 또 들려요.
+      내일 밤엔 문을 열어 볼게요. 걱정 마세요.
+
 scenes:
   harbor:
     title: 안개 낀 항구
@@ -2605,6 +2641,7 @@ scenes:
       - id: daughter
         text: 30년 전 폭풍우 치던 밤, 등대지기의 딸 '미라'가 등대에서 사라짐.
         reveal: 어부를 설득하거나 술을 사 주면 공개
+        handout: mira_note   # 이 단서와 함께 핸드아웃 공개
     checks:
       - id: persuade_fisherman
         label: 어부 설득하기
@@ -3297,6 +3334,8 @@ const Engine = (() => {
     }
     return errors;
   }
+  const HANDOUT_KINDS = ["letter", "news", "note", "photo"];
+  const HANDOUT_IMG_MAX = 400_000;
   const isImageURL = (u) => typeof u === "string" && /^(https?:\/\/\S+|data:image\/[a-z+]+;base64,[A-Za-z0-9+/=\s]+)$/i.test(u.trim());
   // 배경음: https 주소만 (mp3 · ogg · m4a · wav 등. 호스트 · 플레이어 모두 그 주소에서 직접 재생)
   const isAudioURL = (u) => typeof u === "string" && /^https:\/\/\S+$/i.test(u.trim()) && u.trim().length <= 600;
@@ -3334,6 +3373,24 @@ const Engine = (() => {
     const declared = new Set(Object.keys(sc.flags ?? {}));
     for (const s of Object.values(sc.scenes)) for (const c of s?.clues ?? []) if (c?.setFlag) declared.add(c.setFlag);
     for (const s of Object.values(sc.scenes)) for (const c of s?.checks ?? []) for (const o of [c?.success, c?.fail]) if (o?.setFlag) declared.add(o.setFlag);
+    // 핸드아웃: handouts: { id: { title, kind: letter·news·note·photo, text, image, to: all·finder } }, 단서에 handout: id
+    if (sc.handouts != null && !isRecord(sc.handouts)) errors.push("handouts는 { id: { title, text 또는 image } } 형식.");
+    const hos = isRecord(sc.handouts) ? sc.handouts : {}, usedHo = new Set();
+    for (const [hid, h] of Object.entries(hos)) {
+      if (badId(hid)) errors.push(`핸드아웃 id '${hid}'는 글자·숫자·_·-만 사용.`);
+      if (!isRecord(h) || typeof h.title !== "string" || !h.title.trim()) { errors.push(`핸드아웃 ${hid}: title 필요.`); continue; }
+      if (h.text == null && h.image == null) errors.push(`핸드아웃 ${hid}: text나 image 중 하나는 필요.`);
+      if (h.text != null && typeof h.text !== "string") errors.push(`핸드아웃 ${hid}: text는 글이어야 함.`);
+      if (h.image != null && !isImageURL(h.image)) errors.push(`핸드아웃 ${hid}: image는 https:// 주소나 data:image/ 형식.`);
+      else if (typeof h.image === "string" && h.image.startsWith("data:") && h.image.length > HANDOUT_IMG_MAX) errors.push(`핸드아웃 ${hid}: 그림이 너무 큼 (data: ${Math.round(HANDOUT_IMG_MAX / 1000)}KB 이하).`);
+      if (h.kind != null && !HANDOUT_KINDS.includes(h.kind)) errors.push(`핸드아웃 ${hid}: kind는 ${HANDOUT_KINDS.join(" / ")}.`);
+      if (h.to != null && !["all", "finder"].includes(h.to)) errors.push(`핸드아웃 ${hid}: to(공개 범위)는 all(전원) / finder(발견한 캐릭터).`);
+    }
+    for (const [sid, s] of Object.entries(sc.scenes)) for (const c of s?.clues ?? []) if (c?.handout != null) {
+      if (!hos[c.handout]) errors.push(`${sid}: 단서 '${c.id}'의 핸드아웃 '${c.handout}'이(가) 없음.`);
+      else usedHo.add(c.handout);
+    }
+    for (const hid of Object.keys(hos)) if (!usedHo.has(hid)) warnings.push(`핸드아웃 '${hid}'을(를) 거는 단서가 없음 (단서에 handout: ${hid}).`);
     if (!sc.scenes[sc.start]) errors.push(`start 장면 '${sc.start}'이(가) 없음.`);
     if (sc.bgm != null && !isAudioURL(sc.bgm)) errors.push("bgm(배경음)은 https:// 음원 주소여야 함.");
     if (sc.system != null && String(sc.system).toLowerCase() !== "coc7") errors.push("system(룰)은 coc7만 지원 (d20 간이 룰은 삭제됨).");
@@ -3639,7 +3696,7 @@ const Engine = (() => {
 
   return {
     condOk, condText, normalize, charRules, validateCharacter, validateScenario, newState, pendingList, queuePending, takePending, clearPending, recordProgress, sceneOf,
-    availableExits, move, revealClue, findClueAnywhere, findCheck, applyCheck, canTryCheck, rollDice, randInt,
+    availableExits, move, revealClue, findClueAnywhere, HANDOUT_KINDS, findCheck, applyCheck, canTryCheck, rollDice, randInt,
     registerNpc, ensureKpc, nameExplorers, emergencyEdit,
     publicView, gmView, aiContext, charState, npcFight, clip, isImageURL, isAudioURL, bgmOf,
   };
@@ -3853,7 +3910,7 @@ const WebFeatures = (() => {
     return [...m.values()].sort((a, b) => (a.seq ?? a.at ?? 0) - (b.seq ?? b.at ?? 0) || a.id.localeCompare(b.id));
   }
   function page(entries, { pid, host = false, before = Infinity, limit = 100, cuts = [] } = {}) {
-    const visible = merge([], entries, cuts).filter(e => !e.secret || host || e.byId === pid);
+    const visible = merge([], entries, cuts).filter(e => (!e.toIds || host || e.toIds.includes(pid)) && (!e.secret || host || e.byId === pid));
     const older = visible.filter(e => (e.seq ?? 0) < before);
     const items = older.slice(-Math.max(1, Math.min(200, limit)));
     return { entries: items, total: visible.length, next: items.length ? (items[0].seq ?? 0) : 0, more: older.length > items.length };
@@ -4141,7 +4198,7 @@ const AI = (() => {
 3. "아직공개안된단서", "GM전용메모", NPC의 "비밀"은 플레이어가 적절한 행동을 하기 전에는 직접 말하지 않는다.
 4. 이 게임은 크툴루의 부름(CoC) 7판 룰이다. 주사위와 성공/실패는 네가 정하지 않는다. 결과가 불확실한 행동이면: "가능한판정"에 맞는 것이 있으면 request_check에 {"id": 그 id, "who": "굴릴 캐릭터 이름"}을, 없으면 improv_check에 {"skill": "기능목록의 기능(전투면 근접전(격투) · 회피 · 사격(권총) · 투척도 가능) 또는 특성치(근력 · 건강 · 크기 · 민첩 · 외모 · 지능 · 정신력 · 교육) 또는 행운", "difficulty": "보통" 또는 "어려움" 또는 "극단", "dice": 유리하면 1, 불리하면 -1, 보통 0, "reason": "짧은 행동 이름", "who": "굴릴 캐릭터 이름"}을 넣는다. 끔찍한 것을 보거나 겪으면 improv_check에 {"san": "성공 손실/실패 손실 (예: 0/1d3, 1/1d6, 1d6/1d20)", "reason": "무엇을 보았나", "who": "캐릭터 이름"}로 이성 판정을 건다. 결과(보통 · 어려운 · 극단적 성공, 실패, 대성공 · 대실패, 이성 손실, 광기)는 시스템이 [최근 진행]에 기록하며, 너는 그 결과에 맞춰 서술만 한다. "밀어붙인 실패"는 반드시 대가(부상, 발각, 물건 파손, 시간 낭비 등)를 서술한다. 캐릭터의 "광기"가 있으면 그 증상(공포증, 환각, 발작 등)을 서술에 짧게 드러낸다.
 5. 즉흥 판정의 결과로 줄 수 있는 것은 분위기, NPC 반응, 작은 이득, 이미 드러난 사실의 확인까지다. 사건목표를 건너뛰거나, 아직공개안된단서를 공개조건 없이 주거나, 결말을 정하지 않는다.
-6. 단서를 공개할 상황이면 reveal_clue에 "아직공개안된단서"의 id를 넣고, 서술에도 자연스럽게 녹인다.
+6. 단서를 공개할 상황이면 reveal_clue에 "아직공개안된단서"의 id를 넣고, 서술에도 자연스럽게 녹인다. 단서에 핸드아웃(편지 · 신문 · 사진 등 실물 자료)이 붙어 있으면 시나리오가 정한 범위에 저절로 공개된다. 이미 공개된 "핸드아웃"을 캐릭터가 다른 캐릭터나 NPC에게 보여 주거나 읽어 주면 show_handout에 {"id": "핸드아웃id", "to": ["캐릭터 또는 NPC 이름"]}(모두에게면 "all")을 넣는다. 핸드아웃을 보지 않은 캐릭터 · NPC는 그 내용을 모르는 것으로 서술한다.
 7. 사건목표가 이뤄지고 플레이어가 그쪽으로 가거나 들어가겠다고 행동을 선언해서 "이동가능한곳"(넘어갈 수 있는 다음 사건) 중 하나로 이야기가 넘어갈 때만 move_to에 그 id를 넣는다. 목록에 없는 사건으로는 보내지 않는다. 이때 narration에는 지금 사건 안에서 일어난 일(이번 행동의 결과, 문을 열고 나서는 데까지)만 쓰고, 새 사건에 도착한 장면은 arrival에 그 사건의 "도입"을 바탕으로 따로 쓴다. 지금 사건의 NPC · 물건 · 단서 이야기를 arrival에 섞지 않는다. 이미 [장면 전환]과 도착 서술이 나온 사건이면 도착을 다시 서술하지 않는다. "아직조건이안된다음사건"은 플레이어가 조건을 채우도록 자연스럽게 이끄는 데만 참고한다.
 8. 플레이어 캐릭터의 배경과 연결고리를 적극적으로 서술에 활용한다. "지금까지의이야기"를 기억하고 앞뒤가 맞게 서술한다.
 9. 플레이어가 사건목표에서 벗어나면 막지 말고 받아주되, 자연스럽게 사건 쪽으로 이끈다. "지금줄힌트"가 있으면 이번 서술에 자연스럽게 녹인다.
@@ -4170,11 +4227,12 @@ const AI = (() => {
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
 [출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 narration은 ""로 두고 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 행동표가 없으면 results는 [].
-{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
+{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
   }
 
   function logLine(e) {
     if (e.kind === "scene") return `[장면 전환] ${e.title}`;
+    if (e.kind === "handout") return `[핸드아웃 공개${e.toIds ? " (일부만)" : ""}] ${e.title}`;
     if (e.kind === "ai" && e.to) return `[GM → ${e.to}] ${e.text}`;
     if (e.kind === "ai" && e.focus) return `[GM ▶ ${e.focus}] ${e.text}`;
     if (e.kind === "roll" && e.roll) {
@@ -4233,12 +4291,15 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
         improv_check: ic, new_place: np, new_npcs: newNpcs, left_place: obj.left_place === true,
         on_track: obj.on_track === true ? true : obj.on_track === false ? false : null,
         give_item: itemsOf(obj.give_item), take_item: itemsOf(obj.take_item), answers,
+        show_handout: (Array.isArray(obj.show_handout) ? obj.show_handout : obj.show_handout ? [obj.show_handout] : [])
+          .filter((h) => h && typeof h === "object" && str(h.id)).slice(0, 3)
+          .map((h) => ({ id: str(h.id), to: h.to === "all" ? "all" : (Array.isArray(h.to) ? h.to : [h.to]).map(str).filter(Boolean).slice(0, 8) })),
         hurt: dmgList(obj.hurt), heal: dmgList(obj.heal), fate: fateOf(obj.fate),
       } };
     } catch (e) {
       const plain = String(text).replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/```(?:json)?/gi, "").trim();
       return { ok: false, error: e instanceof SyntaxError ? "JSON 문법 오류" : e?.message || "형식 오류",
-        res: { narration: plain.slice(0, 3000), reveal_clue: null, request_check: null, move_to: null, arrival: null, improv_check: null, new_place: null, new_npcs: [], left_place: false, on_track: null, give_item: [], take_item: [], answers: [], hurt: [], heal: [], fate: null } };
+        res: { narration: plain.slice(0, 3000), reveal_clue: null, request_check: null, move_to: null, arrival: null, improv_check: null, new_place: null, new_npcs: [], left_place: false, on_track: null, give_item: [], take_item: [], answers: [], show_handout: [], hurt: [], heal: [], fate: null } };
     }
   }
 
@@ -4519,6 +4580,19 @@ const Turn = (() => {
       if (info.clues.includes(r.reveal_clue)) plan.clue = r.reveal_clue;
       else soft(`없거나 이미 공개한 단서 '${r.reveal_clue}' → 무시`);
     }
+    // ---- 핸드아웃 보여 주기 (공개된 것만, 캐릭터 · NPC 이름으로) ----
+    plan.showHandouts = [];
+    for (const h of r.show_handout ?? []) {
+      if (!(info.handouts ?? []).includes(h.id)) { soft(`공개 안 된 핸드아웃 '${h.id}' → 무시`); continue; }
+      if (h.to === "all") { plan.showHandouts.push({ id: h.id, all: true, pids: [], npcs: [] }); continue; }
+      const pids = [], npcs = [];
+      for (const n of h.to) {
+        const c = charOf(n); if (c) { pids.push(c.pid); continue; }
+        const nm = (info.npcNames ?? []).find((x) => x === n || same(x, n)); if (nm) { npcs.push(nm); continue; }
+        soft(`핸드아웃을 받을 '${n}'을(를) 모름 → 무시`);
+      }
+      if (pids.length || npcs.length) plan.showHandouts.push({ id: h.id, all: false, pids, npcs });
+    }
     // ---- 판정 (주인 포함) ----
     const ownerOf = (who) => {
       const c = charOf(who);
@@ -4648,6 +4722,7 @@ const Turn = (() => {
       if (missing.length) (final ? soft : hard)(`행동한 캐릭터 누락: ${missing.join(", ")}`);
     }
     if (!plan.narration && !plan.arrival && !plan.answers.length) hard("서술 · 답변이 비어 있음");
+    plan.actors = info.actors.map((a) => a.pid);   // 단서를 찾은 캐릭터 (핸드아웃 finder 범위)
     return { plan, issues };
   }
 
@@ -4863,7 +4938,7 @@ class HostGame {
   get sc() { return this.data.scenario; }
   isHost(pid) { return pid === this.data.hostPid; }
   online(pid) { return this.isHost(pid) || this.conns.has(pid); }
-  visible(e, pid) { return !e.secret || e.byId === pid || this.isHost(pid); }
+  visible(e, pid) { if (e.toIds && !e.toIds.includes(pid) && !this.isHost(pid)) return false; return !e.secret || e.byId === pid || this.isHost(pid); }
   speaker(pid) {
     const p = this.data.players[pid];
     if (this.isHost(pid) && !this.data.hostPlays) return `${p.name}(GM)`;
@@ -4988,6 +5063,49 @@ class HostGame {
     this.broadcast({ t: "gather", ms: 0 });
     this.broadcast({ t: "board", rows: [] });
   }
+  /* ---------- 핸드아웃 ----------
+   * 단서에 handout: id 가 붙어 있으면 단서 공개와 함께 공개. 범위 = 시나리오 to (all 기본 · finder = 찾은 캐릭터)
+   * 상태 d.game.handouts[id] = { pids: "all" | [pid], npcs: [이름], clue, scene, at }
+   * 나중에 AI show_handout 으로 캐릭터 · NPC에게 범위를 넓힐 수 있음 */
+  handoutDef(id) { const h = this.sc.handouts?.[id]; return h && typeof h === "object" ? h : null; }
+  handoutImage(id) {
+    const u = this.handoutDef(id)?.image;
+    if (!Engine.isImageURL(u)) return null;
+    return u.trim().startsWith("data:") ? `ho:${id}` : u.trim();
+  }
+  handoutLog(id, toIds = null, by = "") {
+    const h = this.handoutDef(id);
+    const kind = Engine.HANDOUT_KINDS.includes(h.kind) ? h.kind : (h.image && !h.text ? "photo" : "letter");
+    this.addLog({ kind: "handout", hid: id, title: String(h.title).slice(0, 60), hkind: kind, text: typeof h.text === "string" ? h.text.slice(0, 2000) : "",
+      image: this.handoutImage(id), ...(toIds ? { toIds } : {}), ...(by ? { shownBy: by } : {}) });
+  }
+  clueHandout(clue, finders) {
+    const id = Engine.findClueAnywhere(this.sc, clue?.id)?.handout, h = id && this.handoutDef(id), g = this.data.game;
+    if (!h || g.handouts?.[id]) return;
+    const live = (finders ?? []).filter((pid) => this.data.players[pid]?.character);
+    const pids = h.to === "finder" && live.length ? [...new Set(live)] : "all";
+    (g.handouts ??= {})[id] = { pids, npcs: [], clue: clue.id, scene: g.currentScene, at: Date.now() };
+    this.handoutLog(id, pids === "all" ? null : pids);
+  }
+  showHandout({ id, all, pids = [], npcs = [] }) {
+    const st = this.data.game.handouts?.[id];
+    if (!st || !this.handoutDef(id)) return;
+    for (const n of npcs) if (!st.npcs.includes(n)) st.npcs.push(n);
+    if (st.pids === "all") return;
+    const add = all ? Object.keys(this.data.players).filter((pid) => this.data.players[pid]?.character && !st.pids.includes(pid)) : pids.filter((pid) => !st.pids.includes(pid));
+    if (!add.length) return;
+    st.pids = all ? "all" : [...st.pids, ...add];
+    this.handoutLog(id, add);   // 새로 본 사람에게만 카드
+  }
+  handoutsFor(pid) {
+    const g = this.data.game, host = this.isHost(pid), name = (x) => this.data.players[x]?.character?.name ?? this.data.players[x]?.name ?? "";
+    return Object.entries(g.handouts ?? {}).filter(([id, st]) => this.handoutDef(id) && (host || st.pids === "all" || st.pids.includes(pid))).map(([id, st]) => {
+      const h = this.handoutDef(id);
+      return { id, title: String(h.title).slice(0, 60), kind: Engine.HANDOUT_KINDS.includes(h.kind) ? h.kind : (h.image && !h.text ? "photo" : "letter"),
+        text: typeof h.text === "string" ? h.text.slice(0, 2000) : "", image: this.handoutImage(id), clue: st.clue, scene: st.scene, sceneTitle: this.sc.scenes[st.scene]?.title ?? st.scene,
+        to: st.pids === "all" ? "all" : st.pids.map(name), npcs: [...st.npcs], at: st.at };
+    });
+  }
   /** 소지품 얻기·잃기 (AI가 요청, 캐릭터 이름으로 찾음) */
   changeItem({ to, item, note }, add) {
     const p = Object.values(this.data.players).find((q) => q.ready && q.character?.name === to);
@@ -5022,7 +5140,7 @@ class HostGame {
     if (!res) return null;
     if (res.ok) d.game.offTrack = 0;
     if (res.text) this.addLog({ kind: "system", text: `→ ${res.text}` });
-    if (res.clue) this.addLog({ kind: "clue", text: res.clue.text });
+    if (res.clue) { this.addLog({ kind: "clue", text: res.clue.text }); this.clueHandout(res.clue, [pid]); }
     if (!gmOnly && p.character) { for (const it of res.give) this.changeItem({ to: p.character.name, item: it }, true); for (const it of res.take) this.changeItem({ to: p.character.name, item: it }, false); }
     if (res.moved) this.logScene();
     return res;
@@ -5057,7 +5175,7 @@ class HostGame {
         c.madness = "장기 광기";
         this.addLog({ kind: "system", who: pid, mad: "장기 광기", text: `${c.name}: 이 사건에서 이성 ${base - c.san} 잃음 (1/5 이상) → 장기 광기.` });
       }
-      if (res?.clue) this.addLog({ kind: "clue", text: res.clue.text });
+      if (res?.clue) { this.addLog({ kind: "clue", text: res.clue.text }); this.clueHandout(res.clue, [pid]); }
       if (res) { for (const it of res.give) this.changeItem({ to: c.name, item: it }, true); for (const it of res.take) this.changeItem({ to: c.name, item: it }, false); }
       if (res?.moved) this.logScene();
       this.pushAll(); this.queueAI();
@@ -5073,7 +5191,7 @@ class HostGame {
     this.addLog({ kind: "roll", byId: pid, by, roll: rollOf(r.roll), dice: Rules.diceFx(r.roll), detail: `1d100 → ${r.roll.value} / ${r.thr}${tens}`,
       text: `${spec.label} (${tag})${pushed ? " · 밀어붙임" : ""}`,
       result: `${r.ok ? r.lv.name : r.lv.name}${pushed && !r.ok ? " — 밀어붙인 실패: 대가가 따름" : ""}${res?.text ? ` — ${res.text}` : ""}`, ok: r.ok, crit: r.crit, pushed });
-    if (res?.clue) this.addLog({ kind: "clue", text: res.clue.text });
+    if (res?.clue) { this.addLog({ kind: "clue", text: res.clue.text }); this.clueHandout(res.clue, [pid]); }
     if (res && c) { for (const it of res.give) this.changeItem({ to: c.name, item: it }, true); for (const it of res.take) this.changeItem({ to: c.name, item: it }, false); }
     if (res?.moved) this.logScene();
     // 실패 뒤 기회: 밀어붙이기 (한 번 · 대실패 · 사건 이동 제외) / 행운 쓰기 (모자란 만큼, 행운 · 이성 판정 제외)
@@ -5116,6 +5234,7 @@ class HostGame {
   sendImage(pid) {
     const list = [];
     for (const [id, po] of Object.entries(this.data.portraits ?? {})) if (this.data.players[id]) list.push({ ref: `por:${id}:${po.at}`, src: po.src });
+    if (this.data.phase === "play") for (const h of this.handoutsFor(pid)) if (h.image?.startsWith("ho:")) list.push({ ref: h.image, src: this.handoutDef(h.id).image.trim() });
     const sent = this.imgSent ??= new Map();
     if (!sent.has(pid)) sent.set(pid, new Set());
     for (const x of list) {
@@ -5198,6 +5317,7 @@ class HostGame {
         ...Engine.publicView(this.sc, d.game),
         image: this.sceneImage()?.ref ?? null,
         place: d.game.place ? { name: d.game.place.name } : null,
+        handouts: this.handoutsFor(pid),
       } : null,
       gm: this.isHost(pid) ? {
         ...(play ? Engine.gmView(this.sc, d.game) : {}),
@@ -5526,7 +5646,7 @@ class HostGame {
       }
       case "reveal": {
         const clue = Engine.revealClue(this.sc, d.game, String(msg.clueId));
-        if (clue) this.addLog({ kind: "clue", text: clue.text });
+        if (clue) { this.addLog({ kind: "clue", text: clue.text }); this.clueHandout(clue, null); }
         return this.pushAll();
       }
       case "revealTile": {
@@ -5798,6 +5918,10 @@ class HostGame {
     const d = this.data, g = d.game;
     const chars = Object.values(d.players).filter((p) => p.ready && p.character).map((p) => ({ ...p.character, player: p.name }));
     const ctx = Engine.aiContext(this.sc, g, chars);
+    const hoName = (pid) => d.players[pid]?.character?.name ?? "";
+    const hos = Object.entries(g.handouts ?? {}).filter(([id]) => this.handoutDef(id));
+    if (hos.length) ctx.핸드아웃 = hos.map(([id, st]) => ({ id, 제목: this.handoutDef(id).title, 내용: String(this.handoutDef(id).text ?? "(그림)").slice(0, 300),
+      본캐릭터: st.pids === "all" ? "전원" : st.pids.map(hoName).filter(Boolean), 본NPC: st.npcs }));
     const mapInfo = Maps.aiView(this.sc, g, d.players);
     if (mapInfo) ctx.장면지도 = mapInfo;
     ctx.이미가본장소 = Object.values(d.places ?? {}).filter((p) => p.scene === g.currentScene).map((p) => p.name);
@@ -5846,6 +5970,8 @@ class HostGame {
       actors: uniq(since.filter((e) => e.kind === "say" && e.style === "act").map((e) => e.byId)),
       askers: uniq(since.filter((e) => e.kind === "say" && e.style === "ask").map((e) => e.byId)),
       askOnly,
+      handouts: Object.keys(g.handouts ?? {}),
+      npcNames: (s.npcs ?? []).map((id) => this.sc.npcs?.[id]?.name ?? id),
       gotThisTurn: since.filter((e) => e.kind === "system").map((e) => /「(.+)」 얻음$/.exec(e.text)?.[1]).filter(Boolean),
       onlyFailedRolls: since.some((e) => e.kind === "roll" && typeof e.ok === "boolean" && !e.dmg) &&
         !since.some((e) => e.kind === "roll" && e.ok === true && !e.dmg),
@@ -5917,6 +6043,7 @@ class HostGame {
     }
     d.game.retry = null;   // GM이 결과를 서술했으면 밀어붙이기 · 행운 기회 끝
     const clue = plan.clue ? Engine.revealClue(this.sc, d.game, plan.clue) : null;
+    const logClue = () => { this.addLog({ kind: "clue", text: clue.text }); this.clueHandout(clue, plan.actors ?? []); };
     // 여러 명 행동이면 플레이어별 블록으로 (입력 순서). 한 명이면 기존처럼 한 덩어리
     const narrate = () => {
       if (plan.blocks?.length > 1 || (plan.blocks?.length === 1 && plan.blocks[0].name)) for (const b of plan.blocks) this.addLog({ kind: "ai", by: "GM", text: b.text, ...(b.name ? { focus: b.name, focusId: b.pid } : {}) });
@@ -5932,16 +6059,17 @@ class HostGame {
     if (moving && plan.arrival) {
       narrate();
       answerLogs(); items();
-      if (clue) this.addLog({ kind: "clue", text: clue.text });
+      if (clue) logClue();
       this.logScene({ brief: true });
       this.addLog({ kind: "ai", by: "GM", text: plan.arrival });
     } else {
-      if (moving) { answerLogs(); if (clue) this.addLog({ kind: "clue", text: clue.text }); this.logScene({ brief: !!plan.narration }); }
+      if (moving) { answerLogs(); if (clue) logClue(); this.logScene({ brief: !!plan.narration }); }
       narrate();
       if (!moving) answerLogs();
       items();
-      if (clue && !moving) this.addLog({ kind: "clue", text: clue.text });
+      if (clue && !moving) logClue();
     }
+    for (const h of plan.showHandouts ?? []) this.showHandout(h);
     if (moving) { d.game.stallTurns = 0; return; }
     this.applyCombat(plan);
     const ck = plan.check, owner = ck?.who ? { who: ck.who, whoName: ck.whoName } : null;
@@ -8790,7 +8918,8 @@ const BannerArt = (() => {
       }
       case "sceneImg":
         app.sceneImgs[msg.ref] = msg.src;
-        if (msg.ref.startsWith("por:")) { if (app.snap) { render(); scheduleCopy(); } }
+        if (msg.ref.startsWith("ho:")) { for (const im of document.querySelectorAll("img[data-ref]")) if (im.dataset.ref === msg.ref) im.src = msg.src; }
+        else if (msg.ref.startsWith("por:")) { if (app.snap) { render(); scheduleCopy(); } }
         else if (app.snap?.view) drawBanner(app.snap);
         return;
       case "notice": renderEntry({ kind: "system", text: msg.text }); unstamp(msg.text); return;
@@ -9130,6 +9259,28 @@ const BannerArt = (() => {
     $("#chatInput").focus();
   });
   const KIND_NAME = { gm: "GM", ai: "GM", system: "", clue: "단서" };
+  /* 핸드아웃 카드: 편지(letter) · 신문(news) · 쪽지(note) · 사진(photo). 누르면 크게 보기 */
+  const HANDOUT_KIND_NAME = { letter: "편지", news: "신문", note: "쪽지", photo: "사진" };
+  const handoutSrc = (img) => !img ? null : img.startsWith("ho:") ? app.sceneImgs[img] ?? null : img;
+  function handoutCard(h, { big = false } = {}) {
+    const img = h.image ? el("img", { src: handoutSrc(h.image) ?? "data:image/gif;base64,R0lGODlhAQABAAAAACw=", "data-ref": h.image.startsWith("ho:") ? h.image : null, alt: h.title }) : null;
+    const card = el(big ? "div" : "button", { class: `ho ho-${h.kind}${big ? " big" : ""}`, type: big ? null : "button", title: big ? null : "크게 보기",
+      on: big ? {} : { click: () => openHandout(h) } },
+      el("span", { class: "ho-cap" }, `핸드아웃 · ${h.title}`),
+      img ? el("span", { class: "ho-img" }, img) : null,
+      h.text ? el("span", { class: "ho-body" }, h.text) : null);
+    return card;
+  }
+  function openHandout(h) {
+    $("#hoView")?.remove();
+    const close = () => { box.remove(); document.removeEventListener("keydown", esc); };
+    const esc = (e) => { if (e.key === "Escape") close(); };
+    const box = el("div", { id: "hoView", class: "ho-view", role: "dialog", "aria-modal": "true", "aria-label": h.title, on: { click: (e) => { if (e.target === box) close(); } } },
+      handoutCard(h, { big: true }), el("button", { class: "ho-x", type: "button", "aria-label": "닫기", on: { click: close } }, "×"));
+    document.body.append(box);
+    document.addEventListener("keydown", esc);
+    box.querySelector(".ho-x").focus();
+  }
   /* 타이핑 연출: 새로 들어온 시나리오 나레이션(사건 도입)과 AI GM 서술만. 차례로 한 줄씩, 기록을 누르면 바로 끝까지 */
   const typeQueue = [];
   let typing = null;
@@ -9243,8 +9394,8 @@ const BannerArt = (() => {
     if (at) requestAnimationFrame(() => { logBox.scrollTop = logBox.scrollHeight; });
   }
   function renderEntry(e, { live = false } = {}) {
-    const hold = live && (e.kind === "clue" || e.kind === "system") && isTyping();
-    if (live && !hold) { if (e.kind === "scene") Sfx.play("page"); else if (e.kind === "clue") Sfx.play("clue"); }
+    const hold = live && (e.kind === "clue" || e.kind === "system" || e.kind === "handout") && isTyping();
+    if (live && !hold) { if (e.kind === "scene") Sfx.play("page"); else if (e.kind === "clue" || e.kind === "handout") Sfx.play("clue"); }
     // 내가 방금 보낸 글은 어디를 보고 있었든 맨 아래로
     const atBottom = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 80 || (live && e.byId && e.byId === app.snap?.me);
     const animate = live && (e.kind === "scene" || e.kind === "ai");
@@ -9274,6 +9425,8 @@ const BannerArt = (() => {
         queueMicrotask(() => DiceFX.roll({ pane: logBox.parentNode, box: logBox, dice: e.dice ?? r.rolls.map((v) => ({ value: v, sides })), secret: !!e.secret, color, note,
           onLand: () => { shown.classList.remove("awaiting"); if (e.result) setTimeout(() => Sfx.play(e.crit === "대성공" ? "crit" : e.crit === "대실패" ? "fumble" : e.ok ? "success" : "fail"), 120); } }));
       }
+    } else if (e.kind === "handout") {
+      node = el("div", { class: "entry handout-line" }, handoutCard({ id: e.hid, title: e.title, kind: e.hkind, text: e.text, image: e.image }));
     } else if (e.kind === "system" && e.item) {
       // 소지품 얻음·잃음: SYSTEM 줄 대신 꼬리표 (＋ 얻음 / − 잃음 줄 긋기)
       const owner = app.snap?.players.find((q) => q.pid === e.who);
