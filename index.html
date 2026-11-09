@@ -8856,9 +8856,9 @@ const BannerArt = (() => {
   let notebookMode = 'all';
   function renderNotebook(v) {
     const box = $('#clueBox');
-    // 내가 직접 지정한 분류가 자동 분류보다 우선 (이 기기에만 저장)
+    // 분류는 내가 직접 체크한 것만 (기본은 미분류 · 이 기기에만 저장)
     const manual = (LS.get(K.clueKind(app.room)) ?? {});
-    const rows = v.clues.map((c,i)=>({c,i,auto:WebFeatures.clueCategories(c,v),kinds:Array.isArray(manual[c.id])?manual[c.id].filter(x=>x==='person'||x==='place'):WebFeatures.clueCategories(c,v),mine:Array.isArray(manual[c.id])}));
+    const rows = v.clues.map((c,i)=>({c,i,kinds:Array.isArray(manual[c.id])?manual[c.id].filter(x=>x==='person'||x==='place'):[]}));
     const shown = rows.filter(r=>notebookMode==='all'||r.kinds.includes(notebookMode));
     $('#clueCount').textContent = notebookMode==='all' ? `${v.clues.length}건` : `${shown.length}/${v.clues.length}건`;
     box.replaceChildren();
@@ -8866,12 +8866,12 @@ const BannerArt = (() => {
       const active = tab.dataset.group===notebookMode;
       tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;
       const count=tab.dataset.group==='all'?rows.length:rows.filter(r=>r.kinds.includes(tab.dataset.group)).length;
-      tab.title=`${tab.textContent} · ${count}건${tab.dataset.group==='all'?'':' · 자동 분류'}`;
+      tab.title=`${tab.textContent} · ${count}건`;
       if(active)box.setAttribute('aria-labelledby',tab.id);
     }
-    if(!shown.length){box.append(el('li',{class:'muted small'},v.clues.length?'자동 분류된 단서 없음. 전체에서 확인.':'공개된 단서 없음.'));return;}
+    if(!shown.length){box.append(el('li',{class:'muted small'},v.clues.length?'이 분류로 체크한 단서 없음.':'공개된 단서 없음.'));return;}
     const setKinds=(id,list)=>{const m=LS.get(K.clueKind(app.room))??{};if(list===null)delete m[id];else m[id]=list;LS.set(K.clueKind(app.room),m);if(app.snap?.view)renderNotebook(app.snap.view);};
-    for (const {c,i,kinds,mine} of shown) {
+    for (const {c,i,kinds} of shown) {
       const content = WebFeatures.clueText(c);
       const details = el('details',{class:'clue-index-item'});
       details.open=openClues.has(c.id);
