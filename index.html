@@ -2032,7 +2032,7 @@ html.has-3d .topbar { box-shadow: none; }
 .ho-th-map .hm-label, .ho-th-map .hm-tok text { display: none; }
 /* 인물 카드: 이름 옆 현재 위치 */
 .name-loc { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.dos-loc { display: inline-flex; align-items: center; gap: 2px; font: 11px var(--font); color: #553a23; white-space: nowrap; }
+.dos-loc { display: inline-flex; align-items: center; gap: 3px; padding-left: 7px; font: 11px var(--font); color: #553a23; white-space: nowrap; box-shadow: inset 1px 0 0 rgba(85, 58, 35, .55); }
 .dos-loc .ic-svg { width: 12px; height: 12px; }
 .mate-txt .dos-loc { margin-left: 6px; font-size: 10px; }
 .ho-float { position: fixed; z-index: 95; left: 40px; top: 80px; min-width: 120px; min-height: 80px; max-width: 92vw; max-height: 88vh; resize: both; overflow: hidden; cursor: move;
@@ -2684,8 +2684,8 @@ handouts:
       아버지, 노래가 또 들려요.
       내일 밤엔 문을 열어 볼게요. 걱정 마세요.
   harbor_plan:
-    title: 항구와 등대 도면
-    kind: map         # 도면: 칸 단위 방. 플레이어가 자기 말을 옮기면 그 방이 현재 위치
+    title: 항구와 등대 지도
+    kind: map         # 지도(장소 도면): 칸 단위 방. 플레이어가 자기 말을 옮기면 그 방이 현재 위치
     size: [24, 14]    # 가로 · 세로 칸
     rooms:
       - { name: 부두, at: [1, 8, 9, 5] }
@@ -3467,11 +3467,11 @@ const Engine = (() => {
       if (h.kind === "map") {
         const [W, H] = mapSizeOf(h);
         if (h.size != null && !(Array.isArray(h.size) && h.size.length === 2 && h.size.every((n) => +n >= 4 && +n <= 60))) errors.push(`핸드아웃 ${hid}: size는 [가로, 세로] 칸 (4~60).`);
-        if (!Array.isArray(h.rooms) || !h.rooms.length) errors.push(`핸드아웃 ${hid}: 도면(map)은 rooms 목록 필요 ({ name, at: [x, y, w, h] }).`);
+        if (!Array.isArray(h.rooms) || !h.rooms.length) errors.push(`핸드아웃 ${hid}: 지도(map)는 rooms 목록 필요 ({ name, at: [x, y, w, h] }).`);
         else for (const r of h.rooms) {
           if (!r || typeof r.name !== "string" || !Array.isArray(r.at) || r.at.length !== 4 || !r.at.every((n) => Number.isFinite(+n))) { errors.push(`핸드아웃 ${hid}: 방은 { name, at: [x, y, w, h] } 형식.`); continue; }
           const [x, y, w, hh] = r.at.map(Number);
-          if (x < 0 || y < 0 || w <= 0 || hh <= 0 || x + w > W || y + hh > H) errors.push(`핸드아웃 ${hid}: 방 '${r.name}'이(가) 도면(${W}×${H}) 밖으로 나감.`);
+          if (x < 0 || y < 0 || w <= 0 || hh <= 0 || x + w > W || y + hh > H) errors.push(`핸드아웃 ${hid}: 방 '${r.name}'이(가) 지도(${W}×${H}) 밖으로 나감.`);
         }
       } else if (h.text == null && h.image == null) errors.push(`핸드아웃 ${hid}: text나 image 중 하나는 필요.`);
       if (h.text != null && typeof h.text !== "string") errors.push(`핸드아웃 ${hid}: text는 글이어야 함.`);
@@ -6031,7 +6031,7 @@ class HostGame {
     const hos = Object.entries(g.handouts ?? {}).filter(([id]) => this.handoutDef(id));
     if (hos.length) ctx.핸드아웃 = hos.map(([id, st]) => ({ id, 제목: this.handoutDef(id).title, 내용: String(this.handoutDef(id).text ?? "(그림)").slice(0, 300),
       본캐릭터: st.pids === "all" ? "전원" : st.pids.map(hoName).filter(Boolean), 본NPC: st.npcs,
-      ...(this.handoutDef(id).kind === "map" ? { 도면의방: Engine.mapRoomsOf(this.handoutDef(id)).map((r) => r.name), 말위치: Object.fromEntries(Object.entries(g.mapPos?.[id] ?? {}).map(([pid, [x, y]]) => [hoName(pid), Engine.roomAt(this.handoutDef(id), x, y) || "(방 밖)"])) } : {}) }));
+      ...(this.handoutDef(id).kind === "map" ? { 지도의방: Engine.mapRoomsOf(this.handoutDef(id)).map((r) => r.name), 말위치: Object.fromEntries(Object.entries(g.mapPos?.[id] ?? {}).map(([pid, [x, y]]) => [hoName(pid), Engine.roomAt(this.handoutDef(id), x, y) || "(방 밖)"])) } : {}) }));
     const mapInfo = Maps.aiView(this.sc, g, d.players);
     if (mapInfo) ctx.장면지도 = mapInfo;
     ctx.이미가본장소 = Object.values(d.places ?? {}).filter((p) => p.scene === g.currentScene).map((p) => p.name);
@@ -9405,7 +9405,7 @@ const BannerArt = (() => {
   });
   const KIND_NAME = { gm: "GM", ai: "GM", system: "", clue: "단서" };
   /* 핸드아웃 카드: 편지(letter) · 신문(news) · 쪽지(note) · 사진(photo). 누르면 크게 보기 */
-  const HANDOUT_KIND_NAME = { letter: "편지", news: "신문", note: "쪽지", photo: "사진", map: "도면" };
+  const HANDOUT_KIND_NAME = { letter: "편지", news: "신문", note: "쪽지", photo: "사진", map: "지도" };
   const handoutSrc = (img) => !img ? null : img.startsWith("ho:") ? app.sceneImgs[img] ?? null : img;
   /* 도면 핸드아웃: 칸 단위 방 사각형 + 방 이름, 플레이어 말(플레이어 색 원 + 이름 첫 글자).
      크게 보기에서 내 말만 끌어 옮김 → 놓은 칸의 방이 내 현재 위치. 아직 안 놓은 내 말은 아래 대기 칸에 */

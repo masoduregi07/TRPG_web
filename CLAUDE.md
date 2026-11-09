@@ -74,7 +74,7 @@
 - 시나리오 `handouts: { id: { title, kind: letter·news·note·photo, text, image(https·data ≤400KB), to: all(기본)·finder } }`, 단서 `handout: id` → 단서와 함께 공개
 - 상태 `game.handouts[id] = { pids: "all"|[pid], npcs, clue, scene }`. AI `show_handout {id, to: [캐릭터·NPC] | "all"}`로 범위 확장(NPC는 AI 맥락용). 로그 `kind: handout` + `toIds`(보는 사람만), 호스트(GM)는 전부 봄
 - 그림 핸드아웃 꾹 누르고(0.4초) 움직이면 그림만 뜬 창(`.ho-float`): 끌어 옮기기 · 오른쪽 아래 크기 조절 · 오른쪽 위 X로 닫기. 같은 그림은 창 하나
-- 도면 핸드아웃 `kind: map`, `size: [가로, 세로]`(기본 24×16), `rooms: [{ name, at: [x, y, w, h] }]` → 칸 격자 + 먹선 방 + 위쪽 방 이름(그림 없음). 크게 보기에서 내 말(플레이어 색 원 + 첫 글자)만 끌어 옮김(`mapMove`), 안 놓은 말은 아래 대기 칸. 놓은 칸의 방 = 현재 위치 `game.mapLoc[pid]` → 인물 카드·일행 목록 이름 옆 핀 + 방 이름(도면 볼 수 있는 사람만), AI 맥락 `말위치`
+- 지도 핸드아웃(장소 도면 = 지도, 표기 "지도") `kind: map`, `size: [가로, 세로]`(기본 24×16), `rooms: [{ name, at: [x, y, w, h] }]` → 칸 격자 + 먹선 방 + 위쪽 방 이름(그림 없음). 크게 보기에서 내 말(플레이어 색 원 + 첫 글자)만 끌어 옮김(`mapMove`), 안 놓은 말은 아래 대기 칸. 놓은 칸의 방 = 현재 위치 `game.mapLoc[pid]` → 인물 카드·일행 목록 이름 옆 [1px 세로선 · 핀 · 방 이름](도면 볼 수 있는 사람만), AI 맥락 `말위치`
 - 기록 카드: 편지(줄 종이·테이프) · 신문(겹줄 제목·단) · 쪽지(노란 종이) · 사진(핀·폴라로이드), 누르면 크게 보기. data 그림은 `ho:<id>` ref로 초상과 같은 경로 전송
 
 ### 시나리오 검증
