@@ -11,7 +11,7 @@
 ## 구조
 - 한 파일: CSS + JS 인라인. 외부: PeerJS, js-yaml, Galmuri 폰트(CDN)
 - 호스트 브라우저가 서버(`HostGame`), 플레이어는 PeerJS로 접속(`Net`). 호스트 ID `trpgtable-v1-<room>-host`
-- 모듈: `Rules`(CoC 7e) · `Engine`(시나리오 검증/상태/뷰) · `AI`(호출·프롬프트·parseGM) · `Turn`(AI 응답 검증) · `WebFeatures`(단서 분류 등)
+- 모듈: `Rules`(CoC 7e) · `Engine`(시나리오 검증/상태/뷰) · `AI`(호출·프롬프트·parseGM) · `Turn`(AI 응답 검증) · `WebFeatures`(단서 표시 등)
 - AI 흐름: `queueAI`(8초 모음, 입력마다 +5초 연장, 최대 20초) → `runAI` → `turnContext` → `askGM` → `Turn.validate` → `applyPlan`
 - 저장: IndexedDB(호스트 세이브·플레이어 사본), localStorage(설정·단서 수동 분류 `trpg:clueKind:<room>`)
 
@@ -19,7 +19,7 @@
 - 다인 행동: AI 입력에 행동표, 응답 `results[{who,text}]`, 로그에 `▶ 이름` 블록, 하단 "이번 차례 정리" 카드
 - 플레이어 접속 직후 저장본 화면은 띠 표시 + 입력 잠금, 첫 실제 스냅샷에서 해제
 - 채팅 맨 위/아래 버튼: 우측 끝, 정사각 틀 + 중앙 ▲▼ SVG
-- 단서 탭: 발췌 없음. 원문 위 인물/장소 체크 칩만. 자동 분류는 표기 없이 체크 상태로만, 미분류는 둘 다 해제
+- 단서 탭: 발췌 없음. 원문 위 인물/장소 체크 칩만. 자동 분류 없음: 기본 미분류, 플레이어가 직접 체크한 것만 (기기별 저장)
 - 시나리오 검증: 단서·판정 id 전역 유일/형식 오류, 공개 경로 없는 단서·미정의 플래그는 경고
 
 ## 남은 후보
