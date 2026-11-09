@@ -2153,9 +2153,12 @@ html.has-3d .topbar { box-shadow: none; }
 /* NOTEBOOK_V2_CSS */
 /* 기존 메모 종이 위 목차 / 종이 끝에 끼운 픽셀 책갈피 */
 :is(.side,.float-layer) .block[data-memo="clues"]::before { left:18px; right:auto; }
-.block:is([data-memo="clues"],[data-memo="handouts"]) h3 { display:flex; align-items:baseline; justify-content:space-between; padding-bottom:4px; margin-bottom:0; }
 /* 단서 수첩 색인 탭 (입력칸 탭과 같은 사다리꼴): 고른 탭은 분류 색으로 칠하고 아래 선과 이어짐 */
-.clue-tabs { display:flex; gap:3px; align-items:flex-end; justify-content:flex-end; margin:0 0 6px; padding-right:4px; border-bottom:2px solid #675137; }
+/* 머리 줄: [단서 수첩 (숫자 라벨)] ……… [전체 인물 장소], 아래 2px 선 하나 */
+.nb-head { display:flex; align-items:flex-end; gap:8px; margin:0 0 6px; border-bottom:2px solid #675137; }
+.block:is([data-memo="clues"],[data-memo="handouts"]) .nb-head h3 { display:flex; align-items:center; gap:6px; margin:0; padding-bottom:4px; flex:none; }
+.nb-count { display:inline-block; min-width:18px; padding:0 5px; font:10px/16px var(--font); text-align:center; color:#f4ecd8; background:#675137; }
+.clue-tabs { display:flex; gap:3px; align-items:flex-end; margin-left:auto; padding-right:4px; }
 .clue-tabs button { --c:#675137; padding:2px 9px 1px; border:0; cursor:pointer; font:11px/1.5 var(--font); color:var(--ink-2); background:rgba(150, 105, 50, .18);
   clip-path:polygon(5px 0, calc(100% - 5px) 0, 100% 100%, 0 100%); }
 .clue-tabs button[data-group="person"] { --c:#80442a; }
@@ -2538,8 +2541,8 @@ html.has-3d .topbar { box-shadow: none; }
         <!-- 클립으로 꽂은 메모들: 제목(머리)을 끌어 순서 바꾸기, 브라우저에 기억 -->
         <div id="memoStack" class="memo-stack">
           <section class="block" data-memo="checks"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><h3>판정 <span id="checkNote" class="muted small">— 능력치 자동 적용</span></h3><div id="checkBox" class="chips"></div></section>
-          <section class="block nb-paper" data-memo="clues"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><h3>단서 수첩 <span id="clueCount" class="clue-count">0</span></h3><nav id="clueBookmarks" class="clue-tabs" role="tablist" aria-label="단서 분류"><button type="button" id="clueAll" role="tab" data-group="all" aria-selected="true" aria-controls="clueBox">전체</button><button type="button" id="cluePerson" role="tab" data-group="person" aria-selected="false" aria-controls="clueBox" tabindex="-1">인물</button><button type="button" id="cluePlace" role="tab" data-group="place" aria-selected="false" aria-controls="clueBox" tabindex="-1">장소</button></nav><ul id="clueBox" class="clues clue-toc" role="tabpanel" aria-labelledby="clueAll"></ul><div id="clueView" class="clue-view" hidden></div></section>
-          <section class="block nb-paper" data-memo="handouts" hidden><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><h3>핸드아웃 <span id="hoCount" class="clue-count">0</span></h3><ul id="hoBox" class="ho-list"></ul></section>
+          <section class="block nb-paper" data-memo="clues"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><div class="nb-head"><h3>단서 수첩 <span id="clueCount" class="nb-count">0</span></h3><nav id="clueBookmarks" class="clue-tabs" role="tablist" aria-label="단서 분류"><button type="button" id="clueAll" role="tab" data-group="all" aria-selected="true" aria-controls="clueBox">전체</button><button type="button" id="cluePerson" role="tab" data-group="person" aria-selected="false" aria-controls="clueBox" tabindex="-1">인물</button><button type="button" id="cluePlace" role="tab" data-group="place" aria-selected="false" aria-controls="clueBox" tabindex="-1">장소</button></nav></div><ul id="clueBox" class="clues clue-toc" role="tabpanel" aria-labelledby="clueAll"></ul><div id="clueView" class="clue-view" hidden></div></section>
+          <section class="block nb-paper" data-memo="handouts" hidden><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><div class="nb-head"><h3>핸드아웃 <span id="hoCount" class="nb-count">0</span></h3></div><ul id="hoBox" class="ho-list"></ul></section>
         </div>
       </div>
     </section>
@@ -9142,7 +9145,7 @@ const BannerArt = (() => {
     if (!Array.isArray(seen)) { seen = v.clues.map((c)=>c.id); LS.set(K.clueSeen(app.room), seen); }   // 처음엔 지금까지 단서를 읽은 것으로
     const rows = v.clues.map((c,i)=>({c,i,scene:c.scene ?? '?',kinds:Array.isArray(manual[c.id])?manual[c.id].filter(x=>x==='person'||x==='place'):[]}));
     const shown = rows.filter(r=>notebookMode==='all'||r.kinds.includes(notebookMode));
-    $('#clueCount').textContent = notebookMode==='all' ? `${v.clues.length}건` : `${shown.length}/${v.clues.length}건`;
+    $('#clueCount').textContent = String(notebookMode==='all' ? v.clues.length : shown.length);
     box.replaceChildren();
     for (const tab of document.querySelectorAll('#clueBookmarks [role=tab]')) {
       const active = tab.dataset.group===notebookMode;
@@ -9202,7 +9205,7 @@ const BannerArt = (() => {
   function renderHandoutBox(v) {
     const hos = [...(v.handouts ?? [])].sort((a,b)=>(a.at??0)-(b.at??0)), block = document.querySelector('[data-memo="handouts"]');
     block.hidden = !hos.length;
-    $('#hoCount').textContent = `${hos.length}건`;
+    $('#hoCount').textContent = String(hos.length);
     const seen = LS.get(K.clueSeen(app.room)) ?? [];
     $('#hoBox').replaceChildren(...hos.map((h) => {
       const key = `ho:${h.id}`, fresh = !seen.includes(key);
