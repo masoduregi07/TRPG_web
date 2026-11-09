@@ -2591,17 +2591,6 @@ html.has-3d .topbar { box-shadow: none; }
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" integrity="sha384-x0YgkOr/3UOZP2CRDxGW9e0Q+2Qjyr3uJrm4xU32Y7ZCNAo7Cc7bjhrZMi/dwczu" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.3.2/dist/js-yaml.min.js" integrity="sha384-uwLg6oO8ZhFG2SuQfgmkMtosjtrFYlkPspa/cXS+b3D8GLRTHMDl/mTwqImdlKQO" crossorigin="anonymous"></script>
-<!--
-  CC0 실녹음 효과음 (배포·수정·상업적 사용 가능, 출처 표기 의무 없음)
-  Wuzzy: https://opengameart.org/content/wooden-dice-on-wodden-table-roll
-  Cassie-OrbitGames: https://opengameart.org/content/typewriter-sounds
-  Luckius: https://opengameart.org/content/various-paper-sound-effects
-  StarNinjas: https://opengameart.org/content/10-book-page-flips
-  rubberduck: https://opengameart.org/content/100-cc0-sfx
-  원본 녹음을 용량 절약용 모노 MP3로 변환해 내장. 재생 실패 시 기존 합성음을 사용.
--->
-<!-- CC0_SFX_START -->
-<!-- CC0_SFX_END -->
 <script>
 /* 기본 제공 샘플 시나리오: SAMPLE_COC_YAML = CoC 7판 (룰은 CoC 하나) */
 /* CoC 7판 샘플 (기본) */
@@ -2881,9 +2870,6 @@ deviation:
  * ================================================================== */
 
 const Rules = (() => {
-  const SYSTEMS = ["coc7"];
-  const NAMES = { coc7: "CoC 7판" };
-  const systemOf = () => "coc7";
 
   /* ---------------- CoC 7판 ---------------- */
   // 특성치: 이름 · 약자 · 굴림 (×5)
@@ -3162,7 +3148,7 @@ const Rules = (() => {
   }
 
   return {
-    SYSTEMS, NAMES, systemOf, CHARS, CHAR_KEYS, BASE, DIFFS, normDiff, charKey, isLuck, isSan, skillBase, validLoss, lossParts,
+    CHARS, CHAR_KEYS, BASE, DIFFS, normDiff, charKey, isLuck, isSan, skillBase, validLoss, lossParts,
     COMBAT_SKILLS, isCombatSkill, hasCombat, dbBuild, parseDamage, rollDamage, npcCombat,
     cocRules, pools, left, randomAllocation, randomIdentity, rollChars, derived, validateCoc, target, d100, level, needRank, threshold, resolve, diceFx, lossRoll,
   };
@@ -4182,6 +4168,7 @@ const AI = (() => {
         if ([500, 502, 503, 504, 529].includes(res.status) || /unavailable|overloaded|high demand|try again later/i.test(why)) {
           const err = new Error(`AI 서버가 잠시 붐빔 (HTTP ${res.status}). 보통 몇 초~몇 분 안에 풀림.`); err.busy = true; err.status = res.status; throw err;
         }
+        if (/모델 이름/.test(hint)) { const ids = await listModels(cfg).catch(() => []); if (ids.length) hint += ` 사용 가능: ${ids.slice(0, 8).join(", ")}${ids.length > 8 ? " …" : ""}`; }
         throw new Error(`${hint} (HTTP ${res.status})${why ? ` · ${why}` : ""}`);
       }
       let data;
@@ -4211,6 +4198,19 @@ const AI = (() => {
       clearTimeout(timer);
       signal?.removeEventListener("abort", abort);
     }
+  }
+
+  /** 공급자의 모델 목록 (OpenAI 호환 GET /models). 기본 모델이 종료됐을 때 고를 수 있게 */
+  async function listModels(cfg, timeout = 8000) {
+    if (!cfg?.baseURL) return [];
+    const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), timeout);
+    try {
+      const res = await fetch(`${cfg.baseURL.replace(/\/$/, "")}/models`, { headers: cfg.apiKey ? { Authorization: `Bearer ${cfg.apiKey}` } : {}, signal: ctrl.signal });
+      if (!res.ok) return [];
+      const j = await res.json();
+      const list = Array.isArray(j?.data) ? j.data : Array.isArray(j?.models) ? j.models : [];
+      return [...new Set(list.map((x) => String(x?.id ?? x?.name ?? "").replace(/^models\//, "")).filter(Boolean))].sort().slice(0, 200);
+    } catch { return []; } finally { clearTimeout(timer); }
   }
 
   /** 붐빔 · 연결 끊김이면 기다렸다가 다시 (3초 → 8초 → 20초 …). onWait(초, 몇 번째, 전체)로 진행 표시 */
@@ -4301,7 +4301,7 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
       return `[주사위] ${e.by}: ${e.text ? e.text + " " : ""}${e.roll.expr} = ${e.roll.total}${e.result ? ` → ${e.result}` : ""}`;
     }
     const label = { say: "", gm: "[GM] ", ai: "[GM] ", clue: "[단서 공개] ", system: "[시스템] " }[e.kind] ?? "";
-    const how = { talk: e.toNpc ? `(NPC에게 대사: ${e.toNpc})` : "(대사)", think: "(생각·비공개)", act: "(행동)", ask: "(GM에게 질문)" }[e.style] ?? "";
+    const how = { talk: e.toNpc ? `(NPC에게 대사: ${e.toNpc})` : "(대사)", act: "(행동)", ask: "(GM에게 질문)" }[e.style] ?? "";
     return `${label}${e.kind === "say" ? `${e.by}${how}: ` : ""}${e.text}`;
   }
 
@@ -4565,7 +4565,7 @@ ${JSON.stringify(info)}` },
   }
   const isLongProse = (prose) => String(prose).length > SHORT_LIMIT;
 
-  return { PRESETS, ready, call, callRetry, gmSystem, gmMessages, META_RE, summaryMessages, synopsisMessages, logLine, parseGM, charMessages, parseChar, convertMessages, parseScenario, convertLong, isLongProse, paragraphs };
+  return { PRESETS, ready, call, callRetry, listModels, gmSystem, gmMessages, META_RE, summaryMessages, synopsisMessages, logLine, parseGM, charMessages, parseChar, convertMessages, parseScenario, convertLong, isLongProse, paragraphs };
 })();
 
 
@@ -5482,7 +5482,7 @@ class HostGame {
       isHost: this.isHost(pid), hostPlays: d.hostPlays,
       scenario: { title: this.sc.title, synopsis: this.synopsis(), rules: (() => { const r = Engine.charRules(this.sc); r.backgrounds = r.backgrounds.map(({ secret, ...b }) => ({ ...b, hasSecret: !!secret })); return r; })() },
       lobbyChat: d.phase === "lobby" ? (d.lobbyChat ?? []).slice(-60) : [],
-      system: Rules.systemOf(this.sc),
+      system: "coc7",
       myRoll: d.players[pid]?.cocRoll ? { ...d.players[pid].cocRoll } : null,   // CoC: 호스트가 굴린 내 특성치 · 행운
       retry: d.game?.retry?.pid === pid ? { label: d.game.retry.spec.label, cost: d.game.retry.luckCost, luck: d.players[pid]?.character?.luck ?? 0, push: !!d.game.retry.pushable } : null,
       players: Object.entries(d.players).map(([id, p]) => ({
@@ -8737,7 +8737,9 @@ const BannerArt = (() => {
     const provider = el('select', {}, ...Object.entries(AI.PRESETS).map(([k,p])=>el('option',{value:k},p.label)));
     const url = el('input',{value:cfg.baseURL,placeholder:'https://…/v1'});
     const key = el('input',{type:'password',value:cfg.apiKey,placeholder:'선택한 공급자의 API 키',autocomplete:'off'});
-    const model = el('input',{value:cfg.model ?? '',placeholder:'모델 이름'});
+    const models = el('datalist',{id:`aiModels-${randomId(6)}`});
+    const model = el('input',{value:cfg.model ?? '',placeholder:'모델 이름',list:models.id});
+    const fillModels = async () => { const ids = await AI.listModels(loadAI()); models.replaceChildren(...ids.map((id) => el('option',{value:id}))); };
     const remember = el('input',{type:'checkbox'}); remember.checked = cfg.remember;
     const result = el('div',{class:'small muted','aria-live':'polite'});
     provider.value = cfg.provider;
@@ -8766,10 +8768,10 @@ const BannerArt = (() => {
       if(!persist()) return;
       test.disabled=true; result.textContent='연결 테스트 중…';
       try { const t=await AI.call(loadAI(),[{role:'user',content:"한국어로 '준비 완료'라고만 답해."}],{maxTokens:400,timeout:60000}); result.textContent=`연결 성공: ${t.trim().slice(0,60)}`; }
-      catch(e){result.textContent=`실패: ${e.message}`;} finally {test.disabled=false;}
+      catch(e){result.textContent=`실패: ${e.message}`;} finally {test.disabled=false; fillModels();}
     }}},'연결 테스트');
     return el('div',{class:'ai-grid'},
-      el('label',{class:'field'},el('span',{},'공급자'),provider),el('label',{class:'field'},el('span',{},'모델'),model),
+      el('label',{class:'field'},el('span',{},'공급자'),provider),el('label',{class:'field'},el('span',{},'모델'),model,models),
       el('label',{class:'field full'},el('span',{},'API 주소'),url),el('label',{class:'field full'},el('span',{},'API 키'),key),
       el('label',{class:'full small'},remember,' 이 브라우저에 키 기억 (선택 사항)'),
       el('p',{class:'full small muted'},'기본: 이 탭을 닫을 때까지 사용. 기억을 선택하면 브라우저에 키를 저장함. 공급자·주소별로 분리하며 친구에게 전송하지 않음.'),
@@ -8847,7 +8849,7 @@ const BannerArt = (() => {
     if (!errors.length) {
       const r = Engine.charRules(sc);
       parts.unshift(el("p", { class: "ok" },
-        `✔ 「${sc.title}」 — ${Rules.NAMES[r.system]} · 사건 ${Object.keys(sc.scenes).length}개${sc.canon?.length ? ` · 고정 사실 ${sc.canon.length}개` : ""} · `
+        `✔ 「${sc.title}」 — CoC 7판 · 사건 ${Object.keys(sc.scenes).length}개${sc.canon?.length ? ` · 고정 사실 ${sc.canon.length}개` : ""} · `
         + `기능 ${r.skills.join(", ")} · 직업 ${r.backgrounds.length}개${r.mp ? " · MP 사용" : ""}`));
       validScenario = sc;
       $("#openTableBtn").disabled = false;
@@ -11829,7 +11831,6 @@ const BannerArt = (() => {
     point: ["....xx......", "...x..x.....", "...x..x.....", "...x..xxx...", "...x..x..xx.", ".xxx..x..x.x", "x..x.......x", "x..........x", ".x.........x", "..x.......x.", "...x.....x..", "....xxxxx..."],
     // 질문: 홀수 폭(11칸) 원이라야 물음표 세로획이 정가운데 한 칸에 옴
     ask: ["...xxxxx....", ".xx.....xx..", ".x..xxx..x..", "x..x...x..x.", "x......x..x.", "x.....x...x.", "x....x....x.", "x.........x.", ".x...x...x..", ".xx.....xx..", "...xxxxx....", "............"],
-    thought: ["............", "...xxxxxx...", "..x......x..", ".x........x.", ".x........x.", "..x......x..", "...xxxxxx...", "....xx......", "......xx....", ".......xx...", "............", "............"],
     dice: ["............", ".xxxxxxxxxx.", "x..........x", "x.xx.......x", "x.xx.......x", "x..........x", "x..........x", "x.......xx.x", "x.......xx.x", "x..........x", ".xxxxxxxxxx.", "............"],
     invite: ["............", "............", "kkkkkkkkkkkk", "kWWWWWWWWWWk", "kddWWWWWWddk", "kWWddWWddWWk", "kWWWWrrWWWWk", "kWWWrhrlWWWk", "kWWWWllWWWWk", "kWWWWWWWWWWk", "kkkkkkkkkkkk", "............"],
     // 캐릭터 시트: 주사위(세 면) · 능력치 ◀ ▶
