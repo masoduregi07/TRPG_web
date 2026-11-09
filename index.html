@@ -1958,7 +1958,7 @@ html.has-3d .topbar { box-shadow: none; }
 .history-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 20px 8px 48px; margin:0 var(--cover); background:var(--paper); border-bottom:2px solid var(--paper-lo); }
 #historyDialog { box-sizing:border-box; width:min(960px,90vw); max-height:86vh; background:var(--paper); color:var(--ink); border:3px solid var(--ink); padding:20px; font:15px/1.6 var(--font-body); }
 #historyDialog::backdrop { background:rgba(0,0,0,.75); }
-.log-bottom, .log-top { position:absolute; left:50%; transform:translateX(-50%); z-index:5; display:grid; place-items:center; width:35px; height:35px; padding:0; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); font-size:23px; line-height:1; }
+.log-bottom, .log-top { position:absolute; left:auto; right:14px; transform:none; z-index:5; display:grid; place-items:center; width:35px; height:35px; padding:0; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); font-size:23px; line-height:1; }
 .log-top { top:calc(var(--cover) + 12px); }
 .log-bottom[hidden], .log-top[hidden] { display:none; }
 .turn-status { margin:0 var(--cover); padding:4px 44px 4px 48px; display:flex; flex-shrink:0; flex-wrap:nowrap; gap:5px 16px; align-items:center; position:relative; min-height:22px; color:var(--blood); font:12px var(--font); overflow:hidden; }
