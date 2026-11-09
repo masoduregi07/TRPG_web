@@ -2033,6 +2033,18 @@ html.has-3d .topbar { box-shadow: none; }
 .clue-index-item[open] .clue-arrow { clip-path:polygon(0 0,100% 0,100% 50%,75% 50%,75% 75%,25% 75%,25% 50%,0 50%); }
 .clue-index-row:focus-visible { outline:2px solid #823026; outline-offset:-2px; }
 .clue-open-body { margin:7px 0 12px 23px; padding-left:10px; border-left:3px solid #8a3326; }
+.clue-kind-dot { flex:none; width:10px; height:10px; margin-right:6px; border:1px dashed var(--ink-2); }
+.clue-kind-dot.p { background:#f2b48e; border:1px solid var(--ink); }
+.clue-kind-dot.l { background:#bcd88a; border:1px solid var(--ink); }
+.clue-kind-dot.p.l { background:linear-gradient(90deg,#f2b48e 50%,#bcd88a 50%); }
+.clue-kinds { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0 0 8px; font-size:12px; }
+.clue-kinds-label { color:var(--ink-2); }
+.clue-chip { display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 5px; border:2px solid var(--ink); background:#f4ecca; color:var(--ink); font:700 12px var(--font); box-shadow:2px 2px 0 rgba(0,0,0,.25); cursor:pointer; }
+.clue-chip i { display:grid; place-items:center; width:12px; height:12px; border:2px solid var(--ink); background:#fff; font-style:normal; font-size:10px; line-height:1; }
+.clue-chip.on.p { background:#f2b48e; } .clue-chip.on.l { background:#bcd88a; }
+.clue-chip.on i { background:var(--ink); color:#fff; }
+.clue-kinds-note { font-size:11px; color:var(--ink-2); } .clue-kinds-note.warn { color:var(--blood); }
+.clue-kinds-reset { padding:0; border:0; background:none; font:11px var(--font); color:var(--ink-2); text-decoration:underline; cursor:pointer; }
 .clue-original { padding:8px 9px; border:1px solid #b2a47e; background:rgba(255,250,223,.65); box-shadow:2px 2px 0 rgba(69,42,17,.12); }
 .clue-original-label { color:var(--blood); font-size:11px; }
 .clue-original p { margin:5px 0 0; font:13px/1.8 var(--font-body); color:#344259; white-space:pre-wrap; overflow-wrap:anywhere; }
@@ -7776,7 +7788,7 @@ const BannerArt = (() => {
   const K = {
     host: (r) => `trpg:host:${r}`, hostIndex: "trpg:hostIndex", me: (r) => `trpg:me:${r}`,
     copy: (r) => `trpg:copy:${r}`, draft: (r) => `trpg:draft:${r}`, ai: "trpg:ai", name: "trpg:name",
-    aiStyle: "trpg:aiStyle", recentNpc: (r) => `trpg:recentNpc:${r}`,
+    aiStyle: "trpg:aiStyle", recentNpc: (r) => `trpg:recentNpc:${r}`, clueKind: (r) => `trpg:clueKind:${r}`,
   };
 
   const app = {
@@ -8752,7 +8764,9 @@ const BannerArt = (() => {
   let notebookMode = 'all';
   function renderNotebook(v) {
     const box = $('#clueBox');
-    const rows = v.clues.map((c,i)=>({c,i,kinds:WebFeatures.clueCategories(c,v)}));
+    // 내가 직접 지정한 분류가 자동 분류보다 우선 (이 기기에만 저장)
+    const manual = (LS.get(K.clueKind(app.room)) ?? {});
+    const rows = v.clues.map((c,i)=>({c,i,auto:WebFeatures.clueCategories(c,v),kinds:Array.isArray(manual[c.id])?manual[c.id].filter(x=>x==='person'||x==='place'):WebFeatures.clueCategories(c,v),mine:Array.isArray(manual[c.id])}));
     const shown = rows.filter(r=>notebookMode==='all'||r.kinds.includes(notebookMode));
     $('#clueCount').textContent = notebookMode==='all' ? `${v.clues.length}건` : `${shown.length}/${v.clues.length}건`;
     box.replaceChildren();
@@ -8764,14 +8778,25 @@ const BannerArt = (() => {
       if(active)box.setAttribute('aria-labelledby',tab.id);
     }
     if(!shown.length){box.append(el('li',{class:'muted small'},v.clues.length?'자동 분류된 단서 없음. 전체에서 확인.':'공개된 단서 없음.'));return;}
-    for (const {c,i} of shown) {
+    const setKinds=(id,list)=>{const m=LS.get(K.clueKind(app.room))??{};if(list===null)delete m[id];else m[id]=list;LS.set(K.clueKind(app.room),m);if(app.snap?.view)renderNotebook(app.snap.view);};
+    for (const {c,i,kinds,mine} of shown) {
       const content = WebFeatures.clueText(c);
       const details = el('details',{class:'clue-index-item'});
       details.open=openClues.has(c.id);
       const heading=el('summary',{class:'clue-index-row','aria-label':`${content.title} 원문 펼치기`},
         el('span',{class:'clue-number','aria-hidden':'true'},String(i+1).padStart(2,'0')),
-        el('span',{class:'clue-title'},content.title),el('span',{class:'clue-leader','aria-hidden':'true'}),el('span',{class:'clue-arrow','aria-hidden':'true'}));
-      details.append(heading,el('div',{class:'clue-open-body'},
+        el('span',{class:'clue-title'},content.title),el('span',{class:'clue-leader','aria-hidden':'true'}),
+        el('span',{class:`clue-kind-dot ${kinds.includes('person')?'p':''} ${kinds.includes('place')?'l':''}`,title:kinds.length?kinds.map(k=>k==='person'?'인물':'장소').join('·'):'미분류','aria-hidden':'true'}),el('span',{class:'clue-arrow','aria-hidden':'true'}));
+      const chip=(kind,label)=>{
+        const on=kinds.includes(kind);
+        return el('button',{type:'button',class:`clue-chip ${kind==='person'?'p':'l'}${on?' on':''}`,role:'checkbox','aria-checked':String(on),
+          on:{click:(e)=>{e.preventDefault();e.stopPropagation();const next=on?kinds.filter(k=>k!==kind):[...kinds,kind];setKinds(c.id,next);}}},
+          el('i',{'aria-hidden':'true'},on?'✓':''),label);
+      };
+      const kindRow=el('div',{class:'clue-kinds'},el('span',{class:'clue-kinds-label'},'분류'),chip('person','인물'),chip('place','장소'),
+        mine?el('span',{class:'clue-kinds-note'},'내가 지정함'):kinds.length?el('span',{class:'clue-kinds-note'},'자동 분류'):el('span',{class:'clue-kinds-note warn'},'← 분류되지 않음. 체크해 주세요'),
+        mine?el('button',{type:'button',class:'clue-kinds-reset',on:{click:(e)=>{e.preventDefault();setKinds(c.id,null);}}},'자동으로 되돌리기'):null);
+      details.append(heading,el('div',{class:'clue-open-body'},kindRow,
         el('div',{class:'clue-original'},el('span',{class:'clue-original-label'},'원문'),el('p',{},content.original))));
       const sync=()=>heading.setAttribute('aria-label',`${content.title} 원문 ${details.open?'접기':'펼치기'}`);
       sync();details.addEventListener('toggle',()=>{if(!details.isConnected)return;if(details.open)openClues.add(c.id);else openClues.delete(c.id);sync();});
