@@ -1532,7 +1532,7 @@ html.has-3d .topbar { box-shadow: none; }
 }
 .ready-stamp b { font-weight: 400; line-height: 1.1; }
 
-@keyframes stamp-slam { 0% { opacity: 0; scale: 2.6; rotate: -22deg; filter: blur(1px); } 55% { opacity: 1; scale: .9; rotate: -11deg; filter: none; } 75% { scale: 1.04; } 100% { opacity: .92; scale: 1; rotate: -12deg; } }
+@keyframes stamp-slam { 0% { opacity: 0; scale: 2.6; rotate: -24deg; filter: blur(1px); } 55% { opacity: 1; scale: .9; rotate: -13deg; filter: none; } 75% { scale: 1.04; } 100% { opacity: .92; scale: 1; rotate: -14deg; } }
 .my-sheet.thud { animation: sheet-thud .28s steps(4) both; }
 @keyframes sheet-thud { 0% { translate: 0 0; } 25% { translate: 0 4px; } 50% { translate: -2px 1px; } 75% { translate: 1px 0; } 100% { translate: 0 0; } }
 @media (prefers-reduced-motion: reduce) { .ready-stamp { animation: none; } .my-sheet.thud { animation: none; } }
@@ -1543,10 +1543,9 @@ html.has-3d .topbar { box-shadow: none; }
 .fh-sub { font-size: 7px; letter-spacing: 2px; }
 /* 마우스를 올리면 위로 살짝만 (누르거나 쓰는 중이면 끝까지) */
 .lr-me.writing.down.peek { translate: -50% calc(var(--drop) - 18px); }
-/* 작성 완료 도장: [작성 완료] 버튼 자리에 (작게) */
-.ready-stamp { padding: 6px 14px 5px; gap: 1px; }
-.ready-stamp b { font-size: 22px; letter-spacing: 5px; padding-left: 5px; }
-.ready-stamp small { font-size: 9px; letter-spacing: 2px; }
+/* 작성 완료 도장 = 원형 관인 ([작성 완료] 버튼 자리에) */
+.ready-stamp { padding: 0; box-shadow: none; background: none; rotate: -14deg; }
+.ready-stamp .seal-svg { display: block; }
 /* 반으로 접힘: 아래 절반이 위로 넘어오며 납작해짐 */
 
 @keyframes sheet-fold { 0% { scale: 1 1; filter: none; } 60% { scale: .98 .52; filter: brightness(.92); } 100% { scale: .5 .26; translate: 0 40%; opacity: .0; } }
@@ -9585,11 +9584,28 @@ const BannerArt = (() => {
     if (sheet.classList.contains("folding")) { sheet.classList.remove("folding"); sheet.classList.add("unfolding"); setTimeout(() => sheet.classList.remove("unfolding"), 700); }
     toast(text);
   }
+  /** 작성 완료 도장 = 원형 관인: 바깥 원 "탐사자 기록국" · 아래 "INVESTIGATOR · No.xx" · 가운데 "접수" + 날짜 */
+  function readySeal(d, no) {
+    const C = "#a3221a", date = `${d.getFullYear()}·${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`;
+    const arc = (txt, size, gap, href) => svg("text", { "font-size": size, "letter-spacing": gap, fill: C }, svg("textPath", { href, startOffset: "50%", "text-anchor": "middle" }, txt));
+    return svg("svg", { class: "seal-svg", viewBox: "0 0 150 150", width: 112, height: 112 },
+      svg("defs", {},
+        svg("path", { id: "sealTop", d: "M29 75 A46 46 0 0 1 121 75" }), svg("path", { id: "sealBot", d: "M24 78 A51 51 0 0 0 126 78" }),
+        // 번진 · 빠진 잉크 질감
+        svg("filter", { id: "sealInk" }, svg("feTurbulence", { type: "fractalNoise", baseFrequency: "1.1", numOctaves: "2", seed: "4" }),
+          svg("feColorMatrix", { values: "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.6", result: "m" }), svg("feComposite", { in: "SourceGraphic", in2: "m", operator: "in" }))),
+      svg("g", { filter: "url(#sealInk)", "font-family": "Galmuri11, monospace" },
+        svg("g", { fill: "none", stroke: C }, svg("circle", { cx: 75, cy: 75, r: 68, "stroke-width": 4 }), svg("circle", { cx: 75, cy: 75, r: 61, "stroke-width": 1.5 }), svg("circle", { cx: 75, cy: 75, r: 35, "stroke-width": 2 })),
+        arc("탐사자 기록국", 10, 3, "#sealTop"), arc(`INVESTIGATOR${no ? ` · ${no}` : ""}`, 8, 2, "#sealBot"),
+        svg("text", { x: 75, y: 73, "font-size": 16, "text-anchor": "middle", "letter-spacing": 2, fill: C }, "접수"),
+        svg("text", { x: 75, y: 88, "font-size": 8, "text-anchor": "middle", fill: C }, date),
+        svg("text", { x: 17, y: 79, "font-size": 10, fill: C }, "✦"), svg("text", { x: 124, y: 79, "font-size": 10, fill: C }, "✦")));
+  }
   function stampThenSend(send2) {
     const sheet = document.querySelector("#lrMe .my-sheet");
     if (!sheet || sheet.querySelector(".ready-stamp")) return send2();
     const d = new Date();
-    const st = el("div", { class: "ready-stamp", "aria-hidden": "true" }, el("b", {}, "작성 완료"), el("small", {}, `접수 ${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`));
+    const st = el("div", { class: "ready-stamp", "aria-hidden": "true" }, readySeal(d, sheet.querySelector(".fh-n")?.textContent || ""));
     // 도장은 [작성 완료] 버튼 자리에 쾅
     const btn = sheet.querySelector("#readyBtn");
     if (btn) { const sr = sheet.getBoundingClientRect(), br = btn.getBoundingClientRect(); Object.assign(st.style, { left: `${br.left - sr.left + br.width / 2}px`, top: `${br.top - sr.top + br.height / 2}px` }); }
