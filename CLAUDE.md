@@ -73,6 +73,7 @@
 ### 핸드아웃
 - 시나리오 `handouts: { id: { title, kind: letter·news·note·photo, text, image(https·data ≤400KB), to: all(기본)·finder } }`, 단서 `handout: id` → 단서와 함께 공개
 - 상태 `game.handouts[id] = { pids: "all"|[pid], npcs, clue, scene }`. AI `show_handout {id, to: [캐릭터·NPC] | "all"}`로 범위 확장(NPC는 AI 맥락용). 로그 `kind: handout` + `toIds`(보는 사람만), 호스트(GM)는 전부 봄
+- 그림 핸드아웃 꾹 누르고(0.4초) 움직이면 그림만 뜬 창(`.ho-float`): 끌어 옮기기 · 오른쪽 아래 크기 조절 · 오른쪽 위 X로 닫기. 같은 그림은 창 하나
 - 기록 카드: 편지(줄 종이·테이프) · 신문(겹줄 제목·단) · 쪽지(노란 종이) · 사진(핀·폴라로이드), 누르면 크게 보기. data 그림은 `ho:<id>` ref로 초상과 같은 경로 전송
 
 ### 시나리오 검증

@@ -2011,6 +2011,13 @@ html.has-3d .topbar { box-shadow: none; }
 .ho.big .ho-body { max-height: none; font-size: 15px; line-height: 26px; }
 .ho-letter.big { background-position: 0 38px; background-image: repeating-linear-gradient(180deg, transparent 0 25px, rgba(90, 60, 30, .12) 25px 26px); }
 .ho.big .ho-img img { max-height: 70vh; }
+.ho-float { position: fixed; z-index: 95; left: 40px; top: 80px; min-width: 120px; min-height: 80px; max-width: 92vw; max-height: 88vh; resize: both; overflow: hidden; cursor: move;
+  background: #1c120c; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #e9dcb7, 5px 6px 0 4px rgba(0, 0, 0, .45); touch-action: none; }
+.ho-float.top { z-index: 96; }
+.ho-float img { display: block; width: 100%; height: 100%; object-fit: contain; filter: sepia(.25); pointer-events: none; user-select: none; }
+.ho-float-x { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; border: 0; cursor: pointer; font: 18px/24px var(--font); color: #f4ecd8; background: rgba(28, 18, 12, .75); }
+.ho-float-x:hover { background: var(--blood); }
+.ho .ho-img img, .ho-th img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
 .ho-x { position: fixed; top: 18px; right: 22px; width: 36px; height: 36px; border: 0; cursor: pointer; font: 24px/1 var(--font); color: #f4ecd8; background: none; }
 /* 소지품 얻음·잃음 꼬리표 */
 #log .entry.system.item-line::before { display: none; }
@@ -9336,6 +9343,61 @@ const BannerArt = (() => {
       img ? el("span", { class: "ho-img" }, img) : null,
       h.text ? el("span", { class: "ho-body" }, h.text) : null);
     return card;
+  }
+  /* 핸드아웃 그림을 꾹 누르고(0.4초) 움직이면 그림만 따로 뜬 창으로 (끌어 옮기기 · 오른쪽 아래 크기 조절 · X로 닫기) */
+  {
+    let lp = null, suppress = false;
+    const floatImage = (img, x, y) => {
+      const ref = img.dataset.ref || img.currentSrc || img.src;
+      let win = [...document.querySelectorAll(".ho-float")].find((w) => w.dataset.ref === ref);
+      if (!win) {
+        const w0 = Math.min(img.naturalWidth || 280, 320), h0 = Math.round(w0 * ((img.naturalHeight || 3) / (img.naturalWidth || 4)));
+        win = el("div", { class: "ho-float", "data-ref": ref, style: `width:${w0}px;height:${h0}px` },
+          el("img", { src: img.currentSrc || img.src, alt: img.alt || "", draggable: "false", "data-ref": img.dataset.ref || null }),
+          el("button", { class: "ho-float-x", type: "button", "aria-label": "닫기", on: { click: () => win.remove() } }, "×"));
+        document.body.append(win);
+      }
+      document.querySelectorAll(".ho-float").forEach((w) => w.classList.toggle("top", w === win));
+      return win;
+    };
+    const place = (win, x, y, dx, dy) => {
+      const r = win.getBoundingClientRect();
+      win.style.left = `${Math.max(0, Math.min(innerWidth - 40, x - dx))}px`;
+      win.style.top = `${Math.max(0, Math.min(innerHeight - 30, y - dy))}px`;
+      void r;
+    };
+    // 꾹 누르기 → 움직이면 창이 손을 따라옴
+    document.addEventListener("pointerdown", (e) => {
+      const img = e.target.closest?.(".ho .ho-img img, .ho-th img, .cv-ho .ho-th img");
+      if (!img || e.button !== 0) return;
+      const sx = e.clientX, sy = e.clientY;
+      lp = { img, sx, sy, ready: false, win: null, timer: setTimeout(() => { if (lp) { lp.ready = true; navigator.vibrate?.(15); } }, 400) };
+    });
+    addEventListener("pointermove", (e) => {
+      if (!lp) return;
+      if (!lp.ready) { if (Math.hypot(e.clientX - lp.sx, e.clientY - lp.sy) > 8) { clearTimeout(lp.timer); lp = null; } return; }
+      e.preventDefault();
+      if (!lp.win) { lp.win = floatImage(lp.img); suppress = true; }
+      place(lp.win, e.clientX, e.clientY, 30, 20);
+    }, { passive: false });
+    const endLp = () => { if (lp) { clearTimeout(lp.timer); lp = null; } };
+    addEventListener("pointerup", endLp); addEventListener("pointercancel", endLp);
+    // 꾹 눌러 띄운 직후의 클릭(크게 보기)은 무시
+    document.addEventListener("click", (e) => { if (suppress && e.target.closest?.(".ho, .ho-row, .cv-ho")) { e.preventDefault(); e.stopPropagation(); } suppress = false; }, true);
+    document.addEventListener("contextmenu", (e) => { if (lp && e.target.closest?.(".ho-img, .ho-th")) e.preventDefault(); });
+    // 뜬 창 끌어 옮기기 (X · 오른쪽 아래 크기 조절 모서리 제외)
+    document.addEventListener("pointerdown", (e) => {
+      const win = e.target.closest?.(".ho-float");
+      if (!win || e.target.closest(".ho-float-x")) return;
+      document.querySelectorAll(".ho-float").forEach((w) => w.classList.toggle("top", w === win));
+      const r = win.getBoundingClientRect();
+      if (e.clientX > r.right - 16 && e.clientY > r.bottom - 16) return;   // 크기 조절
+      e.preventDefault();
+      const dx = e.clientX - r.left, dy = e.clientY - r.top;
+      const mv = (ev) => place(win, ev.clientX, ev.clientY, dx, dy);
+      const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); };
+      addEventListener("pointermove", mv); addEventListener("pointerup", up);
+    });
   }
   function openHandout(h) {
     $("#hoView")?.remove();
