@@ -2033,8 +2033,6 @@ html.has-3d .topbar { box-shadow: none; }
 .clue-index-item[open] .clue-arrow { clip-path:polygon(0 0,100% 0,100% 50%,75% 50%,75% 75%,25% 75%,25% 50%,0 50%); }
 .clue-index-row:focus-visible { outline:2px solid #823026; outline-offset:-2px; }
 .clue-open-body { margin:7px 0 12px 23px; padding-left:10px; border-left:3px solid #8a3326; }
-.clue-brief { margin:0 0 9px; font-size:13px; line-height:1.7; overflow-wrap:anywhere; }
-.clue-brief small { display:block; color:var(--ink-2); font-size:10px; }
 .clue-original { padding:8px 9px; border:1px solid #b2a47e; background:rgba(255,250,223,.65); box-shadow:2px 2px 0 rgba(69,42,17,.12); }
 .clue-original-label { color:var(--blood); font-size:11px; }
 .clue-original p { margin:5px 0 0; font:13px/1.8 var(--font-body); color:#344259; white-space:pre-wrap; overflow-wrap:anywhere; }
@@ -3278,7 +3276,7 @@ const Engine = (() => {
   function revealClue(sc, st, clueId) {
     const clue = (sceneOf(sc, st).clues ?? []).find((c) => c.id === clueId);
     if (!clue || st.revealedClues.some((c) => c.id === clueId)) return null;
-    const context = { scene: {title:sceneOf(sc,st).title}, npcs:(sceneOf(sc,st).npcs ?? []).map(id=>({name:npcName(sc,id)})) };
+    const context = nameContext(sc, st);
     const r = { id:clue.id, text:clue.text, ...(typeof clue.title==='string'?{title:clue.title}:{}), categories:WebFeatures.clueCategories(clue,context) };
     st.revealedClues.push(r);
     if (clue.setFlag) st.flags[clue.setFlag] = true;
@@ -3346,6 +3344,15 @@ const Engine = (() => {
   }
 
   /* ---------------- 뷰 ---------------- */
+  /** 단서 자동 분류용 이름 목록 (시나리오 전체: 단서 본문에 이미 나온 이름과 맞춰 보기만 하므로 스포일러 없음) */
+  function nameContext(sc, st) {
+    const s = sceneOf(sc, st);
+    return {
+      scene: { title: s?.title },
+      npcs: Object.values(sc.npcs ?? {}).map((n) => ({ name: n?.name })),
+      places: Object.values(sc.scenes ?? {}).flatMap((x) => [x?.title, ...(Array.isArray(x?.places) ? x.places : [])]).filter((x) => typeof x === "string"),
+    };
+  }
   function publicView(sc, st) {
     const s = sceneOf(sc, st);
     return {
@@ -3354,9 +3361,7 @@ const Engine = (() => {
       clues: st.revealedClues.map(r=>{
         const source=findClueAnywhere(sc,r.id);
         const clue={...r,...(typeof source?.title==='string'?{title:source.title}:{}),...(source?.category != null?{category:source.category}:{}),...(source?.categories != null?{categories:source.categories}:{})};
-        const publicScenes=[...new Set([...(st.visited ?? []),st.currentScene])].map(id=>sc.scenes[id]).filter(Boolean);
-        const people=publicScenes.flatMap(scene=>(scene.npcs ?? []).map(id=>({name:npcName(sc,id)})));
-        const categories=WebFeatures.clueCategories(clue,{scene:{title:s.title},npcs:people});
+        const categories=WebFeatures.clueCategories(clue,nameContext(sc,st));
         return {id:r.id,text:r.text,...(clue.title?{title:clue.title}:{}),categories};
       }),
       // 판정 목록은 스포일러: 플레이어에겐 GM이 요청했거나 이미 굴린 판정만 (결과와 함께)
@@ -3680,16 +3685,20 @@ const WebFeatures = (() => {
     const title = String(clue.title || (headed ? prefix[1].replace(/\s*[（(][^()（）]*[)）]\s*$/, '').trim() : '단서'));
     return { title, preview: headed ? prefix[2] : original, original };
   }
+  // 자동 분류: 명시(category) > 이름 일치(NPC · 캐릭터 · 장소 · 사건 제목) > 칭호 · 장소 낱말
+  const PERSON_WORDS = /[가-힣]{2,4}씨(?![가-힣])|박사|형사|의사|교수|신부|목사|선생|부인|사장|관리인|집사|경찰|간호사|기자|탐정|하녀|소년|소녀|노인|아이(?!템)|남자|여자|사내|목격자|용의자|피해자|희생자|실종자|사망자|범인|주인|아가씨|도련님/;
+  const PERSON_TITLE = /편지|일기|명단|증언|진술|초상|신분증|인물|사진|유서/;
+  const PLACE_WORDS = /식당|주방|부엌|침실|거실|욕실|현관|정원|마당|옥상|지하실|지하|다락|복도|계단|서재|응접실|사무실|교실|강당|병실|감방|숲|동굴|호수|섬|항구|광장|골목|마을|도시|교회|성당|병원|학교|도서관|저택|창고|공장|등대|묘지|무덤|터널|입구|출구|방안|방 안|건물|집 안/;
+  const PLACE_TITLE = /지도|시간표|도면|주소|노선|약도|장소/;
   function clueCategories(clue, view = {}) {
     const normalize = x => ({ person:'person', place:'place', '인물':'person', '장소':'place' })[x];
     const raw = clue.category ?? clue.categories;
     const explicit = (Array.isArray(raw) ? raw : [raw]).map(normalize).filter(Boolean);
     if (explicit.length) return [...new Set(explicit)];
-    const text = String(clue.text ?? ''), title = clueText(clue).title;
-    const person = /편지|일기|명단|증언|진술|초상|신분증|인물/.test(title) ||
-      (view.npcs ?? []).some(n => typeof n.name === 'string' && n.name.length > 1 && text.includes(n.name));
-    const place = /지도|시간표|도면|주소|노선|약도|장소/.test(title) ||
-      (typeof view.scene?.title === 'string' && view.scene.title.length > 1 && text.includes(view.scene.title));
+    const text = String(clue.text ?? ''), title = clueText(clue).title, all = `${title} ${text}`;
+    const has = (name) => typeof name === 'string' && name.length > 1 && all.includes(name);
+    const person = PERSON_TITLE.test(title) || PERSON_WORDS.test(all) || (view.npcs ?? []).some(n => has(n.name)) || (view.people ?? []).some(has);
+    const place = PLACE_TITLE.test(title) || PLACE_WORDS.test(all) || has(view.scene?.title) || (view.places ?? []).some(has);
     return [...(person ? ['person'] : []), ...(place ? ['place'] : [])];
   }
   return { identity, merge, page, endpoint, credentialId, addUsage, clueText, clueCategories };
@@ -8762,11 +8771,7 @@ const BannerArt = (() => {
       const heading=el('summary',{class:'clue-index-row','aria-label':`${content.title} 원문 펼치기`},
         el('span',{class:'clue-number','aria-hidden':'true'},String(i+1).padStart(2,'0')),
         el('span',{class:'clue-title'},content.title),el('span',{class:'clue-leader','aria-hidden':'true'}),el('span',{class:'clue-arrow','aria-hidden':'true'}));
-      // 요약 모델을 호출하지 않고 원문 첫 문장을 발췌하여 사실을 보존한다.
-      const excerpt = content.preview.match(/^[\s\S]*?[.!?。](?:\s|$)/)?.[0]?.trim() || content.preview;
-      const brief=excerpt.length>100?excerpt.slice(0,100)+'…':excerpt;
       details.append(heading,el('div',{class:'clue-open-body'},
-        el('p',{class:'clue-brief'},el('small',{},'발췌'),brief),
         el('div',{class:'clue-original'},el('span',{class:'clue-original-label'},'원문'),el('p',{},content.original))));
       const sync=()=>heading.setAttribute('aria-label',`${content.title} 원문 ${details.open?'접기':'펼치기'}`);
       sync();details.addEventListener('toggle',()=>{if(!details.isConnected)return;if(details.open)openClues.add(c.id);else openClues.delete(c.id);sync();});
