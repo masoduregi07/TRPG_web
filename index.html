@@ -1146,13 +1146,13 @@ textarea { margin-top: 8px; }
 :is(.sound-pop, .help-pop) input[type="checkbox"]:focus { outline: 0; box-shadow: 0 0 0 2px var(--ink), inset 2px 2px 0 rgba(90, 60, 30, .25); }
 :is(.sound-pop, .help-pop) input[type="checkbox"]:focus-visible { outline: 1px dashed var(--blood); outline-offset: 3px; }
 /* 도트 음량 막대: 칸 눈금 홈 + 붉은 잉크 채움 + 놋쇠 손잡이 */
-.sound-pop input[type="range"] { appearance: none; -webkit-appearance: none; width: 100%; height: 15px; margin: 0; padding: 0; cursor: pointer; background: none; box-shadow: none; --p: 50%; }
-.sound-pop input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(90deg, var(--blood) 0 var(--p), transparent var(--p)), repeating-linear-gradient(90deg, #c9b48a 0 4px, #b8a070 4px 6px); box-shadow: 0 0 0 2px var(--ink); }
-.sound-pop input[type="range"]::-moz-range-track { height: 6px; background: repeating-linear-gradient(90deg, #c9b48a 0 4px, #b8a070 4px 6px); box-shadow: 0 0 0 2px var(--ink); }
-.sound-pop input[type="range"]::-moz-range-progress { height: 6px; background: var(--blood); }
-.sound-pop input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 9px; height: 15px; margin-top: -4.5px; border: 0; border-radius: 0; background: #d9a441; box-shadow: 0 0 0 2px var(--ink), inset -2px -2px 0 #8a5a1e, inset 2px 2px 0 #f6d27a; }
-.sound-pop input[type="range"]::-moz-range-thumb { width: 9px; height: 15px; border: 0; border-radius: 0; background: #d9a441; box-shadow: 0 0 0 2px var(--ink), inset -2px -2px 0 #8a5a1e, inset 2px 2px 0 #f6d27a; }
-.sound-pop input[type="range"]:disabled { opacity: .45; cursor: default; }
+:is(.sound-pop, .pic-edit) input[type="range"] { appearance: none; -webkit-appearance: none; width: 100%; height: 15px; margin: 0; padding: 0; cursor: pointer; background: none; box-shadow: none; --p: 50%; }
+:is(.sound-pop, .pic-edit) input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(90deg, var(--blood) 0 var(--p), transparent var(--p)), repeating-linear-gradient(90deg, #c9b48a 0 4px, #b8a070 4px 6px); box-shadow: 0 0 0 2px var(--ink); }
+:is(.sound-pop, .pic-edit) input[type="range"]::-moz-range-track { height: 6px; background: repeating-linear-gradient(90deg, #c9b48a 0 4px, #b8a070 4px 6px); box-shadow: 0 0 0 2px var(--ink); }
+:is(.sound-pop, .pic-edit) input[type="range"]::-moz-range-progress { height: 6px; background: var(--blood); }
+:is(.sound-pop, .pic-edit) input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 9px; height: 15px; margin-top: -4.5px; border: 0; border-radius: 0; background: #d9a441; box-shadow: 0 0 0 2px var(--ink), inset -2px -2px 0 #8a5a1e, inset 2px 2px 0 #f6d27a; }
+:is(.sound-pop, .pic-edit) input[type="range"]::-moz-range-thumb { width: 9px; height: 15px; border: 0; border-radius: 0; background: #d9a441; box-shadow: 0 0 0 2px var(--ink), inset -2px -2px 0 #8a5a1e, inset 2px 2px 0 #f6d27a; }
+:is(.sound-pop, .pic-edit) input[type="range"]:disabled { opacity: .45; cursor: default; }
 /* 연출: 가로선 아래 한 줄씩 켜고 끔 */
 .snd-fx { display: grid; gap: 9px; padding-top: 12px; border-top: 2px dashed rgba(90, 60, 30, .35); }
 .snd-k { font-size: 10px; letter-spacing: 2px; color: #7a5a38; }
@@ -1994,6 +1994,16 @@ html.has-3d .topbar { box-shadow: none; }
 #checkBox .chip.active.memo-btn:disabled { opacity: .5; }
 /* 웹 기록 보관함 / 단서 수첩 */
 .history-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 20px 8px 48px; margin:0 var(--cover); background:var(--paper); border-bottom:2px solid var(--paper-lo); }
+/* 사진 맞추기 */
+.pic-edit { padding: 16px 18px; border: 3px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 6px 8px 0 rgba(0, 0, 0, .5); }
+.pic-edit::backdrop { background: rgba(12, 8, 5, .6); }
+.pic-edit .pe-title { margin-bottom: 10px; font-family: var(--font); font-size: 13px; letter-spacing: 2px; }
+.pic-edit .pe-frame { position: relative; overflow: hidden; margin: 0 auto; background: #e7dfca; box-shadow: 0 0 0 2px var(--ink); cursor: grab; touch-action: none; user-select: none; }
+.pic-edit .pe-frame.grab { cursor: grabbing; }
+.pic-edit .pe-frame img { position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; pointer-events: none; }
+.pic-edit .pe-zoom { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-family: var(--font); font-size: 14px; color: #7a6548; }
+.pic-edit .pe-zoom input { flex: 1; }
+.pic-edit .pe-acts { display: flex; justify-content: flex-end; gap: 6px; margin-top: 12px; }
 #historyDialog { box-sizing:border-box; width:min(960px,90vw); max-height:86vh; background:var(--paper); color:var(--ink); border:3px solid var(--ink); padding:20px; font:15px/1.6 var(--font-body); }
 #historyDialog::backdrop { background:rgba(0,0,0,.75); }
 .log-bottom, .log-top { position:absolute; left:auto; right:14px; transform:none; z-index:5; display:grid; place-items:center; width:35px; height:35px; padding:0; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); font-size:23px; line-height:1; }
@@ -9731,11 +9741,7 @@ const BannerArt = (() => {
     const photoBox = el("label", { class: "portrait-photo pic-drop", tabindex: 0, title: "", "aria-label": "사진 붙이기",
       on: { keydown: (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), file.click()) } });
     const file = el("input", { type: "file", accept: "image/*", hidden: true });
-    file.addEventListener("change", async () => {
-      try { const src = await shrinkPortrait(await readFileAsDataURL(file.files[0])); if (!src) throw new Error("그림을 읽을 수 없음."); send({ t: "portrait", src }); }
-      catch (err) { toast(`초상 올리기 실패: ${err.message}`); }
-      file.value = "";
-    });
+    file.addEventListener("change", async () => { const f = file.files[0]; file.value = ""; if (f) await setPortraitFrom(f); });
     const clearPicBtn = icBtn("button", "pic-clear", "trash", "초상 지우기", { type: "button", on: { click: () => send({ t: "portrait", src: null }) } });
     // 직업
     // 직업: 선택상자 한 줄. 목록 끝 "직접 입력…"을 고르면 입력칸으로 바뀌고 ↺로 목록 복귀
@@ -10441,6 +10447,66 @@ const BannerArt = (() => {
       im.src = src;
     });
   }
+  /** 초상 맞추기: 끌어서 위치 · 확대/축소 → 112×132로 잘라 돌려줌 (취소하면 null) */
+  function editPortrait(src) {
+    return new Promise((resolve) => {
+      const im = new Image();
+      im.onerror = () => { toast("그림을 읽을 수 없음."); resolve(null); };
+      im.onload = () => {
+        const FW = 224, FH = 264, OW = 112, OH = 132;   // 편집 틀 = 결과의 2배
+        const iw = im.naturalWidth, ih = im.naturalHeight, s0 = Math.max(FW / iw, FH / ih);
+        let z = 1, x = 0, y = 0;
+        const pic = el("img", { src, alt: "", draggable: "false" });
+        const frame = el("div", { class: "pe-frame", style: `width:${FW}px;height:${FH}px` }, pic);
+        const zoom = el("input", { type: "range", min: 1, max: 4, step: 0.01, value: 1, "aria-label": "확대 · 축소" });
+        const clamp = () => { const w = iw * s0 * z, h = ih * s0 * z; x = Math.min(0, Math.max(FW - w, x)); y = Math.min(0, Math.max(FH - h, y)); };
+        const draw = () => { clamp(); const k = s0 * z; Object.assign(pic.style, { width: `${iw * k}px`, height: `${ih * k}px`, transform: `translate(${x}px, ${y}px)` }); zoom.value = z; zoom.style.setProperty("--p", `${Math.round((z - 1) / 3 * 100)}%`); };
+        // 확대·축소는 틀 가운데(또는 휠 위치)를 기준으로
+        const setZoom = (nz, cx = FW / 2, cy = FH / 2) => { nz = Math.min(4, Math.max(1, nz)); const r = nz / z; x = cx - (cx - x) * r; y = cy - (cy - y) * r; z = nz; draw(); };
+        const w0 = iw * s0, h0 = ih * s0; x = (FW - w0) / 2; y = Math.min(0, (FH - h0) * .3);
+        zoom.addEventListener("input", () => setZoom(Number(zoom.value)));
+        frame.addEventListener("wheel", (e) => { e.preventDefault(); const r = frame.getBoundingClientRect(); setZoom(z * (e.deltaY < 0 ? 1.1 : 1 / 1.1), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+        let drag = null;
+        frame.addEventListener("pointerdown", (e) => { drag = { px: e.clientX, py: e.clientY, x, y }; frame.setPointerCapture(e.pointerId); frame.classList.add("grab"); });
+        frame.addEventListener("pointermove", (e) => { if (!drag) return; x = drag.x + e.clientX - drag.px; y = drag.y + e.clientY - drag.py; draw(); });
+        const end = () => { drag = null; frame.classList.remove("grab"); };
+        frame.addEventListener("pointerup", end); frame.addEventListener("pointercancel", end);
+        const dlg = el("dialog", { class: "pic-edit", "aria-label": "사진 맞추기" });
+        const close = (out) => { dlg.close(); dlg.remove(); resolve(out); };
+        const apply = () => {
+          const c = document.createElement("canvas"); c.width = OW; c.height = OH;
+          const g = c.getContext("2d"); g.imageSmoothingQuality = "high";
+          g.fillStyle = "#e7dfca"; g.fillRect(0, 0, OW, OH);
+          const k = OW / FW, sc = s0 * z * k;
+          g.drawImage(im, x * k, y * k, iw * sc, ih * sc);
+          for (const q of [.85, .72, .6]) { const out = c.toDataURL("image/jpeg", q); if (out.length <= 70_000) return close(out); }
+          toast("사진이 너무 큼."); close(null);
+        };
+        dlg.append(el("div", { class: "pe-title" }, "사진 맞추기"), frame,
+          el("div", { class: "pe-zoom" }, el("span", { "aria-hidden": "true" }, "－"), zoom, el("span", { "aria-hidden": "true" }, "＋")),
+          el("div", { class: "pe-acts" }, el("button", { type: "button", class: "btn small ghost", on: { click: () => close(null) } }, "취소"), el("button", { type: "button", class: "btn small primary", on: { click: apply } }, "적용")));
+        dlg.addEventListener("cancel", (e) => { e.preventDefault(); close(null); });
+        document.body.append(dlg); dlg.showModal(); draw();
+      };
+      im.src = src;
+    });
+  }
+  /** 사진 파일(선택 · 붙여넣기) → 맞추기 → 내 초상으로 보냄 */
+  async function setPortraitFrom(fileObj) {
+    try {
+      const src = await editPortrait(await readFileAsDataURL(fileObj));
+      if (src) send({ t: "portrait", src });
+    } catch (err) { toast(`초상 올리기 실패: ${err.message}`); }
+  }
+  // 기록지 작성 중 Ctrl+V: 클립보드의 그림을 초상으로 (글자 입력칸에서는 원래 붙여넣기)
+  document.addEventListener("paste", (e) => {
+    const box = app.builderEls?.photoBox;
+    if (!box?.isConnected || box.closest("[hidden]")) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName ?? "") || e.target?.isContentEditable) return;
+    const f = [...(e.clipboardData?.files ?? [])].find((x) => x.type.startsWith("image/"));
+    if (!f) return;
+    e.preventDefault(); setPortraitFrom(f);
+  });
   const readFileAsDataURL = (f) => new Promise((ok, no) => {
     if (!f) return no(new Error("파일 없음."));
     if (f.size > 15 * 1024 * 1024) return no(new Error("파일이 너무 큼 (15MB 이하)."));
