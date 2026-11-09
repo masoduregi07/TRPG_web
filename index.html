@@ -1864,9 +1864,7 @@ html.has-3d .topbar { box-shadow: none; }
 /* ===== 단서 줄 (B안): 기록 사이에 끼워 둔 작은 쪽지 + 테이프 한 조각 ===== */
 #log .entry.clue { position: relative; justify-self: start; max-width: 78%; margin: 12px 0 6px; padding: 9px 12px 7px;
   background: #f3ead2; box-shadow: 0 0 0 1px rgba(90, 60, 30, .35), 2px 3px 0 rgba(60, 40, 20, .15); rotate: -.4deg; }
-#log .entry.clue::before { display: none; }
 #log .entry.clue::after { content: ""; position: absolute; top: -6px; left: 18px; width: 42px; height: 12px; background: rgba(214, 196, 150, .85); box-shadow: 0 0 0 1px rgba(90, 60, 30, .15); rotate: -4deg; }
-#log .entry.clue .who { color: var(--blood); font-size: 11px; margin-right: 6px; }
 
 /* ===== 진행 기록의 단서 = 끼워 둔 작은 쪽지 (B안) ===== */
 #log .entry.clue { position: relative; justify-self: start; max-width: 78%; margin: 12px 0 6px; padding: 9px 12px 7px;
@@ -1877,7 +1875,7 @@ html.has-3d .topbar { box-shadow: none; }
   background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .08) 0 2px, transparent 2px 5px), rgba(176, 138, 82, .62);
   box-shadow: 0 1px 0 rgba(60, 40, 20, .12);
   clip-path: polygon(0 10%, 4% 0, 96% 0, 100% 14%, 97% 30%, 100% 48%, 96% 66%, 100% 84%, 95% 100%, 5% 100%, 0 86%, 3% 68%, 0 50%, 4% 32%); }
-#log .entry.clue .who { margin-right: 6px; font-size: 11px; color: var(--blood); }
+#log .entry.clue .who { font-size: 11px; color: var(--blood);}
 /* 단서 쪽지: '단서'는 왼쪽 칸, 본문은 둘째 줄부터도 같은 열에서 시작 · 첫 줄 글자 바닥선 맞춤 */
 #log .entry.clue { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 9px; align-items: baseline; }
 #log .entry.clue .who { margin-right: 0; line-height: inherit; }
