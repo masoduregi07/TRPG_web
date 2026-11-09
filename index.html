@@ -5822,8 +5822,15 @@ const Net = (() => {
         const connId = `c${++seq}`;
         let joined = false;
         const joinTimer = setTimeout(() => { if (!joined) try { conn.close(); } catch {} }, 15000);
+        // 플레이어는 8초마다 ping을 보낸다. 30초 넘게 아무 신호가 없으면 끊긴 것으로 보고 정리해
+        // 유령 접속(온라인 표시·턴 대기)이 남지 않게 한다.
+        let lastSeen = Date.now();
+        const aliveTimer = setInterval(() => {
+          if (joined && Date.now() - lastSeen > 30000) gone();
+        }, 5000);
 
         conn.on("data", (msg) => {
+          lastSeen = Date.now();
           let size = 0;
           try { size = JSON.stringify(msg).length; } catch { return; }
           // 초상은 압축 후에도 최대 약 70KB라 일반 채팅(20KB)과 같은 제한을 쓰면
@@ -5855,9 +5862,12 @@ const Net = (() => {
         });
         const gone = () => {
           clearTimeout(joinTimer);
+          clearInterval(aliveTimer);
+          const wasJoined = joined;
           if (conns.get(connId) === conn) conns.delete(connId);
-          if (joined) getGame()?.onDisconnect(connId);
           joined = false;
+          if (wasJoined) getGame()?.onDisconnect(connId);
+          try { conn.close(); } catch {}
         };
         conn.on("close", gone);
         conn.on("error", gone);
@@ -8287,6 +8297,10 @@ const BannerArt = (() => {
     HistoryArchive.put(archiveScope(), data.log);
     app.game.sendInit(data.hostPid);
     app.net = Net.startHost(room, { getGame: () => app.game, onStatus: setStatus });
+    // 호스트 새로고침/복귀 시: 처리되지 않은 행동·질문이 남아 있으면 AI 차례를 다시 예약
+    if (data.mode === "ai" && data.phase === "play" && app.game.sinceAI().some((e) => e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc))) {
+      app.game.queueAI();
+    }
     flushHostSave();
 
     // 실수로 닫기 방지 + 화면 꺼짐 방지
