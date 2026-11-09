@@ -2004,8 +2004,21 @@ html.has-3d .topbar { box-shadow: none; }
 .room-code-row { display:flex; align-items:center; gap:7px; font-size:12px; border-top:1px dashed var(--paper-lo); padding-top:8px; }
 .room-code-row code { min-width:0; flex:1; font-size:13px; overflow-wrap:anywhere; }
 .room-code-row .btn { padding:3px 5px; }
-.character-profiles { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-top:8px; }
-.character-profiles select { min-width:110px; max-width:200px; flex:1; }
+/* 서식 저장 · 불러오기 아이콘 (기록지 잉크색 모노톤) + 보관 목록 */
+.fh-form:has(.pf-icons) { display:flex; align-items:center; }
+.pf-icons { position:relative; display:inline-flex; gap:2px; margin-left:8px; vertical-align:middle; }
+.pf-btn { width:28px; height:28px; color:#7a6548; }
+.pf-btn:hover, .pf-btn:focus-visible, .pf-btn[aria-expanded="true"] { color:var(--ink); }
+.pf-btn .ic-svg, .pf-btn:hover .ic-svg, .pf-btn:focus-visible .ic-svg { width:22px; height:22px; filter:none; }
+.pf-btn .ic-tip { right:auto; left:-3px; }
+.pf-pop { position:absolute; left:0; top:calc(100% + 6px); z-index:40; min-width:180px; max-height:260px; overflow-y:auto; background:#f4ead0; box-shadow:0 0 0 2px var(--ink), 4px 5px 0 rgba(0,0,0,.35); font-family:var(--font); font-size:12px; color:var(--ink); }
+.pf-pop[hidden] { display:none; }
+.pf-pop .pf-h { padding:5px 10px; font-size:10px; letter-spacing:2px; color:#7a6548; border-bottom:1px dashed #8a7152; }
+.pf-pop .pf-r { display:flex; width:100%; justify-content:space-between; gap:14px; padding:5px 10px; border:0; background:none; box-shadow:none; font:inherit; color:inherit; text-align:left; white-space:nowrap; cursor:pointer; }
+.pf-pop .pf-r small { font-size:10px; color:#7a6548; }
+.pf-pop .pf-r:hover, .pf-pop .pf-r:focus-visible { background:#6f5230; color:#f4ecd8; outline:0; }
+.pf-pop .pf-r:hover small, .pf-pop .pf-r:focus-visible small { color:#e8d8b6; }
+.pf-pop .pf-empty { padding:8px 10px; color:#7a6548; }
 .archive-head { display:flex; align-items:center; justify-content:space-between; gap:20px; }
 .archive-head h2 { margin:0; font-size:20px; }
 #historyList { max-height:52vh; overflow-y:auto; margin-top:12px; }
@@ -9521,7 +9534,7 @@ const BannerArt = (() => {
   /* 시트 머리글 = 공문서 머리글 (서식 번호 · 제목 · 기록 번호 · 담당 GM · 이중 괘선) */
   function sheetHead() {
     return el("header", { class: "my-tab form-head", title: "누르면 시트를 올려 고정" },
-      el("div", { class: "fh-form" }, "서식 제7호", el("br"), "(제3조 관련)"),
+      el("div", { class: "fh-form" }, el("span", {}, "서식 제7호", el("br"), "(제3조 관련)")),
       el("div", { class: "fh-title" }),
       el("div", { class: "fh-no" }, "기록 번호 ", el("u", { class: "fh-n" }), el("br"), "담당 GM ", el("u", { class: "fh-gm" })),
       el("div", { class: "fh-sub" }));
@@ -9820,17 +9833,9 @@ const BannerArt = (() => {
       stampThenSend(() => send({ t: "char", character: d, ready: true }));
     } } }, "준비 완료");
     const saveBtn = icBtn("button", "up save-btn", "bookmark", "임시 저장", { type: "button", on: { click: () => { if (!app.snap.myRoll) return toast("특성치 굴림 먼저."); send({ t: "char", character: d }); CharacterProfiles.save(d); toast("임시 저장 · 다음 방에서 불러오기 가능"); } } });
-    const profileSelect = el("select", { "aria-label": "저장된 캐릭터" });
-    function refreshProfiles() {
-      profileSelect.replaceChildren(el("option", { value: "" }, "이전 캐릭터 선택"), ...CharacterProfiles.list().map((p) => el("option", { value: p.name }, p.name)));
-    }
-    refreshProfiles();
-    const profileSave = el("button", { type: "button", class: "btn small ghost", on: { click: () => {
-      if (!CharacterProfiles.save(d)) return toast("캐릭터 이름을 먼저 입력하세요.");
-      refreshProfiles(); profileSelect.value = d.name.trim(); toast("캐릭터 서식 보관됨.");
-    } } }, "서식 저장");
-    const profileLoad = el("button", { type: "button", class: "btn small", on: { click: () => {
-      const profile = CharacterProfiles.list().find((p) => p.name === profileSelect.value);
+    // 서식 저장 · 불러오기: 기록지 머리글("서식 제7호" 옆)에 아이콘 2개. 불러오기는 보관 목록을 펼침
+    function loadProfile(profileName) {
+      const profile = CharacterProfiles.list().find((p) => p.name === profileName);
       const next = CharacterProfiles.restore(profile, rules);
       if (!next) return toast("불러올 캐릭터를 선택하세요.");
       Object.assign(d, next);
@@ -9838,15 +9843,31 @@ const BannerArt = (() => {
       concept.value = d.concept; goal.value = d.goal ?? ""; goalSync(); bg.value = d.background; hook.value = d.hook; look.value = d.look;
       if (app.snap?.myRoll) fitAlloc(app.snap.myRoll.chars);
       saveDraft(); refreshCoc(); toast("캐릭터 서식 불러옴. 특성치는 이번 방 주사위를 사용.");
-    } } }, "불러오기");
-    const profileBox = el("div", { class: "character-profiles" }, profileSelect, profileSave, profileLoad);
+    }
+    const profilePop = el("div", { class: "pf-pop", role: "listbox", "aria-label": "보관한 탐사자", hidden: true });
+    const closeProfiles = () => { profilePop.hidden = true; profileLoad.setAttribute("aria-expanded", "false"); };
+    function openProfiles() {
+      const list = CharacterProfiles.list();
+      profilePop.replaceChildren(el("div", { class: "pf-h" }, "보관한 탐사자"),
+        ...(list.length ? list.slice().reverse().map((p) => el("button", { type: "button", class: "pf-r", role: "option", on: { click: () => { closeProfiles(); loadProfile(p.name); } } },
+          el("span", {}, p.name), el("small", {}, p.background || "-"))) : [el("div", { class: "pf-empty" }, "보관한 서식 없음")]));
+      profilePop.hidden = false; profileLoad.setAttribute("aria-expanded", "true");
+    }
+    const profileSave = icBtn("button", "pf-btn", "pf_in", "서식 저장", { type: "button", on: { click: () => {
+      if (!CharacterProfiles.save(d)) return toast("캐릭터 이름을 먼저 입력하세요.");
+      toast("캐릭터 서식 보관됨.");
+    } } });
+    const profileLoad = icBtn("button", "pf-btn", "pf_out", "불러오기", { type: "button", "aria-haspopup": "listbox", "aria-expanded": "false", on: { click: () => profilePop.hidden ? openProfiles() : closeProfiles() } });
+    const profileBox = el("span", { class: "pf-icons" }, profileSave, profileLoad, profilePop);
+    document.addEventListener("pointerdown", (e) => { if (!profilePop.hidden && !profileBox.contains(e.target)) closeProfiles(); });
+    profileBox.addEventListener("keydown", (e) => { if (e.key === "Escape" && !profilePop.hidden) { closeProfiles(); profileLoad.focus(); } });
     goal.id = "cocGoal";
-    app.builderEls = { coc: true, name, age, gender, concept, hook, look, goal, goalSync, bg, bgCustom, showBg, refreshStats: refreshCoc, refreshCoc, sugBtn, readyBtn, photoBox, clearPicBtn, photoPlus: true, file };
+    app.builderEls = { profileBox, coc: true, name, age, gender, concept, hook, look, goal, goalSync, bg, bgCustom, showBg, refreshStats: refreshCoc, refreshCoc, sugBtn, readyBtn, photoBox, clearPicBtn, photoPlus: true, file };
     // 왼쪽 = 초상 + 공문서 칸(이름 · 직업 · 나이 · 성별 · 특징 및 성격) → 개인 목표 쪽지 → 혹시 기억이 나지 않는다면 │ 오른쪽 = 특성치(가로) → 기능 → 작성
     const docRow = (k, input, tag = "label") => el(tag, { class: "doc-row" }, el("span", { class: "doc-k" }, k), input);
     name.classList.add("id-name");
     $("#builderBox").replaceChildren(el("section", { class: "panel builder coc-builder" },
-      el("div", { class: "kicker" }, "탐사자 만들기"),
+      el("div", { class: "kicker" }, "탐사자 만들기", profileBox),
       s.phase === "play" ? el("p", { class: "muted small" }, "모험 진행 중. 완성하면 바로 합류.") : null,
       el("div", { class: "b-left" },
         el("div", { class: "id-block" },
@@ -9857,7 +9878,7 @@ const BannerArt = (() => {
             docRow("직업", el("div", { class: "occ-editor" }, el("div", { class: "occ-switch", role: "group", "aria-label": "직업 입력 방식" }, bgPickBtn, bgTypeBtn), bg, bgCustom)),
             docRow("특징 및 성격", concept))),
         el("div", { class: "goal-memo" }, el("label", { class: "goal-hd", for: "cocGoal" }, el("span", { class: "memo-k" }, "개인 목표"), el("span", { class: "goal-priv" }, "대외비 · 나와 GM만")), goal, goalChips, goalCount),
-        fate, profileBox),
+        fate),
       el("div", { class: "b-right" },
         el("div", { class: "field f-chars" }, el("div", { class: "lbl-row" }, el("span", {}, "특성치"), el("span", { class: "points-row" }, rollLeft, rollBtn)), charGrid, derivedEl),
         el("div", { class: "field f-skills" }, el("div", { class: "lbl-row" }, el("span", {}, "기능"), el("span", { class: "points-row" }, pointsEl, skillDice)), skillRows),
@@ -9872,6 +9893,9 @@ const BannerArt = (() => {
     b.sugBtn.querySelector(".ic-tip").textContent = app.suggesting ? "운명을 읽는 중…" : "자동 입력";
     b.sugBtn.classList.toggle("busy", !!app.suggesting);
     const sheet = document.querySelector("#lrMe .my-sheet");
+    // 기록지 머리글이 있으면 서식 아이콘을 "서식 제7호" 옆으로 (없으면 '탐사자 만들기' 제목 옆)
+    const fh = sheet?.querySelector(".fh-form");
+    if (b.profileBox && fh && b.profileBox.parentNode !== fh) fh.append(b.profileBox);
     if (sheet) {
       let wait = sheet.querySelector(":scope > .fate-wait");
       if (!wait && app.suggesting) wait = sheet.appendChild(el("div", { class: "fate-wait", role: "status" }, el("span", { class: "fw-label" }, iconSvg("quill"), "운명을 읽는 중…"), el("span", { class: "fw-ink", "aria-hidden": "true" })));
@@ -10600,6 +10624,8 @@ const BannerArt = (() => {
     ch_LUCK: ["............","..xx....xx..",".xxxx..xxxx.",".xxxxxxxxxx.","..xxxxxxxx..","....xxxx....","..xxxxxxxx..",".xxxxxxxxxx.",".xxxx..xxxx.","..xx.xx.xx..",".....x......","....x......."],
     ch_MP: [".....x......",".....x......","....xxx.....","xxxxx.xxxxx.",".xx.....xx..","..xx...xx...","..x.....x...",".xx..x..xx..",".x.xx.xx.x..","xxx.....xxx.","............","............"],
     // 저장 = 금빛 화살표가 나무 받침으로
+    pf_in: [".....xx.....", ".....xx.....", "..xxxxxxxx..", "...xxxxxx...", "....xxxx....", ".....xx.....", "xxxxxxxxxxxx", "x..........x", "x...xxxx...x", "x..........x", "x..........x", "xxxxxxxxxxxx"],
+    pf_out: [".....xx.....", "....xxxx....", "...xxxxxx...", "..xxxxxxxx..", ".....xx.....", ".....xx.....", "xxxxxxxxxxxx", "x..........x", "x...xxxx...x", "x..........x", "x..........x", "xxxxxxxxxxxx"],
     save: ["............", ".....kk.....", "....kGgk....", "....kGgk....", "....kGgk....", "..kkkGgkkk..", "..kGGGgggk..", "...kGGggk...", "....kGgk....", "k....kk....k", "kBBBBBBBBBBk", "kkkkkkkkkkkk"],
     door: [".kkkkkkkkkk.", ".kBBBBBBBBk.", ".kBkkkkkkBk.", ".kBkbbbkYBk.", ".kBkbBbkYBk.", ".kBkbbbkYBk.", ".kBkbbokYBk.", ".kBkbBbkYBk.", ".kBkbbbkYBk.", ".kBkkkkkYBk.", ".kkkkkkkkkk.", "............"],
     trash: ["....kkkk....", "kkkkkkkkkkkk", "kSSSSSSSSSSk", "kkkkkkkkkkkk", ".kSSSSSSSSk.", ".kSkSkSkSSk.", ".kSkSkSkSSk.", ".kSkSkSkSSk.", ".kSkSkSkSSk.", ".kSkSkSkSSk.", ".kkkkkkkkkk.", "............"],
