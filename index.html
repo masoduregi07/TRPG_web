@@ -8601,7 +8601,7 @@ const BannerArt = (() => {
         if (msg.pid !== app.snap?.me && typeof msg.pid === "string") {
           if (msg.on) app.typers.set(msg.pid, { name: Engine.clip(msg.name, 24) || "플레이어", until: Date.now() + 4500 });
           else app.typers.delete(msg.pid);
-          updateTypingPresence();
+          keepBottom(updateTypingPresence);   // 표시줄이 생겨 기록 칸이 줄어도 마지막 줄이 가려지지 않게
         }
         return;
       }
