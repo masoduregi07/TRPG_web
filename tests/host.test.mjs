@@ -105,3 +105,18 @@ test("askGM: 비밀을 흘리면 다시 묻고, 두 번째도 흘리면 그 문�
   assert.match(asked[1].at(-1).content, /비공개 정보/);
   assert.equal(plan.narration, "노인이 웃음. 파도가 침.");
 });
+
+test("turnContext: 판정 공개 단서 · 문체 · 판정만 차례 정보", () => {
+  const { m, g, data } = table();
+  const { pid } = g.onConnect("c1", { key: KEY, name: "가", build: m.APP_BUILD });
+  g.onMessage("c1", { t: "rollChars" });
+  const bg = m.Engine.charRules(data.scenario).backgrounds[0]?.name ?? "";
+  g.onMessage("c1", { t: "char", character: { name: "한서", background: bg, alloc: {} }, ready: true });
+  g.handle(data.hostPid, { t: "start" }, true);
+  assert.equal(data.phase, "play");
+  const { info, ctx } = g.turnContext();
+  assert.ok(info.checkReveals.some((x) => x.check === "persuade_fisherman" && x.clue === "daughter"));
+  assert.equal(info.tone, "nominal");
+  assert.equal(info.rollOnly, false);
+  assert.ok(ctx.가능한판정.some((c) => c.id === "persuade_fisherman" && c.성공시공개단서 === "daughter"));
+});
