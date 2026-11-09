@@ -3115,7 +3115,26 @@ const Engine = (() => {
     if (sc.objective != null && (typeof sc.objective !== "string" || sc.objective.length > 600)) errors.push("objective(스토리 주 목적)는 600자 이하의 글.");
     if (sc.canon != null && (!Array.isArray(sc.canon) || sc.canon.some((x) => typeof x !== "string"))) errors.push("canon(고정 사실)은 글 목록이어야 함.");
     const allClues = new Set(), allChecks = new Set();
-    for (const s of Object.values(sc.scenes)) { for (const c of s?.clues ?? []) allClues.add(c?.id); for (const c of s?.checks ?? []) allChecks.add(c?.id); }
+    for (const [sid, s] of Object.entries(sc.scenes)) {
+      // 단서·판정 id는 시나리오 전체에서 유일해야 한다 (조건 clue()/check()가 전역으로 찾음)
+      for (const c of s?.clues ?? []) { if (c?.id && allClues.has(c.id)) errors.push(`${sid}: 단서 id '${c.id}'이(가) 다른 사건과 겹침. 시나리오 전체에서 유일해야 함.`); allClues.add(c?.id); }
+      for (const c of s?.checks ?? []) { if (c?.id && allChecks.has(c.id)) errors.push(`${sid}: 판정 id '${c.id}'이(가) 다른 사건과 겹침. 시나리오 전체에서 유일해야 함.`); allChecks.add(c?.id); }
+    }
+    // id는 영문·숫자·한글·_·- 만 (공백이나 괄호 · & 가 있으면 조건식이 깨짐)
+    const badId = (v) => typeof v === "string" && !/^[\w\-가-힣]+$/.test(v);
+    for (const [sid, s] of Object.entries(sc.scenes)) {
+      if (badId(sid)) errors.push(`${sid}: 사건 id는 글자·숫자·_·-만 사용.`);
+      for (const c of s?.clues ?? []) if (badId(c?.id)) errors.push(`${sid}: 단서 id '${c.id}'는 글자·숫자·_·-만 사용.`);
+      for (const c of s?.checks ?? []) if (badId(c?.id)) errors.push(`${sid}: 판정 id '${c.id}'는 글자·숫자·_·-만 사용.`);
+    }
+    // 단서가 어떤 판정에서도 공개되지 않으면 얻을 방법이 없음 (setFlag는 단서 공개 시에만 켜짐)
+    const revealable = new Set();
+    for (const s of Object.values(sc.scenes)) for (const c of s?.checks ?? []) for (const o of [c?.success, c?.fail]) if (o?.reveal) revealable.add(o.reveal);
+    for (const [sid, s] of Object.entries(sc.scenes)) for (const c of s?.clues ?? []) if (c?.id && !revealable.has(c.id)) warnings.push(`${sid}: 단서 '${c.id}'을(를) 공개하는 판정이 없음 (AI GM이 직접 공개하는 경우만 얻을 수 있음).`);
+    // 선언되지 않은 플래그: 조건에서 읽는데 시작 flags 나 단서 setFlag 어디서도 정의하지 않음
+    const declared = new Set(Object.keys(sc.flags ?? {}));
+    for (const s of Object.values(sc.scenes)) for (const c of s?.clues ?? []) if (c?.setFlag) declared.add(c.setFlag);
+    for (const s of Object.values(sc.scenes)) for (const c of s?.checks ?? []) for (const o of [c?.success, c?.fail]) if (o?.setFlag) declared.add(o.setFlag);
     if (!sc.scenes[sc.start]) errors.push(`start 장면 '${sc.start}'이(가) 없음.`);
     if (sc.bgm != null && !isAudioURL(sc.bgm)) errors.push("bgm(배경음)은 https:// 음원 주소여야 함.");
     if (sc.system != null && String(sc.system).toLowerCase() !== "coc7") errors.push("system(룰)은 coc7만 지원 (d20 간이 룰은 삭제됨).");
@@ -3145,6 +3164,7 @@ const Engine = (() => {
         const cl = parseCond(ex?.when);
         if (!cl) errors.push(`${id}: 조건 '${condText(ex?.when)}'을(를) 해석 불가. (always / flag(x) / not_flag(x) / clue(단서) / check(판정))`);
         else for (const c of cl) {
+          if ((c.type === "flag" || c.type === "not_flag") && !declared.has(c.name)) warnings.push(`${id}: 조건의 플래그 '${c.name}'을(를) 정의하는 곳이 없음 (flags 또는 단서 setFlag).`);
           if (c.type === "clue" && !allClues.has(c.name)) errors.push(`${id}: 조건의 단서 '${c.name}'이(가) 없음.`);
           if (c.type === "check" && !allChecks.has(c.name)) errors.push(`${id}: 조건의 판정 '${c.name}'이(가) 없음.`);
         }
