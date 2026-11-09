@@ -68,6 +68,11 @@
 - 순서: 상태 칩(램프 점 + 접속 가능/불가 + 방 코드, 누르면 복사) │ 기록 보관함 · 도움말 · 설정 │ 나가기. 아이콘은 같은 크기 놋쇠 2톤
 - 설정 창: 방 코드 줄 없음. 호스트만 "AI 연결"(공급자·모델·주소·키·연결 테스트, 사용량 표 생략). 테이블 저장은 설정 안에 유지
 
+### 핸드아웃
+- 시나리오 `handouts: { id: { title, kind: letter·news·note·photo, text, image(https·data ≤400KB), to: all(기본)·finder } }`, 단서 `handout: id` → 단서와 함께 공개
+- 상태 `game.handouts[id] = { pids: "all"|[pid], npcs, clue, scene }`. AI `show_handout {id, to: [캐릭터·NPC] | "all"}`로 범위 확장(NPC는 AI 맥락용). 로그 `kind: handout` + `toIds`(보는 사람만), 호스트(GM)는 전부 봄
+- 기록 카드: 편지(줄 종이·테이프) · 신문(겹줄 제목·단) · 쪽지(노란 종이) · 사진(핀·폴라로이드), 누르면 크게 보기. data 그림은 `ho:<id>` ref로 초상과 같은 경로 전송
+
 ### 시나리오 검증
 - 단서·판정 id 전역 유일/형식 오류, 공개 경로 없는 단서·미정의 플래그는 경고
 
