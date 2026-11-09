@@ -17,7 +17,7 @@
 - 목업 방식: index.html에서 `<script>` 제거한 사본 + 필요한 마크업만 JS로 주입해 실제 CSS로 렌더. 아이콘은 `ICON_PAL`~`ICONS` 블록을 떼어 씀
 
 ## 구조
-- 한 파일: CSS + JS 인라인. 외부: PeerJS, js-yaml, Galmuri 폰트(CDN)
+- 한 파일: CSS + JS 인라인. 외부(CDN, 버전 고정 + SRI): PeerJS 1.5.5, js-yaml 4.3.2, Galmuri 2.40.3. 올릴 때는 `npm pack 패키지@버전` → dist 파일 `openssl dgst -sha384 -binary | openssl base64 -A`로 integrity 갱신
 - 호스트 브라우저가 서버(`HostGame`), 플레이어는 PeerJS로 접속(`Net`). 호스트 ID `trpgtable-v1-<room>-host`
 - 모듈: `Rules`(CoC 7e) · `Engine`(시나리오 검증/상태/뷰) · `AI`(호출·프롬프트·parseGM) · `Turn`(AI 응답 검증) · `WebFeatures`(단서 표시 등)
 - AI 흐름: `queueAI`(8초 모음, 입력마다 +5초 연장, 최대 20초) → `runAI` → `turnContext` → `askGM` → `Turn.validate` → `applyPlan`
@@ -91,5 +91,5 @@
 - 측정: Playwright 1920×1080·DPR2, #playBox 보이게, #log 600줄, rAF마다 scrollTop += 25 + 단서 메모 끌기, 프레임 간격 avg/p95 비교 (DPR1은 차이가 안 보임)
 
 ## 남은 후보
-- AI 출력 잘림 외 추가 개선, CSS 중복 정리 3단계 이후, CDN 버전 고정 + SRI
+- AI 출력 잘림 외 추가 개선
 - 단서 수첩 종이 질감(보류), 상태 도장 ± 버튼 호버 시에만 표시(제안만 함)
