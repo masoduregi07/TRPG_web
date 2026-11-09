@@ -2137,7 +2137,9 @@ html.has-3d .topbar { box-shadow: none; }
 #historyDialog::backdrop { background:rgba(0,0,0,.75); }
 .log-bottom, .log-top { position:absolute; left:auto; right:14px; transform:none; z-index:5; display:grid; place-items:center; width:35px; height:35px; padding:0; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); font-size:23px; line-height:1; }
 .log-top { top:calc(var(--cover) + 12px); }
-.log-top .jump-ic, .log-bottom .jump-ic { display:block; width:16px; height:16px; margin:0; pointer-events:none; }
+.log-top .jump-ic, .log-bottom .jump-ic { display:block; width:22px; height:22px; margin:0; pointer-events:none; }
+.log-bottom, .log-top { transition: opacity .4s; }
+.log-bottom.out, .log-top.out { opacity: 0; pointer-events: none; }
 .log-bottom[hidden], .log-top[hidden] { display:none; }
 .jump-badge { position:absolute; top:-10px; right:-10px; min-width:18px; height:18px; padding:0 4px; box-sizing:border-box; background:var(--blood); color:#f3e6c8; border:2px solid var(--ink); font:11px/14px var(--font); text-align:center; pointer-events:none; }
 .jump-badge[hidden] { display:none; }
@@ -2551,8 +2553,8 @@ html.has-3d .topbar { box-shadow: none; }
     <section class="log-pane">
       <span id="recentInfo" class="sr-only">최근 기록</span>
       <div id="log" class="log" aria-live="polite"></div>
-      <button id="logTop" class="log-top btn small" type="button" hidden aria-label="채팅 맨 위로 이동" title="맨 위"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="8,3.5 14.5,12.5 1.5,12.5" fill="currentColor"/></svg></button>
-      <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="1.5,3.5 14.5,3.5 8,12.5" fill="currentColor"/></svg><span id="logUnread" class="jump-badge" hidden></span></button>
+      <button id="logTop" class="log-top btn small" type="button" hidden aria-label="채팅 맨 위로 이동" title="맨 위"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="8,2.5 15,13 1,13" fill="currentColor"/></svg></button>
+      <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="1,3 15,3 8,13.5" fill="currentColor"/></svg><span id="logUnread" class="jump-badge" hidden></span></button>
       <div id="turnBoard" class="turn-board" hidden></div>
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="gather-now" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
       <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면입니다. 호스트와 연결되면 최신 상태로 바뀝니다.</div>
@@ -9392,14 +9394,26 @@ const BannerArt = (() => {
     badge.hidden = !unread;
     badge.textContent = unread > 99 ? "99+" : String(unread);
     btn.setAttribute("aria-label", unread ? `채팅 최신 기록으로 이동 (새 기록 ${unread}개)` : "채팅 최신 기록으로 이동");
-    btn.hidden = (!duringScroll && !unread) || distance < 120 || logBox.clientHeight === 0;
-    top.hidden = !duringScroll || logBox.scrollTop < 120 || logBox.clientHeight === 0;
+    showJump(btn, !((!duringScroll && !jumpHover && !unread) || distance < 120 || logBox.clientHeight === 0));
+    showJump(top, !((!duringScroll && !jumpHover) || logBox.scrollTop < 120 || logBox.clientHeight === 0));
   }
-  function markUserScroll() {
-    scrollArrowUntil = Date.now() + 2000;
+  // 맨 위/아래 버튼: 사라질 땐 0.4초에 걸쳐 흐려짐. 마우스를 올려 둔 동안은 유지, 뗀 뒤 2.5초 더
+  let jumpHover = false;
+  function showJump(b, on) {
+    if (on) { clearTimeout(b._out); b.classList.remove("out"); b.hidden = false; return; }
+    if (b.hidden || b.classList.contains("out")) return;
+    b.classList.add("out");
+    b._out = setTimeout(() => { b.hidden = true; b.classList.remove("out"); }, 400);
+  }
+  function markUserScroll(ms = 2000) {
+    scrollArrowUntil = Date.now() + ms;
     clearTimeout(scrollArrowTimer);
-    scrollArrowTimer = setTimeout(() => { scrollArrowUntil = 0; updateScrollArrows(); }, 2000);
+    scrollArrowTimer = setTimeout(() => { scrollArrowUntil = 0; updateScrollArrows(); }, ms);
     updateScrollArrows();
+  }
+  for (const b of [$("#logTop"), $("#logBottom")]) {
+    b.addEventListener("pointerenter", () => { jumpHover = true; updateScrollArrows(); });
+    b.addEventListener("pointerleave", () => { jumpHover = false; markUserScroll(2500); });
   }
   function updateBottomButton() {
     const btn = $("#logBottom"), top = $("#logTop");
@@ -9407,9 +9421,9 @@ const BannerArt = (() => {
     const below = [$("#chatForm"), $("#gather"), $("#turnStatus")];
     btn.style.bottom = `${16 + below.reduce((sum, node) => sum + (node.hidden ? 0 : node.offsetHeight), 0)}px`;
   }
-  logBox.addEventListener("wheel", markUserScroll, { passive: true });
-  logBox.addEventListener("touchmove", markUserScroll, { passive: true });
-  logBox.addEventListener("pointerdown", markUserScroll, { passive: true });
+  logBox.addEventListener("wheel", () => markUserScroll(), { passive: true });
+  logBox.addEventListener("touchmove", () => markUserScroll(), { passive: true });
+  logBox.addEventListener("pointerdown", () => markUserScroll(), { passive: true });
   logBox.addEventListener("keydown", (e) => { if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(e.key)) markUserScroll(); });
   logBox.addEventListener("scroll", updateBottomButton, { passive: true });
   window.addEventListener("resize", updateBottomButton);
