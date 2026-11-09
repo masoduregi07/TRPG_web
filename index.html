@@ -1121,6 +1121,23 @@ textarea { resize: vertical; margin-top: 8px; }
 #chatForm.stale { opacity: .5; }
 .focus-tag { display: block; margin: 0 0 2px; color: var(--c, var(--blood)); font-family: var(--font); font-size: 12px; font-weight: 700; }
 .entry.ai.focus { margin-top: 4px; }
+/* 여러 명 행동 결과: 한 장짜리 표 (입력 순서). 2명은 모두 펼침, 3명 이상은 내 줄만 펼치고 나머지는 두 줄까지 */
+.entry.turn-res { margin: 2px 0; border: 2px solid var(--paper-lo); background: var(--paper-hi); box-shadow: 2px 3px 0 rgba(60, 40, 20, .2); font-family: var(--font); }
+.turn-res .tr-row { --c: var(--blood); display: grid; grid-template-columns: 62px 1fr 14px; gap: 2px 8px; align-items: baseline; padding: 6px 10px 6px 9px; box-shadow: inset 3px 0 0 var(--c); border-top: 1px dashed rgba(90, 60, 30, .28); }
+.turn-res .tr-row:first-child { border-top: 0; }
+.turn-res .tr-row.mine { background: rgba(110, 36, 32, .06); }
+.turn-res .tr-name { color: var(--c); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+.turn-res .tr-body { min-width: 0; }
+.turn-res .tr-q { display: none; margin: 0 0 2px; font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
+.turn-res .tr-q:not(:empty)::before { content: "“"; } .turn-res .tr-q:not(:empty)::after { content: "”"; }
+.turn-res .tr-row.mine .tr-q, .turn-res .tr-row.open .tr-q { display: block; }
+.turn-res .tr-text { display: block; font-size: 17px; line-height: 1.55; color: #120c08; overflow-wrap: anywhere; }
+.turn-res.many .tr-row:not(.mine):not(.open) .tr-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.turn-res .tr-x { color: var(--ink-2); font-size: 11px; visibility: hidden; }
+.turn-res.many .tr-row:not(.mine).cut .tr-x, .turn-res.many .tr-row:not(.mine).open .tr-x { visibility: visible; }
+.turn-res.many .tr-row:not(.mine) { cursor: pointer; }
+.turn-res.many .tr-row:not(.mine):focus-visible { outline: 2px solid var(--blood); outline-offset: -2px; }
+.entry.say.in-res { display: none; }
 .turn-board { margin: 6px calc(var(--cover) + 44px) 4px calc(var(--cover) + 48px); padding: 7px 10px; background: var(--paper-hi); border: 2px solid var(--paper-lo); color: var(--ink); font-family: var(--font); font-size: 12px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); }
 .turn-board[hidden] { display: none; }
 .turn-board .tb-head { display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: 700; }
@@ -9684,12 +9701,13 @@ const BannerArt = (() => {
     setText(job.node, job.text);
     job.node.classList.remove("typing");
     job.node.removeAttribute("aria-label");
+    markCut(job.node.closest?.(".tr-row"));   // 결과 표 줄: 다 찍힌 뒤 두 줄을 넘는지
     nextType();
   }
   function skipTyping() {
     if (!typing) return;
     const stick = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 80;
-    for (const j of [typing, ...typeQueue.splice(0)]) { j.done = true; clearTimeout(j.timer); setText(j.node, j.text); j.node.classList.remove("typing"); j.node.removeAttribute("aria-label"); }
+    for (const j of [typing, ...typeQueue.splice(0)]) { j.done = true; clearTimeout(j.timer); setText(j.node, j.text); j.node.classList.remove("typing"); j.node.removeAttribute("aria-label"); markCut(j.node.closest?.(".tr-row")); }
     typing = null;
     if (stick) logBox.scrollTop = logBox.scrollHeight;
     afterTyping();
@@ -9792,7 +9810,8 @@ const BannerArt = (() => {
       const ink = e.kind === "say" && e.byId && app.snap?.players.some((p) => p.pid === e.byId) ? spineOf(e.byId) : null;
       // GM이 질문에 답할 때: 질문한 사람을 플레이어 색 꼬리표로
       const toInk = e.toId && app.snap?.players.some((p) => p.pid === e.toId) ? spineOf(e.toId) : "#2a3550";
-      node = el("div", { class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}${e.kind === "say" && e.byId && e.byId === app.snap?.me ? " mine" : ""}`, style: ink ? `--c:${ink}` : null }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
+      if (e.kind === "ai" && e.focus) return void resultRow(e, textNode, body, animate, atBottom, live);
+      node = el("div", { "data-by": e.kind === "say" ? e.byId ?? null : null, class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}${e.kind === "say" && e.byId && e.byId === app.snap?.me ? " mine" : ""}`, style: ink ? `--c:${ink}` : null }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
         e.style === "ask" ? el("span", { class: "ask-tag" }, "→ GM") : null,
         e.toNpc ? el("span", { class: "to-tag", style: "--c:#6f5230", "data-npc": e.toNpc, title: `${e.toNpc}에게 말하기` }, `@${e.toNpc}`) : null,
         e.to ? el("span", { class: "to-tag", style: `--c:${toInk}` }, `@${e.to}`) : null,
@@ -9804,6 +9823,65 @@ const BannerArt = (() => {
     else if (live) unread++;
     requestAnimationFrame(updateBottomButton);
   }
+  /* 여러 명 행동 결과 표: 이어지는 "▶ 이름" 결과를 한 장에 줄로 모음. 바로 앞의 그 사람 입력 줄은 표 안 인용으로 접어 넣음 */
+  const RES_OPEN = () => `trpg:resOpen:${app.room}`;
+  let resOpen = null, resRoom = null;   // 펼친 줄 (기기별 · 방별 저장)
+  const openSet = () => { if (resRoom !== app.room) { resRoom = app.room; try { resOpen = new Set(JSON.parse(localStorage.getItem(RES_OPEN())) ?? []); } catch { resOpen = new Set(); } } return resOpen; };
+  const saveResOpen = () => { try { localStorage.setItem(RES_OPEN(), JSON.stringify([...openSet()].slice(-200))); } catch {} };
+  const cutObs = typeof ResizeObserver === "function" ? new ResizeObserver((list) => { for (const it of list) markCut(it.target.closest(".tr-row")); }) : null;
+  function markCut(row) {
+    if (!row) return;
+    const t = row.querySelector(".tr-text");
+    row.classList.toggle("cut", !!t && t.scrollHeight - t.clientHeight > 2);
+  }
+  function resultRow(e, textNode, body, animate, atBottom, live) {
+    let table = logBox.lastElementChild;
+    if (!table?.classList.contains("turn-res")) {
+      table = el("div", { class: "entry turn-res" });
+      // 표 바로 앞의 이번 차례 입력 줄들 (사이에 분위기 서술 한 줄은 있을 수 있음)
+      const inputs = [];
+      let ai = 0;
+      for (let n = logBox.lastElementChild; n && inputs.length < 24; n = n.previousElementSibling) {
+        if (n.classList.contains("turn-res") || n.classList.contains("scene-entry") || n.classList.contains("focus")) break;
+        if (n.classList.contains("ai") && ++ai > 1) break;
+        if (n.classList.contains("say") && n.dataset.by) inputs.push(n);
+      }
+      table.inputs = inputs.reverse();
+      logBox.append(table);
+    }
+    const pid = e.focusId, mine = !!pid && pid === app.snap?.me;
+    const color = pid && app.snap?.players.some((p) => p.pid === pid) ? spineOf(pid) : "#8a1c14";
+    const mineIn = (table.inputs ?? []).filter((n) => n.dataset.by === pid);
+    const quote = mineIn.map((n) => n.querySelector(".text")?.textContent ?? "").filter(Boolean).join(" / ");
+    for (const n of mineIn) n.classList.add("in-res");
+    const row = el("div", { class: `tr-row${mine ? " mine" : ""}${openSet().has(e.id) ? " open" : ""}`, style: `--c:${color}`, "data-id": e.id },
+      el("span", { class: "tr-name" }, e.focus),
+      el("span", { class: "tr-body" }, el("span", { class: "tr-q" }, quote), (textNode.classList.add("tr-text"), textNode)),
+      el("span", { class: "tr-x", "aria-hidden": "true" }, openSet().has(e.id) ? "▴" : "▾"));
+    table.append(row);
+    const many = table.querySelectorAll(".tr-row").length >= 3;
+    table.classList.toggle("many", many);
+    for (const r of table.querySelectorAll(".tr-row:not(.mine)")) {
+      if (many) { r.tabIndex = 0; r.setAttribute("role", "button"); r.setAttribute("aria-expanded", String(r.classList.contains("open"))); }
+    }
+    cutObs?.observe(textNode);
+    requestAnimationFrame(() => table.querySelectorAll(".tr-row").forEach(markCut));
+    if (atBottom) logBox.scrollTop = logBox.scrollHeight;
+    else if (live) unread++;
+    requestAnimationFrame(updateBottomButton);
+  }
+  logBox.addEventListener("click", (ev) => {
+    const row = ev.target.closest(".turn-res.many .tr-row:not(.mine)");
+    if (!row) return;
+    const on = row.classList.toggle("open");
+    row.setAttribute("aria-expanded", String(on));
+    row.querySelector(".tr-x").textContent = on ? "▴" : "▾";
+    if (on) openSet().add(row.dataset.id); else openSet().delete(row.dataset.id);
+    saveResOpen();
+  });
+  logBox.addEventListener("keydown", (ev) => {
+    if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches?.(".turn-res.many .tr-row:not(.mine)")) { ev.preventDefault(); ev.target.click(); }
+  });
   function renderLogAll() {
     skipTyping(); DiceFX.skip(); cancelReleases(); held.splice(0);
     logBox.replaceChildren();
