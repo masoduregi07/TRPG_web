@@ -2164,8 +2164,14 @@ html.has-3d .topbar { box-shadow: none; }
 .log-bottom, .log-top { transition: opacity .4s; }
 .log-bottom.out, .log-top.out { opacity: 0; pointer-events: none; }
 .log-bottom[hidden], .log-top[hidden] { display:none; }
-/* 새 기록 배지: 붉은 리본 위에서 묻히지 않게 놋쇠빛 둥근 알 + 먹색 숫자, 리본 왼쪽 위 */
-.jump-badge { position:absolute; z-index:1; top:-9px; left:-15px; min-width:20px; height:18px; padding:0 4px; box-sizing:border-box; border-radius:9px; background:#f6d27a; color:var(--ink); border:2px solid var(--ink); box-shadow:1px 2px 0 rgba(0,0,0,.35); font:11px/14px var(--font); text-align:center; pointer-events:none; }
+/* 새 기록 배지 = 리본 밑에 끼운 작은 종이 꼬리표 (C-3): 왼쪽 끝 구멍 + 붉은 숫자, 오른쪽은 리본 뒤로 들어감 */
+.log-bottom { isolation:isolate; }
+.log-bottom::before { z-index:1; }
+.log-bottom .jump-ic { z-index:2; }
+.jump-badge { position:absolute; z-index:0; top:8px; left:auto; right:calc(100% - 5px); min-width:8px; height:11px; padding:0 7px 0 7px; box-sizing:content-box; background:#f4ecd8; color:#8a1c14;
+  box-shadow:0 0 0 1px #2b1a0c, 1px 1px 0 rgba(0,0,0,.3); clip-path:polygon(3px -1px, calc(100% + 1px) -1px, calc(100% + 1px) calc(100% + 1px), 3px calc(100% + 1px), -1px 50%);
+  font:9px/11px "Galmuri9", var(--font); text-align:left; white-space:nowrap; pointer-events:none; }
+.jump-badge::before { content:""; position:absolute; left:2px; top:4px; width:2px; height:2px; background:#2b1a0c; }
 .jump-badge[hidden] { display:none; }
 .turn-status { margin:0 var(--cover); padding:4px 44px 4px 48px; display:flex; flex-shrink:0; flex-wrap:nowrap; gap:5px 16px; align-items:center; position:relative; min-height:22px; color:var(--blood); font:12px var(--font); overflow:hidden; }
 .turn-status[hidden], .turn-status > [hidden] { display:none; }
