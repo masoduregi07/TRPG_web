@@ -2101,6 +2101,23 @@ html.has-3d .topbar { box-shadow: none; }
 .clue-bookmarks-edge button:focus-visible { outline:2px dotted #2b1a0c; outline-offset:2px; }
 #clueBox { gap:0; }
 .clue-index-item { border-bottom:1px dashed #b5a479; }
+/* 사건별 조사 일지 */
+#clueBox > .clue-scene { list-style:none; padding-left:0; }
+#clueBox > .clue-scene::before { display:none; }
+.clue-scene-h { display:inline-block; margin:10px 0 4px; padding:1px 8px; background:#6f5230; color:#f4ecd8; font-family:var(--font); font-size:11px; letter-spacing:2px; }
+#clueBox > .clue-scene:first-child .clue-scene-h { margin-top:2px; }
+.clue-scene-list { margin:0; padding:0; list-style:none; display:grid; }
+.clue-scene-list > .clue-group { padding-left:0; }
+.clue-scene-list > .clue-group::before { display:none; }
+.clue-index-row { flex-wrap:wrap; row-gap:1px; }
+.clue-index-row .clue-title { position:relative; padding-left:12px; flex:1; }
+.clue-index-row .clue-title::before { content:""; position:absolute; left:0; top:.6em; width:6px; height:6px; background:var(--blood); }
+.clue-index-row .clue-title.fresh { background:linear-gradient(transparent 55%, rgba(240,164,60,.5) 55%); }
+.clue-preview { flex-basis:100%; padding-left:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:11px/1.5 var(--font-body); color:#6b5a44; }
+.clue-index-item[open] .clue-preview { display:none; }
+.clue-scene-list.sorting { user-select:none; }
+.clue-group.dragging { position:relative; z-index:3; background:#f6efd8; box-shadow:0 0 0 2px var(--ink), 3px 4px 0 rgba(0,0,0,.3); }
+.clue-group.dragging .clue-index-row { cursor:grabbing; touch-action:none; }
 .clue-index-row { display:flex; align-items:center; gap:7px; min-height:36px; padding:7px 2px; cursor:pointer; list-style:none; }
 .clue-index-row::-webkit-details-marker { display:none; }
 .clue-index-row .clue-number { flex:none; color:var(--blood); font:11px/1.5 var(--font); }
@@ -3385,10 +3402,15 @@ const Engine = (() => {
     const clue = (sceneOf(sc, st).clues ?? []).find((c) => c.id === clueId);
     if (!clue || st.revealedClues.some((c) => c.id === clueId)) return null;
     const context = nameContext(sc, st);
-    const r = { id:clue.id, text:clue.text, ...(typeof clue.title==='string'?{title:clue.title}:{}), categories:WebFeatures.clueCategories(clue,context) };
+    const r = { id:clue.id, text:clue.text, scene:st.currentScene, ...(typeof clue.title==='string'?{title:clue.title}:{}), categories:WebFeatures.clueCategories(clue,context) };
     st.revealedClues.push(r);
     if (clue.setFlag) st.flags[clue.setFlag] = true;
     return r;
+  }
+  /** 단서가 들어 있는 사건 id (예전 세이브처럼 발견 사건이 기록 안 된 단서용) */
+  function clueSceneOf(sc, clueId) {
+    for (const [id, s] of Object.entries(sc.scenes)) if ((s.clues ?? []).some((c) => c.id === clueId)) return id;
+    return null;
   }
   function findClueAnywhere(sc, clueId) {
     for (const s of Object.values(sc.scenes)) for (const c of s.clues ?? []) if (c.id === clueId) return c;
@@ -3470,7 +3492,8 @@ const Engine = (() => {
         const source=findClueAnywhere(sc,r.id);
         const clue={...r,...(typeof source?.title==='string'?{title:source.title}:{}),...(source?.category != null?{category:source.category}:{}),...(source?.categories != null?{categories:source.categories}:{})};
         const categories=WebFeatures.clueCategories(clue,nameContext(sc,st));
-        return {id:r.id,text:r.text,...(clue.title?{title:clue.title}:{}),categories};
+        const scene=r.scene ?? clueSceneOf(sc,r.id);
+        return {id:r.id,text:r.text,...(clue.title?{title:clue.title}:{}),categories,...(scene?{scene,sceneTitle:sceneTitle(sc,scene)}:{})};
       }),
       // 판정 목록은 스포일러: 플레이어에겐 GM이 요청했거나 이미 굴린 판정만 (결과와 함께)
       checks: (s.checks ?? []).filter((c) => pendingList(st).some((p) => p.checkId === c.id) || (st.triedChecks ?? []).includes(c.id)).map((c) => ({ id: c.id, label: c.label ?? c.skill ?? "이성 판정", skill: c.skill ?? (c.san ? "이성" : ""), ...(c.difficulty ? { difficulty: Rules.normDiff(c.difficulty) } : {}), ...(c.san ? { san: c.san } : {}), ...(c.dice ? { dice: c.dice } : {}),
@@ -7882,7 +7905,7 @@ const BannerArt = (() => {
   const K = {
     host: (r) => `trpg:host:${r}`, hostIndex: "trpg:hostIndex", me: (r) => `trpg:me:${r}`,
     copy: (r) => `trpg:copy:${r}`, draft: (r) => `trpg:draft:${r}`, ai: "trpg:ai", name: "trpg:name",
-    aiStyle: "trpg:aiStyle", recentNpc: (r) => `trpg:recentNpc:${r}`, clueKind: (r) => `trpg:clueKind:${r}`,
+    aiStyle: "trpg:aiStyle", recentNpc: (r) => `trpg:recentNpc:${r}`, clueKind: (r) => `trpg:clueKind:${r}`, clueOrder: (r) => `trpg:clueOrder:${r}`, clueSeen: (r) => `trpg:clueSeen:${r}`,
   };
 
   const app = {
@@ -8862,11 +8885,17 @@ const BannerArt = (() => {
 
   const openClues = new Set();
   let notebookMode = 'all';
+  let clueDrag = null, clueRenderLater = false;
+  /* 단서 수첩 = 사건별 조사 일지: 발견한 사건마다 묶고, 제목 + 첫 줄 미리보기.
+     처음 보는 단서는 형광펜. 길게 누르고 위아래로 끌면 같은 사건 안에서 순서 바꿈 (Alt+↑↓도). 분류·순서·읽음은 이 기기에만 */
   function renderNotebook(v) {
+    if (clueDrag) { clueRenderLater = true; return; }
     const box = $('#clueBox');
-    // 분류는 내가 직접 체크한 것만 (기본은 미분류 · 이 기기에만 저장)
     const manual = (LS.get(K.clueKind(app.room)) ?? {});
-    const rows = v.clues.map((c,i)=>({c,i,kinds:Array.isArray(manual[c.id])?manual[c.id].filter(x=>x==='person'||x==='place'):[]}));
+    const order = (LS.get(K.clueOrder(app.room)) ?? {});
+    let seen = LS.get(K.clueSeen(app.room));
+    if (!Array.isArray(seen)) { seen = v.clues.map((c)=>c.id); LS.set(K.clueSeen(app.room), seen); }   // 처음엔 지금까지 단서를 읽은 것으로
+    const rows = v.clues.map((c,i)=>({c,i,scene:c.scene ?? '?',kinds:Array.isArray(manual[c.id])?manual[c.id].filter(x=>x==='person'||x==='place'):[]}));
     const shown = rows.filter(r=>notebookMode==='all'||r.kinds.includes(notebookMode));
     $('#clueCount').textContent = notebookMode==='all' ? `${v.clues.length}건` : `${shown.length}/${v.clues.length}건`;
     box.replaceChildren();
@@ -8879,26 +8908,98 @@ const BannerArt = (() => {
     }
     if(!shown.length){box.append(el('li',{class:'muted small'},v.clues.length?'이 분류로 체크한 단서 없음.':'공개된 단서 없음.'));return;}
     const setKinds=(id,list)=>{const m=LS.get(K.clueKind(app.room))??{};if(list===null)delete m[id];else m[id]=list;LS.set(K.clueKind(app.room),m);if(app.snap?.view)renderNotebook(app.snap.view);};
-    for (const {c,i,kinds} of shown) {
-      const content = WebFeatures.clueText(c);
-      const details = el('details',{class:'clue-index-item'});
-      details.open=openClues.has(c.id);
-      const heading=el('summary',{class:'clue-index-row','aria-label':`${content.title} 원문 펼치기`},
-        el('span',{class:'clue-number','aria-hidden':'true'},String(i+1).padStart(2,'0')),
-        el('span',{class:'clue-title'},content.title),el('span',{class:'clue-leader','aria-hidden':'true'}),
-        el('span',{class:'clue-row-flags',title:kinds.length?kinds.map(k=>k==='person'?'인물':'장소').join('·'):null,'aria-hidden':'true'},...['person','place'].filter(k=>kinds.includes(k)).map(k=>el('i',{class:k==='person'?'p':'l'}))),el('span',{class:'clue-arrow','aria-hidden':'true'}));
-      const chip=(kind,label)=>{
-        const on=kinds.includes(kind);
-        return el('button',{type:'button',class:`clue-flag ${kind==='person'?'p':'l'}${on?' on':''}`,role:'checkbox','aria-checked':String(on),
-          on:{click:(e)=>{e.preventDefault();e.stopPropagation();const next=on?kinds.filter(k=>k!==kind):[...kinds,kind];setKinds(c.id,next);}}},label);
-      };
-      const kindRow=el('div',{class:'clue-kinds',role:'group','aria-label':'분류'},chip('person','인물'),chip('place','장소'));
-      details.append(heading,el('div',{class:'clue-open-body'},kindRow,
-        el('div',{class:'clue-original'},el('span',{class:'clue-original-label'},'원문'),el('p',{},content.original))));
-      const sync=()=>heading.setAttribute('aria-label',`${content.title} 원문 ${details.open?'접기':'펼치기'}`);
-      sync();details.addEventListener('toggle',()=>{if(!details.isConnected)return;if(details.open)openClues.add(c.id);else openClues.delete(c.id);sync();});
-      box.append(el('li',{class:'clue-group'},details));
-    }
+    // 사건 순서 = 처음 단서를 찾은 순서
+    const scenes = [];
+    for (const r of rows) if (!scenes.some((x)=>x.id===r.scene)) scenes.push({ id:r.scene, title:r.c.sceneTitle ?? '기타' });
+    const canMove = notebookMode==='all';
+    scenes.forEach((sc, si) => {
+      const list = shown.filter((r)=>r.scene===sc.id);
+      if (!list.length) return;
+      const pos = (id) => { const k=(order[sc.id]??[]).indexOf(id); return k<0?1e6:k; };
+      list.sort((a,b)=>pos(a.c.id)-pos(b.c.id)||a.i-b.i);
+      const ul = el('ul',{class:'clue-scene-list','data-scene':sc.id});
+      for (const {c,kinds} of list) {
+        const content = WebFeatures.clueText(c);
+        const fresh = !seen.includes(c.id);
+        const details = el('details',{class:'clue-index-item'});
+        details.open=openClues.has(c.id);
+        const first = String(content.preview ?? '').split('\n')[0];
+        const heading=el('summary',{class:'clue-index-row','aria-label':`${content.title} 원문 펼치기`},
+          el('span',{class:`clue-title${fresh?' fresh':''}`},content.title),
+          el('span',{class:'clue-row-flags','aria-hidden':'true'},...['person','place'].filter(k=>kinds.includes(k)).map(k=>el('i',{class:k==='person'?'p':'l'}))),
+          el('span',{class:'clue-arrow','aria-hidden':'true'}),
+          first ? el('span',{class:'clue-preview'},first) : null);
+        const chip=(kind,label)=>{
+          const on=kinds.includes(kind);
+          return el('button',{type:'button',class:`clue-flag ${kind==='person'?'p':'l'}${on?' on':''}`,role:'checkbox','aria-checked':String(on),
+            on:{click:(e)=>{e.preventDefault();e.stopPropagation();const next=on?kinds.filter(k=>k!==kind):[...kinds,kind];setKinds(c.id,next);}}},label);
+        };
+        const kindRow=el('div',{class:'clue-kinds',role:'group','aria-label':'분류'},chip('person','인물'),chip('place','장소'));
+        details.append(heading,el('div',{class:'clue-open-body'},kindRow,
+          el('div',{class:'clue-original'},el('span',{class:'clue-original-label'},'원문'),el('p',{},content.original))));
+        const sync=()=>heading.setAttribute('aria-label',`${content.title} 원문 ${details.open?'접기':'펼치기'}`);
+        sync();details.addEventListener('toggle',()=>{
+          if(!details.isConnected)return;
+          if(details.open){openClues.add(c.id);if(fresh){const sv=LS.get(K.clueSeen(app.room))??[];if(!sv.includes(c.id)){sv.push(c.id);LS.set(K.clueSeen(app.room),sv);}heading.querySelector('.clue-title').classList.remove('fresh');}}
+          else openClues.delete(c.id);sync();});
+        const li = el('li',{class:'clue-group','data-id':c.id},details);
+        if (canMove) clueMovable(li, heading, ul, sc.id);
+        ul.append(li);
+      }
+      box.append(el('li',{class:'clue-scene'},el('div',{class:'clue-scene-h'},`사건 ${si+1} · ${sc.title}`),ul));
+    });
+  }
+  function saveClueOrder(ul, sceneId) {
+    const order = LS.get(K.clueOrder(app.room)) ?? {};
+    order[sceneId] = [...ul.children].map((li)=>li.dataset.id);
+    LS.set(K.clueOrder(app.room), order);
+  }
+  /** 길게 누르고(0.4초) 위아래로 끌기 = 같은 사건 안에서만 순서 바꾸기 */
+  function clueMovable(li, handle, ul, sceneId) {
+    let timer = null, start = null, suppressClick = false;
+    const cancel = () => { clearTimeout(timer); timer = null; };
+    // 끄는 동안은 창 전체에서 받음 (줄을 옮기면 포인터 잡기가 풀리므로)
+    const onMove = (e) => {
+      if (!clueDrag || clueDrag.li !== li) return;
+      e.preventDefault();
+      const sibs = [...ul.children].filter((x)=>x!==li);
+      const after = sibs.find((x)=>{ const r=x.getBoundingClientRect(); return e.clientY < r.top + r.height/2; });
+      if (after) { if (li.nextElementSibling !== after) ul.insertBefore(li, after); }
+      else if (ul.lastElementChild !== li) ul.append(li);
+    };
+    const end = () => {
+      cancel();
+      removeEventListener('pointermove', onMove); removeEventListener('pointerup', end); removeEventListener('pointercancel', end);
+      if (!clueDrag || clueDrag.li !== li) return;
+      li.classList.remove('dragging'); ul.classList.remove('sorting');
+      saveClueOrder(ul, sceneId);
+      clueDrag = null; suppressClick = true; setTimeout(() => { suppressClick = false; }, 300);
+      if (clueRenderLater) { clueRenderLater = false; if (app.snap?.view) renderNotebook(app.snap.view); }
+    };
+    handle.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      start = { x:e.clientX, y:e.clientY };
+      timer = setTimeout(() => {
+        timer = null;
+        clueDrag = { li, ul, sceneId };
+        li.classList.add('dragging'); ul.classList.add('sorting');
+        addEventListener('pointermove', onMove, { passive:false }); addEventListener('pointerup', end); addEventListener('pointercancel', end);
+        navigator.vibrate?.(15); Sfx.play('tap');
+      }, 400);
+    });
+    handle.addEventListener('pointermove', (e) => { if (timer && start && Math.hypot(e.clientX-start.x, e.clientY-start.y) > 8) cancel(); });   // 그냥 스크롤
+    handle.addEventListener('pointerup', () => { if (!clueDrag) cancel(); });
+    handle.addEventListener('pointerleave', () => { if (!clueDrag) cancel(); });
+    handle.addEventListener('click', (e) => { if (suppressClick) { suppressClick = false; e.preventDefault(); } }, true);
+    handle.addEventListener('contextmenu', (e) => { if (clueDrag || timer) e.preventDefault(); });
+    handle.addEventListener('touchmove', (e) => { if (clueDrag) e.preventDefault(); }, { passive:false });
+    handle.addEventListener('keydown', (e) => {
+      if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+      e.preventDefault();
+      if (e.key === 'ArrowUp') { if (!li.previousElementSibling) return; ul.insertBefore(li, li.previousElementSibling); }
+      else { if (!li.nextElementSibling) return; ul.insertBefore(li, li.nextElementSibling.nextElementSibling); }
+      saveClueOrder(ul, sceneId); handle.focus();
+    });
   }
   const clueBookmarks=[...document.querySelectorAll('#clueBookmarks [role=tab]')];
   function selectClueBookmark(tab){notebookMode=tab.dataset.group;if(app.snap?.view)renderNotebook(app.snap.view);}
