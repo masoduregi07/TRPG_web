@@ -591,6 +591,9 @@ textarea.code { font: 12px/1.6 var(--font); }
 }
 /* 떼기 직전(타공 줄에 마우스) · 놓은 직후에만 미리 레이어로 올려 둠 → 떼는 순간·놓는 순간 다시 그리기를 줄임 */
 .block.lift-ready { will-change: transform; }
+/* 메모를 끄는 동안 아래 요소의 호버 · 히트 테스트를 끔 (지나가는 줄마다 다시 칠하지 않게) */
+body.memo-dragging * { pointer-events: none !important; }
+body.memo-dragging { cursor: grabbing; }
 .memo-ph { box-shadow: inset 0 0 0 2px rgba(226, 196, 140, .35); background: rgba(0, 0, 0, .18); }
 .side.drop-here { outline-color: rgba(240, 164, 60, .8); }
 /* 떼어 둔 메모 */
@@ -11410,23 +11413,45 @@ const BannerArt = (() => {
     if (!tear || e.button !== 0) return;
     const card = tear.closest("[data-memo]"), st = $("#memoStack"), side = st.closest(".side");
     const ph = el("div", { class: "memo-ph" });
-    const inSide = (ev) => { const sr = side.getBoundingClientRect(); return ev.clientX >= sr.left && ev.clientX <= sr.right && ev.clientY >= sr.top && ev.clientY <= sr.bottom; };
+    // 위치는 끌기 시작 · 자리표 이동 · 스크롤 때만 잼 (움직일 때마다 재면 매번 레이아웃을 다시 계산)
+    let sr = side.getBoundingClientRect(), mids = [], over = false, lastY = 0, vel = 0, scrollRaf = 0;
+    const inSide = (ev) => ev.clientX >= sr.left && ev.clientX <= sr.right && ev.clientY >= sr.top && ev.clientY <= sr.bottom;
+    const sibs = () => [...st.querySelectorAll("[data-memo]:not(.dragging)")];
+    // 가운데 높이를 스크롤 기준 좌표로 저장 → 자동 스크롤 중엔 다시 잴 필요 없음
+    const measure = () => { const top = side.scrollTop; mids = sibs().map((sib) => { const b = sib.getBoundingClientRect(); return { sib, mid: b.top + b.height / 2 + top }; }); };
+    // 자리표: 바뀔 때만 옮기고 다시 잼
+    const placeAt = (y) => {
+      const at = y + side.scrollTop, before = mids.find((m) => at < m.mid)?.sib ?? null;
+      if (before ? ph.nextElementSibling === before : st.lastElementChild === ph) return;
+      if (before) st.insertBefore(ph, before); else st.append(ph);
+      measure();
+    };
+    // 가장자리 자동 스크롤: 마우스가 멈춰 있어도 프레임마다 일정하게 (가장자리에 가까울수록 빠르게)
+    const autoScroll = () => {
+      scrollRaf = 0;
+      if (!vel || !over) return;
+      side.scrollTop += vel;
+      placeAt(lastY);
+      scrollRaf = requestAnimationFrame(autoScroll);
+    };
     const r = dragFrom(e, card, {
       onMove(ev, x, y) {
         card.style.transform = `translate(${x - r.left}px, ${y - r.top}px) rotate(1.5deg)`;   // 합성만 (다시 칠하지 않음)
-        if (inSide(ev)) {
-          side.classList.add("drop-here");
-          const sr = side.getBoundingClientRect();   // 가장자리에서 자동 스크롤
-          if (ev.clientY < sr.top + 40) side.scrollTop -= 12; else if (ev.clientY > sr.bottom - 40) side.scrollTop += 12;
-          let before = null;
-          for (const sib of st.querySelectorAll("[data-memo]:not(.dragging)")) {
-            const b = sib.getBoundingClientRect();
-            if (ev.clientY < b.top + b.height / 2) { before = sib; break; }
-          }
-          if (before) { if (ph.nextElementSibling !== before) st.insertBefore(ph, before); } else if (st.lastElementChild !== ph) st.append(ph);
-        } else { side.classList.remove("drop-here"); ph.remove(); }
+        const now = inSide(ev);
+        if (now !== over) {
+          over = now; side.classList.toggle("drop-here", now);
+          if (now) measure(); else ph.remove();
+        }
+        if (!now) { vel = 0; return; }
+        lastY = ev.clientY;
+        const edge = 48, dTop = ev.clientY - sr.top, dBot = sr.bottom - ev.clientY;
+        vel = dTop < edge ? -Math.ceil((edge - dTop) / 4) : dBot < edge ? Math.ceil((edge - dBot) / 4) : 0;
+        if (vel && !scrollRaf) scrollRaf = requestAnimationFrame(autoScroll);
+        placeAt(ev.clientY);
       },
       onDrop(ev, x, y) {
+        cancelAnimationFrame(scrollRaf); vel = 0;
+        document.body.classList.remove("memo-dragging");
         const inside = inSide(ev);   // 위치 읽기는 DOM을 바꾸기 전에 (강제 레이아웃 방지)
         side.classList.remove("drop-here");
         card.classList.remove("dragging");
@@ -11450,6 +11475,7 @@ const BannerArt = (() => {
     if (card.parentElement === st) card.before(ph);
     Object.assign(card.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px` });
     card.classList.add("dragging");
+    document.body.classList.add("memo-dragging");
   });
   // 키보드: 타공 줄에서 ↑ ↓ = 공책 안 순서, Enter = 떼어 두기/다시 꽂기
   document.addEventListener("keydown", (e) => {
