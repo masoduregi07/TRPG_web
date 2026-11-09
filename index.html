@@ -8541,7 +8541,9 @@ const BannerArt = (() => {
         updateHistoryStatus(); scheduleCopy(); return;
       }
       case "snap": {
-        const first = !app.snap, prev = app.snap;
+        // 저장된 사본 화면이 있어도, 호스트에게서 처음 받은 실제 스냅샷은 '처음'으로 취급해 화면 · 기록을 다시 그린다
+        const first = !app.snap || !app.liveSnap, prev = app.liveSnap ? app.snap : null;
+        app.liveSnap = true;
         app.snap = msg.data; scheduleCopy();
         // GM 서술이 찍히는 동안엔 메모 · 카드 같은 결과 화면을 미뤘다가 다 찍히면 한 번에 (최대 10초)
         // 단, 게임 시작 · 사건 전환 · 내 캐릭터 준비처럼 화면 자체가 바뀌는 때는 바로
