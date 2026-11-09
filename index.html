@@ -2164,7 +2164,8 @@ html.has-3d .topbar { box-shadow: none; }
 .log-bottom, .log-top { transition: opacity .4s; }
 .log-bottom.out, .log-top.out { opacity: 0; pointer-events: none; }
 .log-bottom[hidden], .log-top[hidden] { display:none; }
-.jump-badge { position:absolute; top:-10px; right:-10px; min-width:18px; height:18px; padding:0 4px; box-sizing:border-box; background:var(--blood); color:#f3e6c8; border:2px solid var(--ink); font:11px/14px var(--font); text-align:center; pointer-events:none; }
+/* 새 기록 배지: 붉은 리본 위에서 묻히지 않게 놋쇠빛 둥근 알 + 먹색 숫자, 리본 왼쪽 위 */
+.jump-badge { position:absolute; z-index:1; top:-9px; left:-15px; min-width:20px; height:18px; padding:0 4px; box-sizing:border-box; border-radius:9px; background:#f6d27a; color:var(--ink); border:2px solid var(--ink); box-shadow:1px 2px 0 rgba(0,0,0,.35); font:11px/14px var(--font); text-align:center; pointer-events:none; }
 .jump-badge[hidden] { display:none; }
 .turn-status { margin:0 var(--cover); padding:4px 44px 4px 48px; display:flex; flex-shrink:0; flex-wrap:nowrap; gap:5px 16px; align-items:center; position:relative; min-height:22px; color:var(--blood); font:12px var(--font); overflow:hidden; }
 .turn-status[hidden], .turn-status > [hidden] { display:none; }
