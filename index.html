@@ -1960,6 +1960,7 @@ html.has-3d .topbar { box-shadow: none; }
 #historyDialog::backdrop { background:rgba(0,0,0,.75); }
 .log-bottom, .log-top { position:absolute; left:auto; right:14px; transform:none; z-index:5; display:grid; place-items:center; width:35px; height:35px; padding:0; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); font-size:23px; line-height:1; }
 .log-top { top:calc(var(--cover) + 12px); }
+.log-top .jump-ic, .log-bottom .jump-ic { display:block; width:16px; height:16px; margin:0; pointer-events:none; }
 .log-bottom[hidden], .log-top[hidden] { display:none; }
 .turn-status { margin:0 var(--cover); padding:4px 44px 4px 48px; display:flex; flex-shrink:0; flex-wrap:nowrap; gap:5px 16px; align-items:center; position:relative; min-height:22px; color:var(--blood); font:12px var(--font); overflow:hidden; }
 .turn-status[hidden], .turn-status > [hidden] { display:none; }
@@ -2268,8 +2269,8 @@ html.has-3d .topbar { box-shadow: none; }
     <section class="log-pane">
       <span id="recentInfo" class="sr-only">최근 기록</span>
       <div id="log" class="log" aria-live="polite"></div>
-      <button id="logTop" class="log-top btn small" type="button" hidden aria-label="채팅 맨 위로 이동" title="맨 위">↑</button>
-      <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래">↓</button>
+      <button id="logTop" class="log-top btn small" type="button" hidden aria-label="채팅 맨 위로 이동" title="맨 위"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="8,3.5 14.5,12.5 1.5,12.5" fill="currentColor"/></svg></button>
+      <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="1.5,3.5 14.5,3.5 8,12.5" fill="currentColor"/></svg></button>
       <div id="turnBoard" class="turn-board" hidden></div>
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="btn tiny" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
       <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면입니다. 호스트와 연결되면 최신 상태로 바뀝니다.</div>
