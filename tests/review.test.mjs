@@ -102,3 +102,11 @@ test("이성 판정 기록에 손실 · 단계 필드", () => {
   assert.ok(Number.isInteger(e.sanLoss) && e.sanLoss >= 1);
   assert.equal(typeof e.level, "string");
 });
+
+test("모델 이름 오류면 사용 가능한 모델을 알려 줌", async () => {
+  const fetch = async (url) => /\/models$/.test(url)
+    ? { ok: true, json: async () => ({ data: [{ id: "models/gemini-9-flash" }, { id: "gpt-x" }] }) }
+    : { ok: false, status: 404, text: async () => JSON.stringify({ error: { message: "model not found" } }) };
+  const m = load({ fetch });
+  await assert.rejects(m.AI.call({ provider: "custom", baseURL: "https://x/v1", model: "old", apiKey: "" }, [{ role: "user", content: "a" }]), /사용 가능: gemini-9-flash, gpt-x/);
+});
