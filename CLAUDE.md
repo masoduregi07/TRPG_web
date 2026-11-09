@@ -88,6 +88,7 @@
 - 사건·핸드아웃 image가 http:// 이면 경고(https 권장), 열기는 허용
 
 ### 성능
+- 메모 떼기·넣기: 타공 줄에 마우스가 오면 `.lift-ready`(will-change)로 미리 레이어, 놓은 뒤 0.6초 유지. 놓을 때 위치 판정은 DOM 변경 전, 효과음은 다음 프레임 뒤(`sfxLater`)
 - `.log` 위아래 흐림 마스크 삭제(고해상도에서 렉 주원인). 스크롤 핸들러는 rAF 1회 + 바뀔 때만 style 씀. 3D 배경은 테이블 화면에서 한 장 그리고 멈춤(`Scene3D.setIdle`, 크기 바뀌면 다시 한 장). 메모 끌기는 transform으로만 이동
 - 측정: Playwright 1920×1080·DPR2, #playBox 보이게, #log 600줄, rAF마다 scrollTop += 25 + 단서 메모 끌기, 프레임 간격 avg/p95 비교 (DPR1은 차이가 안 보임)
 
