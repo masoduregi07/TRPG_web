@@ -642,7 +642,8 @@ textarea.code { font: 12px/1.6 var(--font); }
   --spine: var(--blood);
   position: relative; display: grid; grid-template-columns: 64px 1fr; column-gap: 16px; padding: 12px 14px;
   font-family: var(--font); color: var(--ink);
-  background: var(--px-speck) 0 0 / 120px 120px, #e4d6b0;
+  /* 오래된 기록지: 결 있는 섬유 + 옅은 얼룩 + 바랜 가장자리 */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.04 .9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E") 0 0/200px 200px,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E") 0 0/160px 160px,radial-gradient(ellipse 45% 30% at 78% 70%,rgba(150,100,40,.13),transparent 70%),radial-gradient(ellipse 30% 22% at 20% 25%,rgba(150,100,40,.09),transparent 70%),radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(110,70,25,.2) 100%),#eadab3;
   box-shadow: var(--outline), inset 0 0 0 3px rgba(150, 110, 55, .18), 3px 4px 0 1px rgba(0, 0, 0, .35);
 }
 .dossier.me { box-shadow: var(--outline), inset 0 0 0 3px rgba(240, 164, 60, .75), 3px 4px 0 1px rgba(0, 0, 0, .35); }
