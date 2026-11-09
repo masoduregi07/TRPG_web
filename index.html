@@ -3805,7 +3805,7 @@ const AI = (() => {
   const TIRED = "AI GM이 지친 모양입니다.";
   const ready = (cfg) => !!(cfg && cfg.baseURL && cfg.model && (cfg.apiKey || !PRESETS[cfg.provider]?.needsKey));
 
-  async function call(cfg, messages, { maxTokens = 700, timeout = 90_000, signal = null } = {}) {
+  async function call(cfg, messages, { maxTokens = 700, timeout = 90_000, signal = null, strictLength = false } = {}) {
     if (!ready(cfg)) throw new Error("AI 설정 미완료.");
     if (signal?.aborted) { const e = new Error("AI 요청 취소됨."); e.cancelled = true; throw e; }
     const startedAt = performance.now(); let responseUsage = null, responseOK = false;
@@ -3856,6 +3856,8 @@ const AI = (() => {
         // 생각하는(추론형) 모델이 출력 한도를 생각에 다 써 버린 경우가 흔함
         if (choice?.finish_reason === "length" || choice?.message?.reasoning || choice?.message?.reasoning_content)
           throw new Error("출력 한도 안에 답을 못 냄. 생각하는(추론형) 모델이면 생각에 한도를 다 쓴 것. 추론 없는 모델 권장.");
+      // 출력 한도에 걸려 잘린 답: strictLength면 오류로 알려 호출한 쪽이 한도를 늘려 다시 묻게 함
+      if (strictLength && choice?.finish_reason === "length") { const err = new Error("AI 응답이 출력 한도에서 잘림."); err.truncated = true; throw err; }
         throw new Error(`AI 응답이 비어 있음${choice?.finish_reason ? ` (종료 이유: ${choice.finish_reason})` : ""}.`);
       }
       responseOK = true;
@@ -5560,11 +5562,13 @@ class HostGame {
     return { ctx, info, recent };
   }
 
+    let maxTokens = 1200;
   /** AI 호출 (일시적 오류면 한 번 더). 사용 한도 · 키 · 모델 오류는 바로 실패 */
   async callAI(messages, signal = null) {
     for (let i = 0; ; i++) {
       if (signal?.aborted) { const e = new Error("AI 요청 취소됨."); e.cancelled = true; throw e; }
-      try { return await this.aiCall(messages, { maxTokens: 900, signal }); }
+        if (e.truncated) maxTokens = Math.min(maxTokens * 2, 4000);
+      try { return await this.aiCall(messages, { maxTokens, signal, strictLength: true }); }
       catch (e) {
         const fatal = e.cancelled || signal?.aborted || e.tired || /HTTP (40[0-4])|API 키|모델 이름|설정 미완료/.test(e.message);
         // 서버 붐빔(503 등)은 조금 더 기다려 두 번까지 다시, 그 밖의 실패는 한 번
