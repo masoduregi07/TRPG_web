@@ -1579,7 +1579,15 @@ html.has-3d .topbar { box-shadow: none; }
 .coc-builder .b-left { gap: 15px; padding-right: 15px; }
 .coc-builder .id-block { grid-template-columns: auto minmax(0, 1fr); gap: 12px; }
 .coc-builder .id-block .doc-form { margin-top: 15px; }
-.coc-builder .goal-memo { margin: 3px 0 0; min-height: 84px; align-content: start; }
+.coc-builder .goal-memo { margin: 3px 0 0; align-content: start; }
+.goal-memo .goal-hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: text; }
+.goal-memo .goal-priv { padding: 0 5px; font-family: var(--font); font-size: 10px; letter-spacing: 1px; color: var(--blood); box-shadow: inset 0 0 0 1px var(--blood); }
+.goal-memo textarea { field-sizing: content; min-height: 18px; }
+.goal-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 4px; }
+.goal-chips em { font-family: var(--font); font-size: 11px; font-style: normal; color: #9a8566; }
+.goal-chips button { padding: 1px 7px; border: 1px dashed #8a7152; background: rgba(255, 250, 235, .5); box-shadow: none; font-family: var(--font); font-size: 11px; color: #6b4a22; cursor: pointer; }
+.goal-chips button:hover, .goal-chips button:focus-visible { border-style: solid; color: var(--ink); outline: 0; }
+.goal-count { justify-self: end; font-family: var(--font); font-size: 10px; color: #9a8566; }
 .coc-builder .fate-box .suggest-row { gap: 12px; }
 .coc-builder .b-right { gap: 9px; }
 
@@ -4109,7 +4117,7 @@ ${JSON.stringify(info)}` },
       { role: "system", content: `너는 크툴루의 부름(CoC) 7판 탐사자 제작을 돕는다. 시나리오 분위기에 어울리는 탐사자 하나를 한국어로 제안한다. 시나리오의 결말이나 비밀은 모르며, 추측해서 쓰지도 않는다.
 확정된무작위인적사항에 있는 이름·나이·성별·직업을 정확하게 유지한다. 직업이 직업선택지에 없더라도 자유 직업으로 인정한다. 이름·나이·성별·직업을 바꾸지 말고 그 인물에 맞는 성격과 시나리오 연결고리만 창작한다. 특성치와 기능 수치는 쓰지 않는다 (플레이어가 굴리고 나눔).
 아래 JSON 하나만 출력한다.
-{"name": "이름(16자 이내)", "age": "나이 (숫자)", "gender": "성별", "concept": "외모나 성격을 간단히, 명사형 종결 한 문장 (예: 자신만만하지만 손을 떠는 시골 의사)", "background": "직업 이름", "hook": "시나리오와의 연결고리, 명사형 종결 한 문장"}` },
+{"name": "이름(16자 이내)", "age": "나이 (숫자)", "gender": "성별", "concept": "외모나 성격을 간단히, 명사형 종결 한 문장 (예: 자신만만하지만 손을 떠는 시골 의사)", "background": "직업 이름", "hook": "시나리오와의 연결고리, 명사형 종결 한 문장", "goal": "이번 이야기에서 이루려는 개인 목표, 40자 이내 한 문장 (시나리오 비밀 추측 금지)"}` },
       { role: "user", content: `[시나리오 정보]\n${JSON.stringify(info, null, 1)}\n\n[플레이어 요청]\n${concept || "자유롭게 제안해 줘"}` },
     ];
   }
@@ -4117,7 +4125,7 @@ ${JSON.stringify(info)}` },
     const { obj } = extractJSON(text);
     return {
       name: str(obj.name) ?? "", concept: str(obj.concept) ?? "", background: str(obj.background) ?? "",
-      hook: str(obj.hook) ?? "", look: str(obj.look) ?? "", age: (str(obj.age) ?? String(obj.age ?? "")).slice(0, 8), gender: (str(obj.gender) ?? "").slice(0, 8), stats: obj.stats && typeof obj.stats === "object" ? obj.stats : {},
+      hook: str(obj.hook) ?? "", look: str(obj.look) ?? "", goal: (str(obj.goal) ?? "").slice(0, 120), age: (str(obj.age) ?? String(obj.age ?? "")).slice(0, 8), gender: (str(obj.gender) ?? "").slice(0, 8), stats: obj.stats && typeof obj.stats === "object" ? obj.stats : {},
     };
   }
 
@@ -9666,8 +9674,14 @@ const BannerArt = (() => {
     const concept = el("textarea", { maxlength: 200, rows: 2, placeholder: "외모나 성격에 대해 간단히 서술" }, d.concept ?? "");
     concept.addEventListener("input", () => { d.concept = concept.value; saveDraft(); });
     const hook = { value: d.hook ?? "" }, look = { value: d.look ?? "" };
-    const goal = el("textarea", { maxlength: 120, rows: 2, placeholder: "이번 이야기에서 이루고 싶은 것 · 나와 AI GM만 봄" }, d.goal ?? "");
-    goal.addEventListener("input", () => { d.goal = goal.value; saveDraft(); });
+    const goal = el("textarea", { maxlength: 120, rows: 1, placeholder: "이번 이야기에서 이루고 싶은 것" }, d.goal ?? "");
+    const goalCount = el("span", { class: "goal-count", "aria-hidden": "true" });
+    const goalSync = () => { goalCount.textContent = `${goal.value.length} / 120`; };
+    goal.addEventListener("input", () => { d.goal = goal.value; saveDraft(); goalSync(); });
+    // 예시 칩: 비어 있으면 그 문구로, 쓰던 중이면 뒤에 덧붙임
+    const goalChips = el("div", { class: "goal-chips" }, el("em", {}, "예시"), ...["진실을 밝힌다", "누군가를 지킨다", "빚·약속을 갚는다", "이름을 알린다"].map((t) =>
+      el("button", { type: "button", on: { click: () => { const cur = goal.value.trim(); goal.value = (cur ? `${cur}, ${t}` : t).slice(0, 120); d.goal = goal.value; saveDraft(); goalSync(); goal.focus(); Sfx.play("tap"); } } }, t)));
+    goalSync();
     // 초상: 폴라로이드를 누르면 사진 붙이기 (비어 있으면 [+])
     const photoBox = el("label", { class: "portrait-photo pic-drop", tabindex: 0, title: "", "aria-label": "사진 붙이기",
       on: { keydown: (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), file.click()) } });
@@ -9819,12 +9833,13 @@ const BannerArt = (() => {
       if (!next) return toast("불러올 캐릭터를 선택하세요.");
       Object.assign(d, next);
       name.value = d.name; age.value = d.age; gender.value = d.gender;
-      concept.value = d.concept; goal.value = d.goal; bg.value = d.background; hook.value = d.hook; look.value = d.look;
+      concept.value = d.concept; goal.value = d.goal ?? ""; goalSync(); bg.value = d.background; hook.value = d.hook; look.value = d.look;
       if (app.snap?.myRoll) fitAlloc(app.snap.myRoll.chars);
       saveDraft(); refreshCoc(); toast("캐릭터 서식 불러옴. 특성치는 이번 방 주사위를 사용.");
     } } }, "불러오기");
     const profileBox = el("div", { class: "character-profiles" }, profileSelect, profileSave, profileLoad);
-    app.builderEls = { coc: true, name, age, gender, concept, hook, look, bg, bgCustom, showBg, refreshStats: refreshCoc, refreshCoc, sugBtn, readyBtn, photoBox, clearPicBtn, photoPlus: true, file };
+    goal.id = "cocGoal";
+    app.builderEls = { coc: true, name, age, gender, concept, hook, look, goal, goalSync, bg, bgCustom, showBg, refreshStats: refreshCoc, refreshCoc, sugBtn, readyBtn, photoBox, clearPicBtn, photoPlus: true, file };
     // 왼쪽 = 초상 + 공문서 칸(이름 · 직업 · 나이 · 성별 · 특징 및 성격) → 개인 목표 쪽지 → 혹시 기억이 나지 않는다면 │ 오른쪽 = 특성치(가로) → 기능 → 작성
     const docRow = (k, input, tag = "label") => el(tag, { class: "doc-row" }, el("span", { class: "doc-k" }, k), input);
     name.classList.add("id-name");
@@ -9839,7 +9854,7 @@ const BannerArt = (() => {
             el("div", { class: "doc-row pair" }, el("label", { class: "doc-k", for: "cocAge" }, "나이"), el("span", { class: "age-wrap" }, age, el("span", { class: "age-u", "aria-hidden": "true" }, "세")), el("span", { class: "doc-k" }, "성별"), gender),
             docRow("직업", el("div", { class: "occ-editor" }, el("div", { class: "occ-switch", role: "group", "aria-label": "직업 입력 방식" }, bgPickBtn, bgTypeBtn), bg, bgCustom)),
             docRow("특징 및 성격", concept))),
-        el("label", { class: "goal-memo" }, el("span", { class: "memo-k" }, "개인 목표"), goal),
+        el("div", { class: "goal-memo" }, el("label", { class: "goal-hd", for: "cocGoal" }, el("span", { class: "memo-k" }, "개인 목표"), el("span", { class: "goal-priv" }, "비공개 · 나와 GM만")), goal, goalChips, goalCount),
         fate, profileBox),
       el("div", { class: "b-right" },
         el("div", { class: "field f-chars" }, el("div", { class: "lbl-row" }, el("span", {}, "특성치"), el("span", { class: "points-row" }, rollLeft, rollBtn)), charGrid, derivedEl),
@@ -9872,9 +9887,9 @@ const BannerArt = (() => {
     const b = app.builderEls;
     {
       const trait = [c.concept, c.look].filter(Boolean).join(". ");
-      Object.assign(app.draft, { name: c.name, concept: trait || app.draft.concept || "", background: c.background, hook: c.hook, ...(c.age ? { age: c.age } : {}), ...(c.gender ? { gender: c.gender } : {}) });
+      Object.assign(app.draft, { name: c.name, concept: trait || app.draft.concept || "", background: c.background, hook: c.hook, ...(c.goal ? { goal: c.goal } : {}), ...(c.age ? { age: c.age } : {}), ...(c.gender ? { gender: c.gender } : {}) });
       b.name.value = app.draft.name; b.concept.value = app.draft.concept; b.hook.value = app.draft.hook; b.bg.value = app.draft.background;
-      b.age.value = app.draft.age ?? ""; b.gender.value = app.draft.gender ?? "";
+      b.age.value = app.draft.age ?? ""; b.gender.value = app.draft.gender ?? ""; b.goal.value = app.draft.goal ?? ""; b.goalSync();
       b.showBg(); saveDraft();
       const who = [c.name, c.age ? `${c.age}세` : "", c.background].filter(Boolean).join(" · ");
       return toast("운명은 정해졌다.", { kind: "fate", ms: 3400, sub: who, at: document.querySelector("#lrMe .my-sheet") });
