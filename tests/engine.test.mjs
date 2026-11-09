@@ -48,3 +48,16 @@ test("플레이어용 화면 정보에 GM 전용 내용 없음", () => {
   for (const id of s.npcs ?? []) { const sec = sc.npcs[id].secret; if (sec) assert.ok(!pub.includes(sec), `NPC 비밀 노출: ${id}`); }
   for (const c of s.clues ?? []) assert.ok(!pub.includes(c.text), `미공개 단서 노출: ${c.id}`);
 });
+
+test("http:// 이미지는 경고, https://는 경고 없음", () => {
+  const warnOf = (url) => {
+    const sc = sample(m);
+    const scenes = sc.events ?? sc.scenes;
+    Object.values(scenes)[0].image = url;
+    const r = Engine.validateScenario(sc);
+    assert.equal(r.errors.length, 0, r.errors.join("\n"));
+    return r.warnings.some((w) => w.includes("http://"));
+  };
+  assert.equal(warnOf("http://a.b/c.png"), true);
+  assert.equal(warnOf("https://a.b/c.png"), false);
+});
