@@ -8793,9 +8793,7 @@ const BannerArt = (() => {
           on:{click:(e)=>{e.preventDefault();e.stopPropagation();const next=on?kinds.filter(k=>k!==kind):[...kinds,kind];setKinds(c.id,next);}}},
           el('i',{'aria-hidden':'true'},on?'✓':''),label);
       };
-      const kindRow=el('div',{class:'clue-kinds'},el('span',{class:'clue-kinds-label'},'분류'),chip('person','인물'),chip('place','장소'),
-        mine?el('span',{class:'clue-kinds-note'},'내가 지정함'):null,
-        mine?el('button',{type:'button',class:'clue-kinds-reset',on:{click:(e)=>{e.preventDefault();setKinds(c.id,null);}}},'자동으로 되돌리기'):null);
+      const kindRow=el('div',{class:'clue-kinds'},el('span',{class:'clue-kinds-label'},'분류'),chip('person','인물'),chip('place','장소'));
       details.append(heading,el('div',{class:'clue-open-body'},kindRow,
         el('div',{class:'clue-original'},el('span',{class:'clue-original-label'},'원문'),el('p',{},content.original))));
       const sync=()=>heading.setAttribute('aria-label',`${content.title} 원문 ${details.open?'접기':'펼치기'}`);
