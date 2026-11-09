@@ -2012,9 +2012,16 @@ html.has-3d .topbar { box-shadow: none; }
 .npc-pick .np-row.on { background:#6f5230; color:#f4ecd8; }
 .npc-pick .np-job { font-size:11px; opacity:.7; }
 .to-tag[data-npc] { cursor:pointer; }
-.room-code-row { display:flex; align-items:center; gap:7px; font-size:12px; border-top:1px dashed var(--paper-lo); padding-top:8px; }
-.room-code-row code { min-width:0; flex:1; font-size:13px; overflow-wrap:anywhere; }
-.room-code-row .btn { padding:3px 5px; }
+/* 설정 창 안 AI 연결 (호스트만) */
+.sound-pop:has(.snd-ai:not([hidden])) { width: 280px; }
+.snd-ai { border-top: 1px dashed var(--paper-lo); padding-top: 8px; font-size: 12px; }
+.snd-ai > summary { cursor: pointer; font-family: var(--font); font-size: 12px; }
+.snd-ai[open] > summary { margin-bottom: 8px; }
+.snd-ai .ai-grid { grid-template-columns: 1fr; gap: 8px; }
+.snd-ai .ai-grid .field span { font-size: 11px; }
+.snd-ai .ai-grid input, .snd-ai .ai-grid select { font-size: 12px; padding: 4px 6px; }
+.snd-ai .ai-grid p { font-size: 10px; line-height: 1.5; }
+.snd-ai .ai-grid .row { flex-wrap: wrap; gap: 6px; }
 /* 서식 저장 · 불러오기 아이콘 (기록지 잉크색 모노톤) + 보관 목록 */
 .fh-form:has(.pf-icons) { display:flex; align-items:center; }
 .pf-icons { position:relative; display:inline-flex; gap:2px; margin-left:8px; vertical-align:middle; }
@@ -2283,7 +2290,7 @@ html.has-3d .topbar { box-shadow: none; }
             <label class="snd-chk"><input id="fxType" type="checkbox" /> 타이핑</label>
             <label class="snd-chk"><input id="fxItem" type="checkbox" /> 소지품</label>
           </div>
-          <div class="room-code-row"><span>방 코드</span><code id="roomCodeText">—</code><button id="copyRoomCode" class="btn tiny" type="button">복사</button></div>
+          <details id="sndAi" class="snd-ai" hidden><summary>AI 연결</summary><div id="sndAiBody"></div></details>
           <div class="snd-save"><button id="downloadBtn" class="ic-btn" type="button" data-icon="save" aria-label="테이블 저장"><span class="ic-tip">테이블 저장</span></button></div>
         </div>
       </span>
@@ -8134,7 +8141,7 @@ const BannerArt = (() => {
     AICredentials.migrate(AI.PRESETS);
     return AICredentials.load(null, AI.PRESETS);
   }
-  function aiForm(onChange) {
+  function aiForm(onChange, { compact = false } = {}) {
     let cfg = loadAI();
     const provider = el('select', {}, ...Object.entries(AI.PRESETS).map(([k,p])=>el('option',{value:k},p.label)));
     const url = el('input',{value:cfg.baseURL,placeholder:'https://…/v1'});
@@ -8175,7 +8182,7 @@ const BannerArt = (() => {
       el('label',{class:'field full'},el('span',{},'API 주소'),url),el('label',{class:'field full'},el('span',{},'API 키'),key),
       el('label',{class:'full small'},remember,' 이 브라우저에 키 기억 (선택 사항)'),
       el('p',{class:'full small muted'},'기본: 이 탭을 닫을 때까지 사용. 기억을 선택하면 브라우저에 키를 저장함. 공급자·주소별로 분리하며 친구에게 전송하지 않음.'),
-      el('div',{class:'full row'},test,result),el('div',{class:'full'},usagePanel()));
+      el('div',{class:'full row'},test,result),compact ? null : el('div',{class:'full'},usagePanel()));
   }
 
   function styleForm(cur, onChange) {
@@ -10745,7 +10752,13 @@ const BannerArt = (() => {
     $("#soundPop").hidden = !open;
     $("#soundBtn").setAttribute("aria-expanded", String(open));
     $("#soundBtn").classList.toggle("open", open);
-    if (open) { syncSound(); $("#roomCodeText").textContent = app.room ?? "—"; }
+    if (open) {
+      syncSound();
+      // AI 연결 설정 · 연결 테스트: AI GM을 돌리는 호스트만
+      const box = $("#sndAi"), host = app.role === "host";
+      box.hidden = !host;
+      if (host && !$("#sndAiBody").firstChild) $("#sndAiBody").replaceChildren(aiForm(() => app.game?.pushAll(), { compact: true }));
+    }
   }
   $("#soundBtn").addEventListener("click", (e) => { e.stopPropagation(); openExit(false); openHelp(false); openSound($("#soundPop").hidden); });
   $("#soundPop").addEventListener("click", (e) => e.stopPropagation());
@@ -10754,7 +10767,6 @@ const BannerArt = (() => {
     try { await navigator.clipboard.writeText(app.room); toast("방 코드 복사됨."); }
     catch { toast(`방 코드: ${app.room}`); }
   }
-  $("#copyRoomCode").addEventListener("click", copyRoomCode);
   $("#connLamp").addEventListener("click", copyRoomCode);
   $("#sfxOn").addEventListener("change", (e) => { Sfx.set("sfx", e.target.checked); syncSound(); Sfx.play("tap"); });
   $("#bgmOn").addEventListener("change", (e) => { Sfx.set("bgm", e.target.checked); syncSound(); });
