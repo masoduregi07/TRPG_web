@@ -1296,10 +1296,27 @@ textarea { margin-top: 8px; }
 .t-sheet.front small { font-size: 10px; color: var(--ink-2); line-height: 1.45; }
 .t-sheet.front small.cc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .t-stamp { position: absolute; right: 8px; bottom: 9px; padding: 0 6px; font-size: 12px; color: var(--moss); box-shadow: inset 0 0 0 2px var(--moss); rotate: -8deg; opacity: .85; }
-.t-sheet.back { background: repeating-linear-gradient(45deg, #8a6436 0 6px, #7a5630 6px 12px); }
-.t-sheet.back .t-label { position: absolute; left: 50%; top: 42%; translate: -50% -50%; padding: 5px 9px; font-size: 11px; color: #f4ecd8; background: #4a2a14; box-shadow: 0 0 0 2px var(--ink); white-space: nowrap; }
-.t-pencil { position: absolute; left: 26px; top: 112px; width: 90px; height: 7px; rotate: -22deg; background: linear-gradient(90deg, #2b1a0c 0 6px, #e8c46a 6px 80%, #d98a7a 80% 92%, #c9c9c0 92%); box-shadow: 0 0 0 1px var(--ink); }
-.t-writing { position: absolute; left: 50%; bottom: 12px; translate: -50% 0; font-size: 10px; color: #f4ecd8; text-shadow: 1px 1px 0 #000; white-space: nowrap; }
+/* 빈 서식 앞면 (생성 전 · 작성 중): 작성 완료 앞면과 같은 크림색 종이 */
+.t-sheet.form { background: #efe3c3; }
+.tf-hd { position: absolute; left: 10px; right: 10px; top: 9px; padding-bottom: 3px; font-size: 9px; letter-spacing: 2px; color: #8a7a60; border-bottom: 1px solid rgba(90, 60, 30, .35); }
+.tf-ph { position: absolute; left: 10px; top: 30px; width: 44px; height: 52px; border: 1px dashed rgba(90, 60, 30, .5); }
+.tf-ln { position: absolute; left: 62px; right: 10px; height: 0; border-bottom: 1px solid rgba(90, 60, 30, .35); }
+.tf-ln.f { right: 40px; border-bottom: 2px solid rgba(43, 26, 12, .55); }
+.tf-ln.f.s { right: 58px; }
+.tf-rows { position: absolute; left: 10px; right: 10px; top: 94px; display: grid; gap: 10px; }
+.tf-rows i { height: 0; border-bottom: 1px solid rgba(90, 60, 30, .3); }
+/* 작성 중: 만년필이 줄 위에서 좌우로 조금씩 움직이고 그 줄 먹선이 천천히 길어짐 (움직임 줄이기면 멈춤) */
+.tf-write { position: absolute; left: 10px; right: 10px; top: 94px; height: 0; }
+.tf-ink { position: absolute; left: 0; top: -1px; width: 45%; height: 2px; background: rgba(43, 26, 12, .55); animation: tf-ink 9s steps(36) var(--d, 0s) infinite; }
+/* 펜은 180° 돌려 펜촉이 왼쪽 아래(오른손으로 쥔 모양), 펜촉 끝이 먹선 끝에 오도록 */
+.tf-pen { position: absolute; left: 45%; top: -58px; width: 124px; margin-left: -16px; rotate: 180deg; image-rendering: pixelated; pointer-events: none;
+  animation: tf-pen-x 9s steps(36) var(--d, 0s) infinite, tf-pen-wig .9s steps(3) infinite; }
+@keyframes tf-ink { 0% { width: 6%; } 92%, 100% { width: 45%; } }
+@keyframes tf-pen-x { 0% { left: 6%; } 92%, 100% { left: 45%; } }
+@keyframes tf-pen-wig { 0%, 100% { translate: 0 0; } 50% { translate: 2px -1px; } }
+.tf-sub { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-size: 10px; color: #7a6548; }
+.t-sheet.form.still .tf-ink, .t-sheet.form.still .tf-pen { animation: none; }
+@media (prefers-reduced-motion: reduce) { .tf-ink, .tf-pen { animation: none !important; } }
 .t-sheet.offline { opacity: .55; filter: grayscale(.6); }
 .t-sheet.ghost { display: grid; place-items: center; background: transparent; box-shadow: inset 0 0 0 2px rgba(244, 236, 216, .22); }
 .t-sheet.ghost .x { position: relative; width: 30px; height: 30px; opacity: .4; }
@@ -9960,8 +9977,44 @@ const BannerArt = (() => {
         el("b", {}, c.name), el("small", {}, c.background || "—"), c.concept ? el("small", { class: "cc" }, c.concept) : null,
         el("span", { class: "t-stamp" }, "완료"));
     }
-    return el("div", { class: `t-sheet back${p.online ? "" : " offline"}` }, el("span", { class: "t-label" }, "캐릭터 시트"),
-      p.online ? el("span", { class: "t-pencil" }) : null, el("span", { class: "t-writing" }, p.online ? (p.character ? "연필 끄적이는 중…" : "아직 빈 시트") : "자리 비움"));
+    // 빈 서식 앞면(서식 제7호): 생성 전 = 빈 칸 / 작성 중 = 칸 일부가 먹선으로 + 만년필이 줄 위에서 쓰는 중
+    const writing = p.online && !!p.character;
+    return el("div", { class: `t-sheet form${writing ? " writing" : ""}${p.online ? "" : " offline"}${reduceMotionUI() ? " still" : ""}` },
+      el("span", { class: "tf-hd" }, "서식 제7호"), el("span", { class: "tf-ph" }),
+      el("span", { class: `tf-ln${writing ? " f" : ""}`, style: "top:40px" }), el("span", { class: `tf-ln${writing ? " f s" : ""}`, style: "top:56px" }), el("span", { class: "tf-ln", style: "top:72px" }),
+      el("span", { class: "tf-rows" }, el("i"), el("i"), el("i")),
+      // --d: 다시 그려도 쓰던 자리에서 이어감
+      writing ? el("span", { class: "tf-write", style: `--d:-${(Date.now() % 9000) / 1000}s` }, el("i", { class: "tf-ink" }), el("img", { class: "tf-pen", src: penImage(), alt: "", draggable: "false" })) : null,
+      writing ? el("span", { class: "tf-sub" }, "작성 중…") : null);
+  }
+  /* 도트 만년필 (한 번 그려 두고 재사용): 가로 2칸에 세로 1칸 기울기, 단면 6칸 음영, 뚜껑 · 금 클립 · 금 링 · 적갈 몸통 · 금 띠 · 그립 · 금 펜촉, 종이 위 그림자 + 반짝임 */
+  let penURL = null;
+  function penImage() {
+    if (penURL) return penURL;
+    const W = 62, H = 38, L = 50, x0 = 4, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const g = cv.getContext("2d"), dot = (x, y, c) => { g.fillStyle = c; g.fillRect(x, y, 1, 1); };
+    const PAL = { cap: ["#6a625c", "#3e3834", "#2a2422", "#2a2422", "#1a1614", "#110d0b"], gold: ["#fff0b8", "#f0d070", "#d8b050", "#c49a3a", "#9a7424", "#6e5018"],
+      body: ["#c8644a", "#9a3a28", "#7a2a1c", "#6a2418", "#521a10", "#3a120a"], grip: ["#5a524c", "#36302c", "#262120", "#262120", "#181412", "#0f0c0a"] };
+    const yTop = (x) => 29 - Math.floor((x - x0) / 2);
+    const part = (i) => { const t = i / L; return t < .03 ? ["cap", 4] : t < .3 ? ["cap", 6] : t < .33 ? ["gold", 6] : t < .7 ? ["body", 6] : t < .73 ? ["gold", 6] : t < .82 ? ["grip", 5] : ["nib", 0]; };
+    const nib0 = Math.floor(L * .82), cols = [];
+    for (let i = 0; i < L; i++) {
+      const x = x0 + i, [pt, th0] = part(i);
+      if (pt === "nib") { const th = Math.max(1, Math.round(5 * (1 - (i - nib0) / (L - nib0)))); cols.push([x, yTop(x) + 3 - Math.floor(th / 2), th, pt]); }
+      else cols.push([x, yTop(x) + (6 - th0) / 2, th0, pt]);
+    }
+    for (const [x, top, th] of cols) for (let y = top - 3; y < top + th - 2; y++) dot(x - 3, y, "rgba(60,35,15,.32)");   // 그림자 (그림은 180° 돌려 쓰므로 왼쪽 위에 그려 두면 화면에선 오른쪽 아래)
+    for (const [x, top, th] of cols) for (let y = top - 1; y < top + th + 1; y++) dot(x, y, "#2b1a0c");             // 외곽선
+    { const [x, top, th] = cols[0]; for (let y = top - 1; y < top + th + 1; y++) dot(x - 1, y, "#2b1a0c"); }
+    for (const [x, top, th, pt] of cols) {
+      if (pt === "nib") { const c = PAL.gold; for (let j = 0; j < th; j++) dot(x, top + j, j === 0 && th > 2 ? c[0] : j < th / 2 ? c[1] : j < th - 1 ? c[3] : c[4]); continue; }
+      const c = PAL[pt], rows = th === 6 ? c : th === 5 ? c.slice(1) : [c[1], c[2], c[4], c[5]];
+      for (let j = 0; j < th; j++) dot(x, top + j, rows[j]);
+    }
+    for (const [x, top] of cols.slice(3, Math.floor(L * .26))) { dot(x, top - 1, "#e8c46a"); dot(x, top - 2, "#2b1a0c"); }   // 클립
+    { const nibs = cols.filter((c) => c[3] === "nib"), [x, top, th] = nibs[Math.floor(nibs.length / 4)]; dot(x, top + Math.floor(th / 2), "#2b1a0c"); }
+    for (const t of [.12, .5, .78]) { const [x, top] = cols[Math.floor(L * t)]; dot(x, top, "#fffaf0"); }
+    return (penURL = cv.toDataURL());
   }
   /* 자리 옆 주사위: 색 · 눈 · 기울기 무작위 (사람마다 고정 → 다시 그려도 안 바뀜) */
   const DIE_COLORS = [["#8a2a20", "#f4ecd8"], ["#2f4f7a", "#f4ecd8"], ["#3f5f2c", "#f4ecd8"], ["#e8dcc0", "#2b1a0c"], ["#c47f1a", "#2b1a0c"], ["#5a3a6e", "#f4ecd8"], ["#2a2420", "#e8c46a"], ["#9a9a92", "#2b1a0c"]];
