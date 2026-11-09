@@ -2116,7 +2116,7 @@ html.has-3d .topbar { box-shadow: none; }
 .npc-pick .np-job { font-size:11px; opacity:.7; }
 .to-tag[data-npc] { cursor:pointer; }
 /* 설정 창 안 AI 연결 (호스트만) */
-.sound-pop:has(.snd-ai:not([hidden])) { width: 280px; }
+.sound-pop:has(#sndAi:not([hidden])), .sound-pop:has(#sndIce[open]) { width: 280px; }
 .snd-ai { border-top: 1px dashed var(--paper-lo); padding-top: 8px; font-size: 12px; }
 .snd-ai > summary { cursor: pointer; font-family: var(--font); font-size: 12px; }
 .snd-ai[open] > summary { margin-bottom: 8px; }
@@ -2448,6 +2448,7 @@ html.has-3d .topbar { box-shadow: none; }
             <label class="snd-chk"><input id="fxType" type="checkbox" /> 타이핑</label>
             <label class="snd-chk"><input id="fxItem" type="checkbox" /> 소지품</label>
           </div>
+          <details id="sndIce" class="snd-ai"><summary>연결 (TURN)</summary><div id="sndIceBody"></div></details>
           <details id="sndAi" class="snd-ai" hidden><summary>AI 연결</summary><div id="sndAiBody"></div></details>
           <div class="snd-save"><button id="downloadBtn" class="ic-btn" type="button" data-icon="save" aria-label="테이블 저장"><span class="ic-tip">테이블 저장</span></button></div>
         </div>
@@ -3972,8 +3973,9 @@ const WebFeatures = (() => {
     }
     return [...m.values()].sort((a, b) => (a.seq ?? a.at ?? 0) - (b.seq ?? b.at ?? 0) || a.id.localeCompare(b.id));
   }
-  function page(entries, { pid, host = false, before = Infinity, limit = 100, cuts = [] } = {}) {
-    const visible = merge([], entries, cuts).filter(e => (!e.toIds || host || e.toIds.includes(pid)) && (!e.secret || host || e.byId === pid));
+  function page(entries, { pid, host = false, before = Infinity, limit = 100, cuts = [], merged = false } = {}) {
+    // merged = 이미 merge(… cuts)로 정리된 목록 (다시 정렬하지 않음)
+    const visible = (merged ? entries : merge([], entries, cuts)).filter(e => (!e.toIds || host || e.toIds.includes(pid)) && (!e.secret || host || e.byId === pid));
     const older = visible.filter(e => (e.seq ?? 0) < before);
     const items = older.slice(-Math.max(1, Math.min(200, limit)));
     return { entries: items, total: visible.length, next: items.length ? (items[0].seq ?? 0) : 0, more: older.length > items.length };
@@ -4882,7 +4884,7 @@ const Turn = (() => {
 const MAX_PEOPLE = 4;
 const LOG_LIMIT = 2000;
 const PORTRAIT_MAX = 80_000;   // 초상 하나 최대
-const APP_BUILD = 7;
+const APP_BUILD = 8;
 const clipStr = (v, n) => String(v ?? "").slice(0, n);          // 호스트·플레이어 코드가 섞이면 조용히 진행하지 않음
 
 function randomId(len = 10) {
@@ -5007,6 +5009,7 @@ class HostGame {
     if (obj.log != null && (!Array.isArray(obj.log) || obj.log.length > LOG_LIMIT ||
         obj.log.some((e) => !e || typeof e !== "object" || typeof e.kind !== "string"))) throw new Error("세이브의 기록 목록이 손상됨.");
     if (obj.banned != null && !Array.isArray(obj.banned)) throw new Error("세이브의 추방 목록이 손상됨.");
+    if (obj.bannedNames != null && (!Array.isArray(obj.bannedNames) || obj.bannedNames.some((x) => typeof x !== "string"))) throw new Error("세이브의 추방 목록이 손상됨.");
     const { errors } = Engine.validateScenario(obj.scenario);
     if (errors.length) throw new Error("세이브 속 시나리오 손상됨.");
     if (!obj.scenario.scenes[obj.game.currentScene]) throw new Error("세이브의 현재 장면이 시나리오에 없음.");
@@ -5554,9 +5557,9 @@ class HostGame {
     this.snapSent.set(pid, sig);
     this.emit(pid, { t: "snap", data });
   }
-  sendInit(pid) {
+  sendInit(pid, proof = null) {
     this.imgSent?.delete(pid);   // 새로 연결되면 그림도 다시
-    this.emit(pid, { t: "hello", pid, build: APP_BUILD });
+    this.emit(pid, { t: "hello", pid, build: APP_BUILD, ...(proof ? { proof } : {}) });
     this.emit(pid, { t: "loginit", entries: this.data.log.filter((e) => this.visible(e, pid)).slice(-300), cuts: this.data.historyCuts, generation: this.data.historyGeneration });
     this.sendImage(pid);
     this.sendSnap(pid, true);
@@ -5566,6 +5569,16 @@ class HostGame {
   }
 
   /* ---------------- 연결 ---------------- */
+  /** 접속 확인용: 키 id(해시 앞부분)로 그 자리의 키를 찾음 */
+  async findKey(id) {
+    this.keyIds ??= new Map();
+    for (const p of Object.values(this.data.players)) {
+      if (!p.key || p.isHost) continue;
+      if (!this.keyIds.has(p.key)) this.keyIds.set(p.key, await Auth.keyId(p.key));
+      if (this.keyIds.get(p.key) === id) return p.key;
+    }
+    return null;
+  }
   onConnect(connId, meta) {
     const d = this.data;
     if (meta?.build !== APP_BUILD) return { ok: false, reason: "게임 버전이 다름. 최신 파일로 갱신 후 강력 새로고침해 다시 접속하세요." };
@@ -5586,6 +5599,7 @@ class HostGame {
       if (old != null && old !== connId) { this.connPid.delete(old); this.transport.close(old); }
     } else {
       if (!name) return { ok: false, reason: "닉네임 입력 필요." };
+      if ((d.bannedNames ?? []).includes(Turn.bare(name))) return { ok: false, reason: "이 테이블에서 추방됨." };
       if (Object.keys(d.players).length >= MAX_PEOPLE) return { ok: false, reason: `자리 없음. (최대 ${MAX_PEOPLE}명)` };
       let unique = name;
       for (let i = 2; Object.values(d.players).some((p) => p.name === unique); i++) unique = `${name.slice(0, 14)}${i}`;
@@ -5595,7 +5609,7 @@ class HostGame {
     }
     this.conns.set(pid, connId);
     this.connPid.set(connId, pid);
-    this.sendInit(pid);
+    this.sendInit(pid, typeof meta?.proof === "string" ? meta.proof : null);
     if (isNew) this.addLog({ kind: "system", text: `${d.players[pid].name} 입장.` });
     this.pushAll();
     this.save();
@@ -5637,9 +5651,11 @@ class HostGame {
   async sendHistory(pid, msg) {
     if (typeof msg.requestId !== 'string' || msg.requestId.length > 64) return;
     try {
-      const entries = WebFeatures.merge(await this.readHistory(), this.data.log, this.data.historyCuts);
+      const sig = `${this.data.logSeq}|${this.data.historyCuts.length}|${this.data.historyGeneration}`;
+      if (this.histCache?.sig !== sig) this.histCache = { sig, entries: WebFeatures.merge(await this.readHistory(), this.data.log, this.data.historyCuts) };
+      const entries = this.histCache.entries;
       const before = Number.isSafeInteger(msg.before) && msg.before > 0 ? msg.before : Infinity;
-      const page = WebFeatures.page(entries, { pid, host: this.isHost(pid), before, limit: 100, cuts: this.data.historyCuts });
+      const page = WebFeatures.page(entries, { pid, host: this.isHost(pid), before, limit: 100, cuts: this.data.historyCuts, merged: true });
       // 읽기를 기다리는 동안 퇴장한 참가자에게는 전송하지 않는다.
       if (this.online(pid)) this.emit(pid, {t:'historyPage',requestId:msg.requestId,...page,cuts:this.data.historyCuts,generation:this.data.historyGeneration});
     } catch { this.emit(pid,{t:'historyPage',requestId:msg.requestId,error:'장기 보관소 읽기 실패. 호스트에서 백업 상태 확인 필요.'}); }
@@ -5940,10 +5956,23 @@ class HostGame {
         const q = d.players[target];
         if (!q || this.isHost(target)) return;
         if (q.key) d.banned.push(q.key);
+        (d.bannedNames ??= []).push(Turn.bare(q.name));   // 저장소를 지우고 같은 닉네임으로 오는 것도 막음
         const connId = this.conns.get(target);
-        if (connId != null) { this.transport.send(connId, { t: "kicked", reason: "호스트에 의해 추방됨." }); this.transport.close(connId); }
+        if (connId != null) { this.transport.send(connId, { t: "kicked", reason: "호스트에 의해 추방됨." }); this.transport.close(connId); this.connPid.delete(connId); }
         this.conns.delete(target);
         delete d.players[target];
+        // 남은 흔적 정리: 초상 · 지도 말 · 위치 · 장면 말 · 대기 판정 · 재굴림 기회
+        const g = d.game;
+        delete d.portraits?.[target];
+        for (const pos of Object.values(g.mapPos ?? {})) delete pos[target];
+        delete g.mapLoc?.[target];
+        for (const t of Object.values(g.tokens ?? {})) delete t[target];
+        const waiting = Engine.pendingList(g);
+        for (let i = waiting.length - 1; i >= 0; i--) if (waiting[i].who === target) waiting.splice(i, 1);
+        g.pendingCheck = waiting[0] ?? null;
+        if (g.retry?.pid === target) g.retry = null;
+        for (const m of [this.imgSent, this.snapSent, this.suggestAt, this.suggestHistory]) m?.delete(target);
+        this.broadcast({ t: "typing", pid: target, on: false });
         this.addLog({ kind: "system", text: `${q.name} 퇴장.` });
         return this.pushAll();
       }
@@ -6427,16 +6456,40 @@ class HostGame {
  * - 플레이어는 끊기면 3초마다 자동 재연결
  * ================================================================== */
 
+/* 접속 확인 (HMAC-SHA256): 한 번 접속한 플레이어는 키를 보내지 않고 호스트가 준 일회용 값에 서명만 보냄.
+ * 호스트도 플레이어가 준 값에 같은 키로 서명해 돌려줌 → 방 코드만 아는 사람이 호스트인 척해도 키를 못 얻고, 플레이어가 알아챔 */
+const Auth = (() => {
+  const enc = (s) => new TextEncoder().encode(String(s));
+  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const sha = async (s) => hex(await crypto.subtle.digest("SHA-256", enc(s)));
+  async function mac(key, msg) {
+    const k = await crypto.subtle.importKey("raw", enc(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    return hex(await crypto.subtle.sign("HMAC", k, enc(msg)));
+  }
+  const keyId = async (key) => (await sha(`trpg-key|${key}`)).slice(0, 32);
+  const eq = (a, b) => typeof a === "string" && typeof b === "string" && a.length === b.length && [...a].reduce((x, c, i) => x | (c.charCodeAt(0) ^ b.charCodeAt(i)), 0) === 0;
+  return { sha, mac, keyId, eq, joinMsg: (room, n) => `join|${room}|${n}`, hostMsg: (room, n) => `host|${room}|${n}`, nonce: () => randomId(24) };
+})();
+
 const Net = (() => {
   const PREFIX = "trpgtable-v1-";
   const hostPeerId = (room) => `${PREFIX}${room}-host`;
   const MAX_MSG = 20000;
+  // PeerJS 기본값(공용 STUN · TURN) + 설정에서 넣은 내 TURN (앞에 둠)
+  const DEFAULT_ICE = [{ urls: "stun:stun.l.google.com:19302" }, { urls: ["turn:eu-0.turn.peerjs.com:3478", "turn:us-0.turn.peerjs.com:3478"], username: "peerjs", credential: "peerjsp" }];
+  function iceConfig() {
+    let c = null;
+    try { c = JSON.parse(localStorage.getItem("trpg:ice")); } catch {}
+    const url = String(c?.urls ?? "").trim();
+    const mine = /^turns?:\S+$/i.test(url) ? [{ urls: url, username: String(c.username ?? ""), credential: String(c.credential ?? "") }] : [];
+    return { iceServers: [...mine, ...DEFAULT_ICE], sdpSemantics: "unified-plan" };
+  }
 
   /** 호스트: 고정 ID로 대기, 들어오는 연결을 game에 넘긴다 */
   function startHost(room, { getGame, onStatus }) {
     let peer = null;
     let stopped = false;
-    let retryTimer = null;
+    let retryTimer = null, reconTimer = null, backoff = 2000, opened = false;
     let seq = 0;
     const conns = new Map(); // connId -> conn
 
@@ -6457,26 +6510,35 @@ const Net = (() => {
       clearTimeout(retryTimer);
       retryTimer = setTimeout(open, ms);
     }
+    // 중개 서버만 끊긴 것: peer를 새로 만들지 않고 다시 붙음 (이미 연결된 친구와의 P2P는 유지). 2초 → 4 → 8 … 최대 30초
+    function reconnectLater() {
+      clearTimeout(reconTimer);
+      reconTimer = setTimeout(() => { try { if (!stopped && peer && !peer.destroyed && peer.disconnected) peer.reconnect(); } catch {} }, backoff);
+      backoff = Math.min(30000, backoff * 2);
+    }
 
     function open() {
       if (stopped) return;
       try { peer?.destroy(); } catch {}
+      opened = false;
       onStatus({ level: "wait", text: "연결 준비 중…" });
-      peer = new Peer(hostPeerId(room), { debug: 0 });
+      peer = new Peer(hostPeerId(room), { debug: 0, config: iceConfig() });
 
-      peer.on("open", () => onStatus({ level: "ok", text: "테이블 열림. 접속 가능." }));
+      peer.on("open", () => { opened = true; backoff = 2000; onStatus({ level: "ok", text: "테이블 열림. 접속 가능." }); });
       peer.on("disconnected", () => {
         if (stopped) return;
         onStatus({ level: "wait", text: "중개 서버 재연결 중… 접속한 친구는 계속 진행 가능." });
-        setTimeout(() => { try { if (!stopped && peer && !peer.destroyed) peer.reconnect(); } catch {} }, 2000);
+        reconnectLater();
       });
       peer.on("error", (err) => {
         if (stopped) return;
         if (err.type === "unavailable-id") {
           // 방금 닫은 이전 창의 연결이 아직 정리되지 않음 → 잠시 후 같은 ID로 재시도
+          if (opened && !peer.destroyed) return reconnectLater();
           return retry(4000, { level: "wait", text: "이전 연결 정리 대기 중… 곧 복귀." });
         }
         if (["network", "server-error", "socket-error", "socket-closed"].includes(err.type)) {
+          if (opened && !peer.destroyed) { onStatus({ level: "bad", text: "중개 서버 연결 실패. 접속한 친구는 계속 진행 가능. 재시도 중…" }); return reconnectLater(); }
           return retry(5000, { level: "bad", text: "중개 서버 연결 실패. 재시도 중…" });
         }
         if (err.type === "browser-incompatible") return onStatus({ level: "bad", text: "이 브라우저는 P2P 미지원." });
@@ -6485,14 +6547,36 @@ const Net = (() => {
 
       peer.on("connection", (conn) => {
         const connId = `c${++seq}`;
-        let joined = false;
-        const joinTimer = setTimeout(() => { if (!joined) try { conn.close(); } catch {} }, 15000);
+        const nonce = Auth.nonce();
+        let joined = false, joining = false, queue = [];
+        const joinTimer = setTimeout(() => { if (!joined) try { conn.close(); } catch {} }, 30000);
         // 플레이어는 8초마다 ping을 보낸다. 30초 넘게 아무 신호가 없으면 끊긴 것으로 보고 정리해
         // 유령 접속(온라인 표시·턴 대기)이 남지 않게 한다.
         let lastSeen = Date.now();
         const aliveTimer = setInterval(() => {
           if (joined && Date.now() - lastSeen > 30000) gone();
         }, 5000);
+        const sendChallenge = () => { try { conn.send({ t: "challenge", nonce, build: APP_BUILD }); } catch {} };
+        if (conn.open) sendChallenge(); else conn.on("open", sendChallenge);
+
+        const deliver = (msg, game) => {
+          // UI/보관함 요청과 무관한 전송 계층 생존 확인. 게임 로그에 남기지 않는다.
+          if (msg?.t === "ping") { try { conn.send({ t: "pong", seq: msg.seq }); } catch {} return; }
+          game.onMessage(connId, msg);
+        };
+        async function admit(msg, game) {
+          const meta = { name: msg.name, build: msg.build };
+          if (msg.build !== APP_BUILD) return game.onConnect(connId, meta);   // 버전 거절
+          let key = null;
+          if (typeof msg.key === "string") key = msg.key;
+          else if (typeof msg.keyId === "string" && typeof msg.mac === "string") {
+            key = await game.findKey(msg.keyId);
+            if (!key) return { ok: false, needKey: true };
+            if (!Auth.eq(await Auth.mac(key, Auth.joinMsg(room, nonce)), msg.mac)) return { ok: false, reason: "접속 확인 실패." };
+          } else return { ok: false, reason: "잘못된 접속 정보." };
+          const proof = typeof msg.pnonce === "string" && msg.pnonce.length <= 64 ? await Auth.mac(key, Auth.hostMsg(room, msg.pnonce)) : null;
+          return game.onConnect(connId, { ...meta, key, proof });
+        }
 
         conn.on("data", (msg) => {
           lastSeen = Date.now();
@@ -6504,26 +6588,24 @@ const Net = (() => {
           if (size > maxSize) return;
           const game = getGame();
           if (!game) return;
-          if (!joined) {
-            if (msg?.t !== "join") return;
-            clearTimeout(joinTimer);
-            conns.set(connId, conn);
-            const r = game.onConnect(connId, { key: msg.key, name: msg.name, build: msg.build });
+          if (joined) return deliver(msg, game);
+          if (joining) { if (queue.length < 20) queue.push(msg); return; }   // 확인 중 들어온 메시지는 잠시 보관
+          if (msg?.t !== "join") return;
+          joining = true;
+          conns.set(connId, conn);
+          admit(msg, game).catch(() => ({ ok: false, reason: "접속 확인 실패." })).then((r) => {
+            joining = false;
+            if (r.needKey) { conns.delete(connId); queue = []; try { conn.send({ t: "needKey" }); } catch {} return; }
             if (!r.ok) {
               try { conn.send({ t: "rejected", reason: r.reason }); } catch {}
               conns.delete(connId);
               setTimeout(() => { try { conn.close(); } catch {} }, 500);
               return;
             }
+            clearTimeout(joinTimer);
             joined = true;
-            return;
-          }
-          // UI/보관함 요청과 무관한 전송 계층 생존 확인. 게임 로그에 남기지 않는다.
-          if (msg?.t === "ping") {
-            try { conn.send({ t: "pong", seq: msg.seq }); } catch {}
-            return;
-          }
-          game.onMessage(connId, msg);
+            for (const m of queue.splice(0)) deliver(m, game);
+          });
         });
         const gone = () => {
           clearTimeout(joinTimer);
@@ -6542,18 +6624,20 @@ const Net = (() => {
     open();
     return {
       transport,
-      stop() { stopped = true; clearTimeout(retryTimer); try { peer?.destroy(); } catch {} },
+      stop() { stopped = true; clearTimeout(retryTimer); clearTimeout(reconTimer); try { peer?.destroy(); } catch {} },
     };
   }
 
-  /** 플레이어: 호스트에 연결, 끊기면 자동 재연결 */
-  function joinRoom(room, { key, name, onMessage, onStatus }) {
+  /** 플레이어: 호스트에 연결, 끊기면 자동 재연결.
+   *  joined = 이 키로 접속한 적 있음 (키 대신 서명만 보냄), onJoined() = 첫 확인 성공, confirmKey() = 호스트가 키를 다시 요청했을 때 보낼지 */
+  function joinRoom(room, { key, name, joined = false, onJoined = () => {}, confirmKey = async () => false, onMessage, onStatus }) {
     let peer = null;
     let conn = null;
     let stopped = false;
     let timer = null;
     let everConnected = false;
     let ready = false, heartbeat = null, lastReceived = 0;
+    let sendKey = !joined;
 
     function stopHeartbeat() { clearInterval(heartbeat); heartbeat = null; }
 
@@ -6569,19 +6653,23 @@ const Net = (() => {
       try { c.close(); } catch {}
       schedule(3000);
     }
+    const live = () => !!(conn?.open && ready);
 
     function ensurePeer(cb) {
       if (peer && !peer.destroyed && peer.open) return cb();
+      // 중개 서버만 끊김 → 새로 만들지 않고 다시 붙은 뒤 한 번만 연결
+      if (peer && !peer.destroyed && peer.disconnected) { peer.once("open", cb); try { peer.reconnect(); } catch {} return; }
       try { peer?.destroy(); } catch {}
-      peer = new Peer({ debug: 0 });
-      peer.on("open", cb);
-      peer.on("disconnected", () => { if (!stopped) setTimeout(() => { try { peer.reconnect(); } catch {} }, 2000); });
+      peer = new Peer({ debug: 0, config: iceConfig() });
+      peer.once("open", cb);   // 중개 서버 재연결 때마다 open이 다시 와도 멀쩡한 연결을 끊지 않게 한 번만
+      peer.on("disconnected", () => { if (!stopped) setTimeout(() => { try { if (!peer.destroyed && peer.disconnected) peer.reconnect(); } catch {} }, 2000); });
       peer.on("error", (err) => {
         if (stopped) return;
         if (err.type === "peer-unavailable") {
           onStatus({ level: "wait", text: everConnected ? "호스트 부재. 돌아오면 바로 이어짐…" : "호스트 찾는 중… 테이블이 열려 있는지 확인 필요." });
           return schedule(3000);
         }
+        if (live()) return console.warn("[peer]", err.type, err.message);   // 호스트와의 P2P는 살아 있음 → 그대로 진행
         if (["network", "server-error", "socket-error", "socket-closed"].includes(err.type)) {
           onStatus({ level: "bad", text: "중개 서버 연결 실패. 재시도 중…" });
           try { peer.destroy(); } catch {}
@@ -6604,23 +6692,50 @@ const Net = (() => {
         try { old?.close(); } catch {}
         const c = peer.connect(hostPeerId(room), { reliable: true, serialization: "json" });
         conn = c;
+        let pnonce = null, hostNonce = null, chain = Promise.resolve();
         const openTimer = setTimeout(() => { if (!c.open && conn === c) lostConnection(c); }, 10000);
+        let helloTimer = null;
         c.on("open", () => {
           clearTimeout(openTimer);
-          try { c.send({ t: "join", key, name, build: APP_BUILD }); } catch { lostConnection(c); }
+          helloTimer = setTimeout(() => { if (conn === c && !ready) lostConnection(c, "호스트 응답 없음. 호스트가 이전 버전이면 새로고침 필요. 재연결 중…"); }, 12000);
         });
-        c.on("data", (msg) => {
+        const sendJoin = async () => {
+          pnonce = Auth.nonce();
+          const base = { t: "join", name, build: APP_BUILD, pnonce };
+          c.send(sendKey ? { ...base, key } : { ...base, keyId: await Auth.keyId(key), mac: await Auth.mac(key, Auth.joinMsg(room, hostNonce)) });
+        };
+        const mismatch = (text) => {
+          stopped = true; ready = false; stopHeartbeat(); clearTimeout(helloTimer);
+          onStatus({ level: "bad", text });
+          try { c.close(); } catch {}
+        };
+        async function handle(msg) {
           if (conn !== c || stopped) return;
           lastReceived = Date.now();
           if (msg?.t === "pong") return;
+          if (msg?.t === "challenge") {
+            if (msg.build !== APP_BUILD) { mismatch("호스트가 다른 버전 게임을 실행 중. 둘 다 강력 새로고침 필요."); return onMessage({ t: "updateRequired" }); }
+            if (typeof msg.nonce !== "string" || msg.nonce.length > 64) return;
+            hostNonce = msg.nonce;
+            try { await sendJoin(); } catch { lostConnection(c); }
+            return;
+          }
+          if (msg?.t === "needKey") {
+            // 호스트가 이 키를 모름 (복구한 테이블 등). 호스트인 척하는 사람일 수도 있어 확인을 받음
+            if (!(await confirmKey())) { mismatch("접속 키를 보내지 않음. 호스트에게 확인 후 새로고침."); return onMessage({ t: "keyDeclined" }); }
+            sendKey = true;
+            try { await sendJoin(); } catch { lostConnection(c); }
+            return;
+          }
           if (msg?.t === "hello") {
+            clearTimeout(helloTimer);
             if (msg.build !== APP_BUILD) {
-              stopped = true; ready = false; stopHeartbeat();
-              onStatus({ level: "bad", text: "호스트가 이전 버전 게임을 실행 중. 호스트 새로고침 필요." });
-              onMessage({ t: "updateRequired" });
-              try { c.close(); } catch {}
-              return;
+              mismatch("호스트가 이전 버전 게임을 실행 중. 호스트 새로고침 필요.");
+              return onMessage({ t: "updateRequired" });
             }
+            const want = pnonce ? await Auth.mac(key, Auth.hostMsg(room, pnonce)) : null;
+            if (!want || !Auth.eq(want, msg.proof)) { mismatch("호스트 확인 실패. 진짜 호스트가 아닐 수 있음 → 연결 끊음."); return onMessage({ t: "hostMismatch" }); }
+            if (sendKey) { sendKey = false; onJoined(); }
             ready = true; everConnected = true; onStatus({ level: "ok", text: "연결됨" });
             stopHeartbeat();
             heartbeat = setInterval(() => {
@@ -6629,14 +6744,17 @@ const Net = (() => {
               try { c.send({ t: "ping", seq: Date.now() }); } catch { lostConnection(c); }
             }, 8000);
           }
-          if (msg?.t === "rejected" || msg?.t === "kicked") { stopped = true; ready = false; stopHeartbeat(); }
+          if (!ready && msg?.t !== "rejected" && msg?.t !== "kicked") return;   // 확인 전엔 다른 메시지 무시
+          if (msg?.t === "rejected" || msg?.t === "kicked") { stopped = true; ready = false; stopHeartbeat(); clearTimeout(helloTimer); }
           onMessage(msg);
-        });
+        }
+        // 확인(비동기) 중에도 순서를 지키도록 한 줄로 처리
+        c.on("data", (msg) => { chain = chain.then(() => handle(msg)).catch((e) => console.warn("[net]", e)); });
         c.on("close", () => {
-          clearTimeout(openTimer);
+          clearTimeout(openTimer); clearTimeout(helloTimer);
           lostConnection(c);
         });
-        c.on("error", () => { clearTimeout(openTimer); lostConnection(c); });
+        c.on("error", () => { clearTimeout(openTimer); clearTimeout(helloTimer); lostConnection(c); });
       });
     }
 
@@ -6647,7 +6765,7 @@ const Net = (() => {
     };
   }
 
-  return { startHost, joinRoom, hostPeerId };
+  return { startHost, joinRoom, hostPeerId, iceConfig };
 })();
 
 
@@ -8927,13 +9045,25 @@ const BannerArt = (() => {
   function scheduleHostSave() {
     // 다음 이벤트 루프까지 기다리지 않고 현재 동기 작업이 끝나자마자 저장을 시작한다.
     // 여러 연속 상태 변경은 하나의 IndexedDB 트랜잭션으로 모인다.
+    // 기록 한 줄마다 세이브 전체를 쓰지 않게 0.4초 묶음. 창 닫기 · 탭 숨김 때는 바로 저장
     if (saveQueued) return;
     saveQueued = true;
-    queueMicrotask(() => { saveQueued = false; flushHostSave(); });
+    setTimeout(() => { saveQueued = false; flushHostSave(); }, 400);
   }
 
   const TAB_ID = randomId(8);
-  function takeHostLock(room) {
+  async function takeHostLock(room) {
+    if (!navigator.locks?.request) return takeHostLockLS(room);
+    try {
+      return await new Promise((resolve, reject) => {
+        navigator.locks.request(`trpg-host-${room}`, { ifAvailable: true }, (lock) => {
+          resolve(!!lock);
+          return lock ? new Promise(() => {}) : undefined;   // 탭이 닫힐 때까지 쥠
+        }).catch(reject);
+      });
+    } catch { return takeHostLockLS(room); }
+  }
+  function takeHostLockLS(room) {
     const k = `trpg:hostlock:${room}`;
     const cur = LS.get(k);
     if (cur && cur.tab !== TAB_ID && Date.now() - cur.at < 6000) return false;
@@ -8944,9 +9074,9 @@ const BannerArt = (() => {
     return true;
   }
 
-  function startHost(room, data) {
+  async function startHost(room, data) {
     try { HostGame.checkSave(data); } catch (err) { return showMessage("테이블 열기 실패", err.message); }
-    if (!takeHostLock(room)) {
+    if (!(await takeHostLock(room))) {
       return showMessage("이미 열려 있음", "다른 탭에서 진행 중. 그 탭을 쓰거나, 닫고 새로고침.");
     }
     app.role = "host";
@@ -9023,7 +9153,9 @@ const BannerArt = (() => {
       render();
     }
     show("table");
-    app.net = Net.joinRoom(room, { key: me.key, name: me.name, onMessage: handleMsg, onStatus: setStatus });
+    app.net = Net.joinRoom(room, { key: me.key, name: me.name, joined: !!me.joined, onMessage: handleMsg, onStatus: setStatus,
+      onJoined: () => LS.set(K.me(room), { ...(LS.get(K.me(room)) ?? me), joined: true }),
+      confirmKey: async () => confirm("호스트가 접속 키를 다시 요청함.\n호스트가 테이블을 복구했다고 직접 알린 경우에만 확인.") });
     window.addEventListener("pagehide", flushCopy);
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushCopy(); });
   }
@@ -9097,6 +9229,8 @@ const BannerArt = (() => {
   function handleMsg(msg) {
     switch (msg?.t) {
       case "hello": app.me = msg.pid; return;
+      case "hostMismatch": app.net?.stop(); return showMessage("호스트 확인 실패", "같은 방 코드로 다른 사람이 호스트인 척하는 중일 수 있음. 진짜 호스트에게 테이블이 열려 있는지 확인 후 새로고침.");
+      case "keyDeclined": app.net?.stop(); return showMessage("접속 중단", "접속 키를 보내지 않음. 호스트에게 확인 후 새로고침.");
       case "updateRequired": return showMessage("호스트 버전이 오래됨", "호스트에게 게임 페이지를 강력 새로고침하고 기존 테이블을 다시 열어 달라고 요청하세요. 플레이어도 새로고침하면 기존 캐릭터로 재접속합니다.");
       case "historyPage": acceptHistory(msg); return;
       case "loginit": {
@@ -11815,6 +11949,15 @@ const BannerArt = (() => {
     const off = !o.sfx && !o.bgm;
     setIcon($("#soundBtn"), "gear", off ? "설정 · 소리 꺼짐" : "설정");
   }
+  /* 내 TURN 서버 (이 기기만, 다음 연결부터): 공용 TURN으로 안 붙는 통신망용 */
+  function iceForm() {
+    const cur = LS.get("trpg:ice") ?? {};
+    const f = (k, label, type = "text", ph = "") => { const n = el("input", { type, value: cur[k] ?? "", placeholder: ph, autocomplete: "off" });
+      n.addEventListener("change", () => { const v = { ...(LS.get("trpg:ice") ?? {}), [k]: n.value.trim() }; if (v.urls) LS.set("trpg:ice", v); else LS.del("trpg:ice"); });
+      return el("label", { class: "field" }, el("span", {}, label), n); };
+    return el("div", { class: "ai-grid" }, f("urls", "TURN 주소", "text", "turn:주소:3478"), f("username", "아이디"), f("credential", "비밀번호", "password"),
+      el("p", { class: "small muted" }, "다음 연결부터 적용."));
+  }
   function openSound(open) {
     $("#soundPop").hidden = !open;
     $("#soundBtn").setAttribute("aria-expanded", String(open));
@@ -11822,6 +11965,7 @@ const BannerArt = (() => {
     if (open) {
       syncSound();
       // AI 연결 설정 · 연결 테스트: AI GM을 돌리는 호스트만
+      if (!$("#sndIceBody").firstChild) $("#sndIceBody").replaceChildren(iceForm());
       const box = $("#sndAi"), host = app.role === "host";
       box.hidden = !host;
       if (host && !$("#sndAiBody").firstChild) $("#sndAiBody").replaceChildren(aiForm(() => app.game?.pushAll(), { compact: true }));

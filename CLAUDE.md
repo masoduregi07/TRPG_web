@@ -23,6 +23,10 @@
 - 호스트 브라우저가 서버(`HostGame`), 플레이어는 PeerJS로 접속(`Net`). 호스트 ID `trpgtable-v1-<room>-host`
 - 모듈: `Rules`(CoC 7e) · `Engine`(시나리오 검증/상태/뷰) · `AI`(호출·프롬프트·parseGM) · `Turn`(AI 응답 검증) · `WebFeatures`(단서 표시 등)
 - AI 흐름: `queueAI`(8초 모음, 입력마다 +5초 연장, 최대 20초) → `runAI` → `turnContext` → `askGM` → `Turn.validate` → `applyPlan`
+- 접속 확인(`Auth`, APP_BUILD 8): 호스트가 연결마다 `challenge`(일회용 값) → 플레이어 첫 접속만 키, 이후 `keyId` + HMAC 서명. `hello.proof`(호스트가 플레이어 값에 서명)가 틀리면 `hostMismatch`로 중단. 호스트가 키를 모르면 `needKey` → 플레이어 확인 받고만 키 전송. 첫 접속 성공 시 `trpg:me:<room>.joined`
+- 재연결: 중개 서버만 끊기면 peer 유지 + `reconnect()` 백오프(2→30초), 플레이어 peer는 `once("open")`, P2P 살아 있으면 peer 오류 무시. ICE = 설정의 내 TURN(`trpg:ice`) + PeerJS 기본(공용 STUN·TURN)
+- 추방: 키 + 닉네임(`bannedNames`, 띄어쓰기 무시) 기억, 초상·지도 말·위치·대기 판정·재굴림 정리
+- 자동 저장 0.4초 묶음(창 닫기·탭 숨김은 즉시). 호스트 탭 잠금 = Web Locks(없으면 localStorage 심장박동). 보관함 병합 결과는 `logSeq`가 같으면 재사용
 - 저장: IndexedDB(호스트 세이브·플레이어 사본), localStorage(설정, 단서 `trpg:clueKind/clueOrder/clueSeen:<room>`, 작성 중 기록지 `trpg:draft:<room>` = {scenario, draft}, 서식 보관 `trpg:character-profiles:v1`, 최근 NPC `trpg:recentNpc:<room>`)
 
 ## 확정된 결정
@@ -82,7 +86,7 @@
 
 ### 상단 줄 · 설정
 - 순서: 상태 칩(램프 점 + 접속 가능/불가 + 방 코드, 누르면 복사) │ 기록 보관함 · 도움말 · 설정 │ 나가기. 아이콘은 같은 크기 놋쇠 2톤
-- 설정 창: 방 코드 줄 없음. 호스트만 "AI 연결"(공급자·모델·주소·키·연결 테스트, 사용량 표 생략). 테이블 저장은 설정 안에 유지
+- 설정 창: 방 코드 줄 없음. 모두에게 접힌 "연결 (TURN)"(주소·아이디·비밀번호, 이 기기·다음 연결부터). 호스트만 "AI 연결"(공급자·모델·주소·키·연결 테스트, 사용량 표 생략). 테이블 저장은 설정 안에 유지
 
 ### 핸드아웃
 - 시나리오 `handouts: { id: { title, kind: letter·news·note·photo, text, image(https·data ≤400KB), to: all(기본)·finder } }`, 단서 `handout: id` → 단서와 함께 공개
