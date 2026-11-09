@@ -644,9 +644,11 @@ textarea.code { font: 12px/1.6 var(--font); }
   font-family: var(--font); color: var(--ink);
   /* 오래된 기록지: 결 있는 섬유 + 옅은 얼룩 + 바랜 가장자리 */
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.04 .9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E") 0 0/200px 200px,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E") 0 0/160px 160px,radial-gradient(ellipse 45% 30% at 78% 70%,rgba(150,100,40,.13),transparent 70%),radial-gradient(ellipse 30% 22% at 20% 25%,rgba(150,100,40,.09),transparent 70%),radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(110,70,25,.2) 100%),#eadab3;
-  box-shadow: var(--outline), inset 0 0 0 3px rgba(150, 110, 55, .18), 3px 4px 0 1px rgba(0, 0, 0, .35);
+  box-shadow: 0 0 0 2px #2b1a0c, 3px 4px 0 1px rgba(0, 0, 0, .35);
 }
-.dossier.me { box-shadow: var(--outline), inset 0 0 0 3px rgba(240, 164, 60, .75), 3px 4px 0 1px rgba(0, 0, 0, .35); }
+/* 테두리: 가는 먹선 + 안쪽에 인쇄된 듯한 옅은 여백선 (주황 안쪽 테 없앰) */
+.dossier::after { content: ""; position: absolute; inset: 5px; pointer-events: none; border: 1px solid rgba(110, 70, 25, .3); }
+.dossier.me { box-shadow: 0 0 0 2px #2b1a0c, 3px 4px 0 1px rgba(0, 0, 0, .35); }
 /* 간격 (3px 단위): 머리줄 → 12 → 사진·기록 칸 → 6 → 연결고리 → 12 → 능력치 → 6 → 체력 */
 .dos-head {
   grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; margin-bottom: 12px;
@@ -664,8 +666,9 @@ textarea.code { font: 12px/1.6 var(--font); }
 .dos-notes b { font-weight: 400; color: #7a6548; }
 .dos-secret { color: #6a1e16; }
 /* 인물 기록 정돈 (A) */
-.dos-id { display: grid; grid-template-rows: none; align-content: start; gap: 4px; height: auto; min-height: 0; }
-.char-col .dos-id { grid-auto-rows: auto; min-height: 0; }
+/* 이름 · 직업줄 · 특징 간격 좁게 (.char-col .dos-body 행 높이 규칙보다 우선) */
+.dossier .dos-body.dos-id { display: grid; grid-template-rows: none; grid-auto-rows: auto; align-content: start; gap: 3px; height: auto; min-height: 0; }
+.dossier .dos-id .dos-trait { margin-top: 2px; }
 .dos-id .sheet-name { font-weight: 400; font-size: 19px; line-height: 1.2; }
 .dos-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 11px; }
 .dos-job { padding: 0 6px; color: var(--ink); box-shadow: inset 0 0 0 1px #6b5a44; background: rgba(255, 250, 235, .55); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
