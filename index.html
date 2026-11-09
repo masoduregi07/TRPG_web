@@ -724,8 +724,18 @@ html.calm-item .dos-items .item.lost { display: none; }
 .say-box[data-mode="ask"] { --say: #2a3550; }
 .say-box[data-mode="ask"] > input { background: #e4e2d6; }
 .say-box[data-mode="cmd"] { --say: #5a4a2a; }
-.say-hint { flex-basis: 100%; margin: 0; padding-left: 3px; font-family: var(--font); font-size: 11px; color: var(--ink-2); opacity: .8; }
-.say-hint b { font-weight: 400; color: var(--blood); padding: 0 1px; }
+/* 입력 종류 탭: 공책 색인 탭 + 단축키, 고른 탭은 입력칸 테 색으로 이어짐 */
+.say-tabs { flex-basis: 100%; display: flex; gap: 3px; align-items: flex-end; margin-bottom: -12px; padding-left: 6px; }
+.say-tab { display: inline-flex; align-items: baseline; gap: 4px; padding: 2px 10px 1px; border: 0; cursor: pointer; font: 11px/1.5 var(--font); color: var(--ink-2); background: rgba(150, 105, 50, .18); clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 100%, 0 100%); }
+.say-tab kbd { font: 10px var(--font); color: var(--blood); }
+.say-tab:hover { background: rgba(150, 105, 50, .32); }
+.say-tab.on { padding-bottom: 3px; color: #f4ecd8; background: var(--ink); }
+.say-tab.on[data-m="act"] { background: var(--blood); }
+.say-tab.on[data-m="ask"] { background: #2a3550; }
+.say-tab.on[data-m="cmd"] { background: #5a4a2a; }
+.say-tab.on kbd { color: #f6d27a; }
+.say-tip { margin-left: auto; align-self: center; font: 11px var(--font); color: var(--ink-2); opacity: .8; }
+.say-tip b { font-weight: 400; color: var(--blood); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* 기록: 대사 「」 · 행동 · 질문 */
 .entry.s-talk .text { font-family: var(--font-talk); font-size: 18px; color: var(--ink); }
@@ -2440,6 +2450,13 @@ html.has-3d .topbar { box-shadow: none; }
       <div id="turnStatus" class="turn-status" hidden><span id="thinking" hidden>GM이 숨을 고르는 중…</span><span id="typingPresence" hidden aria-live="polite"></span></div>
       <div id="npcPick" class="npc-pick" role="listbox" aria-label="말 걸 NPC" hidden></div>
       <form id="chatForm" class="chat">
+        <div class="say-tabs" role="toolbar" aria-label="입력 종류">
+          <button type="button" class="say-tab on" data-m="talk">대사</button>
+          <button type="button" class="say-tab" data-m="act">행동<kbd>*</kbd></button>
+          <button type="button" class="say-tab" data-m="ask">질문<kbd>?</kbd></button>
+          <button type="button" class="say-tab" data-m="cmd">주사위<kbd>/r</kbd></button>
+          <span id="sayHint" class="say-tip"><b>@</b> NPC 지정</span>
+        </div>
         <div class="say-box" data-mode="talk">
           <span id="sayMode" class="say-mode" aria-live="polite"></span>
           <button id="npcChip" class="npc-chip" type="button" hidden title="누르면 지움"></button>
@@ -2447,7 +2464,6 @@ html.has-3d .topbar { box-shadow: none; }
           <span id="sayGhost" class="say-ghost" aria-hidden="true" hidden></span>
         </div>
         <button class="btn primary">보내기</button>
-        <p id="sayHint" class="say-hint"><b>평소</b> 대사 · <b>@NPC</b> 대화 · <b>*</b> 행동 · <b>?</b> 질문 · <b>/r</b> 주사위</p>
       </form>
     </section>
 
@@ -9345,12 +9361,23 @@ const BannerArt = (() => {
     g.hidden = !only;
     if (only) { g.replaceChildren(el("span", { class: "pre" }, raw), SAY_GHOST[mode] ?? ""); }
     const box = $(".say-box");
+    for (const t of document.querySelectorAll(".say-tab")) t.classList.toggle("on", t.dataset.m === mode);
     if (box.dataset.mode === mode && $("#sayMode").firstChild) return;
     box.dataset.mode = mode;
     const [ic, label] = SAY_MODES[mode];
     $("#sayMode").replaceChildren(iconSvg(ic), el("span", { class: "sr-only" }, label));
     $("#sayMode").title = label;
   }
+  // 탭을 누르면 앞 글자를 바꿔 끼움 (대사 = 앞 글자 없음)
+  const SAY_PREFIX = { talk: "", act: "* ", ask: "? ", cmd: "/r " };
+  for (const t of document.querySelectorAll(".say-tab")) t.addEventListener("click", () => {
+    const input = $("#chatInput");
+    const rest = input.value.trimStart().replace(/^(\/\S*|[*＊?？])\s*/, "");
+    input.value = SAY_PREFIX[t.dataset.m] + rest;
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+    input.dispatchEvent(new Event("input"));
+  });
   let lastTypingPing = 0, typingStopTimer, typingActive = false;
   function announceTyping(on) {
     if (app.snap?.phase !== "play" || !meP()?.ready) return;
