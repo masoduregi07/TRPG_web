@@ -60,3 +60,57 @@ test("빈 응답 · 형식 오류는 hard", () => {
   assert.ok(Turn.validate(AI.parseGM("아무 말"), base()).issues.some((i) => i.hard));
   assert.ok(run({ narration: "" }).issues.some((i) => i.hard));
 });
+
+// ---- 진행 검증: 판정 전 단서 · 반복 · 문체 · 선언 없는 이동 · 결과 되풀이 ----
+const turn = (over = {}) => base({ secrets: [], checkReveals: [{ check: "k1", clue: "c1" }], ...over });
+
+test("판정으로 공개될 단서는 그 판정을 거는 응답에서 공개 안 함", () => {
+  const r = run({ narration: "한서가 벽 쪽으로 다가감.", reveal_clue: "c1", request_check: { id: "k1", who: "한서" } }, turn());
+  assert.equal(r.plan.clue, null);
+  assert.equal(r.plan.check?.id, "k1");
+});
+
+test("그 판정을 기다리는 중에도 공개 안 함, 판정과 무관한 공개는 허용", () => {
+  assert.equal(run({ narration: "한서가 벽을 더듬음.", reveal_clue: "c1" }, turn({ pending: ["k1"] })).plan.clue, null);
+  assert.equal(run({ narration: "한서가 벽을 더듬음.", reveal_clue: "c1" }, turn({ checkReveals: [] })).plan.clue, "c1");
+});
+
+test("한 명 행동이면 ▶ 블록 없이, 행동을 되풀이한 narration은 버림", () => {
+  const r = run({ narration: "한서가 벽면 자국으로 다가감.", results: [{ who: "한서", text: "한서가 자국을 가까이서 살핌." }] }, turn({ checkReveals: [] }));
+  assert.equal(r.plan.blocks.length, 0);
+  assert.equal(r.plan.narration, "한서가 자국을 가까이서 살핌.");
+});
+
+test("여러 명 행동표면 블록 유지, 분위기 narration은 남김", () => {
+  const chars = [{ pid: "p1", name: "한서", player: "가", items: [] }, { pid: "p2", name: "도윤", player: "나", items: [] }];
+  const info = turn({ chars, actors: chars.map(({ pid, name }) => ({ pid, name })), table: true, checkReveals: [] });
+  const r = run({ narration: "바람이 거세짐.", results: [{ who: "한서", text: "한서가 문을 엶." }, { who: "도윤", text: "도윤이 등불을 듦." }] }, info);
+  assert.equal(r.plan.blocks.length, 3);
+  assert.equal(r.plan.blocks[0].text, "바람이 거세짐.");
+});
+
+test("문체: 명사형인데 ~다로 끝나면 다시 요청, 따옴표 속 대사는 예외", () => {
+  assert.ok(run({ narration: "한서가 자국으로 다가간다." }, turn({ checkReveals: [] })).issues.some((i) => i.hard && /문체/.test(i.msg)));
+  assert.ok(!run({ narration: "어부가 고개를 듦. \"그건 모르겠소.\" 파도가 침." }, turn({ checkReveals: [] })).issues.some((i) => /문체/.test(i.msg)));
+  assert.ok(run({ narration: "철문이 나타남. 바람이 새어 나옴." }, turn({ checkReveals: [], tone: "prose" })).issues.some((i) => i.hard && /문체/.test(i.msg)));
+  const last = run({ narration: "한서가 다가간다." }, turn({ checkReveals: [] }), true);
+  assert.ok(!last.issues.some((i) => i.hard) && last.plan.narration === "한서가 다가간다.", "마지막 시도는 그대로 둠");
+});
+
+test("판정 결과만 있는 차례: 이동 무시", () => {
+  const r = run({ narration: "바르톨이 그물로 시선을 돌림.", move_to: "next", arrival: "철문이 나타남." }, turn({ checkReveals: [], rollOnly: true, actors: [] }));
+  assert.equal(r.plan.move, null);
+  assert.equal(r.plan.arrival, null);
+});
+
+test("판정 결과만 있는 차례: 받은 물건을 다시 서술하면 다시 요청, 마지막엔 그 문장 삭제 (비면 조용히 넘어감)", () => {
+  const info = turn({ checkReveals: [], rollOnly: true, actors: [], gotThisTurn: ["녹슨 열쇠"], rollTexts: ["보통 성공 – 어부가 한숨을 쉬더니 녹슨 열쇠를 내밂."] });
+  const obj = { narration: "한서가 녹슨 열쇠를 받아 듦. 바르톨이 그물로 시선을 돌림." };
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /직전판정/.test(i.msg)));
+  const last = run(obj, info, true);
+  assert.equal(last.plan.narration, "바르톨이 그물로 시선을 돌림.");
+  const only = run({ narration: "한서가 녹슨 열쇠를 받아 듦." }, info, true);
+  assert.equal(only.plan.narration, "");
+  assert.equal(only.plan.quiet, true);
+  assert.ok(!only.issues.some((i) => i.hard));
+});
