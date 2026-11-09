@@ -4203,10 +4203,18 @@ const AI = (() => {
         body.max_completion_tokens = maxTokens;
         body.reasoning_effort = "none";
       }
-      const res = await fetch(`${cfg.baseURL.replace(/\/$/, "")}/chat/completions`, {
-        method: "POST", headers, signal: ctrl.signal,
-        body: JSON.stringify(body),
-      });
+      let res;
+      try {
+        res = await fetch(`${cfg.baseURL.replace(/\/$/, "")}/chat/completions`, {
+          method: "POST", headers, signal: ctrl.signal,
+          body: JSON.stringify(body),
+        });
+      } catch (e) {
+        // fetch 자체가 실패한 경우만 연결 실패 (코드 오류의 TypeError는 그대로 올림)
+        if (e?.name === "AbortError") throw e;
+        const err = new Error(location.protocol === "file:" ? "AI 서버 연결 실패. 내 PC 파일(file://)로 열면 막히는 경우가 많음 → 올린 주소(https)로 열기." : "AI 서버 연결 실패. API 주소 · 브라우저 호출 허용(CORS) · 네트워크 확인.");
+        err.network = true; throw err;
+      }
       if (!res.ok) {
         // 서버가 알려 준 이유를 같이 보여 줌 (원인 찾기용)
         let why = "";
@@ -4223,7 +4231,9 @@ const AI = (() => {
         }
         throw new Error(`${hint} (HTTP ${res.status})${why ? ` · ${why}` : ""}`);
       }
-      const data = await res.json();
+      let data;
+      try { data = await res.json(); }
+      catch (e) { if (e?.name === "AbortError") throw e; const err = new Error("AI 응답이 JSON 형식이 아님. API 주소가 OpenAI 호환(/chat/completions)인지 확인."); err.badResponse = true; throw err; }
       responseUsage = data?.usage ?? null;
       const choice = data?.choices?.[0];
       const text = choice?.message?.content;
@@ -4240,9 +4250,8 @@ const AI = (() => {
     } catch (e) {
       if (e.name === "AbortError") {
         if (signal?.aborted) { const cancelled = new Error("AI 요청 취소됨."); cancelled.cancelled = true; throw cancelled; }
-        throw new Error("AI 응답 시간 초과.");
+        const err = new Error("AI 응답 시간 초과."); err.timeout = true; throw err;
       }
-      if (e instanceof TypeError) throw new Error(location.protocol === "file:" ? "AI 서버 연결 실패. 내 PC 파일(file://)로 열면 막히는 경우가 많음 → 올린 주소(https)로 열기." : "AI 서버 연결 실패. API 주소 · 브라우저 호출 허용(CORS) · 네트워크 확인.");
       throw e;
     } finally {
       AIUsage.record(cfg, { ok: responseOK, usage: responseUsage, ms: performance.now() - startedAt });
@@ -4252,12 +4261,15 @@ const AI = (() => {
   }
 
   /** 붐빔 · 연결 끊김이면 기다렸다가 다시 (3초 → 8초 → 20초 …). onWait(초, 몇 번째, 전체)로 진행 표시 */
-  async function callRetry(cfg, messages, opts = {}, { waits = [3, 8, 20, 40], onWait = () => {} } = {}) {
+  async function callRetry(cfg, messages, opts = {}, { waits = [3, 8, 20, 40], onWait = () => {}, budget = 300 } = {}) {
+    // budget: 전체 기다리는 시간 상한(초). 넘을 것 같으면 더 시도하지 않음 (시간 초과 반복으로 수십 분 묶이지 않게)
+    const t0 = Date.now(), timeout = (opts.timeout ?? 90_000) / 1000;
     for (let i = 0; ; i++) {
       try { return await call(cfg, messages, opts); }
       catch (e) {
-        const again = e.busy || /연결 실패|시간 초과/.test(e.message);
-        if (!again || i >= waits.length) {
+        const again = e.busy || e.network || e.timeout;
+        const left = budget - (Date.now() - t0) / 1000;
+        if (!again || i >= waits.length || left < waits[i] + (e.timeout ? timeout : 5)) {
           if (e.busy) e.message = `AI 서버가 붐벼서 ${i + 1}번 시도했지만 실패 (HTTP ${e.status}). 몇 분 뒤 다시 하거나, 설정에서 다른 모델로 바꿔 보기.`;
           throw e;
         }
