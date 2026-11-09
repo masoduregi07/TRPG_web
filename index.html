@@ -2152,9 +2152,8 @@ html.has-3d .topbar { box-shadow: none; }
 .usage-row { border-top:1px dashed var(--paper-lo); padding:4px 0; overflow-wrap:anywhere; }
 /* NOTEBOOK_V2_CSS */
 /* 기존 메모 종이 위 목차 / 종이 끝에 끼운 픽셀 책갈피 */
-:is(.side,.float-layer) .block[data-memo="clues"] { padding-top:26px; }
 :is(.side,.float-layer) .block[data-memo="clues"]::before { left:18px; right:auto; }
-.block[data-memo="clues"] h3 { display:flex; align-items:baseline; justify-content:space-between; padding-bottom:4px; margin-bottom:0; }
+.block:is([data-memo="clues"],[data-memo="handouts"]) h3 { display:flex; align-items:baseline; justify-content:space-between; padding-bottom:4px; margin-bottom:0; }
 /* 단서 수첩 색인 탭 (입력칸 탭과 같은 사다리꼴): 고른 탭은 분류 색으로 칠하고 아래 선과 이어짐 */
 .clue-tabs { display:flex; gap:3px; align-items:flex-end; margin:0 0 6px; padding-left:4px; border-bottom:2px solid #675137; }
 .clue-tabs button { --c:#675137; padding:2px 9px 1px; border:0; cursor:pointer; font:11px/1.5 var(--font); color:var(--ink-2); background:rgba(150, 105, 50, .18);
@@ -2165,16 +2164,54 @@ html.has-3d .topbar { box-shadow: none; }
 .clue-tabs button:hover:not([aria-selected="true"]) { background:rgba(150, 105, 50, .32); color:var(--ink); }
 .clue-tabs button[aria-selected="true"] { padding-bottom:3px; color:#f4ecd8; background:var(--c); }
 .clue-tabs button:focus-visible { outline:2px dotted #2b1a0c; outline-offset:1px; }
-/* 핸드아웃 목록 */
-.ho-row { display:grid; grid-template-columns:auto minmax(0, 1fr); column-gap:8px; align-items:baseline; width:100%; padding:5px 0; border:0; background:none; cursor:pointer; text-align:left; font:inherit; color:var(--ink); }
-.ho-row .ho-k { padding:0 5px; font:10px/1.6 var(--font); color:#f4ecd8; background:#2a3550; }
-.ho-row .ho-t { justify-self:start; font:bold 14px/1.5 var(--font-body); }
-.ho-row .ho-t.fresh { background:linear-gradient(transparent 55%, rgba(240,164,60,.5) 55%); }
-.ho-row .ho-p { grid-column:2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:11px/1.5 var(--font-body); color:#6b5a44; }
-.ho-row:hover .ho-t { text-decoration:underline dotted; }
-.ho-row .ho-who { grid-column:2; font:10px/1.5 var(--font); color:#8a7a60; }
-.clue-ho-link { margin-top:4px; padding:0 6px; border:0; cursor:pointer; font:11px/1.6 var(--font); color:#2a3550; background:none; box-shadow:inset 0 0 0 1px rgba(42, 53, 80, .5); }
-.clue-ho-link:hover { color:#f4ecd8; background:#2a3550; }
+/* 단서 수첩 · 핸드아웃 메모 = 파란 괘선 노트 + 위쪽 옅은 박음질 (C-1c) */
+.block.nb-paper { position:relative; background:#f3ecd4; background-image:linear-gradient(rgba(90,60,30,.12), transparent 22px), repeating-linear-gradient(180deg, transparent 0 21px, rgba(60, 90, 150, .14) 21px 22px); background-position:0 0, 0 8px; }
+.nb-stitch { position:absolute; top:9px; left:16px; right:16px; height:2px; pointer-events:none; background:repeating-linear-gradient(90deg, rgba(43, 26, 12, .38) 0 6px, transparent 6px 11px); }
+:is(.side,.float-layer) .block.nb-paper { padding-top:24px; }
+/* 색인 탭: 인물 주황 · 장소 초록은 꺼져 있어도 옅게 물들임 */
+.clue-tabs button[data-group="person"] { background:rgba(224, 145, 95, .3); color:#80442a; }
+.clue-tabs button[data-group="place"] { background:rgba(143, 179, 90, .32); color:#4c6626; }
+.clue-tabs button[data-group="person"]:hover:not([aria-selected="true"]) { background:rgba(224, 145, 95, .5); color:#80442a; }
+.clue-tabs button[data-group="place"]:hover:not([aria-selected="true"]) { background:rgba(143, 179, 90, .52); color:#4c6626; }
+/* 목차 줄 */
+.clue-toc .clue-scene-h { display:block; margin:6px 0 1px; padding:0; background:none; color:#6f5230; font-size:10px; letter-spacing:2px; }
+.toc-row { display:grid; grid-template-columns:22px minmax(0, 1fr) auto; gap:6px; align-items:baseline; width:100%; padding:3px 2px; border:0; background:none; cursor:pointer; text-align:left; font:12px/16px var(--font-body); color:var(--ink); }
+.toc-row .toc-n { font:10px var(--font); font-style:normal; color:#8a7a60; }
+.toc-row .toc-t { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.toc-row .toc-t .fresh { background:linear-gradient(transparent 55%, rgba(240,164,60,.5) 55%); }
+.toc-row .toc-m { display:flex; gap:3px; align-items:center; }
+.toc-row .fl { display:inline-block; width:6px; height:10px; }
+.toc-row .fl.p { background:#e0915f; } .toc-row .fl.l { background:#8fb35a; }
+.toc-row .toc-ho { font-weight:400; font-size:11px; color:#2a3550; }
+.toc-row:hover { background:rgba(240, 164, 60, .12); }
+.toc-row.sel { background:rgba(240, 164, 60, .26); }
+.clue-group.dragging .toc-row { cursor:grabbing; touch-action:none; }
+/* 열람 쪽: 오른쪽 위 귀접힘 */
+.clue-view { position:relative; margin-top:10px; padding:10px 12px 12px; background:#fbf7ea; box-shadow:0 0 0 1px rgba(90, 60, 30, .4); clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%); }
+.clue-view::after { content:""; position:absolute; top:0; right:0; width:16px; height:16px; background:linear-gradient(225deg, transparent 50%, #d8c9a0 50%); }
+.clue-view[hidden] { display:none; }
+.clue-view .cv-t { font:bold 14px/1.5 var(--font-body); padding-right:14px; }
+.clue-view .cv-meta { margin:1px 0 6px; font:10px var(--font); color:#8a7a60; }
+.clue-view .cv-body { margin:0 0 8px; font:12px/20px var(--font-body); white-space:pre-wrap; word-break:keep-all; }
+.cv-ho { display:flex; gap:8px; align-items:center; margin-top:8px; padding:4px 6px 4px 4px; border:0; cursor:pointer; font:11px var(--font); color:var(--ink); background:rgba(42, 53, 80, .06); box-shadow:inset 0 0 0 1px rgba(42, 53, 80, .3); }
+.cv-ho:hover { box-shadow:inset 0 0 0 1px #2a3550; }
+.cv-ho .ho-th { width:34px; height:26px; }
+.ho-k { display:inline-block; padding:0 5px; font:10px/1.6 var(--font); color:#f4ecd8; background:#2a3550; }
+/* 핸드아웃 메모: 섬네일(정자세) + [종류] 제목 + 첫 줄 */
+.ho-list { margin:4px 0 0; padding:0; list-style:none; }
+.ho-list > li { border-bottom:1px dashed rgba(90, 60, 30, .35); }
+.ho-list > li::before { display:none; }
+.ho-row { display:grid; grid-template-columns:44px minmax(0, 1fr); gap:8px; align-items:center; width:100%; padding:5px 0; border:0; background:none; cursor:pointer; text-align:left; color:var(--ink); }
+.ho-row:hover .ho-t > span:last-child { text-decoration:underline dotted; }
+.ho-tx { display:grid; min-width:0; }
+.ho-t { font:13px/1.5 var(--font-body); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ho-t .fresh { background:linear-gradient(transparent 55%, rgba(240,164,60,.5) 55%); }
+.ho-p { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:11px/1.5 var(--font-body); color:#6b5a44; }
+.ho-who { font:10px/1.5 var(--font); color:#8a7a60; }
+.ho-th { display:block; width:44px; height:34px; overflow:hidden; box-shadow:0 0 0 1px rgba(90, 60, 30, .45); background:#f3ead2 repeating-linear-gradient(180deg, transparent 0 6px, rgba(90, 60, 30, .25) 6px 7px); }
+.ho-th-note { background-color:#f6e7b8; }
+.ho-th-news { background:#ece6d6 repeating-linear-gradient(180deg, transparent 0 4px, rgba(40, 30, 20, .3) 4px 5px); }
+.ho-th img { display:block; width:100%; height:100%; object-fit:cover; filter:sepia(.35); }
 #clueBox { gap:0; }
 .clue-index-item { border-bottom:1px dashed #b5a479; }
 /* 사건별 조사 일지 */
@@ -2501,7 +2538,8 @@ html.has-3d .topbar { box-shadow: none; }
         <!-- 클립으로 꽂은 메모들: 제목(머리)을 끌어 순서 바꾸기, 브라우저에 기억 -->
         <div id="memoStack" class="memo-stack">
           <section class="block" data-memo="checks"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><h3>판정 <span id="checkNote" class="muted small">— 능력치 자동 적용</span></h3><div id="checkBox" class="chips"></div></section>
-          <section class="block" data-memo="clues"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><h3>단서 수첩 <span id="clueCount" class="clue-count">0</span></h3><nav id="clueBookmarks" class="clue-tabs" role="tablist" aria-label="단서 분류"><button type="button" id="clueAll" role="tab" data-group="all" aria-selected="true" aria-controls="clueBox">전체</button><button type="button" id="cluePerson" role="tab" data-group="person" aria-selected="false" aria-controls="clueBox" tabindex="-1">인물</button><button type="button" id="cluePlace" role="tab" data-group="place" aria-selected="false" aria-controls="clueBox" tabindex="-1">장소</button><button type="button" id="clueHandout" role="tab" data-group="handout" aria-selected="false" aria-controls="clueBox" tabindex="-1">핸드아웃</button></nav><ul id="clueBox" class="clues" role="tabpanel" aria-labelledby="clueAll"></ul></section>
+          <section class="block nb-paper" data-memo="clues"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><h3>단서 수첩 <span id="clueCount" class="clue-count">0</span></h3><nav id="clueBookmarks" class="clue-tabs" role="tablist" aria-label="단서 분류"><button type="button" id="clueAll" role="tab" data-group="all" aria-selected="true" aria-controls="clueBox">전체</button><button type="button" id="cluePerson" role="tab" data-group="person" aria-selected="false" aria-controls="clueBox" tabindex="-1">인물</button><button type="button" id="cluePlace" role="tab" data-group="place" aria-selected="false" aria-controls="clueBox" tabindex="-1">장소</button></nav><ul id="clueBox" class="clues clue-toc" role="tabpanel" aria-labelledby="clueAll"></ul><div id="clueView" class="clue-view" hidden></div></section>
+          <section class="block nb-paper" data-memo="handouts" hidden><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><h3>핸드아웃 <span id="hoCount" class="clue-count">0</span></h3><ul id="hoBox" class="ho-list"></ul></section>
         </div>
       </div>
     </section>
@@ -9089,28 +9127,33 @@ const BannerArt = (() => {
   let clueDrag = null, clueRenderLater = false;
   /* 단서 수첩 = 사건별 조사 일지: 발견한 사건마다 묶고, 제목 + 첫 줄 미리보기.
      처음 보는 단서는 형광펜. 길게 누르고 위아래로 끌면 같은 사건 안에서 순서 바꿈 (Alt+↑↓도). 분류·순서·읽음은 이 기기에만 */
+  let selClue = null;
+  const markClueSeen = (key) => { const sv = LS.get(K.clueSeen(app.room)) ?? []; if (!sv.includes(key)) { sv.push(key); LS.set(K.clueSeen(app.room), sv); } };
+  /* 단서 수첩 = 목차 + 열람 (C-1c): 사건별 번호 목차, 고른 단서는 아래 귀접힘 쪽에 원문 · 분류 · 연결 핸드아웃.
+     처음 보는 단서는 형광펜. 길게 누르고 위아래로 끌면 같은 사건 안에서 순서 바꿈 (Alt+↑↓도). 분류·순서·읽음은 이 기기에만 */
   function renderNotebook(v) {
+    renderHandoutBox(v);
     if (clueDrag) { clueRenderLater = true; return; }
     const box = $('#clueBox');
+    const hos = v.handouts ?? [];
     const manual = (LS.get(K.clueKind(app.room)) ?? {});
     const order = (LS.get(K.clueOrder(app.room)) ?? {});
     let seen = LS.get(K.clueSeen(app.room));
     if (!Array.isArray(seen)) { seen = v.clues.map((c)=>c.id); LS.set(K.clueSeen(app.room), seen); }   // 처음엔 지금까지 단서를 읽은 것으로
-    const hos = v.handouts ?? [];
     const rows = v.clues.map((c,i)=>({c,i,scene:c.scene ?? '?',kinds:Array.isArray(manual[c.id])?manual[c.id].filter(x=>x==='person'||x==='place'):[]}));
     const shown = rows.filter(r=>notebookMode==='all'||r.kinds.includes(notebookMode));
-    $('#clueCount').textContent = notebookMode==='handout' ? `${hos.length}건` : notebookMode==='all' ? `${v.clues.length}건` : `${shown.length}/${v.clues.length}건`;
+    $('#clueCount').textContent = notebookMode==='all' ? `${v.clues.length}건` : `${shown.length}/${v.clues.length}건`;
     box.replaceChildren();
     for (const tab of document.querySelectorAll('#clueBookmarks [role=tab]')) {
       const active = tab.dataset.group===notebookMode;
       tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;
-      const count=tab.dataset.group==='handout'?hos.length:tab.dataset.group==='all'?rows.length:rows.filter(r=>r.kinds.includes(tab.dataset.group)).length;
+      const count=tab.dataset.group==='all'?rows.length:rows.filter(r=>r.kinds.includes(tab.dataset.group)).length;
       tab.title=`${tab.textContent} · ${count}건`;
       if(active)box.setAttribute('aria-labelledby',tab.id);
     }
-    if(notebookMode==='handout'){renderHandoutList(box,hos);return;}
-    if(!shown.length){box.append(el('li',{class:'muted small'},v.clues.length?'이 분류로 체크한 단서 없음.':'공개된 단서 없음.'));return;}
     const setKinds=(id,list)=>{const m=LS.get(K.clueKind(app.room))??{};if(list===null)delete m[id];else m[id]=list;LS.set(K.clueKind(app.room),m);if(app.snap?.view)renderNotebook(app.snap.view);};
+    if (!rows.some((r)=>r.c.id===selClue)) selClue = null;
+    if(!shown.length){box.append(el('li',{class:'muted small'},v.clues.length?'이 분류로 체크한 단서 없음.':'공개된 단서 없음.'));}
     // 사건 순서 = 처음 단서를 찾은 순서
     const scenes = [];
     for (const r of rows) if (!scenes.some((x)=>x.id===r.scene)) scenes.push({ id:r.scene, title:r.c.sceneTitle ?? '기타' });
@@ -9121,60 +9164,56 @@ const BannerArt = (() => {
       const pos = (id) => { const k=(order[sc.id]??[]).indexOf(id); return k<0?1e6:k; };
       list.sort((a,b)=>pos(a.c.id)-pos(b.c.id)||a.i-b.i);
       const ul = el('ul',{class:'clue-scene-list','data-scene':sc.id});
-      for (const {c,kinds} of list) {
+      for (const {c,i,kinds} of list) {
         const content = WebFeatures.clueText(c);
-        const fresh = !seen.includes(c.id);
-        const details = el('details',{class:'clue-index-item'});
-        details.open=openClues.has(c.id);
-        const first = String(content.preview ?? '').split('\n')[0];
-        const heading=el('summary',{class:'clue-index-row','aria-label':`${content.title} 원문 펼치기`},
-          el('span',{class:`clue-title${fresh?' fresh':''}`},content.title),
-          el('span',{class:'clue-row-flags','aria-hidden':'true'},...['person','place'].filter(k=>kinds.includes(k)).map(k=>el('i',{class:k==='person'?'p':'l'}))),
-          el('span',{class:'clue-arrow','aria-hidden':'true'}),
-          first ? el('span',{class:'clue-preview'},first) : null);
-        const chip=(kind,label)=>{
-          const on=kinds.includes(kind);
-          return el('button',{type:'button',class:`clue-flag ${kind==='person'?'p':'l'}${on?' on':''}`,role:'checkbox','aria-checked':String(on),
-            on:{click:(e)=>{e.preventDefault();e.stopPropagation();const next=on?kinds.filter(k=>k!==kind):[...kinds,kind];setKinds(c.id,next);}}},label);
-        };
-        const kindRow=el('div',{class:'clue-kinds',role:'group','aria-label':'분류'},chip('person','인물'),chip('place','장소'));
-        const ho = hos.find((h)=>h.clue===c.id);
-        details.append(heading,el('div',{class:'clue-open-body'},kindRow,
-          el('div',{class:'clue-original'},el('span',{class:'clue-original-label'},'원문'),el('p',{},content.original)),
-          ho ? el('button',{type:'button',class:'clue-ho-link',on:{click:(e)=>{e.preventDefault();openHandout(ho);}}},`▤ 핸드아웃 · ${ho.title}`) : null));
-        const sync=()=>heading.setAttribute('aria-label',`${content.title} 원문 ${details.open?'접기':'펼치기'}`);
-        sync();details.addEventListener('toggle',()=>{
-          if(!details.isConnected)return;
-          if(details.open){openClues.add(c.id);if(fresh){const sv=LS.get(K.clueSeen(app.room))??[];if(!sv.includes(c.id)){sv.push(c.id);LS.set(K.clueSeen(app.room),sv);}heading.querySelector('.clue-title').classList.remove('fresh');}}
-          else openClues.delete(c.id);sync();});
-        const li = el('li',{class:'clue-group','data-id':c.id},details);
-        if (canMove) clueMovable(li, heading, ul, sc.id);
+        const fresh = !seen.includes(c.id), ho = hos.find((h)=>h.clue===c.id);
+        const row = el('button',{type:'button',class:`toc-row${c.id===selClue?' sel':''}`,'aria-pressed':String(c.id===selClue),
+          on:{click:()=>{ selClue = selClue===c.id ? null : c.id; if (selClue) markClueSeen(c.id); renderNotebook(app.snap.view); }}},
+          el('i',{class:'toc-n'},String(i+1).padStart(2,'0')),
+          el('span',{class:'toc-t'},el('span',{class:fresh?'fresh':''},content.title)),
+          el('span',{class:'toc-m','aria-hidden':'true'},...['person','place'].filter(k=>kinds.includes(k)).map(k=>el('i',{class:`fl ${k==='person'?'p':'l'}`})),ho?el('b',{class:'toc-ho'},'▤'):null));
+        const li = el('li',{class:'clue-group','data-id':c.id},row);
+        if (canMove) clueMovable(li, row, ul, sc.id);
         ul.append(li);
       }
       box.append(el('li',{class:'clue-scene'},el('div',{class:'clue-scene-h'},`사건 ${si+1} · ${sc.title}`),ul));
     });
+    // 열람 쪽
+    const view = $('#clueView'), r = rows.find((x)=>x.c.id===selClue);
+    view.hidden = !r;
+    if (!r) { view.replaceChildren(); return; }
+    const content = WebFeatures.clueText(r.c), ho = hos.find((h)=>h.clue===r.c.id);
+    const si = scenes.findIndex((x)=>x.id===r.scene);
+    const chip=(kind,label)=>{const on=r.kinds.includes(kind);
+      return el('button',{type:'button',class:`clue-flag ${kind==='person'?'p':'l'}${on?' on':''}`,role:'checkbox','aria-checked':String(on),
+        on:{click:()=>setKinds(r.c.id,on?r.kinds.filter(k=>k!==kind):[...r.kinds,kind])}},label);};
+    view.replaceChildren(
+      el('div',{class:'cv-t'},content.title),
+      el('div',{class:'cv-meta'},`사건 ${si+1} · ${scenes[si]?.title ?? ''}`),
+      el('p',{class:'cv-body'},content.original),
+      el('div',{class:'clue-kinds',role:'group','aria-label':'분류'},chip('person','인물'),chip('place','장소')),
+      ho ? el('button',{type:'button',class:'cv-ho',on:{click:()=>{markClueSeen(`ho:${ho.id}`);openHandout(ho);}}},handoutThumb(ho),el('span',{class:'ho-k'},HANDOUT_KIND_NAME[ho.kind] ?? '자료'),el('span',{},ho.title)) : null);
   }
-  /* 핸드아웃 탭: 공개된 사건별로, 줄 = [종류] 제목 + 첫 줄. 누르면 크게 보기. 처음 보는 것은 형광펜 */
-  function renderHandoutList(box, hos) {
-    if (!hos.length) { box.append(el('li',{class:'muted small'},'공개된 핸드아웃 없음.')); return; }
+  /* 핸드아웃 메모 (단서 수첩과 따로): 사건 순, 섬네일 + [종류] 제목 + 첫 줄. 누르면 크게 보기. 없으면 메모째 숨김 */
+  function handoutThumb(h) {
+    const src = h.kind === 'photo' || h.image ? handoutSrc(h.image) : null;
+    return el('span',{class:`ho-th ho-th-${h.kind}`,'aria-hidden':'true'}, h.image ? el('img',{src:src ?? 'data:image/gif;base64,R0lGODlhAQABAAAAACw=','data-ref':h.image.startsWith('ho:')?h.image:null,alt:''}) : null);
+  }
+  function renderHandoutBox(v) {
+    const hos = [...(v.handouts ?? [])].sort((a,b)=>(a.at??0)-(b.at??0)), block = document.querySelector('[data-memo="handouts"]');
+    block.hidden = !hos.length;
+    $('#hoCount').textContent = `${hos.length}건`;
     const seen = LS.get(K.clueSeen(app.room)) ?? [];
-    const scenes = [];
-    for (const h of [...hos].sort((a,b)=>(a.at??0)-(b.at??0))) { let g = scenes.find((x)=>x.id===h.scene); if (!g) scenes.push(g = { id:h.scene, title:h.sceneTitle ?? '기타', list:[] }); g.list.push(h); }
-    scenes.forEach((sc, si) => {
-      const ul = el('ul',{class:'clue-scene-list'});
-      for (const h of sc.list) {
-        const key = `ho:${h.id}`, fresh = !seen.includes(key);
-        const first = String(h.text ?? '').split('\n').find(Boolean) ?? '';
-        const who = app.snap?.isHost && h.to !== 'all' ? `본 사람 · ${[...h.to, ...(h.npcs ?? [])].join(', ')}` : '';
-        const row = el('button',{type:'button',class:'ho-row',on:{click:()=>{
-          const sv = LS.get(K.clueSeen(app.room)) ?? []; if (!sv.includes(key)) { sv.push(key); LS.set(K.clueSeen(app.room), sv); }
-          row.querySelector('.ho-t').classList.remove('fresh'); openHandout(h); }}},
-          el('span',{class:'ho-k'},HANDOUT_KIND_NAME[h.kind] ?? '자료'), el('span',{class:`ho-t${fresh?' fresh':''}`},h.title),
-          first ? el('span',{class:'ho-p'},first) : null, who ? el('span',{class:'ho-who'},who) : null);
-        ul.append(el('li',{class:'clue-group clue-index-item'},row));
-      }
-      box.append(el('li',{class:'clue-scene'},el('div',{class:'clue-scene-h'},`사건 ${si+1} · ${sc.title}`),ul));
-    });
+    $('#hoBox').replaceChildren(...hos.map((h) => {
+      const key = `ho:${h.id}`, fresh = !seen.includes(key);
+      const first = String(h.text ?? '').split('\n').find(Boolean) ?? '';
+      const who = app.snap?.isHost && h.to !== 'all' ? `본 사람 · ${[...h.to, ...(h.npcs ?? [])].join(', ')}` : '';
+      const row = el('button',{type:'button',class:'ho-row',on:{click:()=>{ markClueSeen(key); row.querySelector('.ho-t span')?.classList.remove('fresh'); openHandout(h); }}},
+        handoutThumb(h),
+        el('span',{class:'ho-tx'},el('span',{class:'ho-t'},el('span',{class:'ho-k'},HANDOUT_KIND_NAME[h.kind] ?? '자료'),' ',el('span',{class:fresh?'fresh':''},h.title)),
+          first ? el('span',{class:'ho-p'},first) : null, who ? el('span',{class:'ho-who'},who) : null));
+      return el('li',{},row);
+    }));
   }
   function saveClueOrder(ul, sceneId) {
     const order = LS.get(K.clueOrder(app.room)) ?? {};
