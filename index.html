@@ -662,6 +662,21 @@ textarea.code { font: 12px/1.6 var(--font); }
 .dos-notes { grid-column: 1 / -1; display: grid; gap: 2px; margin-top: 6px; font-size: 11px; line-height: 1.5; color: #2a3550; }
 .dos-notes b { font-weight: 400; color: #7a6548; }
 .dos-secret { color: #6a1e16; }
+/* 인물 기록 정돈 (A) */
+.dos-id { display: grid; grid-template-rows: none; align-content: start; gap: 4px; height: auto; min-height: 0; }
+.char-col .dos-id { grid-auto-rows: auto; min-height: 0; }
+.dos-id .sheet-name { font-weight: 400; font-size: 19px; line-height: 1.2; }
+.dos-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 11px; }
+.dos-job { padding: 0 6px; color: var(--ink); box-shadow: inset 0 0 0 1px #6b5a44; background: rgba(255, 250, 235, .55); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.dos-ag { color: #6b5a44; white-space: nowrap; }
+.dos-trait { font-size: 11px; line-height: 1.5; color: #2a3550; }
+.dos-hook, .dos-goal { grid-column: 1 / -1; margin-top: 8px; padding: 6px 8px; font-size: 11px; line-height: 1.5; color: #2a3550; }
+.dos-hook { border-left: 3px solid #8a7152; background: rgba(255, 250, 235, .45); }
+.dos-goal { margin-top: 6px; background: #f4ead0; box-shadow: inset 0 0 0 1px rgba(138, 28, 20, .45), inset 0 0 0 3px #f4ead0, inset 0 0 0 4px rgba(138, 28, 20, .25); }
+.dos-hook > b, .dos-goal > b { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; font-weight: 400; font-size: 10px; letter-spacing: 1px; color: #7a6548; }
+.dos-goal > b { color: var(--blood); }
+.dos-goal > b span { padding: 0 5px; font-size: 9px; letter-spacing: 0; color: #f4ead0; background: var(--blood); }
+.dos-goal .dos-secret i { font-style: normal; color: #7a6548; }
 .dos-items { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 6px; font-size: 11px; line-height: 1.5; }
 .dos-items .k { font-size: 10px; color: #7a6548; margin-right: 3px; }
 .dos-items .item { position: relative; display: inline-flex; align-items: center; gap: 3px; padding: 0 6px; color: #2a3550; background: rgba(255, 250, 235, .5); box-shadow: inset 0 0 0 1px rgba(90, 60, 30, .35); }
@@ -1771,8 +1786,8 @@ html.has-3d .topbar { box-shadow: none; }
 .dos-st { display: grid; justify-items: center; align-content: start; gap: 1px; rotate: none;
 }
 .dos-st .top { display: flex; align-items: center; gap: 3px; font-size: 10px; letter-spacing: 1px; }
-.dos-st .top .ic-svg { width: 12px; height: 12px; }
-.dos-st .num { font-weight: 400; font-size: 17px; line-height: 1.2; text-shadow: .45px 0 0 currentColor; }
+.dos-st .top .ic-svg { width: 10px; height: 10px; }
+.dos-st .num { font-weight: 400; font-size: 14px; line-height: 1.2; text-shadow: .45px 0 0 currentColor; }
 .dos-st .bt { display: flex; gap: 3px; }
 .dos-st .bt .ink-btn { min-width: 18px; padding: 0 3px; font-size: 12px; line-height: 1.3; color: #7a6548; }
 .dos-st .state { font-size: 10px; letter-spacing: 1px; padding: 0 4px; color: var(--c); box-shadow: inset 0 0 0 1px var(--c); rotate: none; }
@@ -10132,20 +10147,21 @@ const BannerArt = (() => {
     const canHp = mine || s.isHost;
     const no = s.players.findIndex((x) => x.pid === p.pid) + 1;
     const [state, col] = HP_STATE(c.hp, c.hpMax);
-    const row = (k, v) => el("div", { class: "dos-row" }, el("span", {}, k), v);
     const hpBtn = (d, label, tip) => el("button", { class: "ink-btn", type: "button", title: tip, "aria-label": tip, on: { click: () => send({ t: "hp", pid: p.pid, delta: d }) } }, label);
     return el("div", { class: `dossier${mine ? " me" : ""}${p.online ? "" : " offline"}`, "data-pid": p.pid, style: `--spine:${spineOf(p.pid)}`, title: p.online ? "" : "오프라인" },
       el("div", { class: "dos-head" }, el("span", {}, `인물 기록 · No.${String(no).padStart(2, "0")}`), el("span", {}, "기록자 ", el("b", {}, p.name))),
       polaroid(portraitSrc(p), spineOf(p.pid), false),
-      el("div", { class: "dos-body" },
-        row("성명", el("b", { class: "sheet-name" }, c.name)),
-        row("직업", el("span", { class: "hand", title: c.background || null }, c.background || "—")),
-        c.age || c.gender ? row("나이", el("span", { class: "hand" }, [c.age, c.gender].filter(Boolean).join(" · "))) : null,
-        row("특징", el("span", { class: "hand", title: c.concept || null }, c.concept || "—"))),
-      mine && (c.hook || c.goal || c.secret) ? el("div", { class: "dos-notes" },
-        c.hook ? el("div", {}, `※ ${c.hook}`) : null,
-        c.goal ? el("div", {}, el("b", {}, "목표 "), c.goal) : null,
-        c.secret ? el("div", { class: "dos-secret" }, el("b", {}, "비밀 "), c.secret) : null) : null,
+      // 이름 크게 → [직업] 꼬리표 + 나이 · 성별 → 특징
+      el("div", { class: "dos-body dos-id" },
+        el("b", { class: "sheet-name" }, c.name),
+        el("div", { class: "dos-meta" }, el("span", { class: "dos-job", title: c.background || null }, c.background || "—"),
+          c.age || c.gender ? el("span", { class: "dos-ag" }, [c.age ? `${c.age}세` : "", c.gender].filter(Boolean).join(" · ")) : null),
+        c.concept ? el("div", { class: "dos-trait hand", title: c.concept }, c.concept) : null),
+      // 연결고리 = 메모 줄 · 개인 목표(와 직업 비밀) = 기록지와 같은 대외비 칸 (내 기록에만)
+      mine && c.hook ? el("div", { class: "dos-hook" }, el("b", {}, "연결고리"), c.hook) : null,
+      mine && (c.goal || c.secret) ? el("div", { class: "dos-goal" }, el("b", {}, "개인 목표", el("span", {}, "대외비")),
+        c.goal ? el("div", {}, c.goal) : null,
+        c.secret ? el("div", { class: "dos-secret" }, el("i", {}, "비밀 "), c.secret) : null) : null,
       ...cocDossier(s, p, c, canHp, state, col, mine),
       mine ? null : el("span", { class: "dos-seal", "aria-label": "일행" }, "동행"));
   }
