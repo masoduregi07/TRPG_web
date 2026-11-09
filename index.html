@@ -1192,10 +1192,17 @@ textarea { margin-top: 8px; }
 .dos-items button.item:hover, .dos-items button.item.sel { background: #f6d27a; color: var(--ink); }
 .dos-items button.item.sel { box-shadow: inset 0 0 0 2px var(--blood); }
 .item-wrap { position: relative; display: inline-flex; }
-.item-note { position: absolute; left: 0; top: calc(100% + 6px); z-index: 6; display: grid; gap: 3px; width: max-content; max-width: 220px; padding: 6px 9px;
+.item-note { position: absolute; left: 0; top: calc(100% + 6px); z-index: 6; display: none; grid-template-columns: 32px minmax(0, 1fr); column-gap: 9px; align-items: center; width: max-content; min-width: 160px; max-width: 240px; padding: 7px 10px 7px 7px;
   font-family: var(--font); font-size: 11px; line-height: 1.5; color: var(--ink); background: #efe3c3; box-shadow: var(--outline), 3px 4px 0 1px rgba(0, 0, 0, .35); }
 .item-note::before { content: ""; position: absolute; left: 12px; top: -6px; border: 6px solid transparent; border-top: 0; border-bottom-color: var(--ink); }
-.item-note .in-text { color: #3a2c20; }
+.item-wrap:hover > .item-note, .item-wrap > .item:focus-visible + .item-note, .item-wrap > .item.sel + .item-note { display: grid; }
+.item-note .in-ic { display: grid; place-items: center; width: 32px; height: 32px; color: #3a2c20; background: rgba(255, 250, 235, .55); box-shadow: inset 0 0 0 1px rgba(90, 60, 30, .35); }
+.item-note .in-ic .ic-svg { width: 24px; height: 24px; }
+.item-note .in-body { display: grid; gap: 2px; }
+.item-note .in-text { color: #3a2c20; word-break: keep-all; }
+/* 새로 얻고 아직 안 본 내 물건: 오른쪽 위 빨간 점 */
+.dos-items .item.new { position: relative; }
+.dos-items .item.new::after { content: ""; position: absolute; right: -3px; top: -3px; width: 6px; height: 6px; background: var(--blood); box-shadow: 0 0 0 1px #eadab3; }
 .item-note .in-from { font-size: 10px; color: #7a6548; }
 
 /* GM 서술 타자기: 갓 찍힌 글자는 잉크가 진하고 살짝 튐 */
@@ -4973,7 +4980,7 @@ class HostGame {
       if (list.includes(item) || list.length >= 12) return false;
       list.push(item);
       // 설명 칸: 물건 설명 한 줄 + 얻은 곳(장면)
-      info[item] = { ...(note ? { note: Engine.clip(note, 60) } : {}), scene: this.sc.scenes[this.data.game.currentScene]?.title ?? "" };
+      info[item] = { ...(note ? { note: Engine.clip(note, 60) } : {}), at: Date.now(), scene: this.sc.scenes[this.data.game.currentScene]?.title ?? "" };
     }
     else {
       // AI가 이름을 조금 다르게 쓸 수 있음 ("열쇠" ↔ "녹슨 열쇠") → 같은 이름 · 띄어쓰기 무시 · 포함 관계 순으로 찾음
@@ -7954,6 +7961,7 @@ const BannerArt = (() => {
     host: (r) => `trpg:host:${r}`, hostIndex: "trpg:hostIndex", me: (r) => `trpg:me:${r}`,
     copy: (r) => `trpg:copy:${r}`, draft: (r) => `trpg:draft:${r}`, ai: "trpg:ai", name: "trpg:name",
     aiStyle: "trpg:aiStyle", recentNpc: (r) => `trpg:recentNpc:${r}`, clueKind: (r) => `trpg:clueKind:${r}`, clueOrder: (r) => `trpg:clueOrder:${r}`, clueSeen: (r) => `trpg:clueSeen:${r}`,
+    itemSeen: (r) => `trpg:itemSeen:${r}`,
   };
 
   const app = {
@@ -10257,6 +10265,16 @@ const BannerArt = (() => {
   app.itemSeen = new Map();          // pid → 마지막으로 그린 소지품
   app.itemFx = new Map();            // "pid|이름" → { type: gain/lost, t0 }
   const ITEM_FX_MS = 1100;
+  /* 설명 쪽지 아이콘: 물건 이름 낱말로 고름 (없으면 가방) */
+  const ITEM_ICON_RULES = [
+    ["it_key", /열쇠|키$/], ["it_map", /지도|도면|약도/], ["it_book", /수첩|책|일기|노트|편지|문서|서류|공책|쪽지|신문|사진/],
+    ["it_light", /손전등|랜턴|등불|양초|초$|성냥|라이터|램프|횃불/], ["it_compass", /나침반|시계/],
+    ["it_blade", /칼|단검|장검|나이프|도끼|권총|소총|엽총|산탄|총$|리볼버|무기/], ["it_bottle", /병|약|물약|술|주사|시약/],
+    ["it_coin", /동전|돈|지갑|화폐|금화|은화|수표/], ["it_food", /빵|음식|식량|통조림|과자|육포|사과/],
+    ["it_gem", /보석|반지|목걸이|부적|펜던트|구슬|수정|십자가|묵주/], ["it_rope", /밧줄|끈|로프|사슬/],
+    ["it_tool", /도구|망치|드라이버|렌치|삽|곡괭이|지렛대|쇠지레|카메라|공구|가위/],
+  ];
+  const itemIcon = (x) => ITEM_ICON_RULES.find(([, re]) => re.test(x))?.[0] ?? "it_bag";
   function itemsRow(p) {
     const now = performance.now(), items = p.character.items ?? [];
     const prev = app.itemSeen.get(p.pid);
@@ -10268,18 +10286,29 @@ const BannerArt = (() => {
     }
     app.itemSeen.set(p.pid, [...items]);
     const fx = (x) => { const f = app.itemFx.get(`${p.pid}|${x}`); if (!f) return null; const age = now - f.t0; if (age > ITEM_FX_MS) { app.itemFx.delete(`${p.pid}|${x}`); return null; } return { ...f, age }; };
+    // 새 물건 점: 내 물건 중 진행 중에 얻고(at) 아직 안 본 것 (기기별 저장)
+    const mine = p.pid === app.snap?.me, seenKey = K.itemSeen(app.room);
+    const isNew = (x) => { const at = p.character.itemInfo?.[x]?.at; return mine && !!at && !(LS.get(seenKey) ?? []).includes(`${x}|${at}`); };
+    const markSeen = (x, n) => {
+      if (!n.classList.contains("new")) return;
+      n.classList.remove("new");
+      const sv = LS.get(seenKey) ?? [], id = `${x}|${p.character.itemInfo?.[x]?.at}`;
+      if (!sv.includes(id)) { sv.push(id); LS.set(seenKey, sv.slice(-200)); }
+    };
     const chip = (x, f) => {
-      // 누르면 설명 쪽지: 물건 설명 한 줄 + 얻은 곳 (이름은 칩에 있으니 되풀이하지 않음)
+      // 호버(터치는 누르기)로 설명 쪽지: 아이콘 + 설명 한 줄 + 얻은 곳 (이름은 칩에 있으니 되풀이하지 않음)
       const live = f?.type !== "lost", key = `${p.pid}|${x}`, sel = live && app.itemMenu === key;
-      const n = el(live ? "button" : "span", { class: `item${f ? ` ${f.type}` : ""}${sel ? " sel" : ""}`, title: live ? null : x, type: live ? "button" : null,
+      const n = el(live ? "button" : "span", { class: `item${f ? ` ${f.type}` : ""}${sel ? " sel" : ""}${live && isNew(x) ? " new" : ""}`, title: live ? null : x, type: live ? "button" : null,
         style: f ? `animation-delay:${-Math.round(f.age)}ms` : null, "aria-expanded": live ? String(sel) : null,
-        on: live ? { click: (ev) => { ev.stopPropagation(); app.itemMenu = sel ? null : key; renderCharCol(app.snap); } } : {} },
+        on: live ? { click: (ev) => { ev.stopPropagation(); markSeen(x, n); app.itemMenu = sel ? null : key; renderCharCol(app.snap); }, mouseenter: () => markSeen(x, n), focus: () => markSeen(x, n) } : {} },
         el("span", { class: "nm" }, x));
-      if (sel) {
+      if (live) {
         const info = p.character.itemInfo?.[x] ?? {};
         const note = el("div", { class: "item-note", role: "tooltip", on: { click: (ev) => ev.stopPropagation() } },
-          info.note ? el("div", { class: "in-text" }, info.note) : null,
-          el("div", { class: "in-from" }, `얻은 곳 · ${info.scene || "—"}`));
+          el("span", { class: "in-ic" }, iconSvg(itemIcon(x))),
+          el("div", { class: "in-body" },
+            info.note ? el("div", { class: "in-text" }, info.note) : null,
+            el("div", { class: "in-from" }, `얻은 곳 · ${info.scene || "—"}`)));
         return el("span", { class: "item-wrap" }, n, note);
       }
       if (f?.type === "lost") n.addEventListener("animationend", (ev) => {   // 다 사라지면 칸에서 빼고, 비면 —
