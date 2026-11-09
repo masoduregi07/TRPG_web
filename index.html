@@ -3451,6 +3451,7 @@ const Engine = (() => {
   const roomAt = (h, x, y) => mapRoomsOf(h).filter((r) => x >= r.at[0] && x <= r.at[0] + r.at[2] && y >= r.at[1] && y <= r.at[1] + r.at[3]).sort((a, b) => a.at[2] * a.at[3] - b.at[2] * b.at[3])[0]?.name ?? "";
   const HANDOUT_IMG_MAX = 400_000;
   const isImageURL = (u) => typeof u === "string" && /^(https?:\/\/\S+|data:image\/[a-z+]+;base64,[A-Za-z0-9+/=\s]+)$/i.test(u.trim());
+  const isPlainHttp = (u) => typeof u === "string" && /^http:\/\//i.test(u.trim());
   // 배경음: https 주소만 (mp3 · ogg · m4a · wav 등. 호스트 · 플레이어 모두 그 주소에서 직접 재생)
   const isAudioURL = (u) => typeof u === "string" && /^https:\/\/\S+$/i.test(u.trim()) && u.trim().length <= 600;
   /** 이 사건의 배경음 (사건 bgm → 없으면 시나리오 맨 위 bgm). bgm: none 이면 끔 */
@@ -3505,6 +3506,7 @@ const Engine = (() => {
       } else if (h.text == null && h.image == null) errors.push(`핸드아웃 ${hid}: text나 image 중 하나는 필요.`);
       if (h.text != null && typeof h.text !== "string") errors.push(`핸드아웃 ${hid}: text는 글이어야 함.`);
       if (h.image != null && !isImageURL(h.image)) errors.push(`핸드아웃 ${hid}: image는 https:// 주소나 data:image/ 형식.`);
+      else if (isPlainHttp(h.image)) warnings.push(`핸드아웃 ${hid}: image가 http:// 주소. https 페이지에서는 안 보일 수 있음 → https:// 권장.`);
       else if (typeof h.image === "string" && h.image.startsWith("data:") && h.image.length > HANDOUT_IMG_MAX) errors.push(`핸드아웃 ${hid}: 그림이 너무 큼 (data: ${Math.round(HANDOUT_IMG_MAX / 1000)}KB 이하).`);
       if (h.kind != null && !HANDOUT_KINDS.includes(h.kind)) errors.push(`핸드아웃 ${hid}: kind는 ${HANDOUT_KINDS.join(" / ")}.`);
       if (h.to != null && !["all", "finder"].includes(h.to)) errors.push(`핸드아웃 ${hid}: to(공개 범위)는 all(전원) / finder(발견한 캐릭터).`);
@@ -3540,6 +3542,7 @@ const Engine = (() => {
       for (const k of ["places", "hints"]) if (s[k] != null && (!Array.isArray(s[k]) || s[k].some((x) => typeof x !== "string"))) errors.push(`${id}: ${k}는 글 목록이어야 함.`);
       if (s.goal != null && typeof s.goal !== "string") errors.push(`${id}: goal(사건 목표)은 글이어야 함.`);
       if (s.image != null && !isImageURL(s.image)) errors.push(`${id}: image는 https:// 주소나 data:image/ 형식이어야 함.`);
+      else if (isPlainHttp(s.image)) warnings.push(`${id}: image가 http:// 주소. https 페이지에서는 안 보일 수 있음 → https:// 권장.`);
       if (s.bgm != null && s.bgm !== "none" && s.bgm !== false && !isAudioURL(s.bgm)) errors.push(`${id}: bgm은 https:// 음원 주소 또는 none.`);
       const clueIds = new Set((s.clues ?? []).map((c) => c?.id));
       for (const c of s.clues ?? []) if (!c?.id || !c?.text) errors.push(`${id}: 단서에 id/text 필요.`);
