@@ -8570,6 +8570,7 @@ const BannerArt = (() => {
         if (app.log.length > 1000) app.log.splice(0, app.log.length - 1000);
         if (!existed && !historyCuts.some(c => msg.e.seq > c.after && msg.e.seq <= c.through)) {
           renderEntry(msg.e, {live:true});
+          if ((msg.e.kind === "say" || msg.e.kind === "ooc") && msg.e.byId && msg.e.byId !== app.snap?.me) Sfx.play("tick");   // 다른 사람이 보낸 채팅
           while (logBox.children.length > 300) logBox.firstElementChild.remove();
         }
         updateHistoryStatus(); scheduleCopy(); return;
