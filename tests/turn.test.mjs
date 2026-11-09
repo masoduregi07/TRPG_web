@@ -114,3 +114,10 @@ test("판정 결과만 있는 차례: 받은 물건을 다시 서술하면 다�
   assert.equal(only.plan.quiet, true);
   assert.ok(!only.issues.some((i) => i.hard));
 });
+
+test("결과 블록은 입력이 들어온 순서대로", () => {
+  const chars = [{ pid: "p1", name: "한서", player: "가", items: [] }, { pid: "p2", name: "도윤", player: "나", items: [] }];
+  const info = base({ secrets: [], chars, actors: chars.map(({ pid, name }) => ({ pid, name })), table: true, order: ["p2", "p1"] });
+  const r = run({ narration: "", results: [{ who: "한서", text: "한서가 문을 엶." }, { who: "도윤", text: "도윤이 등불을 듦." }] }, info);
+  assert.equal(r.plan.blocks.map((b) => b.name).join(","), "도윤,한서");
+});
