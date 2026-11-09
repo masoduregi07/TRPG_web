@@ -684,8 +684,6 @@ html.calm-item .dos-items .item.lost { display: none; }
 .say-box[data-mode="act"] > input { background: #f3e2c8; }
 .say-box[data-mode="ask"] { --say: #2a3550; }
 .say-box[data-mode="ask"] > input { background: #e4e2d6; }
-.say-box[data-mode="think"] { --say: #74634a; }
-.say-box[data-mode="think"] > input { background: #eee4d1; }
 .say-box[data-mode="cmd"] { --say: #5a4a2a; }
 .say-hint { flex-basis: 100%; margin: 0; padding-left: 3px; font-family: var(--font); font-size: 11px; color: var(--ink-2); opacity: .8; }
 .say-hint b { font-weight: 400; color: var(--blood); padding: 0 1px; }
@@ -2294,7 +2292,7 @@ html.has-3d .topbar { box-shadow: none; }
           <span id="sayGhost" class="say-ghost" aria-hidden="true" hidden></span>
         </div>
         <button class="btn primary">보내기</button>
-        <p id="sayHint" class="say-hint"><b>평소</b> 대사 · <b>@NPC</b> 대화 · <b>~</b> 생각 · <b>*</b> 행동 · <b>?</b> 질문 · <b>/r</b> 주사위</p>
+        <p id="sayHint" class="say-hint"><b>평소</b> 대사 · <b>@NPC</b> 대화 · <b>*</b> 행동 · <b>?</b> 질문 · <b>/r</b> 주사위</p>
       </form>
     </section>
 
@@ -3972,7 +3970,7 @@ const AI = (() => {
 14. 캐릭터들이 "현재장소"와 뚜렷이 다른 새 장소에 이번에 실제로 들어섰을 때만 new_place를 채운다: {"name": "짧은 장소 이름"}. "사건안장소"에 있는 곳이면 그 이름을 쓴다. 같은 장소 안에서 움직이거나, 들어가려고만 할 때, move_to를 넣을 때는 null. "이미가본장소"로 돌아가면 그 이름을 그대로 쓴다.
 15. "현재장소"에서 나와 사건 본래의 장소로 돌아오면 left_place를 true로 한다.
 16. on_track: 이번 플레이어 행동이 사건목표에 다가가면 true, 목표와 무관하게 맴돌면 false.
-17. 플레이어 입력은 (대사), (NPC에게 대사), (생각), (행동), (GM에게 질문)으로 구분된다. 일반 대사는 캐릭터끼리 나눈 말로 상황 참고용이며, 명시적으로 NPC에게 건넨 대사에만 해당 NPC가 반응한다. NPC에게 대사만 전달된 차례는 그 NPC의 대답·태도나 필요한 사회적 판정을 중심으로 다루고, 무관한 사건을 진행시키지 않는다. 단, NPC에게 사건의 단서·물건(문서 내용, 흔적, 정체 등)을 물었다면 그 확인에 맞는 판정(request_check · improv_check)을 걸거나, 공개조건이 충족된 단서는 reveal_clue로 공개할 수 있다. (생각)은 캐릭터의 비공개 내면 정보일 뿐 발언이나 행동이 아니다. NPC와 다른 캐릭터는 이를 듣거나 알 수 없으며, 생각만으로 NPC의 반응·판정·단서 공개·소지품 변경·장면 이동을 일으키지 않는다. [게임 상황]의 "내면정보"는 해당 인물의 의도 맥락으로만 참고하고 NPC의 지식이나 공개 서술로 옮기지 않는다. 행동은 결과를 서술한다(행동 안의 따옴표는 대사). 여러 캐릭터의 행동이 쌓였으면 하나의 서술로 묶어 각각의 결과를 보여 준다. 질문은 이야기를 진행하지 말고, 캐릭터가 보고 알 수 있는 범위에서 GM으로서 짧게 답한다. 질문의 답은 narration에 넣지 않고 answers에 질문한 캐릭터마다 하나씩 {"to": "질문한 캐릭터 이름", "text": "답"}으로 넣는다 (여러 명이 물었으면 각자에게 따로). 질문에는 move_to · reveal_clue · request_check · improv_check · give_item · take_item 모두 null. "이번입력"이 질문뿐이면 반드시 그렇게 하고 narration은 ""로 둔다.
+17. 플레이어 입력은 (대사), (NPC에게 대사), (행동), (GM에게 질문)으로 구분된다. 일반 대사는 캐릭터끼리 나눈 말로 상황 참고용이며, 명시적으로 NPC에게 건넨 대사에만 해당 NPC가 반응한다. NPC에게 대사만 전달된 차례는 그 NPC의 대답·태도나 필요한 사회적 판정을 중심으로 다루고, 무관한 사건을 진행시키지 않는다. 단, NPC에게 사건의 단서·물건(문서 내용, 흔적, 정체 등)을 물었다면 그 확인에 맞는 판정(request_check · improv_check)을 걸거나, 공개조건이 충족된 단서는 reveal_clue로 공개할 수 있다. 행동은 결과를 서술한다(행동 안의 따옴표는 대사). 여러 캐릭터의 행동이 쌓였으면 하나의 서술로 묶어 각각의 결과를 보여 준다. 질문은 이야기를 진행하지 말고, 캐릭터가 보고 알 수 있는 범위에서 GM으로서 짧게 답한다. 질문의 답은 narration에 넣지 않고 answers에 질문한 캐릭터마다 하나씩 {"to": "질문한 캐릭터 이름", "text": "답"}으로 넣는다 (여러 명이 물었으면 각자에게 따로). 질문에는 move_to · reveal_clue · request_check · improv_check · give_item · take_item 모두 null. "이번입력"이 질문뿐이면 반드시 그렇게 하고 narration은 ""로 둔다.
 18. 캐릭터의 "개인목표"와 "비밀"은 서술로 직접 밝히지 않는다. 그 캐릭터에게 기회나 실마리를 주는 방식으로만 활용한다.
 19. 캐릭터가 물건을 실제로 얻으면(받는다 · 줍는다 · 손에 넣는다고 서술하면) 반드시 give_item, 버리거나 · 남에게 건네거나 · 잃어버리거나 · 써서 없어지면 반드시 take_item에 {"to": "캐릭터 이름", "item": "물건 이름"}. take_item의 물건 이름은 그 캐릭터 "소지품"에 적힌 이름 그대로 쓴다. 시나리오의 핵심 물건을 조건 없이 주지 않는다.
 20. 주사위 굴림만 있고 행동 선언이 없으면 이야기를 진행하지 않는다. 판정 결과에는 그 판정의 행동만 서술한다. "직전판정" 결과 글에 이미 일어난 일(물건을 건넴, 문이 열림 등)은 다시 일어난 것처럼 서술하지 않고, 같은 물건을 이름을 바꿔 또 주지 않는다.
@@ -5454,7 +5452,7 @@ class HostGame {
     if (m) {
       const [, cmd, rest] = m;
       if (cmd === "help" || cmd === "h") {
-        return this.notice(pid, "평소 입력: 대사 (GM 반응 없음)\n@NPC이름 으로 시작: 해당 NPC에게 대사 (AI 반응)\n~ 로 시작: 비공개 생각 (AI 반응 없음)\n* 로 시작: 행동 선언 · ? 로 시작: GM에게 질문\n/r d100 주사위 · /sr d100 비밀 굴림\n/ooc 잡담 (AI 제외) · /gm 서술 (호스트)");
+        return this.notice(pid, "평소 입력: 대사 (GM 반응 없음)\n@NPC이름 으로 시작: 해당 NPC에게 대사 (AI 반응)\n* 로 시작: 행동 선언 · ? 로 시작: GM에게 질문\n/r d100 주사위 · /sr d100 비밀 굴림\n/ooc 잡담 (AI 제외) · /gm 서술 (호스트)");
       }
       if (cmd === "r" || cmd === "sr") {
         const roll = Engine.rollDice(rest || "1d100");
@@ -5471,17 +5469,17 @@ class HostGame {
       }
       return this.notice(pid, `모르는 명령어: /${cmd} (/help)`);
     }
-    const style = ["talk", "think", "act", "ask"].includes(msg?.style) ? msg.style : "act";
+    const style = ["talk", "act", "ask"].includes(msg?.style) ? msg.style : "act";
     const me = this.data.players[pid]?.character;
-    if (this.data.phase === "play" && style !== "ask" && style !== "think" && me && (me.dead || me.down) && this.data.players[pid].ready) return this.notice(pid, me.dead ? "사망한 캐릭터는 행동할 수 없음. 생각(~)·질문(?)·/ooc 가능." : `${me.down} 상태. 깨어나기 전엔 행동할 수 없음.`);
+    if (this.data.phase === "play" && style !== "ask" && me && (me.dead || me.down) && this.data.players[pid].ready) return this.notice(pid, me.dead ? "사망한 캐릭터는 행동할 수 없음. 질문(?)·/ooc 가능." : `${me.down} 상태. 깨어나기 전엔 행동할 수 없음.`);
     // 장면에 실제로 등장한 NPC를 @이름으로 지목한 대사만 NPC 대화 차례로 처리한다.
     const sceneNpcNames = this.data.phase === "play" && style === "talk"
       ? (Engine.sceneOf(this.sc, this.data.game).npcs ?? []).map((id) => this.sc.npcs?.[id]?.name).filter(Boolean).sort((a, b) => b.length - a.length)
       : [];
     const toNpc = sceneNpcNames.find((name) => text.startsWith(`@${name}`) && /^[\s:：,，]+\S/.test(text.slice(name.length + 1)));
     this.addLog({ kind: this.data.phase === "play" ? "say" : "ooc", byId: pid, by: this.data.phase === "play" ? by : this.data.players[pid].name, text,
-      ...(this.data.phase === "play" ? { style, ...(toNpc ? { toNpc } : {}), ...(style === "think" ? { secret: true } : {}) } : {}) });
-    // 생각과 일행 간 대사는 AI 턴을 열지 않는다. NPC에게 대사·행동·질문은 GM이 처리한다.
+      ...(this.data.phase === "play" ? { style, ...(toNpc ? { toNpc } : {}) } : {}) });
+    // 일행 간 대사는 AI 턴을 열지 않는다. NPC에게 대사·행동·질문은 GM이 처리한다.
     if (style === "act" || style === "ask" || toNpc) this.queueAI();
   }
 
@@ -5628,9 +5626,6 @@ class HostGame {
     const acted = since.some((e) => (e.kind === "say" && (e.style === "act" || e.toNpc)) || (e.kind === "roll" && e.result && !e.dmg) || e.kind === "gm");
     const askOnly = !acted && since.some((e) => e.kind === "say" && e.style === "ask");
     if (askOnly) ctx.이번입력 = "질문뿐: 상황 설명만 하고 이야기를 진행하지 말 것";
-    // AI가 속마음을 참고하되 NPC가 들었다고 처리하지 못하게 일반 진행과 별도 보관한다.
-    const thoughts = since.filter((e) => e.kind === "say" && e.style === "think").map((e) => `${e.by}(비공개 생각): ${e.text}`);
-    if (thoughts.length) ctx.내면정보 = thoughts.slice(-8);
     const todo = since.filter((e) => (e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc)) || (e.kind === "roll" && e.result && !e.dmg))
       .map((e) => e.kind === "roll" ? `${e.by}(판정): ${e.text} → ${e.result}` : `${e.by}(${e.toNpc ? `NPC에게 대사: ${e.toNpc}` : e.style === "ask" ? "질문" : "행동"}): ${e.text}`);
     if (todo.length) ctx.이번입력목록 = todo.slice(-8);
@@ -9063,14 +9058,14 @@ const BannerArt = (() => {
     box.hidden = false;
   }
   $("#gatherNow").addEventListener("click", () => { $("#gatherNow").disabled = true; send({ t: "aiNow" }); });
-  /* 입력 종류는 앞 글자로: 평소 = 대사 · ~ = 비공개 생각 · * = 행동 · ? = GM 질문 · / = 명령 */
-  const SAY_MODES = { talk: ["bubble", "대사"], think: ["thought", "생각"], act: ["point", "행동"], ask: ["ask", "질문"], cmd: ["dice", "명령"] };
-  const sayModeOf = (t) => t.startsWith("/") ? "cmd" : /^[~～]/.test(t) ? "think" : /^[*＊]/.test(t) ? "act" : /^[?？]/.test(t) ? "ask" : "talk";
+  /* 입력 종류는 앞 글자로: 평소 = 대사 · * = 행동 · ? = GM 질문 · / = 명령 */
+  const SAY_MODES = { talk: ["bubble", "대사"], act: ["point", "행동"], ask: ["ask", "질문"], cmd: ["dice", "명령"] };
+  const sayModeOf = (t) => t.startsWith("/") ? "cmd" : /^[*＊]/.test(t) ? "act" : /^[?？]/.test(t) ? "ask" : "talk";
   // 앞 글자만 친 상태면 그 종류의 예시를 흐리게 보여 줌 (평소 대사 예시는 입력칸 안내 글)
-  const SAY_GHOST = { act: "캐릭터의 행동을 선언. ex) 열쇠를 줍는다.", ask: "GM에게 궁금한 점을 물어보기", think: "캐릭터의 속마음. 다른 플레이어와 NPC에게 보이지 않음" };
+  const SAY_GHOST = { act: "캐릭터의 행동을 선언. ex) 열쇠를 줍는다.", ask: "GM에게 궁금한 점을 물어보기" };
   function showSayMode() {
     const raw = $("#chatInput").value, mode = sayModeOf(raw.trimStart());
-    const g = $("#sayGhost"), only = /^\s*[*＊?？~～]\s*$/.test(raw);
+    const g = $("#sayGhost"), only = /^\s*[*＊?？]\s*$/.test(raw);
     g.hidden = !only;
     if (only) { g.replaceChildren(el("span", { class: "pre" }, raw), SAY_GHOST[mode] ?? ""); }
     const box = $(".say-box");
@@ -9113,7 +9108,7 @@ const BannerArt = (() => {
     if (!text) return;
     const mode = sayModeOf(text);
     const style = mode === "cmd" ? "talk" : mode;
-    if (mode === "act" || mode === "ask" || mode === "think") text = text.slice(1).trim() || text;
+    if (mode === "act" || mode === "ask") text = text.slice(1).trim() || text;
     if (!send({ t: "chat", text, style })) return;
     clearTimeout(typingStopTimer); announceTyping(false);
     const npc = mode === "talk" ? (app.snap?.view?.npcs ?? []).find((n) => text.startsWith(`@${n.name} `)) : null;
