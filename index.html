@@ -9655,11 +9655,22 @@ const BannerArt = (() => {
     if (app.builderFor === key && $("#builderBox").firstChild) return updateBuilder();
     app.builderFor = key;
     const rules = s.scenario.rules;
-    app.draft = me?.character ? structuredClone(me.character) : (LS.get(K.draft(s.roomId)) ?? defaultDraft(rules));
+    app.draft = me?.character ? structuredClone(me.character) : (loadDraft(s) ?? defaultDraft(rules));
     app.draft.alloc ??= {};
     buildCocBuilder(s);
   }
-  function saveDraft() { LS.set(K.draft(app.snap.roomId), app.draft); updateBuilder(); }
+  /* 작성 중 기록지 자동 저장: 입력할 때마다 이 브라우저에 저장 (꺼져도 남음). 시나리오가 바뀌면 버림 */
+  function loadDraft(s) {
+    const key = K.draft(s.roomId);
+    try {   // 다른 방의 작성 중 기록지는 정리 (새 시나리오를 열면 이전 기록은 사라짐)
+      for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k?.startsWith("trpg:draft:") && k !== key) localStorage.removeItem(k); }
+    } catch {}
+    const saved = LS.get(key);
+    if (saved?.scenario === s.scenario.title && saved.draft && typeof saved.draft === "object") return saved.draft;
+    LS.del(key);
+    return null;
+  }
+  function saveDraft() { LS.set(K.draft(app.snap.roomId), { scenario: app.snap.scenario.title, draft: app.draft }); updateBuilder(); }
 
   const normGender = (v) => /여/.test(String(v ?? "")) ? "여성" : /남/.test(String(v ?? "")) ? "남성" : "";
   /** 손으로 그린 잉크 동그라미 (조금 삐뚤고 끝이 겹침) */
@@ -9832,7 +9843,6 @@ const BannerArt = (() => {
       CharacterProfiles.save(d);
       stampThenSend(() => send({ t: "char", character: d, ready: true }));
     } } }, "준비 완료");
-    const saveBtn = icBtn("button", "up save-btn", "bookmark", "임시 저장", { type: "button", on: { click: () => { if (!app.snap.myRoll) return toast("특성치 굴림 먼저."); send({ t: "char", character: d }); CharacterProfiles.save(d); toast("임시 저장 · 다음 방에서 불러오기 가능"); } } });
     // 서식 저장 · 불러오기: 기록지 머리글("서식 제7호" 옆)에 아이콘 2개. 불러오기는 보관 목록을 펼침
     function loadProfile(profileName) {
       const profile = CharacterProfiles.list().find((p) => p.name === profileName);
@@ -9882,7 +9892,7 @@ const BannerArt = (() => {
       el("div", { class: "b-right" },
         el("div", { class: "field f-chars" }, el("div", { class: "lbl-row" }, el("span", {}, "특성치"), el("span", { class: "points-row" }, rollLeft, rollBtn)), charGrid, derivedEl),
         el("div", { class: "field f-skills" }, el("div", { class: "lbl-row" }, el("span", {}, "기능"), el("span", { class: "points-row" }, pointsEl, skillDice)), skillRows),
-        el("div", { class: "row f-act" }, readyBtn, saveBtn))));
+        el("div", { class: "row f-act" }, readyBtn))));
     showBg(); refreshCoc(); updateBuilder();
   }
   function updateBuilder() {
@@ -10601,7 +10611,7 @@ const BannerArt = (() => {
     thought: ["............", "...xxxxxx...", "..x......x..", ".x........x.", ".x........x.", "..x......x..", "...xxxxxx...", "....xx......", "......xx....", ".......xx...", "............", "............"],
     dice: ["............", ".xxxxxxxxxx.", "x..........x", "x.xx.......x", "x.xx.......x", "x..........x", "x..........x", "x.......xx.x", "x.......xx.x", "x..........x", ".xxxxxxxxxx.", "............"],
     invite: ["............", "............", "kkkkkkkkkkkk", "kWWWWWWWWWWk", "kddWWWWWWddk", "kWWddWWddWWk", "kWWWWrrWWWWk", "kWWWrhrlWWWk", "kWWWWllWWWWk", "kWWWWWWWWWWk", "kkkkkkkkkkkk", "............"],
-    // 캐릭터 시트: 주사위(세 면) · 책갈피(임시 저장) · 능력치 ◀ ▶
+    // 캐릭터 시트: 주사위(세 면) · 능력치 ◀ ▶
     die3: ["....kkkk....", "..kkWWWWkk..", "kkWWWkkWWWkk", "kukkWWWWkkvk", "kuuukkkkvvvk", "kuuuuuvvvkvk", "kukuuuvvvvvk", "kuuuuuvvkvvk", "kuuukuvvvvvk", ".kkuuuvkvkk.", "...kkuvkk...", ".....kk....."],
     bookmark: ["..kkkkkkkk..", "..kGGGGGgk..", "..khrrrrlk..", "..khrrrrlk..", "..khrrrrlk..", "..khrrrrlk..", "..khrrrrlk..", "..khrrrrlk..", "..khrrrrlk..", "..khrkkrlk..", "..khk..klk..", "..kk....kk.."],
     st_dec: ["............", "............", "......kk....", ".....kGk....", "....kGgk....", "...kGggk....", "...kgggk....", "....kggk....", ".....kok....", "......kk....", "............", "............"],
