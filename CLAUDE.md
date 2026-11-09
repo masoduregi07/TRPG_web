@@ -4,6 +4,8 @@
 - 답변: 단답형 개조식(~함/~임). 업데이트 보고는 "병합 완료 (PR #n). 변경: 한 줄. 테스트: 한 줄."
 - 시안·분석처럼 판단이 필요할 때만 길게. 시안은 이미지 목업(Playwright 렌더)로 제시, 2~4안 + 추천 1개
 - 수정은 작은 단위: 브랜치 → 구문 검사 → 푸시 → PR(REST `gh api`, GraphQL 불가) → squash 병합
+- PR 묶기: 같은 요청에서 나온 관련 수정은 PR 하나로(CLAUDE.md 갱신 포함). 성격이 다른 수정(기능 버그 · 디자인 등)은 따로 되돌릴 수 있게 나눔
+- 병합 시점: 코드가 바뀐 PR은 Actions(`test`) 통과 후 병합. 문서(CLAUDE.md 등)만 바뀐 PR은 기다리지 않고 바로 병합
 - 구문 검사: `<script>` 인라인 블록을 합쳐 `node --check`
 - 회귀 테스트: `npm install && npm test` (node:test, `tests/`). `tests/load.mjs`가 스크립트의 로직 부분(Rules~Net, `createScene3D` 앞까지)만 vm으로 불러옴. PR마다 GitHub Actions(`test`)도 실행. 로직 수정 시 해당 테스트 추가
 - 커밋 메시지·PR 본문은 한두 줄. 브라우저 실제 테스트는 사용자가 함 → 미테스트면 그렇게 보고
