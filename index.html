@@ -2057,9 +2057,18 @@ html.has-3d .topbar { box-shadow: none; }
 .ho-float { position: fixed; z-index: 95; left: 40px; top: 80px; min-width: 120px; min-height: 80px; max-width: 92vw; max-height: 88vh; resize: both; overflow: hidden; cursor: move;
   background: #1c120c; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #e9dcb7, 5px 6px 0 4px rgba(0, 0, 0, .45); touch-action: none; }
 .ho-float.top { z-index: 96; }
+.ho-float { -webkit-user-select: none; user-select: none; }
+.ho-float.pinned { resize: none; cursor: default; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #c9a040, 5px 6px 0 4px rgba(0, 0, 0, .45); }
+.ho-float-map { width: 100%; height: 100%; background: #f1e8cf; }
+.ho-float-map .ho-map { width: 100%; height: 100%; }
+.ho-float-pin { position: absolute; top: 4px; right: 32px; width: 24px; height: 24px; padding: 0; border: 0; cursor: pointer; display: grid; place-items: center; color: #e9dcb7; background: rgba(28, 18, 12, .75); }
+.ho-float-pin .ic-svg { width: 14px; height: 14px; }
+.ho-float-pin:hover { background: #553a23; }
+.ho-float-pin[aria-pressed="true"] { color: #2b1a0c; background: #e8c46a; }
 .ho-float img { display: block; width: 100%; height: 100%; object-fit: contain; filter: sepia(.25); pointer-events: none; user-select: none; }
 .ho-float-x { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; border: 0; cursor: pointer; font: 18px/24px var(--font); color: #f4ecd8; background: rgba(28, 18, 12, .75); }
 .ho-float-x:hover { background: var(--blood); }
+.ho-map-card .ho-map, .ho-th-map .ho-map { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .ho .ho-img img, .ho-th img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
 .ho-x { position: fixed; top: 18px; right: 22px; width: 36px; height: 36px; border: 0; cursor: pointer; font: 24px/1 var(--font); color: #f4ecd8; background: none; }
 /* 소지품 얻음·잃음 꼬리표 */
@@ -9297,7 +9306,7 @@ const BannerArt = (() => {
   }
   /* 핸드아웃 메모 (단서 수첩과 따로): 사건 순, 섬네일 + [종류] 제목 + 첫 줄. 누르면 크게 보기. 없으면 메모째 숨김 */
   function handoutThumb(h) {
-    if (h.kind === 'map') return el('span',{class:'ho-th ho-th-map','aria-hidden':'true'},mapSvg(h));
+    if (h.kind === 'map') return el('span',{class:'ho-th ho-th-map','aria-hidden':'true','data-hid':h.id},mapSvg(h));
     const src = h.kind === 'photo' || h.image ? handoutSrc(h.image) : null;
     return el('span',{class:`ho-th ho-th-${h.kind}`,'aria-hidden':'true'}, h.image ? el('img',{src:src ?? 'data:image/gif;base64,R0lGODlhAQABAAAAACw=','data-ref':h.image.startsWith('ho:')?h.image:null,alt:''}) : null);
   }
@@ -9307,7 +9316,7 @@ const BannerArt = (() => {
     card.querySelector(".ho-img").replaceChildren(mapSvg(h, { live: true }));
   }
   function renderHandoutBox(v) {
-    refreshMapView(v);
+    refreshMapView(v); refreshMapFloats(v);
     const hos = [...(v.handouts ?? [])].sort((a,b)=>(a.at??0)-(b.at??0)), block = document.querySelector('[data-memo="handouts"]');
     block.hidden = !hos.length;
     $('#hoCount').textContent = String(hos.length);
@@ -9501,57 +9510,90 @@ const BannerArt = (() => {
       h.text ? el("span", { class: "ho-body" }, h.text) : null);
     return card;
   }
-  /* 핸드아웃 그림을 꾹 누르고(0.4초) 움직이면 그림만 따로 뜬 창으로 (끌어 옮기기 · 오른쪽 아래 크기 조절 · X로 닫기) */
+  /* 핸드아웃 그림 · 지도를 꾹 누르고(0.4초) 움직이면 따로 뜬 창으로.
+     창: 끌어 옮기기(화면 가장자리 · 다른 창 가장자리에 자석처럼 붙음) · 오른쪽 아래 크기 조절 · 핀으로 고정 on/off · X로 닫기.
+     지도 창 안에서는 내 말을 그대로 옮길 수 있고, 다른 사람 말 위치도 바로 반영 */
+  const SNAP = 12;
+  function floatWin(key, content, w0, h0) {
+    let win = [...document.querySelectorAll(".ho-float")].find((w) => w.dataset.key === key);
+    if (!win) {
+      const pin = el("button", { class: "ho-float-pin", type: "button", "aria-pressed": "false", title: "고정", "aria-label": "창 고정",
+        on: { click: () => { const on = !win.classList.contains("pinned"); win.classList.toggle("pinned", on); pin.setAttribute("aria-pressed", String(on)); pin.title = on ? "고정 풀기" : "고정"; } } }, iconSvg("pin"));
+      win = el("div", { class: "ho-float", "data-key": key, style: `width:${w0}px;height:${h0}px` }, content, pin,
+        el("button", { class: "ho-float-x", type: "button", "aria-label": "닫기", on: { click: () => win.remove() } }, "×"));
+      document.body.append(win);
+    }
+    document.querySelectorAll(".ho-float").forEach((w) => w.classList.toggle("top", w === win));
+    return win;
+  }
+  function floatFrom(src) {
+    if (src.tagName === "IMG") {
+      const w0 = Math.min(src.naturalWidth || 280, 320), h0 = Math.round(w0 * ((src.naturalHeight || 3) / (src.naturalWidth || 4)));
+      return floatWin(`img:${src.dataset.ref || src.currentSrc || src.src}`,
+        el("img", { src: src.currentSrc || src.src, alt: src.alt || "", draggable: "false", "data-ref": src.dataset.ref || null }), w0, h0);
+    }
+    const hid = src.closest("[data-hid]")?.dataset.hid, h = app.snap?.view?.handouts?.find((x) => x.id === hid);
+    if (!h) return null;
+    const svgEl = mapSvg(h, { live: true }), vb = svgEl.viewBox.baseVal;
+    const win = floatWin(`map:${hid}`, el("div", { class: "ho-float-map", "data-hid": hid }, svgEl), 360, Math.round(360 * vb.height / vb.width));
+    return win;
+  }
+  // 자석: 화면 가장자리와 다른 창의 가장자리(맞닿기 · 줄 맞추기)에 SNAP px 안이면 붙음
+  function snapPos(win, x, y) {
+    const w = win.offsetWidth, h = win.offsetHeight;
+    const xs = [0, innerWidth - w], ys = [0, innerHeight - h];
+    for (const o of document.querySelectorAll(".ho-float")) {
+      if (o === win) continue;
+      const r = o.getBoundingClientRect();
+      xs.push(r.left, r.right, r.left - w, r.right - w);
+      ys.push(r.top, r.bottom, r.top - h, r.bottom - h);
+    }
+    const near = (v, list) => { let best = v, d = SNAP + 1; for (const c of list) { const k = Math.abs(c - v); if (k < d) { d = k; best = c; } } return best; };
+    return [Math.max(0, Math.min(innerWidth - 40, near(x, xs))), Math.max(0, Math.min(innerHeight - 30, near(y, ys)))];
+  }
+  const placeWin = (win, x, y) => { const [sx, sy] = snapPos(win, x, y); win.style.left = `${sx}px`; win.style.top = `${sy}px`; };
+  /* 지도 창: 최신 말 위치로 다시 그림 (내 말을 끄는 중이면 건너뜀) */
+  function refreshMapFloats(v) {
+    for (const box of document.querySelectorAll(".ho-float-map")) {
+      if (box.querySelector(".hm-tok.drag")) continue;
+      const h = (v.handouts ?? []).find((x) => x.id === box.dataset.hid);
+      if (h) box.replaceChildren(mapSvg(h, { live: true })); else box.closest(".ho-float")?.remove();
+    }
+  }
   {
     let lp = null, suppress = false;
-    const floatImage = (img, x, y) => {
-      const ref = img.dataset.ref || img.currentSrc || img.src;
-      let win = [...document.querySelectorAll(".ho-float")].find((w) => w.dataset.ref === ref);
-      if (!win) {
-        const w0 = Math.min(img.naturalWidth || 280, 320), h0 = Math.round(w0 * ((img.naturalHeight || 3) / (img.naturalWidth || 4)));
-        win = el("div", { class: "ho-float", "data-ref": ref, style: `width:${w0}px;height:${h0}px` },
-          el("img", { src: img.currentSrc || img.src, alt: img.alt || "", draggable: "false", "data-ref": img.dataset.ref || null }),
-          el("button", { class: "ho-float-x", type: "button", "aria-label": "닫기", on: { click: () => win.remove() } }, "×"));
-        document.body.append(win);
-      }
-      document.querySelectorAll(".ho-float").forEach((w) => w.classList.toggle("top", w === win));
-      return win;
-    };
-    const place = (win, x, y, dx, dy) => {
-      const r = win.getBoundingClientRect();
-      win.style.left = `${Math.max(0, Math.min(innerWidth - 40, x - dx))}px`;
-      win.style.top = `${Math.max(0, Math.min(innerHeight - 30, y - dy))}px`;
-      void r;
-    };
-    // 꾹 누르기 → 움직이면 창이 손을 따라옴
+    const SRC = ".ho .ho-img img, .ho-th img, .cv-ho .ho-th img, .ho-map-card .ho-map, .ho-th-map .ho-map";
+    // 꾹 누르기 → 움직이면 창이 손을 따라옴 (기록 · 메모 · 크게 보기 어디서든)
     document.addEventListener("pointerdown", (e) => {
-      const img = e.target.closest?.(".ho .ho-img img, .ho-th img, .cv-ho .ho-th img");
-      if (!img || e.button !== 0) return;
+      if (e.button !== 0 || e.target.closest?.(".ho-float, .hm-tok.mine")) return;
+      const src = e.target.closest?.(SRC);
+      if (!src) return;
       const sx = e.clientX, sy = e.clientY;
-      lp = { img, sx, sy, ready: false, win: null, timer: setTimeout(() => { if (lp) { lp.ready = true; navigator.vibrate?.(15); } }, 400) };
+      lp = { src, sx, sy, ready: false, win: null, timer: setTimeout(() => { if (lp) { lp.ready = true; navigator.vibrate?.(15); } }, 400) };
     });
     addEventListener("pointermove", (e) => {
       if (!lp) return;
       if (!lp.ready) { if (Math.hypot(e.clientX - lp.sx, e.clientY - lp.sy) > 8) { clearTimeout(lp.timer); lp = null; } return; }
       e.preventDefault();
-      if (!lp.win) { lp.win = floatImage(lp.img); suppress = true; }
-      place(lp.win, e.clientX, e.clientY, 30, 20);
+      if (!lp.win) { lp.win = floatFrom(lp.src); suppress = true; if (!lp.win) { lp = null; return; } }
+      placeWin(lp.win, e.clientX - 30, e.clientY - 20);
     }, { passive: false });
     const endLp = () => { if (lp) { clearTimeout(lp.timer); lp = null; } };
     addEventListener("pointerup", endLp); addEventListener("pointercancel", endLp);
     // 꾹 눌러 띄운 직후의 클릭(크게 보기)은 무시
     document.addEventListener("click", (e) => { if (suppress && e.target.closest?.(".ho, .ho-row, .cv-ho")) { e.preventDefault(); e.stopPropagation(); } suppress = false; }, true);
     document.addEventListener("contextmenu", (e) => { if (lp && e.target.closest?.(".ho-img, .ho-th")) e.preventDefault(); });
-    // 뜬 창 끌어 옮기기 (X · 오른쪽 아래 크기 조절 모서리 제외)
+    // 뜬 창 끌어 옮기기 (버튼 · 내 말 · 오른쪽 아래 크기 조절 모서리 제외, 고정이면 안 움직임)
     document.addEventListener("pointerdown", (e) => {
       const win = e.target.closest?.(".ho-float");
-      if (!win || e.target.closest(".ho-float-x")) return;
+      if (!win) return;
       document.querySelectorAll(".ho-float").forEach((w) => w.classList.toggle("top", w === win));
+      if (e.target.closest("button, .hm-tok.mine") || win.classList.contains("pinned")) return;
       const r = win.getBoundingClientRect();
       if (e.clientX > r.right - 16 && e.clientY > r.bottom - 16) return;   // 크기 조절
       e.preventDefault();
       const dx = e.clientX - r.left, dy = e.clientY - r.top;
-      const mv = (ev) => place(win, ev.clientX, ev.clientY, dx, dy);
+      const mv = (ev) => placeWin(win, ev.clientX - dx, ev.clientY - dy);
       const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); };
       addEventListener("pointermove", mv); addEventListener("pointerup", up);
     });
