@@ -52,6 +52,8 @@
 - 큰 이름 → [직업] 테두리 꼬리표 + 흐린 "23세 · 여성" → 특징. 연결고리 = 왼쪽 선 메모 줄, 개인 목표·직업 비밀 = 대외비 칸(내 기록만)
 - 종이: 오래된 기록지(섬유 결 + 옅은 얼룩 + 바랜 가장자리), 테두리 2px 먹선 + 안쪽 5px 옅은 여백선
 - 상태 도장 숫자 14px. 소지품은 아이콘 없이 이름만(얻기·잃기 연출 유지)
+- 소지품 칩 누르면 설명 쪽지(`.item-note`): 설명 한 줄 + "얻은 곳 · 장면"만, 이름 되풀이 없음. 사용·건네기·버리기 버튼 없음(플레이어 서술로 처리). 데이터 `character.itemInfo[이름] = {note, scene}`, AI `give_item.note`
+- 기록의 소지품 얻음/잃음: SYSTEM 줄 대신 `이름 [＋ 물건]` / `[− 물건]`(줄 긋기) 꼬리표
 
 ### 단서 수첩
 - 사건별 조사 일지(발견 사건마다 머리띠, 제목 + 첫 줄 미리보기, 처음 보는 단서는 형광펜). 길게 눌러 끌면 같은 사건 안에서만 순서 변경(Alt+↑↓, 전체 탭에서만). 발췌 없음
@@ -69,4 +71,4 @@
 ## 남은 후보
 - AI 출력 잘림 외 추가 개선, CSS 중복 정리 3단계 이후, CDN 버전 고정 + SRI
 - 단서 수첩 종이 질감(보류), 상태 도장 ± 버튼 호버 시에만 표시(제안만 함)
-- 쓰지 않게 된 코드 정리: `shrinkPortrait`, `WebFeatures.clueCategories`·단서 `categories`, `.lamp`·`.clue-chip`·`.clue-kind-dot` CSS
+- 쓰지 않게 된 코드 정리: 호스트 `dropItem` 처리, `shrinkPortrait`, `WebFeatures.clueCategories`·단서 `categories`, `.lamp`·`.clue-chip`·`.clue-kind-dot` CSS
