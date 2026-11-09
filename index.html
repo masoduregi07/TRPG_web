@@ -440,6 +440,12 @@ textarea.code { font: 12px/1.6 var(--font); }
 
 .entry.say .who { --c: var(--blood); color: var(--c); font-size: 17px; background: none; box-shadow: none; padding: 0; margin-right: 6px; }
 .entry.say .who::after { content: " —"; color: rgba(90, 60, 30, .45); }
+/* 플레이어 대사 = 오른쪽 정렬 + 플레이어 색 막대(끝에 말풍선 꼬리) */
+.entry.say { --c: var(--blood); position: relative; justify-self: end; max-width: 78%; margin-right: 10px; padding: 1px 12px 1px 0; text-align: right; box-shadow: inset -3px 0 0 var(--c); }
+.entry.say::after { content: ""; position: absolute; right: -7px; bottom: 0; width: 7px; height: 7px; background: var(--c); clip-path: polygon(0 0, 100% 100%, 0 100%); }
+.entry.say .who::after { content: ""; }
+/* GM 서술 속 NPC 대사 */
+.npc-line { color: #6f2a10; font-family: var(--font-talk); border-bottom: 2px dotted rgba(111, 42, 16, .45); }
 /* GM 서술 = 크게, 진행자의 목소리 */
 .entry.gm, .entry.ai { font-family: var(--font); font-size: 18px; color: #120c08; padding: 3px 0 3px 15px; box-shadow: inset 6px 0 0 var(--ink); }
 .entry.gm .who, .entry.ai .who { display: none; }
@@ -9084,8 +9090,13 @@ const BannerArt = (() => {
   // 게임 설정과 운영체제의 움직임 줄이기를 모두 존중한다.
   const motionPreferenceUI = matchMedia("(prefers-reduced-motion: reduce)");
   const reduceMotionUI = () => motionPreferenceUI.matches || Sfx.get().fxType === false;
+  /* GM 서술 속 따옴표 대사(NPC 대사)는 점선 밑줄 + 색으로 */
+  function setText(node, text) {
+    if (!node.classList.contains("npcq") || !text) { node.textContent = text; return; }
+    node.replaceChildren(...String(text).split(/(["“][^"”\n]+["”]|「[^」\n]+」)/).map((t, i) => i % 2 ? el("span", { class: "npc-line" }, t) : t));
+  }
   function typeInto(node, text) {
-    if (reduceMotionUI() || !text) { node.textContent = text; return; }
+    if (reduceMotionUI() || !text) { setText(node, text); return; }
     node.textContent = "";
     node.classList.add("typing");
     node.setAttribute("aria-label", text);   // 화면 낭독기는 전체 문장을 바로
@@ -9127,7 +9138,7 @@ const BannerArt = (() => {
   }
   function finishType(job) {
     job.done = true; clearTimeout(job.timer);
-    job.node.textContent = job.text;
+    setText(job.node, job.text);
     job.node.classList.remove("typing");
     job.node.removeAttribute("aria-label");
     nextType();
@@ -9135,7 +9146,7 @@ const BannerArt = (() => {
   function skipTyping() {
     if (!typing) return;
     const stick = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 80;
-    for (const j of [typing, ...typeQueue.splice(0)]) { j.done = true; clearTimeout(j.timer); j.node.textContent = j.text; j.node.classList.remove("typing"); j.node.removeAttribute("aria-label"); }
+    for (const j of [typing, ...typeQueue.splice(0)]) { j.done = true; clearTimeout(j.timer); setText(j.node, j.text); j.node.classList.remove("typing"); j.node.removeAttribute("aria-label"); }
     typing = null;
     if (stick) logBox.scrollTop = logBox.scrollHeight;
     afterTyping();
@@ -9222,14 +9233,14 @@ const BannerArt = (() => {
       const spoken = e.kind === "say" && e.toNpc && e.text.startsWith(`@${e.toNpc}`)
         ? e.text.slice(e.toNpc.length + 1).replace(/^[\s:：,，]+/, "") : e.text;
       const body = e.kind === "say" && e.style === "talk" && !/^["“「]/.test(spoken) ? `「${spoken}」` : spoken;
-      const textNode = el("span", { class: "text" }, animate ? "" : body);
-      if (animate) typeInto(textNode, body);
+      const textNode = el("span", { class: e.kind === "gm" || e.kind === "ai" ? "text npcq" : "text" });
+      if (animate) typeInto(textNode, body); else setText(textNode, body);
       const placeIc = e.kind === "system" && (e.place || /^장소: /.test(e.text ?? "")) ? el("span", { class: "place-ic", "aria-hidden": "true" }, iconSvg("pin")) : null;
       // 말한 사람: 상자 없이 플레이어 색 잉크 이름 + 줄표
       const ink = e.kind === "say" && e.byId && app.snap?.players.some((p) => p.pid === e.byId) ? spineOf(e.byId) : null;
       // GM이 질문에 답할 때: 질문한 사람을 플레이어 색 꼬리표로
       const toInk = e.toId && app.snap?.players.some((p) => p.pid === e.toId) ? spineOf(e.toId) : "#2a3550";
-      node = el("div", { class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}` }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
+      node = el("div", { class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}`, style: ink ? `--c:${ink}` : null }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
         e.style === "ask" ? el("span", { class: "ask-tag" }, "→ GM") : null,
         e.toNpc ? el("span", { class: "to-tag", style: "--c:#6f5230", "data-npc": e.toNpc, title: `${e.toNpc}에게 말하기` }, `@${e.toNpc}`) : null,
         e.to ? el("span", { class: "to-tag", style: `--c:${toInk}` }, `@${e.to}`) : null,
