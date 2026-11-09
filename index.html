@@ -1412,9 +1412,9 @@ html.has-3d .topbar { box-shadow: none; }
 .doc-row input { field-sizing: content; width: 100%; min-width: 222px; max-width: 480px; box-sizing: border-box; margin: 0; padding: 6px 9px; border: 0; background: none; box-shadow: none; font-family: var(--font-body); font-size: 13px; color: var(--ink); }
 .doc-row input:focus { outline: 0; background: rgba(240, 164, 60, .12); }
 /* 개인 목표 = 핀으로 꽂은 쪽지 */
-.goal-memo { position: relative; display: grid; gap: 3px; margin: 3px 3px 0; padding: 12px 12px 9px; rotate: -1deg; cursor: text;
-  background: repeating-linear-gradient(180deg, transparent 0 17px, rgba(90, 120, 170, .2) 17px 18px), #f6efc0; box-shadow: 0 0 0 2px #2b1a0c, 3px 4px 0 1px rgba(0, 0, 0, .3); }
-.goal-memo::before { content: ""; position: absolute; left: 50%; top: -6px; width: 10px; height: 10px; translate: -50% 0; background: var(--blood); box-shadow: 0 0 0 2px var(--ink), inset -2px -2px 0 rgba(0, 0, 0, .3); }
+/* 개인 목표 = 대외비 서류: 옅은 붉은 겹테 + 대외비 띠 */
+.goal-memo { position: relative; display: grid; gap: 3px; margin: 3px 3px 0; padding: 12px 14px 9px; cursor: text;
+  background: #f4ead0; box-shadow: inset 0 0 0 1px rgba(138, 28, 20, .45), inset 0 0 0 3px #f4ead0, inset 0 0 0 4px rgba(138, 28, 20, .25), 3px 4px 0 rgba(0, 0, 0, .22); }
 .memo-k { font-family: var(--font); font-size: 11px; letter-spacing: 2px; color: #7a5a38; }
 .goal-memo textarea { width: 100%; min-height: 36px; box-sizing: border-box; margin: 0; padding: 0; border: 0; resize: none; background: none; box-shadow: none; font-family: var(--font-body); font-size: 13px; line-height: 18px; color: var(--ink); field-sizing: content; }
 .goal-memo textarea:focus { outline: 0; }
@@ -1581,7 +1581,8 @@ html.has-3d .topbar { box-shadow: none; }
 .coc-builder .id-block .doc-form { margin-top: 15px; }
 .coc-builder .goal-memo { margin: 3px 0 0; align-content: start; }
 .goal-memo .goal-hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: text; }
-.goal-memo .goal-priv { padding: 0 5px; font-family: var(--font); font-size: 10px; letter-spacing: 1px; color: var(--blood); box-shadow: inset 0 0 0 1px var(--blood); }
+.goal-memo .goal-priv { padding: 1px 7px; font-family: var(--font); font-size: 10px; letter-spacing: 1px; color: #f4ead0; background: var(--blood); }
+.goal-memo .goal-hd .memo-k { color: var(--blood); letter-spacing: 3px; }
 .goal-memo textarea { field-sizing: content; min-height: 18px; }
 .goal-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 4px; }
 .goal-chips em { font-family: var(--font); font-size: 11px; font-style: normal; color: #9a8566; }
@@ -9854,7 +9855,7 @@ const BannerArt = (() => {
             el("div", { class: "doc-row pair" }, el("label", { class: "doc-k", for: "cocAge" }, "나이"), el("span", { class: "age-wrap" }, age, el("span", { class: "age-u", "aria-hidden": "true" }, "세")), el("span", { class: "doc-k" }, "성별"), gender),
             docRow("직업", el("div", { class: "occ-editor" }, el("div", { class: "occ-switch", role: "group", "aria-label": "직업 입력 방식" }, bgPickBtn, bgTypeBtn), bg, bgCustom)),
             docRow("특징 및 성격", concept))),
-        el("div", { class: "goal-memo" }, el("label", { class: "goal-hd", for: "cocGoal" }, el("span", { class: "memo-k" }, "개인 목표"), el("span", { class: "goal-priv" }, "비공개 · 나와 GM만")), goal, goalChips, goalCount),
+        el("div", { class: "goal-memo" }, el("label", { class: "goal-hd", for: "cocGoal" }, el("span", { class: "memo-k" }, "개인 목표"), el("span", { class: "goal-priv" }, "대외비 · 나와 GM만")), goal, goalChips, goalCount),
         fate, profileBox),
       el("div", { class: "b-right" },
         el("div", { class: "field f-chars" }, el("div", { class: "lbl-row" }, el("span", {}, "특성치"), el("span", { class: "points-row" }, rollLeft, rollBtn)), charGrid, derivedEl),
