@@ -690,6 +690,9 @@ html.calm-item .dos-items .item.lost { display: none; }
 .say-box > input { width: 100%; padding-left: 42px; box-shadow: inset var(--p) var(--p) 0 0 var(--paper-lo), 0 calc(var(--p) * -1) 0 0 var(--say), 0 var(--p) 0 0 var(--say), calc(var(--p) * -1) 0 0 0 var(--say), var(--p) 0 0 0 var(--say); }
 .say-mode { position: absolute; left: 9px; top: 50%; translate: 0 -50%; width: 24px; height: 24px; pointer-events: none; color: var(--say); }
 .say-mode .ic-svg { display: block; width: 24px; height: 24px; }
+.npc-chip { position: absolute; left: 40px; top: 50%; translate: 0 -50%; z-index: 2; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 7px; border: 0; background: #6f5230; color: #f4ecd8; box-shadow: 1px 1px 0 rgba(0, 0, 0, .3); font-family: var(--font); font-size: 12px; line-height: 1.4; cursor: pointer; }
+.npc-chip:hover, .npc-chip:focus-visible { background: #8a1c14; outline: 0; }
+.npc-chip[hidden] { display: none; }
 .say-box[data-mode="talk"] .say-mode { color: #6b5a44; }
 .say-box[data-mode="act"] { --say: var(--blood); }
 .say-box[data-mode="act"] > input { background: #f3e2c8; }
@@ -2365,6 +2368,7 @@ html.has-3d .topbar { box-shadow: none; }
       <form id="chatForm" class="chat">
         <div class="say-box" data-mode="talk">
           <span id="sayMode" class="say-mode" aria-live="polite"></span>
+          <button id="npcChip" class="npc-chip" type="button" hidden title="누르면 지움"></button>
           <input id="chatInput" maxlength="800" autocomplete="off" aria-describedby="sayHint" placeholder="캐릭터에 맞는 대사 ex) 무슨 일이야?" />
           <span id="sayGhost" class="say-ghost" aria-hidden="true" hidden></span>
         </div>
@@ -9174,18 +9178,29 @@ const BannerArt = (() => {
     const previous = LS.get(K.recentNpc(app.room));
     if (!previous || Date.now() - previous.at > 10 * 60_000 || previous.scene !== app.snap.view?.scene?.id) return;
     if (!(app.snap.view?.npcs ?? []).some((n) => n.name === previous.name)) return;
-    input.value = `@${previous.name} `;
+    setNpcChip(previous.name);
+  }
+  /* 말 거는 NPC = 입력칸 앞 라벨. 지울 땐 통째로 (맨 앞에서 ⌫ 또는 라벨 클릭) */
+  let npcChipName = "";
+  function setNpcChip(name) {
+    npcChipName = name || "";
+    const chip = $("#npcChip"), input = $("#chatInput");
+    chip.hidden = !npcChipName;
+    chip.textContent = npcChipName ? `@${npcChipName}` : "";
+    chip.setAttribute("aria-label", npcChipName ? `${npcChipName}에게 말하는 중 · 누르면 해제` : "");
+    input.style.paddingLeft = npcChipName ? `${chip.offsetLeft + chip.offsetWidth + 8}px` : "";
     showSayMode();
   }
+  $("#npcChip").addEventListener("click", () => { setNpcChip(""); $("#chatInput").focus(); });
   $("#chatInput").addEventListener("focus", prefillRecentNpc);
   /* @ 자동완성: 입력 맨 앞 "@글자"면 이 장면 NPC 목록을 띄우고, 고르면 "@이름 "을 채움 */
   let npcPickList = [], npcPickSel = 0;
   function sceneNpcs() { return app.snap?.phase === "play" ? (app.snap.view?.npcs ?? []) : []; }
   function fillNpc(name) {
     const input = $("#chatInput");
-    input.value = `@${name} `;
+    if (/^@\S*$/.test(input.value)) input.value = "";   // 자동완성 중이던 "@글자"는 라벨로 바뀜
+    closeNpcPick(); setNpcChip(name);
     input.focus(); input.setSelectionRange(input.value.length, input.value.length);
-    closeNpcPick(); showSayMode();
   }
   function closeNpcPick() { $("#npcPick").hidden = true; npcPickList = []; }
   function drawNpcPick() {
@@ -9195,7 +9210,7 @@ const BannerArt = (() => {
   }
   function updateNpcPick() {
     const m = /^@(\S*)$/.exec($("#chatInput").value);
-    if (!m) return closeNpcPick();
+    if (!m || npcChipName) return closeNpcPick();
     const q = m[1];
     const all = sceneNpcs();
     npcPickList = [...all.filter((n) => n.name.startsWith(q)), ...all.filter((n) => !n.name.startsWith(q) && n.name.includes(q))];
@@ -9208,9 +9223,19 @@ const BannerArt = (() => {
     box.style.left = `${ir.left - pr.left}px`;
     box.style.bottom = `${pr.bottom - ir.top + 6}px`;
   }
-  $("#chatInput").addEventListener("input", () => { npcPickSel = 0; updateNpcPick(); });
+  $("#chatInput").addEventListener("input", () => {
+    // "@NPC이름 "을 끝까지 직접 쳤으면 라벨로
+    const input = $("#chatInput");
+    if (!npcChipName && input.value.startsWith("@")) {
+      const n = sceneNpcs().filter((x) => input.value.startsWith(`@${x.name} `)).sort((a, b) => b.name.length - a.name.length)[0];
+      if (n) { input.value = input.value.slice(n.name.length + 2); setNpcChip(n.name); }
+    }
+    npcPickSel = 0; updateNpcPick();
+  });
   $("#chatInput").addEventListener("blur", closeNpcPick);
   $("#chatInput").addEventListener("keydown", (e) => {
+    const input = $("#chatInput");
+    if (e.key === "Backspace" && npcChipName && !e.isComposing && input.selectionStart === 0 && input.selectionEnd === 0) { e.preventDefault(); setNpcChip(""); return; }
     if ($("#npcPick").hidden || e.isComposing) return;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); npcPickSel = (npcPickSel + (e.key === "ArrowDown" ? 1 : -1) + npcPickList.length) % npcPickList.length; drawNpcPick(); }
     else if (e.key === "Tab" || e.key === "Enter") { e.preventDefault(); fillNpc(npcPickList[npcPickSel].name); }
@@ -9232,6 +9257,7 @@ const BannerArt = (() => {
     ev.preventDefault();
     let text = $("#chatInput").value.trim();
     if (!text) return;
+    if (npcChipName) text = `@${npcChipName} ${text}`;
     const mode = sayModeOf(text);
     const style = mode === "cmd" ? "talk" : mode;
     if (mode === "act" || mode === "ask") text = text.slice(1).trim() || text;
@@ -9242,7 +9268,7 @@ const BannerArt = (() => {
     else LS.del(K.recentNpc(app.room));
     Sfx.play("quill");
     $("#chatInput").value = "";
-    showSayMode();
+    setNpcChip("");
     if (npc) prefillRecentNpc();
     $("#chatInput").focus();
   });
