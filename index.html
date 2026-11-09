@@ -2116,6 +2116,14 @@ html.has-3d .topbar { box-shadow: none; }
 .clue-kind-dot.l { background:#bcd88a; border:1px solid var(--ink); }
 .clue-kind-dot.p.l { background:linear-gradient(90deg,#f2b48e 50%,#bcd88a 50%); }
 .clue-kinds { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0 0 8px; font-size:12px; }
+/* 분류 = 색인 깃발 (위 책갈피 탭과 같은 색). 꺼짐 = 점선 빈 깃발 */
+.clue-flag { --c:#f2b48e; --ln:#80442a; padding:3px 12px 3px 8px; border:1px dashed #9a8566; background:transparent; box-shadow:none; color:#7a6548; font-family:var(--font); font-size:11px; line-height:1.3; cursor:pointer; clip-path:polygon(0 0,100% 0,calc(100% - 6px) 50%,100% 100%,0 100%); }
+.clue-flag.l { --c:#bcd88a; --ln:#4c6626; }
+.clue-flag:hover, .clue-flag:focus-visible { border-style:solid; border-color:var(--ln); color:var(--ln); outline:0; }
+.clue-flag.on { border:0; padding:4px 13px 4px 9px; background:var(--c); color:#1a120d; box-shadow:inset 0 -2px 0 rgba(0,0,0,.18); }
+.clue-row-flags { flex:none; display:flex; gap:2px; margin-right:6px; }
+.clue-row-flags i { width:6px; height:12px; clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%); }
+.clue-row-flags i.p { background:#f2b48e; } .clue-row-flags i.l { background:#bcd88a; }
 .clue-kinds-label { color:var(--ink-2); }
 .clue-chip { display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 5px; border:2px solid var(--ink); background:#f4ecca; color:var(--ink); font:700 12px var(--font); box-shadow:2px 2px 0 rgba(0,0,0,.25); cursor:pointer; }
 .clue-chip i { display:grid; place-items:center; width:12px; height:12px; border:2px solid var(--ink); background:#fff; font-style:normal; font-size:10px; line-height:1; }
@@ -2390,7 +2398,7 @@ html.has-3d .topbar { box-shadow: none; }
         <!-- 클립으로 꽂은 메모들: 제목(머리)을 끌어 순서 바꾸기, 브라우저에 기억 -->
         <div id="memoStack" class="memo-stack">
           <section class="block" data-memo="checks"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><h3>판정 <span id="checkNote" class="muted small">— 능력치 자동 적용</span></h3><div id="checkBox" class="chips"></div></section>
-          <section class="block" data-memo="clues"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><nav id="clueBookmarks" class="clue-bookmarks-edge" role="tablist" aria-label="단서 자동 분류"><button type="button" id="clueAll" role="tab" data-group="all" aria-selected="true" aria-controls="clueBox">전체</button><button type="button" id="cluePerson" role="tab" data-group="person" aria-selected="false" aria-controls="clueBox" tabindex="-1">인물</button><button type="button" id="cluePlace" role="tab" data-group="place" aria-selected="false" aria-controls="clueBox" tabindex="-1">장소</button></nav><h3>단서 수첩 <span id="clueCount" class="clue-count">0</span></h3><ul id="clueBox" class="clues" role="tabpanel" aria-labelledby="clueAll"></ul></section>
+          <section class="block" data-memo="clues"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><nav id="clueBookmarks" class="clue-bookmarks-edge" role="tablist" aria-label="단서 분류"><button type="button" id="clueAll" role="tab" data-group="all" aria-selected="true" aria-controls="clueBox">전체</button><button type="button" id="cluePerson" role="tab" data-group="person" aria-selected="false" aria-controls="clueBox" tabindex="-1">인물</button><button type="button" id="cluePlace" role="tab" data-group="place" aria-selected="false" aria-controls="clueBox" tabindex="-1">장소</button></nav><h3>단서 수첩 <span id="clueCount" class="clue-count">0</span></h3><ul id="clueBox" class="clues" role="tabpanel" aria-labelledby="clueAll"></ul></section>
         </div>
       </div>
     </section>
@@ -8878,14 +8886,13 @@ const BannerArt = (() => {
       const heading=el('summary',{class:'clue-index-row','aria-label':`${content.title} 원문 펼치기`},
         el('span',{class:'clue-number','aria-hidden':'true'},String(i+1).padStart(2,'0')),
         el('span',{class:'clue-title'},content.title),el('span',{class:'clue-leader','aria-hidden':'true'}),
-        el('span',{class:`clue-kind-dot ${kinds.includes('person')?'p':''} ${kinds.includes('place')?'l':''}`,title:kinds.length?kinds.map(k=>k==='person'?'인물':'장소').join('·'):'미분류','aria-hidden':'true'}),el('span',{class:'clue-arrow','aria-hidden':'true'}));
+        el('span',{class:'clue-row-flags',title:kinds.length?kinds.map(k=>k==='person'?'인물':'장소').join('·'):null,'aria-hidden':'true'},...['person','place'].filter(k=>kinds.includes(k)).map(k=>el('i',{class:k==='person'?'p':'l'}))),el('span',{class:'clue-arrow','aria-hidden':'true'}));
       const chip=(kind,label)=>{
         const on=kinds.includes(kind);
-        return el('button',{type:'button',class:`clue-chip ${kind==='person'?'p':'l'}${on?' on':''}`,role:'checkbox','aria-checked':String(on),
-          on:{click:(e)=>{e.preventDefault();e.stopPropagation();const next=on?kinds.filter(k=>k!==kind):[...kinds,kind];setKinds(c.id,next);}}},
-          el('i',{'aria-hidden':'true'},on?'✓':''),label);
+        return el('button',{type:'button',class:`clue-flag ${kind==='person'?'p':'l'}${on?' on':''}`,role:'checkbox','aria-checked':String(on),
+          on:{click:(e)=>{e.preventDefault();e.stopPropagation();const next=on?kinds.filter(k=>k!==kind):[...kinds,kind];setKinds(c.id,next);}}},label);
       };
-      const kindRow=el('div',{class:'clue-kinds'},el('span',{class:'clue-kinds-label'},'분류'),chip('person','인물'),chip('place','장소'));
+      const kindRow=el('div',{class:'clue-kinds',role:'group','aria-label':'분류'},chip('person','인물'),chip('place','장소'));
       details.append(heading,el('div',{class:'clue-open-body'},kindRow,
         el('div',{class:'clue-original'},el('span',{class:'clue-original-label'},'원문'),el('p',{},content.original))));
       const sync=()=>heading.setAttribute('aria-label',`${content.title} 원문 ${details.open?'접기':'펼치기'}`);
