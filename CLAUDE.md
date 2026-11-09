@@ -92,4 +92,3 @@
 ## 남은 후보
 - AI 출력 잘림 외 추가 개선, CSS 중복 정리 3단계 이후, CDN 버전 고정 + SRI
 - 단서 수첩 종이 질감(보류), 상태 도장 ± 버튼 호버 시에만 표시(제안만 함)
-- 쓰지 않게 된 코드 정리: 호스트 `dropItem` 처리, `shrinkPortrait`, `WebFeatures.clueCategories`·단서 `categories`, `.lamp`·`.clue-chip`·`.clue-kind-dot` CSS
