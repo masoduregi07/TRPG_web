@@ -545,6 +545,17 @@ textarea.code { font: 12px/1.6 var(--font); }
   color: #f4ecd8; background: rgba(82, 14, 10, .92); box-shadow: 0 0 0 1px rgba(244, 236, 216, .7);
 }
 .ic-btn.copied .ic-stamp { display: block; }
+/* 상단 줄: 아이콘 크기 · 색 통일 (놋쇠 모노) */
+.top-actions > .ic-btn .ic-svg, .top-actions > .exit-wrap > .ic-btn .ic-svg { width: 30px; height: 30px; filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, .5)); }
+.top-actions > .ic-btn:hover .ic-svg, .top-actions > .exit-wrap > .ic-btn:hover .ic-svg, .top-actions > .exit-wrap > .ic-btn:focus-visible .ic-svg, .top-actions > .ic-btn:focus-visible .ic-svg { filter: brightness(1.18) drop-shadow(1px 2px 0 rgba(0, 0, 0, .5)); }
+.conn-chip { display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 7px; border: 0; background: none; box-shadow: inset 0 0 0 1px rgba(217, 185, 121, .35); font-family: var(--font); font-size: 11px; color: #d9b979; cursor: pointer; white-space: nowrap; }
+.conn-chip:hover, .conn-chip:focus-visible { box-shadow: inset 0 0 0 1px #d9b979; outline: 0; }
+.conn-chip .cc-dot { width: 8px; height: 8px; background: #f0a43c; box-shadow: 0 0 6px #f0a43c; }
+.conn-chip.off .cc-dot { background: #6b6258; box-shadow: none; }
+.conn-chip.off { color: #9a8a74; }
+.conn-chip code { font-family: var(--font); font-size: 11px; letter-spacing: 1px; color: #f4ecd8; }
+.conn-chip code:empty { display: none; }
+.conn-chip code::before { content: "· "; color: #9a8a74; letter-spacing: 0; }
 .ic-sep { width: 0; height: 20px; border-left: 2px dashed rgba(226, 196, 140, .5); margin: 0 4px; }
 /* 나가기 확인 쪽지 */
 .exit-wrap { position: relative; display: block; }
@@ -2230,24 +2241,10 @@ html.has-3d .topbar { box-shadow: none; }
 <main id="table" class="game" hidden>
   <header class="topbar">
     <div class="top-actions">
+      <!-- 접속 상태 칩: 램프 점 + 상태 + 방 코드 (누르면 방 코드 복사) -->
+      <button id="connLamp" class="conn-chip off" type="button" title="방 코드 복사" aria-label="접속 상태 · 방 코드 복사"><span class="cc-dot" aria-hidden="true"></span><span id="connText">접속 불가</span><code id="connRoom"></code><span id="statusBar" class="sr-only" role="status"></span></button>
+      <span class="ic-sep" aria-hidden="true"></span>
       <button id="historyOpen" class="ic-btn" type="button" data-icon="archive" aria-label="기록 보관함" aria-haspopup="dialog" aria-controls="historyDialog" aria-describedby="recentInfo"><span class="ic-tip">기록 보관함</span></button>
-      <!-- 접속 상태 = 램프 (켜짐: 접속 가능 / 꺼짐: 접속 불가) -->
-      <span id="connLamp" class="ic-btn lamp off" role="status" tabindex="0" data-icon="lamp_off"><span class="ic-tip">접속 불가</span><span id="statusBar" class="sr-only"></span></span>
-      <span class="exit-wrap">
-        <button id="soundBtn" class="ic-btn" type="button" data-icon="gear" aria-haspopup="dialog" aria-expanded="false"><span class="ic-tip">설정</span></button>
-        <div id="soundPop" class="exit-pop sound-pop" role="dialog" aria-label="설정" hidden>
-          <label class="snd-row"><input id="sfxOn" type="checkbox" /> 효과음 <input id="sfxVol" type="range" min="0" max="1" step="0.05" aria-label="효과음 음량" /></label>
-          <label class="snd-row"><input id="bgmOn" type="checkbox" /> 배경음 <input id="bgmVol" type="range" min="0" max="1" step="0.05" aria-label="배경음 음량" /></label>
-          <div class="snd-fx" role="group" aria-label="연출">
-            <span class="snd-k">연출</span>
-            <label class="snd-chk"><input id="fxDice" type="checkbox" /> 주사위</label>
-            <label class="snd-chk"><input id="fxType" type="checkbox" /> 타이핑</label>
-            <label class="snd-chk"><input id="fxItem" type="checkbox" /> 소지품</label>
-          </div>
-          <div class="room-code-row"><span>방 코드</span><code id="roomCodeText">—</code><button id="copyRoomCode" class="btn tiny" type="button">복사</button></div>
-          <div class="snd-save"><button id="downloadBtn" class="ic-btn" type="button" data-icon="save" aria-label="테이블 저장"><span class="ic-tip">테이블 저장</span></button></div>
-        </div>
-      </span>
       <span class="exit-wrap">
         <button id="helpBtn" class="ic-btn" type="button" data-icon="help" aria-haspopup="dialog" aria-expanded="false"><span class="ic-tip">도움말</span></button>
         <div id="helpPop" class="exit-pop help-pop" role="dialog" aria-label="도움말" hidden>
@@ -2273,6 +2270,21 @@ html.has-3d .topbar { box-shadow: none; }
             <p>실패했을 때 모자란 만큼 행운을 깎아 성공으로 바꿈. 예: 목표치 40에 47이 나오면 행운 7. 행운 · 이성 판정에는 못 씀. 줄어든 행운은 잘 돌아오지 않음.</p>
           </section>
           <label class="snd-chk hp-toggle"><input id="helpTips" type="checkbox" /> 진행 중 도움말 쪽지 보기</label>
+        </div>
+      </span>
+      <span class="exit-wrap">
+        <button id="soundBtn" class="ic-btn" type="button" data-icon="gear" aria-haspopup="dialog" aria-expanded="false"><span class="ic-tip">설정</span></button>
+        <div id="soundPop" class="exit-pop sound-pop" role="dialog" aria-label="설정" hidden>
+          <label class="snd-row"><input id="sfxOn" type="checkbox" /> 효과음 <input id="sfxVol" type="range" min="0" max="1" step="0.05" aria-label="효과음 음량" /></label>
+          <label class="snd-row"><input id="bgmOn" type="checkbox" /> 배경음 <input id="bgmVol" type="range" min="0" max="1" step="0.05" aria-label="배경음 음량" /></label>
+          <div class="snd-fx" role="group" aria-label="연출">
+            <span class="snd-k">연출</span>
+            <label class="snd-chk"><input id="fxDice" type="checkbox" /> 주사위</label>
+            <label class="snd-chk"><input id="fxType" type="checkbox" /> 타이핑</label>
+            <label class="snd-chk"><input id="fxItem" type="checkbox" /> 소지품</label>
+          </div>
+          <div class="room-code-row"><span>방 코드</span><code id="roomCodeText">—</code><button id="copyRoomCode" class="btn tiny" type="button">복사</button></div>
+          <div class="snd-save"><button id="downloadBtn" class="ic-btn" type="button" data-icon="save" aria-label="테이블 저장"><span class="ic-tip">테이블 저장</span></button></div>
         </div>
       </span>
       <span class="ic-sep" aria-hidden="true"></span>
@@ -8573,7 +8585,8 @@ const BannerArt = (() => {
     const bar = $("#statusBar"), lamp = $("#connLamp"), on = !!s && s.level === "ok";
     bar.textContent = s?.text ?? "";
     lamp.classList.toggle("on", on); lamp.classList.toggle("off", !on); lamp.dataset.level = s?.level ?? "bad";
-    setIcon(lamp, on ? "lamp_on" : "lamp_off", on ? "접속 가능" : "접속 불가");
+    $("#connText").textContent = on ? "접속 가능" : "접속 불가";
+    $("#connRoom").textContent = app.room ?? "";
 
   }
 
@@ -10654,16 +10667,18 @@ const BannerArt = (() => {
     lamp_on: ["......kkkk......", ".....kbkkbk.....", ".....kkbBkk.....", "....kbbBBBok....", "...kbbbBBBBok...", ".kkkkkkkkkkkkkk.", ".kb..kyeeek..ok.", ".kb.kyeffeek.ok.", ".kbkyefFFfeekok.", ".kbkefFwwFfekok.", ".kbkeefFFfeekok.", ".kb.keeeeeek.ok.", ".kkkkkkkkkkkkkk.", "...kbbBBBBBok...", "..kbbbBBBBBBok..", "..kkkkkkkkkkkk.."],
   };
   ICONS.lamp_off = ICONS.lamp_on.map((r) => r.replace(/[bBoyefFw]/g, (c) => ({ b: "Q", B: "q", o: "n", y: "q", e: "n", f: "n", F: "n", w: "n" })[c]));   // 꺼짐 = 흑백 · 불 꺼짐
-  function iconSvg(name) {
+  // tone = "brass": 상단 줄용 놋쇠색 2톤 (어두운 선 + 밝은 면)
+  const BRASS_DARK = new Set(["k", "n", "l", "o", "q"]);
+  function iconSvg(name, tone = null) {
     const N = ICONS[name].length;   // 12칸 = 24px / 16칸 = 32px (한 칸 = 2px)
     const n = svg("svg", { viewBox: `0 0 ${N} ${N}`, width: N * 2, height: N * 2, "shape-rendering": "crispEdges", "aria-hidden": "true", class: N > 12 ? "ic-svg big" : "ic-svg" });
-    ICONS[name].forEach((row, y) => [...row].forEach((c, x) => { if (ICON_PAL[c]) n.append(svg("rect", { x, y, width: 1, height: 1, fill: ICON_PAL[c] })); }));
+    ICONS[name].forEach((row, y) => [...row].forEach((c, x) => { if (ICON_PAL[c]) n.append(svg("rect", { x, y, width: 1, height: 1, fill: tone === "brass" ? (BRASS_DARK.has(c) ? "#1c0f08" : "#d9b979") : ICON_PAL[c] })); }));
     return n;
   }
   function setIcon(btn, name, tip) {
     if (btn.dataset.iconShown !== name) {
       btn.querySelector(".ic-svg")?.remove();
-      btn.prepend(iconSvg(name));
+      btn.prepend(iconSvg(name, btn.closest(".top-actions") && !btn.closest(".exit-pop") ? "brass" : null));
       btn.dataset.iconShown = name;
     }
     if (tip != null) { btn.setAttribute("aria-label", tip); btn.querySelector(".ic-tip").textContent = tip; }
@@ -10734,11 +10749,13 @@ const BannerArt = (() => {
   }
   $("#soundBtn").addEventListener("click", (e) => { e.stopPropagation(); openExit(false); openHelp(false); openSound($("#soundPop").hidden); });
   $("#soundPop").addEventListener("click", (e) => e.stopPropagation());
-  $("#copyRoomCode").addEventListener("click", async () => {
+  async function copyRoomCode() {
     if (!/^[a-z0-9]{10}$/.test(app.room ?? "")) return toast("현재 방 코드가 없음.");
     try { await navigator.clipboard.writeText(app.room); toast("방 코드 복사됨."); }
     catch { toast(`방 코드: ${app.room}`); }
-  });
+  }
+  $("#copyRoomCode").addEventListener("click", copyRoomCode);
+  $("#connLamp").addEventListener("click", copyRoomCode);
   $("#sfxOn").addEventListener("change", (e) => { Sfx.set("sfx", e.target.checked); syncSound(); Sfx.play("tap"); });
   $("#bgmOn").addEventListener("change", (e) => { Sfx.set("bgm", e.target.checked); syncSound(); });
   $("#sfxVol").addEventListener("input", (e) => { Sfx.set("sfxVol", Number(e.target.value)); syncSound(); });
