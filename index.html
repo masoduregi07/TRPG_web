@@ -1966,6 +1966,12 @@ html.has-3d .topbar { box-shadow: none; }
 .turn-status[hidden], .turn-status > [hidden] { display:none; }
 .turn-status #typingPresence { color:var(--ink-2); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; min-width:0; }
 .log-pane .chat { flex-shrink:0; position:relative; z-index:4; }
+.npc-pick { position:absolute; z-index:7; width:max-content; max-width:calc(100% - 2 * var(--cover) - 16px); background:var(--paper-hi); border:2px solid var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); font:13px var(--font); color:var(--ink); }
+.npc-pick[hidden] { display:none; }
+.npc-pick .np-row { display:flex; align-items:baseline; gap:6px; padding:5px 10px; cursor:pointer; white-space:nowrap; }
+.npc-pick .np-row.on { background:#6f5230; color:#f4ecd8; }
+.npc-pick .np-job { font-size:11px; opacity:.7; }
+.to-tag[data-npc] { cursor:pointer; }
 .room-code-row { display:flex; align-items:center; gap:7px; font-size:12px; border-top:1px dashed var(--paper-lo); padding-top:8px; }
 .room-code-row code { min-width:0; flex:1; font-size:13px; overflow-wrap:anywhere; }
 .room-code-row .btn { padding:3px 5px; }
@@ -2285,6 +2291,7 @@ html.has-3d .topbar { box-shadow: none; }
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="btn tiny" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
       <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면입니다. 호스트와 연결되면 최신 상태로 바뀝니다.</div>
       <div id="turnStatus" class="turn-status" hidden><span id="thinking" hidden>GM이 숨을 고르는 중…</span><span id="typingPresence" hidden aria-live="polite"></span></div>
+      <div id="npcPick" class="npc-pick" role="listbox" aria-label="말 걸 NPC" hidden></div>
       <form id="chatForm" class="chat">
         <div class="say-box" data-mode="talk">
           <span id="sayMode" class="say-mode" aria-live="polite"></span>
@@ -2586,6 +2593,7 @@ scenes:
 npcs:
   fisherman:
     name: 늙은 어부 바르톨
+    job: 어부   # 선택. 없으면 -로 표시
     look: 그물을 손질하는 백발의 어부
     personality: 무뚝뚝하고 말수가 적지만, 술을 사 주거나 진심으로 대하면 말이 많아짐
     secret: 등대지기가 맡겨 둔 등대 열쇠를 갖고 있지만 먼저 말하지 않음
@@ -2972,7 +2980,7 @@ const Engine = (() => {
   /** 이름을 가진 새 인물이 실제 이야기 안에 등장하면 현재 사건의 NPC 목록에도 추가. */
   function registerNpc(sc, sceneId, raw) {
     if (!sc?.scenes?.[sceneId] || !raw || typeof raw !== "object") return null;
-    const name = clip(raw.name, 30), look = clip(raw.look, 300), personality = clip(raw.personality, 200);
+    const name = clip(raw.name, 30), look = clip(raw.look, 300), personality = clip(raw.personality, 200), job = clip(raw.job, 20);
     if (name.length < 2 || !(look || personality)) return null;
     sc.npcs ??= {};
     const exists = Object.entries(sc.npcs).find(([id, n]) =>
@@ -2990,7 +2998,7 @@ const Engine = (() => {
       }
     }
     const previous = sc.npcs[id] ?? {};
-    sc.npcs[id] = { ...previous, name, look: look || previous.look || "", personality: personality || previous.personality || "", secret: previous.secret ?? "" };
+    sc.npcs[id] = { ...previous, name, look: look || previous.look || "", personality: personality || previous.personality || "", secret: previous.secret ?? "", ...(job || previous.job ? { job: job || previous.job } : {}) };
     const scene = sc.scenes[sceneId];
     scene.npcs ??= [];
     if (!scene.npcs.includes(id)) scene.npcs.push(id);
@@ -3369,7 +3377,7 @@ const Engine = (() => {
     const s = sceneOf(sc, st);
     return {
       scene: { id: st.currentScene, title: s.title ?? st.currentScene, description: s.description, ending: !!s.ending, image: isImageURL(s.image) ? s.image.trim() : null, bgm: bgmOf(sc, s) },
-      npcs: (s.npcs ?? []).map((id) => ({ id, name: npcName(sc, id), look: sc.npcs[id].look ?? "" })),
+      npcs: (s.npcs ?? []).map((id) => ({ id, name: npcName(sc, id), look: sc.npcs[id].look ?? "", job: typeof sc.npcs[id].job === "string" ? sc.npcs[id].job.slice(0, 20) : "" })),
       clues: st.revealedClues.map(r=>{
         const source=findClueAnywhere(sc,r.id);
         const clue={...r,...(typeof source?.title==='string'?{title:source.title}:{}),...(source?.category != null?{category:source.category}:{}),...(source?.categories != null?{categories:source.categories}:{})};
@@ -3440,7 +3448,7 @@ const Engine = (() => {
       })),
       등장NPC: (s.npcs ?? []).map((id) => {
         const n = npcFight(sc, st, id);
-        return { id, 이름: npcName(sc, id), 외모: sc.npcs[id].look ?? "", 성격: sc.npcs[id].personality ?? "", 비밀: sc.npcs[id].secret ?? "",
+        return { id, 이름: npcName(sc, id), ...(sc.npcs[id].job ? { 직업: sc.npcs[id].job } : {}), 외모: sc.npcs[id].look ?? "", 성격: sc.npcs[id].personality ?? "", 비밀: sc.npcs[id].secret ?? "",
           ...(n ? { 전투: { 체력: `${n.hp}/${n.hpMax}`, 상태: n.hp <= 0 ? "쓰러짐" : n.hp <= n.hpMax / 2 ? "중상" : "멀쩡", 기능: n.skills, 무기: n.weapons.map((w) => `${w.name} ${w.dmg}`), 피해보너스: n.db, 장갑: n.armor } } : {}) };
       }),
       이미공개된단서: st.revealedClues.map((c) => c.text),
@@ -3980,13 +3988,13 @@ const AI = (() => {
 24. 전투: 싸움은 판정으로 푼다. 캐릭터가 공격하면 improv_check로 근접전(격투) · 사격(권총) · 투척 판정, 공격받으면 회피(또는 근접전으로 반격) 판정을 건다. NPC의 공격 · 회피 성공 여부는 "등장NPC"의 "전투" 기능 수치를 보고 네가 정해 서술한다. 판정 결과가 [최근 진행]에 나온 뒤에만 피해를 준다: hurt에 {"to": "맞은 캐릭터 또는 NPC 이름", "dice": "피해 식", "by": "무기"}. 캐릭터의 근접 공격 피해는 무기 식 + DB (맨손 1d3+DB, 칼 1d4+DB, 몽둥이 1d6+DB; DB라고 쓰면 시스템이 그 캐릭터의 피해보너스로 바꿈), 총은 DB 없이 (권총 1d10). NPC의 공격 피해는 그 NPC "전투"의 무기 식을 그대로 쓴다. 극단적 성공한 공격이면 "max": true. 숫자(피해량 · 남은 체력)는 시스템이 굴려 기록하므로 서술에 직접 쓰지 않는다. 치료(응급처치 성공 1, 의료 성공 1d3)는 heal에 {"to": "캐릭터", "dice": "1"}.
 25. 캐릭터 "상태"가 "의식불명"이나 "빈사"이면, 그 캐릭터가 살아남는지 · 깨어나는지 · 죽는지는 시나리오의 분위기와 이야기 흐름에 맞게 네가 정한다. 정했으면 fate에 {"to": "캐릭터", "state": "사망" 또는 "의식불명" 또는 "회복"}. 일행이 응급처치를 하거나 시간이 지나 깨어나면 "회복". 이미 죽은 캐릭터는 행동할 수 없다.
 26. 실제 캐릭터 이름이 [게임 상황]에 있으면 대명사 '탐사자'를 남용하지 않고 각 캐릭터의 이름으로 서술한다. 누구의 행동인지 확실하지 않으면 임의로 특정하지 않는다.
-27. 지금 사건에서 새 이름과 외모·성격 묘사를 가진 인물을 실제로 등장시켰다면 new_npcs 목록에 {"name": "인물 이름", "look": "외모", "personality": "성격"}를 넣는다. 이미 등장한 인물은 중복 추가하지 않는다. 원문·고정사실에 반하는 중요한 새 인물은 만들지 않는다.
+27. 지금 사건에서 새 이름과 외모·성격 묘사를 가진 인물을 실제로 등장시켰다면 new_npcs 목록에 {"name": "인물 이름", "job": "직업(분명할 때만, 아니면 \"\")", "look": "외모", "personality": "성격"}를 넣는다. 이미 등장한 인물은 중복 추가하지 않는다. 원문·고정사실에 반하는 중요한 새 인물은 만들지 않는다.
 28. 'KPC'라는 자리표시자가 등장하면 시나리오 분위기·관계에 어울리는 실제 NPC 이름, 외모와 성격을 정해 등장시키고 new_npcs에 {"id":"kpc","name":"실제 이름","look":"외모","personality":"성격"}를 보낸다. 이 인물의 원래 비밀과 역할은 변경하지 않는다.
 29. 한 캐릭터가 판정에 실패하더라도 그 행동을 독립적으로 시도하는 다른 캐릭터에게 같은 판정을 요청할 수 있다. 이미 실패한 사람의 판정은 밀어붙이기 규칙과 구별한다. 판정 실패 뒤에는 성공 보상 단서나 소지품을 미리 공개하지 않는다.
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
 [출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 narration은 ""로 두고 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 행동표가 없으면 results는 [].
-{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","look":"외모","personality":"성격"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
+{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
   }
 
   function logLine(e) {
@@ -4036,7 +4044,7 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
       const newNpcs = (Array.isArray(obj.new_npcs) ? obj.new_npcs : []).filter((n) => n && typeof n === "object" &&
         str(n.name) && (str(n.look) || str(n.personality))).slice(0, 4).map((n) => ({
         ...(n.id === "kpc" ? { id: "kpc" } : {}), name: str(n.name).slice(0, 30),
-        look: (str(n.look) ?? "").slice(0, 300), personality: (str(n.personality) ?? "").slice(0, 200),
+        look: (str(n.look) ?? "").slice(0, 300), personality: (str(n.personality) ?? "").slice(0, 200), job: (str(n.job) ?? "").slice(0, 20),
       }));
       const io = obj.improv_check && typeof obj.improv_check === "object" ? obj.improv_check : null;
       const ic = io && (str(io.skill) || str(io.san))
@@ -4117,7 +4125,7 @@ ${JSON.stringify(info)}` },
    "next": [{"to": "다음사건id", "label": "짧은 설명", "when": "always 또는 clue(단서id) 또는 check(판정id) 또는 flag(이름), 여러 개는 & 로"}],
    "ending": false}
  },
- "npcs": {"npc_id": {"name": "이름", "look": "외모", "personality": "성격", "secret": "비밀"}},
+ "npcs": {"npc_id": {"name": "이름", "job": "직업 (원문에 없으면 생략)", "look": "외모", "personality": "성격", "secret": "비밀"}},
  "deviation": {"hooks": ["이야기로 돌아오게 하는 문구"]}
 }
 규칙: 판정의 skill은 character.skills 안의 기능(관찰력, 도서관 이용, 듣기, 설득, 말재주, 위협, 매혹, 심리학, 은밀행동, 회피, 근접전(격투), 사격(권총), 응급처치, 의료, 오컬트, 역사, 고고학, 자연, 추적, 오르기, 수영, 도약, 기계수리, 전기수리, 자물쇠 따기, 손놀림, 운전(자동차), 법률, 회계, 감정, 변장, 항법, 생존술, 정신분석, 크툴루 신화 등) 또는 특성치(근력 · 건강 · 크기 · 민첩 · 외모 · 지능 · 정신력 · 교육) 또는 행운. difficulty는 보통 / 어려움 / 극단 (대부분 보통). 끔찍한 것을 보는 순간은 san 판정(성공 손실/실패 손실: 가벼운 공포 0/1d3, 시체 0/1d6, 괴물 1/1d10 정도). dc는 쓰지 않는다. 결말 사건은 "ending": true. 모든 사건은 첫 사건에서 도달 가능해야 한다. 다음 사건으로 넘어가는 조건은 그 사건의 핵심 단서나 판정으로 건다.`;
@@ -4160,7 +4168,7 @@ ${JSON.stringify(info)}` },
  "flags": {"플래그이름": false},
  "character": {"intro": "탐사자 만들기 안내", "skills": ["관찰력","도서관 이용","설득","듣기","은밀행동","심리학"], "mp": false,
    "occupations": [{"name": "직업", "description": "설명", "hook": "시나리오 연결고리", "skills": ["이 직업의 기능 4~6개 (skills 안에서)"]}]},
- "npcs": {"npc_id": {"name": "이름", "look": "외모", "personality": "성격", "secret": "비밀"}},
+ "npcs": {"npc_id": {"name": "이름", "job": "직업 (원문에 없으면 생략)", "look": "외모", "personality": "성격", "secret": "비밀"}},
  "deviation": {"hooks": ["이야기로 돌아오게 하는 문구"]},
  "events": [{"id": "사건id", "title": "사건 제목", "from": 시작문단번호, "to": 끝문단번호, "next": ["다음사건id"], "ending": false}]
 }
@@ -9007,7 +9015,7 @@ const BannerArt = (() => {
       const toInk = e.toId && app.snap?.players.some((p) => p.pid === e.toId) ? spineOf(e.toId) : "#2a3550";
       node = el("div", { class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}` }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
         e.style === "ask" ? el("span", { class: "ask-tag" }, "→ GM") : null,
-        e.toNpc ? el("span", { class: "to-tag", style: "--c:#6f5230" }, `@${e.toNpc}`) : null,
+        e.toNpc ? el("span", { class: "to-tag", style: "--c:#6f5230", "data-npc": e.toNpc, title: `${e.toNpc}에게 말하기` }, `@${e.toNpc}`) : null,
         e.to ? el("span", { class: "to-tag", style: `--c:${toInk}` }, `@${e.to}`) : null,
         e.focus ? el("span", { class: "focus-tag", style: `--c:${e.focusId && app.snap?.players.some((p) => p.pid === e.focusId) ? spineOf(e.focusId) : "#8a1c14"}` }, `▶ ${e.focus}`) : null, placeIc, textNode);
     }
@@ -9095,6 +9103,49 @@ const BannerArt = (() => {
     showSayMode();
   }
   $("#chatInput").addEventListener("focus", prefillRecentNpc);
+  /* @ 자동완성: 입력 맨 앞 "@글자"면 이 장면 NPC 목록을 띄우고, 고르면 "@이름 "을 채움 */
+  let npcPickList = [], npcPickSel = 0;
+  function sceneNpcs() { return app.snap?.phase === "play" ? (app.snap.view?.npcs ?? []) : []; }
+  function fillNpc(name) {
+    const input = $("#chatInput");
+    input.value = `@${name} `;
+    input.focus(); input.setSelectionRange(input.value.length, input.value.length);
+    closeNpcPick(); showSayMode();
+  }
+  function closeNpcPick() { $("#npcPick").hidden = true; npcPickList = []; }
+  function drawNpcPick() {
+    const box = $("#npcPick");
+    box.replaceChildren(...npcPickList.map((n, i) => el("div", { class: `np-row${i === npcPickSel ? " on" : ""}`, role: "option", "aria-selected": i === npcPickSel ? "true" : "false",
+      on: { pointerdown: (ev) => { ev.preventDefault(); fillNpc(n.name); } } }, el("span", {}, n.name), el("span", { class: "np-job" }, n.job || "-"))));
+  }
+  function updateNpcPick() {
+    const m = /^@(\S*)$/.exec($("#chatInput").value);
+    if (!m) return closeNpcPick();
+    const q = m[1];
+    const all = sceneNpcs();
+    npcPickList = [...all.filter((n) => n.name.startsWith(q)), ...all.filter((n) => !n.name.startsWith(q) && n.name.includes(q))];
+    if (!npcPickList.length) return closeNpcPick();
+    npcPickSel = Math.min(npcPickSel, npcPickList.length - 1);
+    drawNpcPick();
+    const box = $("#npcPick"), pane = box.parentNode, input = $("#chatInput");
+    box.hidden = false;
+    const pr = pane.getBoundingClientRect(), ir = input.getBoundingClientRect();
+    box.style.left = `${ir.left - pr.left}px`;
+    box.style.bottom = `${pr.bottom - ir.top + 6}px`;
+  }
+  $("#chatInput").addEventListener("input", () => { npcPickSel = 0; updateNpcPick(); });
+  $("#chatInput").addEventListener("blur", closeNpcPick);
+  $("#chatInput").addEventListener("keydown", (e) => {
+    if ($("#npcPick").hidden || e.isComposing) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); npcPickSel = (npcPickSel + (e.key === "ArrowDown" ? 1 : -1) + npcPickList.length) % npcPickList.length; drawNpcPick(); }
+    else if (e.key === "Tab" || e.key === "Enter") { e.preventDefault(); fillNpc(npcPickList[npcPickSel].name); }
+    else if (e.key === "Escape") { e.preventDefault(); closeNpcPick(); }
+  });
+  /* 기록의 @NPC 꼬리표를 누르면 그 NPC에게 말하기 (지금 장면에 있을 때만) */
+  logBox.addEventListener("click", (e) => {
+    const name = e.target.closest?.(".to-tag[data-npc]")?.dataset.npc;
+    if (name && sceneNpcs().some((n) => n.name === name)) fillNpc(name);
+  });
   $("#chatInput").addEventListener("input", () => {
     showSayMode();
     announceTyping(true);
