@@ -1705,6 +1705,15 @@ html.has-3d .topbar { box-shadow: none; }
 /* 운명 토스트: 스르륵 나타났다가 불타오르듯 사라짐 (달아오름 → 아래부터 타들어감) */
 .toast-fate { font-size: 13px; letter-spacing: 1px; animation: fate-in .7s ease-out both, fate-burn 1.2s calc(var(--ms) - 1200ms) forwards;
   -webkit-mask: linear-gradient(0deg, transparent 0 44%, #000 56%) 0 0 / 100% 250% no-repeat; mask: linear-gradient(0deg, transparent 0 44%, #000 56%) 0 0 / 100% 250% no-repeat; }
+.toast-fate.on-sheet { bottom: auto; transform: translate(-50%, -50%); min-width: 270px; padding: 14px 22px; text-align: center; }
+.toast-fate .fate-sub { display: block; margin-top: 8px; font-size: 12px; letter-spacing: 0; color: var(--amber); }
+/* 운명을 읽는 중: 기록지를 살짝 어둡게 + 가운데 깃펜과 늘어나는 잉크 줄 */
+.fate-wait { position: absolute; inset: 0; z-index: 8; display: grid; place-content: center; justify-items: center; gap: 10px; background: rgba(12, 8, 5, .35); color: var(--ink); font: 13px var(--font); pointer-events: none; }
+.fate-wait[hidden] { display: none; }
+.fate-wait .fw-label { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(241, 230, 198, .85); }
+.fate-wait .ic-svg { width: 18px; height: 18px; animation: quill-write-x 1.4s steps(14) infinite; transform-origin: 10% 90%; }
+.fate-wait .fw-ink { width: 180px; height: 2px; background: repeating-linear-gradient(90deg, var(--ink) 0 3px, transparent 3px 4px, var(--ink) 4px 6px); animation: fate-ink 1.4s steps(14) infinite; }
+@keyframes fate-ink { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes fate-in { from { opacity: 0; translate: 0 9px; filter: blur(2px); } to { opacity: 1; translate: 0 0; filter: none; } }
 @keyframes fate-burn {
   0% { color: var(--bone); box-shadow: inset 0 0 0 3px var(--amber), var(--drop); -webkit-mask-position: 0 0; mask-position: 0 0; animation-timing-function: steps(4); }
@@ -7828,8 +7837,12 @@ const BannerArt = (() => {
   }
   function toast(text, opt = {}) {
     const t = $("#toast");
-    t.textContent = text;
-    t.className = `toast${opt.kind ? ` toast-${opt.kind}` : ""}`;   // fate = 스르륵 나타났다가 불타 사라짐
+    t.replaceChildren(text, ...(opt.sub ? [el("span", { class: "fate-sub" }, opt.sub)] : []));
+    t.className = `toast${opt.kind ? ` toast-${opt.kind}` : ""}${opt.at ? " on-sheet" : ""}`;
+    // at = 이 요소 가운데에 띄움 (없으면 기본 위치)
+    const r = opt.at?.getBoundingClientRect();
+    t.style.left = r ? `${r.left + r.width / 2}px` : "";
+    t.style.top = r ? `${r.top + Math.min(r.height, innerHeight - r.top) / 2}px` : "";   // fate = 스르륵 나타났다가 불타 사라짐
     t.style.setProperty("--ms", `${opt.ms ?? 2200}ms`);
     t.hidden = true; void t.offsetWidth; t.hidden = false;
     clearTimeout(toastTimer);
@@ -9828,6 +9841,12 @@ const BannerArt = (() => {
     b.sugBtn.disabled = app.suggesting || !aiOK;
     b.sugBtn.querySelector(".ic-tip").textContent = app.suggesting ? "운명을 읽는 중…" : "운명에 맡긴다";
     b.sugBtn.classList.toggle("busy", !!app.suggesting);
+    const sheet = document.querySelector("#lrMe .my-sheet");
+    if (sheet) {
+      let wait = sheet.querySelector(":scope > .fate-wait");
+      if (!wait && app.suggesting) wait = sheet.appendChild(el("div", { class: "fate-wait", role: "status" }, el("span", { class: "fw-label" }, iconSvg("quill"), "운명을 읽는 중…"), el("span", { class: "fw-ink", "aria-hidden": "true" })));
+      if (wait) wait.hidden = !app.suggesting;
+    }
     b.readyBtn.disabled = !app.draft?.name?.trim() || !app.snap.myRoll;
     if (!document.querySelector("#lrMe .ready-stamp")) b.readyBtn.classList.remove("stamped");   // 다시 열면 버튼 복귀
     b.refreshCoc?.();
@@ -9844,7 +9863,8 @@ const BannerArt = (() => {
       b.name.value = app.draft.name; b.concept.value = app.draft.concept; b.hook.value = app.draft.hook; b.bg.value = app.draft.background;
       b.age.value = app.draft.age ?? ""; b.gender.value = app.draft.gender ?? "";
       b.showBg(); saveDraft();
-      return toast("운명은 정해졌다. 능력치를 배분하라.", { kind: "fate", ms: 3400 });
+      const who = [c.name, c.age ? `${c.age}세` : "", c.background].filter(Boolean).join(" · ");
+      return toast("운명은 정해졌다.", { kind: "fate", ms: 3400, sub: who, at: document.querySelector("#lrMe .my-sheet") });
     }
   }
 
