@@ -1864,9 +1864,7 @@ html.has-3d .topbar { box-shadow: none; }
 /* ===== 단서 줄 (B안): 기록 사이에 끼워 둔 작은 쪽지 + 테이프 한 조각 ===== */
 #log .entry.clue { position: relative; justify-self: start; max-width: 78%; margin: 12px 0 6px; padding: 9px 12px 7px;
   background: #f3ead2; box-shadow: 0 0 0 1px rgba(90, 60, 30, .35), 2px 3px 0 rgba(60, 40, 20, .15); rotate: -.4deg; }
-#log .entry.clue::before { display: none; }
 #log .entry.clue::after { content: ""; position: absolute; top: -6px; left: 18px; width: 42px; height: 12px; background: rgba(214, 196, 150, .85); box-shadow: 0 0 0 1px rgba(90, 60, 30, .15); rotate: -4deg; }
-#log .entry.clue .who { color: var(--blood); font-size: 11px; margin-right: 6px; }
 
 /* ===== 진행 기록의 단서 = 끼워 둔 작은 쪽지 (B안) ===== */
 #log .entry.clue { position: relative; justify-self: start; max-width: 78%; margin: 12px 0 6px; padding: 9px 12px 7px;
@@ -1877,7 +1875,7 @@ html.has-3d .topbar { box-shadow: none; }
   background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .08) 0 2px, transparent 2px 5px), rgba(176, 138, 82, .62);
   box-shadow: 0 1px 0 rgba(60, 40, 20, .12);
   clip-path: polygon(0 10%, 4% 0, 96% 0, 100% 14%, 97% 30%, 100% 48%, 96% 66%, 100% 84%, 95% 100%, 5% 100%, 0 86%, 3% 68%, 0 50%, 4% 32%); }
-#log .entry.clue .who { margin-right: 6px; font-size: 11px; color: var(--blood); }
+#log .entry.clue .who { font-size: 11px; color: var(--blood);}
 /* 단서 쪽지: '단서'는 왼쪽 칸, 본문은 둘째 줄부터도 같은 열에서 시작 · 첫 줄 글자 바닥선 맞춤 */
 #log .entry.clue { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 9px; align-items: baseline; }
 #log .entry.clue .who { margin-right: 0; line-height: inherit; }
@@ -3115,7 +3113,26 @@ const Engine = (() => {
     if (sc.objective != null && (typeof sc.objective !== "string" || sc.objective.length > 600)) errors.push("objective(스토리 주 목적)는 600자 이하의 글.");
     if (sc.canon != null && (!Array.isArray(sc.canon) || sc.canon.some((x) => typeof x !== "string"))) errors.push("canon(고정 사실)은 글 목록이어야 함.");
     const allClues = new Set(), allChecks = new Set();
-    for (const s of Object.values(sc.scenes)) { for (const c of s?.clues ?? []) allClues.add(c?.id); for (const c of s?.checks ?? []) allChecks.add(c?.id); }
+    for (const [sid, s] of Object.entries(sc.scenes)) {
+      // 단서·판정 id는 시나리오 전체에서 유일해야 한다 (조건 clue()/check()가 전역으로 찾음)
+      for (const c of s?.clues ?? []) { if (c?.id && allClues.has(c.id)) errors.push(`${sid}: 단서 id '${c.id}'이(가) 다른 사건과 겹침. 시나리오 전체에서 유일해야 함.`); allClues.add(c?.id); }
+      for (const c of s?.checks ?? []) { if (c?.id && allChecks.has(c.id)) errors.push(`${sid}: 판정 id '${c.id}'이(가) 다른 사건과 겹침. 시나리오 전체에서 유일해야 함.`); allChecks.add(c?.id); }
+    }
+    // id는 영문·숫자·한글·_·- 만 (공백이나 괄호 · & 가 있으면 조건식이 깨짐)
+    const badId = (v) => typeof v === "string" && !/^[\w\-가-힣]+$/.test(v);
+    for (const [sid, s] of Object.entries(sc.scenes)) {
+      if (badId(sid)) errors.push(`${sid}: 사건 id는 글자·숫자·_·-만 사용.`);
+      for (const c of s?.clues ?? []) if (badId(c?.id)) errors.push(`${sid}: 단서 id '${c.id}'는 글자·숫자·_·-만 사용.`);
+      for (const c of s?.checks ?? []) if (badId(c?.id)) errors.push(`${sid}: 판정 id '${c.id}'는 글자·숫자·_·-만 사용.`);
+    }
+    // 단서가 어떤 판정에서도 공개되지 않으면 얻을 방법이 없음 (setFlag는 단서 공개 시에만 켜짐)
+    const revealable = new Set();
+    for (const s of Object.values(sc.scenes)) for (const c of s?.checks ?? []) for (const o of [c?.success, c?.fail]) if (o?.reveal) revealable.add(o.reveal);
+    for (const [sid, s] of Object.entries(sc.scenes)) for (const c of s?.clues ?? []) if (c?.id && !revealable.has(c.id)) warnings.push(`${sid}: 단서 '${c.id}'을(를) 공개하는 판정이 없음 (AI GM이 직접 공개하는 경우만 얻을 수 있음).`);
+    // 선언되지 않은 플래그: 조건에서 읽는데 시작 flags 나 단서 setFlag 어디서도 정의하지 않음
+    const declared = new Set(Object.keys(sc.flags ?? {}));
+    for (const s of Object.values(sc.scenes)) for (const c of s?.clues ?? []) if (c?.setFlag) declared.add(c.setFlag);
+    for (const s of Object.values(sc.scenes)) for (const c of s?.checks ?? []) for (const o of [c?.success, c?.fail]) if (o?.setFlag) declared.add(o.setFlag);
     if (!sc.scenes[sc.start]) errors.push(`start 장면 '${sc.start}'이(가) 없음.`);
     if (sc.bgm != null && !isAudioURL(sc.bgm)) errors.push("bgm(배경음)은 https:// 음원 주소여야 함.");
     if (sc.system != null && String(sc.system).toLowerCase() !== "coc7") errors.push("system(룰)은 coc7만 지원 (d20 간이 룰은 삭제됨).");
@@ -3147,6 +3164,7 @@ const Engine = (() => {
         else for (const c of cl) {
           if (c.type === "clue" && !allClues.has(c.name)) errors.push(`${id}: 조건의 단서 '${c.name}'이(가) 없음.`);
           if (c.type === "check" && !allChecks.has(c.name)) errors.push(`${id}: 조건의 판정 '${c.name}'이(가) 없음.`);
+          if ((c.type === "flag" || c.type === "not_flag") && !declared.has(c.name)) warnings.push(`${id}: 조건의 플래그 '${c.name}'을(를) 정의하는 곳이 없음 (flags 또는 단서 setFlag).`);
         }
       }
       for (const c of s.checks ?? []) {
@@ -3785,7 +3803,7 @@ const AI = (() => {
   const TIRED = "AI GM이 지친 모양입니다.";
   const ready = (cfg) => !!(cfg && cfg.baseURL && cfg.model && (cfg.apiKey || !PRESETS[cfg.provider]?.needsKey));
 
-  async function call(cfg, messages, { maxTokens = 700, timeout = 90_000, signal = null } = {}) {
+  async function call(cfg, messages, { maxTokens = 700, timeout = 90_000, signal = null, strictLength = false } = {}) {
     if (!ready(cfg)) throw new Error("AI 설정 미완료.");
     if (signal?.aborted) { const e = new Error("AI 요청 취소됨."); e.cancelled = true; throw e; }
     const startedAt = performance.now(); let responseUsage = null, responseOK = false;
@@ -3838,6 +3856,8 @@ const AI = (() => {
           throw new Error("출력 한도 안에 답을 못 냄. 생각하는(추론형) 모델이면 생각에 한도를 다 쓴 것. 추론 없는 모델 권장.");
         throw new Error(`AI 응답이 비어 있음${choice?.finish_reason ? ` (종료 이유: ${choice.finish_reason})` : ""}.`);
       }
+      // 출력 한도에 걸려 잘린 답: strictLength면 오류로 알려 호출한 쪽이 한도를 늘려 다시 묻게 함
+      if (strictLength && choice?.finish_reason === "length") { const err = new Error("AI 응답이 출력 한도에서 잘림."); err.truncated = true; throw err; }
       responseOK = true;
       return text;
     } catch (e) {
@@ -5542,10 +5562,12 @@ class HostGame {
 
   /** AI 호출 (일시적 오류면 한 번 더). 사용 한도 · 키 · 모델 오류는 바로 실패 */
   async callAI(messages, signal = null) {
+    let maxTokens = 1200;
     for (let i = 0; ; i++) {
       if (signal?.aborted) { const e = new Error("AI 요청 취소됨."); e.cancelled = true; throw e; }
-      try { return await this.aiCall(messages, { maxTokens: 900, signal }); }
+      try { return await this.aiCall(messages, { maxTokens, signal, strictLength: true }); }
       catch (e) {
+        if (e.truncated) maxTokens = Math.min(maxTokens * 2, 4000);
         const fatal = e.cancelled || signal?.aborted || e.tired || /HTTP (40[0-4])|API 키|모델 이름|설정 미완료/.test(e.message);
         // 서버 붐빔(503 등)은 조금 더 기다려 두 번까지 다시, 그 밖의 실패는 한 번
         if (fatal || i >= (e.busy ? 2 : 1)) throw e;
