@@ -2110,7 +2110,8 @@ html.has-3d .topbar { box-shadow: none; }
 .clue-scene-list > .clue-group { padding-left:0; }
 .clue-scene-list > .clue-group::before { display:none; }
 .clue-index-row { flex-wrap:wrap; row-gap:1px; }
-.clue-index-row .clue-title { position:relative; padding-left:12px; flex:1; }
+.clue-index-row .clue-title { position:relative; padding-left:12px; flex:0 1 auto; }
+.clue-index-row .clue-row-flags { margin-left:auto; }
 .clue-index-row .clue-title::before { content:""; position:absolute; left:0; top:.6em; width:6px; height:6px; background:var(--blood); }
 .clue-index-row .clue-title.fresh { background:linear-gradient(transparent 55%, rgba(240,164,60,.5) 55%); }
 .clue-preview { flex-basis:100%; padding-left:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:11px/1.5 var(--font-body); color:#6b5a44; }
