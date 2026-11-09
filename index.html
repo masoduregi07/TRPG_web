@@ -1171,10 +1171,11 @@ textarea { resize: vertical; margin-top: 8px; }
 .dos-items button.item:hover, .dos-items button.item.sel { background: #f6d27a; color: var(--ink); }
 .dos-items button.item.sel { box-shadow: inset 0 0 0 2px var(--blood); }
 .item-wrap { position: relative; display: inline-flex; }
-.item-note { position: absolute; left: 0; top: calc(100% + 6px); z-index: 6; display: none; grid-template-columns: 32px minmax(0, 1fr); column-gap: 9px; align-items: center; width: max-content; max-width: 240px; padding: 7px 9px 7px 7px;
+.item-note { position: fixed; left: 0; top: 0; z-index: 90; display: none; grid-template-columns: 32px minmax(0, 1fr); column-gap: 9px; align-items: center; width: max-content; max-width: 240px; padding: 7px 9px 7px 7px;
   font-family: var(--font); font-size: 11px; line-height: 1.5; color: var(--ink); background: #efe3c3; box-shadow: var(--outline), 3px 4px 0 1px rgba(0, 0, 0, .35); }
-.item-note::before { content: ""; position: absolute; left: 12px; top: -6px; border: 6px solid transparent; border-top: 0; border-bottom-color: var(--ink); }
-.item-wrap:hover > .item-note, .item-wrap > .item:focus-visible + .item-note, .item-wrap > .item.sel + .item-note { display: grid; }
+.item-note::before { content: ""; position: absolute; left: var(--ax, 12px); top: -6px; border: 6px solid transparent; border-top: 0; border-bottom-color: var(--ink); }
+body > .item-note { display: grid; }
+.item-note.up::before { top: auto; bottom: -6px; border-bottom: 0; border-top: 6px solid var(--ink); }
 .item-note .in-ic { display: grid; place-items: center; width: 32px; height: 32px; color: #3a2c20; background: rgba(255, 250, 235, .55); box-shadow: inset 0 0 0 1px rgba(90, 60, 30, .35); }
 .item-note .in-ic .ic-svg { width: 24px; height: 24px; }
 .item-note .in-body { display: grid; gap: 2px; }
@@ -10773,7 +10774,7 @@ const BannerArt = (() => {
   /* 설명 쪽지 폭 = 실제 가장 긴 줄 폭 (줄바꿈 뒤 오른쪽에 남는 빈칸 없앰) */
   function fitNote(note) {
     const body = note.querySelector(".in-body");
-    if (!body || !note.offsetParent) return;
+    if (!body || !note.getClientRects().length) return;
     body.style.width = "";
     let w = 0;
     for (const line of body.children) {
@@ -10783,6 +10784,33 @@ const BannerArt = (() => {
     }
     if (w) body.style.width = `${Math.ceil(w)}px`;
   }
+  /* 소지품 설명 쪽지: 기록지(.clipboard)·접힘 칸(.dos-fold)이 clip-path로 넘친 부분을 잘라 내므로
+   * 칩 안의 원본은 숨겨 두고, 보일 때 복사본을 body에 고정 위치로 띄움. 화면 안으로 밀고, 아래가 모자라면 칩 위로 */
+  let itemTip = null;
+  function hideItemTip() { itemTip?.remove(); itemTip = null; }
+  function showItemTip(wrap) {
+    const src = wrap?.querySelector(".item-note"), chip = wrap?.querySelector(".item");
+    if (!src || !chip?.isConnected) return hideItemTip();
+    hideItemTip();
+    const tip = src.cloneNode(true);
+    tip.addEventListener("click", (ev) => ev.stopPropagation());
+    tip.wrap = wrap;
+    document.body.append(tip);
+    itemTip = tip;
+    fitNote(tip);
+    const c = chip.getBoundingClientRect(), r = tip.getBoundingClientRect(), pad = 6;
+    const x = Math.max(pad, Math.min(c.left, innerWidth - pad - r.width));
+    let y = c.bottom + 6, up = false;
+    if (y + r.height > innerHeight - pad && c.top - 6 - r.height >= pad) { y = c.top - 6 - r.height; up = true; }
+    tip.classList.toggle("up", up);
+    Object.assign(tip.style, { left: `${Math.round(x)}px`, top: `${Math.round(y)}px` });
+    tip.style.setProperty("--ax", `${Math.round(Math.max(6, Math.min(c.left + 12 - x, r.width - 18)))}px`);
+  }
+  // 스크롤·창 크기가 바뀌면 칩을 따라감 (칩이 사라졌으면 닫음)
+  let tipFrame = 0;
+  const followTip = () => { if (!itemTip || tipFrame) return; tipFrame = requestAnimationFrame(() => { tipFrame = 0; if (itemTip) showItemTip(itemTip.wrap); }); };
+  window.addEventListener("scroll", followTip, true);
+  window.addEventListener("resize", followTip);
   const itemIcon = (x) => ITEM_ICON_RULES.find(([, re]) => re.test(x))?.[0] ?? "it_bag";
   function itemsRow(p) {
     const now = performance.now(), items = p.character.items ?? [];
@@ -10818,8 +10846,9 @@ const BannerArt = (() => {
           el("div", { class: "in-body" },
             info.note ? el("div", { class: "in-text" }, info.note) : null,
             el("div", { class: "in-from" }, `얻은 곳 · ${info.scene || "—"}`)));
-        const wrap = el("span", { class: "item-wrap", on: { mouseenter: () => requestAnimationFrame(() => fitNote(note)), focusin: () => requestAnimationFrame(() => fitNote(note)) } }, n, note);
-        if (sel) requestAnimationFrame(() => fitNote(note));
+        const hide = () => { if (!sel && itemTip?.wrap === wrap) hideItemTip(); };
+        const wrap = el("span", { class: "item-wrap", on: { mouseenter: () => showItemTip(wrap), focusin: () => showItemTip(wrap), mouseleave: hide, focusout: hide } }, n, note);
+        if (sel) requestAnimationFrame(() => showItemTip(wrap));
         return wrap;
       }
       if (f?.type === "lost") n.addEventListener("animationend", (ev) => {   // 다 사라지면 칸에서 빼고, 비면 —
@@ -10837,6 +10866,7 @@ const BannerArt = (() => {
   function renderCharCol(s) {
     // 사람 · 캐릭터 · 접속 · 받은 초상 · 펼친 일행 · 소지품 메뉴가 그대로면 건너뜀
     if (!changed("charCol", s.me, s.phase, s.system, s.players, s.players.map((p) => !!portraitSrc(p)), app.openMate, app.itemMenu)) return;
+    hideItemTip();
     const me = s.players.find((p) => p.pid === s.me && p.ready && p.character);
     $("#myCardBox").hidden = !me;
     $("#myCard").replaceChildren(...(me ? [sheet(s, me, true)] : []));
