@@ -1429,13 +1429,13 @@ html.has-3d .topbar { box-shadow: none; }
 .coc-builder .doc-k { letter-spacing: 0; text-align: center; line-height: 1.3; }
 .coc-builder .doc-row select { width: 100%; min-width: 0; margin: 0; padding: 6px 6px; border: 0; background: none; box-shadow: none; font-family: var(--font-body); font-size: 13px; color: var(--ink); }
 .coc-builder .occ-editor { min-width:0; width:100%; display:flex; flex-direction:column; }
-.coc-builder .occ-switch { display:flex; gap:4px; padding:4px 6px; }
-.coc-builder .occ-switch .btn { flex:1; padding:3px 5px; font-size:11px; }
-.coc-builder .occ-switch .btn.active { background:var(--ink); color:var(--paper-hi); }
-.coc-builder .occ-switch .btn.active:disabled { opacity:1; cursor:default; }
 .coc-builder .occ-editor select[hidden] { display:none; }
-.coc-builder .occ-editor input { min-width:0; max-width:none; border-top:1px dashed rgba(43, 26, 12, .45); }
-.coc-builder .occ-editor input[hidden] { display:none; }
+.coc-builder .occ-custom { display:flex; align-items:center; }
+.coc-builder .occ-custom[hidden] { display:none; }
+.coc-builder .occ-editor input { flex:1; min-width:0; max-width:none; }
+.coc-builder .occ-back { flex:none; width:26px; height:26px; margin-right:6px; padding:0; border:0; display:grid; place-items:center; font-family:var(--font); font-size:14px; color:#7a6548; background:rgba(255,250,235,.5); box-shadow:inset 0 0 0 1px #b8a888; cursor:pointer; }
+.coc-builder .occ-back:hover, .coc-builder .occ-back:focus-visible { color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); outline:0; }
+.coc-builder .occ-back[hidden] { display:none; }
 .coc-builder .doc-row textarea { width: 100%; min-width: 222px; max-width: 480px; box-sizing: border-box; margin: 0; padding: 6px 9px; border: 0; resize: none; background: none; box-shadow: none;
   font-family: var(--font-body); font-size: 13px; line-height: 18px; color: var(--ink); field-sizing: content; min-height: 54px; }
 .coc-builder .doc-row textarea:focus, .coc-builder .doc-row select:focus { outline: 0; background: rgba(240, 164, 60, .12); }
@@ -9718,8 +9718,13 @@ const BannerArt = (() => {
     });
     const clearPicBtn = icBtn("button", "pic-clear", "trash", "초상 지우기", { type: "button", on: { click: () => send({ t: "portrait", src: null }) } });
     // 직업
-    const bg = el("select", { "aria-label": "직업 선택" }, el("option", { value: "" }, "— 직업 선택 —"), ...rules.backgrounds.map((b) => el("option", { value: b.name }, b.name)));
-    const bgCustom = el("input", { maxlength: 30, placeholder: "자유 직업 입력", "aria-label": "직업 직접 입력", hidden: true });
+    // 직업: 선택상자 한 줄. 목록 끝 "직접 입력…"을 고르면 입력칸으로 바뀌고 ↺로 목록 복귀
+    const CUSTOM = "__custom__";
+    const bg = el("select", { "aria-label": "직업 선택" }, el("option", { value: "" }, "— 직업 선택 —"), ...rules.backgrounds.map((b) => el("option", { value: b.name }, b.name)),
+      rules.backgrounds.length ? el("option", { value: CUSTOM }, "✎ 직접 입력…") : null);
+    const bgCustom = el("input", { maxlength: 30, placeholder: "자유 직업 입력", "aria-label": "직업 직접 입력" });
+    const bgBack = el("button", { type: "button", class: "occ-back", title: "목록에서 고르기", "aria-label": "목록에서 고르기", hidden: !rules.backgrounds.length, on: { click: () => { setBgMode("preset"); bg.focus(); } } }, "↺");
+    const bgCustomWrap = el("div", { class: "occ-custom", hidden: true }, bgCustom, bgBack);
     const occ = () => rules.backgrounds.find((x) => x.name === d.background) ?? null;
     let bgMode = !rules.backgrounds.length ? "custom" :
       ["preset", "custom"].includes(d.occupationMode) ? d.occupationMode :
@@ -9728,17 +9733,11 @@ const BannerArt = (() => {
     let bgCustomValue = d.occupationCustom ?? (d.background && !occ() ? d.background : "");
     bg.value = bgPresetValue;
     bgCustom.value = bgCustomValue;
-    const bgPickBtn = el("button", { type: "button", class: "btn tiny ghost", disabled: !rules.backgrounds.length, on: { click: () => setBgMode("preset") } }, "직업 선택");
-    const bgTypeBtn = el("button", { type: "button", class: "btn tiny ghost", on: { click: () => setBgMode("custom") } }, "직접 입력");
     const showBg = () => {
       const custom = bgMode === "custom";
-      bgPickBtn.classList.toggle("active", !custom); bgPickBtn.setAttribute("aria-pressed", String(!custom));
-      bgTypeBtn.classList.toggle("active", custom); bgTypeBtn.setAttribute("aria-pressed", String(custom));
-      bgPickBtn.disabled = !rules.backgrounds.length || !custom;
-      bgTypeBtn.disabled = custom;
       bg.hidden = custom;
       if (!custom) bg.value = bgPresetValue;
-      bgCustom.hidden = !custom;
+      bgCustomWrap.hidden = !custom;
       if (custom) bgCustom.value = bgCustomValue;
     };
     const setBgMode = (mode) => {
@@ -9751,6 +9750,7 @@ const BannerArt = (() => {
       showBg(); saveDraft(); refreshCoc();
     };
     bg.addEventListener("change", () => {
+      if (bg.value === CUSTOM) { bg.value = bgPresetValue; setBgMode("custom"); bgCustom.focus(); return; }
       const prev = occ(); bgPresetValue = bg.value; d.occupationPreset = bgPresetValue; d.background = bgPresetValue; const o = occ();
       if (!d.hook || d.hook === prev?.hook) { d.hook = o?.hook ?? ""; hook.value = d.hook; }
       showBg(); saveDraft(); refreshCoc();
@@ -9885,7 +9885,7 @@ const BannerArt = (() => {
           el("div", { class: "doc-form", role: "group", "aria-label": "인적 사항" },
             docRow("이름", name),
             el("div", { class: "doc-row pair" }, el("label", { class: "doc-k", for: "cocAge" }, "나이"), el("span", { class: "age-wrap" }, age, el("span", { class: "age-u", "aria-hidden": "true" }, "세")), el("span", { class: "doc-k" }, "성별"), gender),
-            docRow("직업", el("div", { class: "occ-editor" }, el("div", { class: "occ-switch", role: "group", "aria-label": "직업 입력 방식" }, bgPickBtn, bgTypeBtn), bg, bgCustom)),
+            docRow("직업", el("div", { class: "occ-editor" }, bg, bgCustomWrap)),
             docRow("특징 및 성격", concept))),
         el("div", { class: "goal-memo" }, el("label", { class: "goal-hd", for: "cocGoal" }, el("span", { class: "memo-k" }, "개인 목표"), el("span", { class: "goal-priv" }, "대외비 · 나와 GM만")), goal, goalChips, goalCount),
         fate),
