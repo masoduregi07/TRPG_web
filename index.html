@@ -1192,7 +1192,7 @@ textarea { margin-top: 8px; }
 .dos-items button.item:hover, .dos-items button.item.sel { background: #f6d27a; color: var(--ink); }
 .dos-items button.item.sel { box-shadow: inset 0 0 0 2px var(--blood); }
 .item-wrap { position: relative; display: inline-flex; }
-.item-note { position: absolute; left: 0; top: calc(100% + 6px); z-index: 6; display: none; grid-template-columns: 32px minmax(0, 1fr); column-gap: 9px; align-items: center; width: max-content; min-width: 160px; max-width: 240px; padding: 7px 10px 7px 7px;
+.item-note { position: absolute; left: 0; top: calc(100% + 6px); z-index: 6; display: none; grid-template-columns: 32px minmax(0, 1fr); column-gap: 9px; align-items: center; width: max-content; max-width: 240px; padding: 7px 9px 7px 7px;
   font-family: var(--font); font-size: 11px; line-height: 1.5; color: var(--ink); background: #efe3c3; box-shadow: var(--outline), 3px 4px 0 1px rgba(0, 0, 0, .35); }
 .item-note::before { content: ""; position: absolute; left: 12px; top: -6px; border: 6px solid transparent; border-top: 0; border-bottom-color: var(--ink); }
 .item-wrap:hover > .item-note, .item-wrap > .item:focus-visible + .item-note, .item-wrap > .item.sel + .item-note { display: grid; }
@@ -10274,6 +10274,19 @@ const BannerArt = (() => {
     ["it_gem", /보석|반지|목걸이|부적|펜던트|구슬|수정|십자가|묵주/], ["it_rope", /밧줄|끈|로프|사슬/],
     ["it_tool", /도구|망치|드라이버|렌치|삽|곡괭이|지렛대|쇠지레|카메라|공구|가위/],
   ];
+  /* 설명 쪽지 폭 = 실제 가장 긴 줄 폭 (줄바꿈 뒤 오른쪽에 남는 빈칸 없앰) */
+  function fitNote(note) {
+    const body = note.querySelector(".in-body");
+    if (!body || !note.offsetParent) return;
+    body.style.width = "";
+    let w = 0;
+    for (const line of body.children) {
+      const r = document.createRange(); r.selectNodeContents(line);
+      const left = line.getBoundingClientRect().left;
+      for (const b of r.getClientRects()) w = Math.max(w, b.right - left);
+    }
+    if (w) body.style.width = `${Math.ceil(w)}px`;
+  }
   const itemIcon = (x) => ITEM_ICON_RULES.find(([, re]) => re.test(x))?.[0] ?? "it_bag";
   function itemsRow(p) {
     const now = performance.now(), items = p.character.items ?? [];
@@ -10309,7 +10322,9 @@ const BannerArt = (() => {
           el("div", { class: "in-body" },
             info.note ? el("div", { class: "in-text" }, info.note) : null,
             el("div", { class: "in-from" }, `얻은 곳 · ${info.scene || "—"}`)));
-        return el("span", { class: "item-wrap" }, n, note);
+        const wrap = el("span", { class: "item-wrap", on: { mouseenter: () => requestAnimationFrame(() => fitNote(note)), focusin: () => requestAnimationFrame(() => fitNote(note)) } }, n, note);
+        if (sel) requestAnimationFrame(() => fitNote(note));
+        return wrap;
       }
       if (f?.type === "lost") n.addEventListener("animationend", (ev) => {   // 다 사라지면 칸에서 빼고, 비면 —
         if (ev.target !== n) return;
