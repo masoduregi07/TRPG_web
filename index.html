@@ -2155,7 +2155,7 @@ html.has-3d .topbar { box-shadow: none; }
 :is(.side,.float-layer) .block[data-memo="clues"]::before { left:18px; right:auto; }
 .block:is([data-memo="clues"],[data-memo="handouts"]) h3 { display:flex; align-items:baseline; justify-content:space-between; padding-bottom:4px; margin-bottom:0; }
 /* 단서 수첩 색인 탭 (입력칸 탭과 같은 사다리꼴): 고른 탭은 분류 색으로 칠하고 아래 선과 이어짐 */
-.clue-tabs { display:flex; gap:3px; align-items:flex-end; margin:0 0 6px; padding-left:4px; border-bottom:2px solid #675137; }
+.clue-tabs { display:flex; gap:3px; align-items:flex-end; justify-content:flex-end; margin:0 0 6px; padding-right:4px; border-bottom:2px solid #675137; }
 .clue-tabs button { --c:#675137; padding:2px 9px 1px; border:0; cursor:pointer; font:11px/1.5 var(--font); color:var(--ink-2); background:rgba(150, 105, 50, .18);
   clip-path:polygon(5px 0, calc(100% - 5px) 0, 100% 100%, 0 100%); }
 .clue-tabs button[data-group="person"] { --c:#80442a; }
