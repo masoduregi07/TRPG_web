@@ -892,6 +892,8 @@ html.calm-item .dos-items .item.lost { display: none; }
 .mate .hpstamp { margin-left: 0; font-size: 11px; }
 /* 스크롤바: 수첩(종이) = 갈색 잉크 막대 + 눈금 홈, 가죽 칸 = 놋쇠 막대 */
 .log { scrollbar-width: thin; scrollbar-color: #8a5a1e rgba(120, 90, 50, .15); }
+/* 스크롤 렉 방지: 위아래 흐림 마스크가 스크롤마다 다시 칠해지지 않도록 기록 칸을 따로 합성 */
+.log { will-change: scroll-position; }
 .log::-webkit-scrollbar { width: 9px; }
 .log::-webkit-scrollbar-track { background: repeating-linear-gradient(180deg, rgba(120, 90, 50, .18) 0 3px, transparent 3px 6px); }
 .log::-webkit-scrollbar-thumb { background: #8a5a1e; box-shadow: inset 0 0 0 1px #4a2a10, inset 2px 0 0 rgba(255, 220, 160, .35); }
@@ -6580,7 +6582,7 @@ const Net = (() => {
 function createScene3D(canvas) {
   const noop = () => {};
   const API = {
-    ok: false, onFrame: noop, setTitle: noop, flash: noop,
+    ok: false, onFrame: noop, setTitle: noop, setIdle: noop, flash: noop,
     openBook: () => Promise.resolve(), closeBook: () => Promise.resolve(), titleSpread: () => null, titleSpines: () => null,
   };
   const gl = canvas.getContext("webgl", { antialias: false, alpha: false, preserveDrawingBuffer: false })
@@ -7196,7 +7198,7 @@ void main() {
   const flick = [1, .7];
   let nextFlick = 0;
   let last = 0, lastT = 0;
-  let active = true, frameId = null;
+  let active = true, frameId = null, idle = false;
   function scheduleFrame() {
     if (active && !document.hidden && frameId === null) frameId = requestAnimationFrame(frame);
   }
@@ -7210,7 +7212,7 @@ void main() {
     frameId = null;
     if (!active || document.hidden) return;
     scheduleFrame();
-    if (now - last < 33) return;   // 표시 중 30fps, 숨긴 탭에서는 RAF 자체 중단
+    if (now - last < (idle && !title ? 125 : 33)) return;   // 표시 중 30fps (테이블 화면에선 가장자리만 보이므로 8fps), 숨긴 탭에서는 RAF 자체 중단
     last = now;
     const reduceMotion = motionPreference.matches;
     const t = now / 1000, dt = Math.min(.1, t - (lastT || t)); lastT = t;
@@ -7357,6 +7359,8 @@ void main() {
       frameFns.length = 0;
     },
     onFrame(fn) { frameFns.push(fn); },
+    /** 테이블 화면: 배경은 가장자리만 보이니 천천히 그림 */
+    setIdle(on) { idle = !!on; },
     /** 첫 화면 켜기/끄기. sel = 고른 책 */
     setTitle(on, sel = 0) {
       if (!on) { title = null; return; }
@@ -7416,7 +7420,7 @@ const Scene3D = (() => {
   canvas.id = "bg3d";
   canvas.setAttribute("aria-hidden", "true");
   let current = null;
-  let titleOn = false, titleSel = 0;
+  let titleOn = false, titleSel = 0, idleOn = false;
   const subscribers = [];
   function restore() {
     current?.dispose?.();
@@ -7424,6 +7428,7 @@ const Scene3D = (() => {
     current = createScene3D(canvas);
     if (current.ok) {
       current.setTitle(titleOn, titleSel);
+      current.setIdle?.(idleOn);
       for (const fn of subscribers) current.onFrame(fn);
     } else document.documentElement.classList.remove("has-3d");
   }
@@ -7457,6 +7462,7 @@ const Scene3D = (() => {
     get ok() { return !!current?.ok; },
     onFrame(fn) { subscribers.push(fn); current?.onFrame(fn); },
     setTitle(on, sel = 0) { titleOn = on; titleSel = sel; current?.setTitle(on, sel); },
+    setIdle(on) { idleOn = on; current?.setIdle?.(on); },
     flash() { current?.flash(); },
     openBook(i) { return current?.openBook(i) ?? Promise.resolve(); },
     closeBook() { return current?.closeBook() ?? Promise.resolve(); },
@@ -8253,6 +8259,7 @@ const BannerArt = (() => {
     }
     for (const s of ["home", "join", "message", "setup", "table"]) $(`#${s}`).hidden = s !== id;
     Scene3D.setTitle(id === "home", app?.titleSel ?? -1);
+    Scene3D.setIdle(id === "table");
     if (id !== "table") Sfx.Bgm.set(null);   // 테이블을 나가면 배경음 끔
   }
   let toastTimer;
@@ -9416,16 +9423,19 @@ const BannerArt = (() => {
     b.addEventListener("pointerleave", () => { jumpHover = false; markUserScroll(2500); });
   }
   function updateBottomButton() {
-    const btn = $("#logBottom"), top = $("#logTop");
+    const btn = $("#logBottom");
     updateScrollArrows();
     const below = [$("#chatForm"), $("#gather"), $("#turnStatus")];
-    btn.style.bottom = `${16 + below.reduce((sum, node) => sum + (node.hidden ? 0 : node.offsetHeight), 0)}px`;
+    const b = `${16 + below.reduce((sum, node) => sum + (node.hidden ? 0 : node.offsetHeight), 0)}px`;
+    if (btn.style.bottom !== b) btn.style.bottom = b;
   }
+  let scrollRaf = 0;   // 스크롤 중엔 한 프레임에 한 번만
+  const onLogScroll = () => { if (!scrollRaf) scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; updateBottomButton(); }); };
   logBox.addEventListener("wheel", () => markUserScroll(), { passive: true });
   logBox.addEventListener("touchmove", () => markUserScroll(), { passive: true });
   logBox.addEventListener("pointerdown", () => markUserScroll(), { passive: true });
   logBox.addEventListener("keydown", (e) => { if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(e.key)) markUserScroll(); });
-  logBox.addEventListener("scroll", updateBottomButton, { passive: true });
+  logBox.addEventListener("scroll", onLogScroll, { passive: true });
   window.addEventListener("resize", updateBottomButton);
   $("#logTop").addEventListener("click", () => { skipTyping(); logBox.scrollTop = 0; updateBottomButton(); });
   $("#logBottom").addEventListener("click", () => {
