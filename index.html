@@ -1121,7 +1121,7 @@ textarea { resize: vertical; margin-top: 8px; }
 #chatForm.stale { opacity: .5; }
 .focus-tag { display: block; margin: 0 0 2px; color: var(--c, var(--blood)); font-family: var(--font); font-size: 12px; font-weight: 700; }
 .entry.ai.focus { margin-top: 4px; }
-.turn-board { margin: 6px var(--cover) 4px; padding: 7px 10px; background: var(--paper-hi); border: 2px solid var(--paper-lo); color: var(--ink); font-family: var(--font); font-size: 12px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); }
+.turn-board { margin: 6px calc(var(--cover) + 44px) 4px calc(var(--cover) + 48px); padding: 7px 10px; background: var(--paper-hi); border: 2px solid var(--paper-lo); color: var(--ink); font-family: var(--font); font-size: 12px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); }
 .turn-board[hidden] { display: none; }
 .turn-board .tb-head { display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: 700; }
 .turn-board .tb-row { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; border-top: 1px dashed rgba(90, 60, 30, .3); }
@@ -4616,6 +4616,9 @@ const Turn = (() => {
       const ex = plan.blocks.find((x) => x.pid === c.pid);
       if (ex) ex.text += ` ${b.text}`; else plan.blocks.push({ pid: c.pid, name: c.name, text: b.text });
     }
+    // 블록은 AI가 준 순서 말고 입력이 들어온 순서대로 (이번 차례 정리 카드와 같은 순서)
+    const rank = (pid) => { const i = (info.order ?? []).indexOf(pid); return i < 0 ? Infinity : i; };
+    plan.blocks.sort((a, b) => rank(a.pid) - rank(b.pid));
     if (plan.blocks.length) {
       // 행동표 응답에서 narration은 비워야 함. 캐릭터 행동을 되풀이한 narration은 버림 (분위기 서술만 남김)
       if (plan.narration && info.chars.some((c) => plan.narration.includes(c.name))) { soft("results와 narration에 같은 행동을 되풀이 → narration 삭제"); plan.narration = ""; }
@@ -6083,6 +6086,7 @@ class HostGame {
         db: q.character.db ?? Rules.dbBuild(q.character.chars).db, dead: !!q.character.dead, down: q.character.down ?? "" })),
       npcs: (s.npcs ?? []).map((id) => { const n = Engine.npcFight(this.sc, g, id); return n ? { id, name: this.sc.npcs[id].name ?? id, hp: n.hp, hpMax: n.hpMax, db: n.db } : null; }).filter(Boolean),
       actors: uniq(since.filter((e) => e.kind === "say" && e.style === "act").map((e) => e.byId)),
+      order: [...new Set(since.filter((e) => (e.kind === "say" || (e.kind === "roll" && e.result && !e.dmg)) && e.byId).map((e) => e.byId))],
       askers: uniq(since.filter((e) => e.kind === "say" && e.style === "ask").map((e) => e.byId)),
       askOnly,
       table: !!ctx.이번차례행동표,
