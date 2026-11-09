@@ -624,7 +624,7 @@ textarea.code { font: 12px/1.6 var(--font); }
 .memo-tear:hover { background: linear-gradient(180deg, rgba(240, 164, 60, .16), transparent); }
 .memo-tear:focus-visible { outline: 2px dashed var(--blood); outline-offset: -2px; }
 .block.dragging {
-  position: fixed; z-index: 70; margin: 0; pointer-events: none;
+  position: fixed; z-index: 70; margin: 0; pointer-events: none; will-change: transform;
   transform: rotate(1.5deg); box-shadow: inset 0 0 0 1px rgba(120, 90, 50, .25), 9px 14px 0 rgba(0, 0, 0, .4);
 }
 .memo-ph { box-shadow: inset 0 0 0 2px rgba(226, 196, 140, .35); background: rgba(0, 0, 0, .18); }
@@ -636,10 +636,7 @@ textarea.code { font: 12px/1.6 var(--font); }
 /* ================================================================
  * 기록 칸 스크롤 가장자리
  * ================================================================ */
-.log { margin-top: var(--cover); margin-bottom: 0;
-  /* 스크롤할 때 위아래 가장자리에서 글씨가 툭 잘리지 않게: 계단식(도트)으로 흐려짐 */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0 3px, rgba(0, 0, 0, .3) 3px 9px, rgba(0, 0, 0, .65) 9px 15px, #000 15px calc(100% - 15px), rgba(0, 0, 0, .65) calc(100% - 15px) calc(100% - 9px), rgba(0, 0, 0, .3) calc(100% - 9px) calc(100% - 3px), transparent calc(100% - 3px));
-          mask-image: linear-gradient(to bottom, transparent 0 3px, rgba(0, 0, 0, .3) 3px 9px, rgba(0, 0, 0, .65) 9px 15px, #000 15px calc(100% - 15px), rgba(0, 0, 0, .65) calc(100% - 15px) calc(100% - 9px), rgba(0, 0, 0, .3) calc(100% - 9px) calc(100% - 3px), transparent calc(100% - 3px)); }
+.log { margin-top: var(--cover); margin-bottom: 0; }   /* 위아래 흐림 마스크는 고해상도 화면에서 스크롤·끌기 렉의 주원인이라 뺌 */
 
 /* ================================================================
  * 인물 기록 (일행 칸의 캐릭터 카드)
@@ -892,8 +889,17 @@ html.calm-item .dos-items .item.lost { display: none; }
 .mate .hpstamp { margin-left: 0; font-size: 11px; }
 /* 스크롤바: 수첩(종이) = 갈색 잉크 막대 + 눈금 홈, 가죽 칸 = 놋쇠 막대 */
 .log { scrollbar-width: thin; scrollbar-color: #8a5a1e rgba(120, 90, 50, .15); }
-/* 스크롤 렉 방지: 위아래 흐림 마스크가 스크롤마다 다시 칠해지지 않도록 기록 칸을 따로 합성 */
 .log { will-change: scroll-position; }
+/* 기록 칸 스크롤바 = 링 왼쪽의 책갈피 리본 (기본 스크롤바는 링에 가려 숨김) */
+.log { scrollbar-width: none; }
+.log::-webkit-scrollbar { display: none; }
+.log-rail { position: absolute; right: 38px; z-index: 4; width: 12px; cursor: pointer; touch-action: none; }
+.log-rail[hidden] { display: none; }
+.log-rail::before { content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: rgba(90, 60, 30, .35); }
+.log-thumb { position: absolute; left: 0; top: 0; width: 12px; min-height: 64px; cursor: grab; will-change: transform;
+  background: linear-gradient(90deg, #5e0f0b 0 2px, #8a1c14 2px 10px, #5e0f0b 10px); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 6px), 0 100%); }
+.log-thumb:hover, .log-rail.drag .log-thumb { background: linear-gradient(90deg, #7a1a14 0 2px, #a8281c 2px 10px, #7a1a14 10px); }
+.log-rail.drag .log-thumb { cursor: grabbing; }
 .log::-webkit-scrollbar { width: 9px; }
 .log::-webkit-scrollbar-track { background: repeating-linear-gradient(180deg, rgba(120, 90, 50, .18) 0 3px, transparent 3px 6px); }
 .log::-webkit-scrollbar-thumb { background: #8a5a1e; box-shadow: inset 0 0 0 1px #4a2a10, inset 2px 0 0 rgba(255, 220, 160, .35); }
@@ -2564,6 +2570,7 @@ html.has-3d .topbar { box-shadow: none; }
     <section class="log-pane">
       <span id="recentInfo" class="sr-only">최근 기록</span>
       <div id="log" class="log" aria-live="polite"></div>
+      <div id="logRail" class="log-rail" hidden><div class="log-thumb" title="끌어서 스크롤"></div></div>
       <button id="logTop" class="log-top btn small" type="button" hidden aria-label="채팅 맨 위로 이동" title="맨 위"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="8,2.5 15,13 1,13" fill="currentColor"/></svg></button>
       <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="1,3 15,3 8,13.5" fill="currentColor"/></svg><span id="logUnread" class="jump-badge" hidden></span></button>
       <div id="turnBoard" class="turn-board" hidden></div>
@@ -7192,7 +7199,7 @@ void main() {
     canvas.width = w; canvas.height = h;
     gl.viewport(0, 0, w, h);
   }
-  addEventListener("resize", resize);
+  addEventListener("resize", () => { resize(); scheduleFrame(); });
   resize();
 
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -7220,8 +7227,9 @@ void main() {
   function frame(now) {
     frameId = null;
     if (!active || document.hidden) return;
-    scheduleFrame();
-    if (now - last < (idle && !title ? 125 : 33)) return;   // 표시 중 30fps (테이블 화면에선 가장자리만 보이므로 8fps), 숨긴 탭에서는 RAF 자체 중단
+    const still = idle && !title;   // 테이블 화면: 가장자리만 보이므로 한 장 그리고 멈춤 (크기 바뀌면 다시 한 장)
+    if (!still) scheduleFrame();
+    if (!still && now - last < 33) return;   // 표시 중 30fps, 숨긴 탭에서는 RAF 자체 중단
     last = now;
     const reduceMotion = motionPreference.matches;
     const t = now / 1000, dt = Math.min(.1, t - (lastT || t)); lastT = t;
@@ -7369,7 +7377,7 @@ void main() {
     },
     onFrame(fn) { frameFns.push(fn); },
     /** 테이블 화면: 배경은 가장자리만 보이니 천천히 그림 */
-    setIdle(on) { idle = !!on; },
+    setIdle(on) { idle = !!on; scheduleFrame(); },
     /** 첫 화면 켜기/끄기. sel = 고른 책 */
     setTitle(on, sel = 0) {
       if (!on) { title = null; return; }
@@ -9437,7 +9445,33 @@ const BannerArt = (() => {
     const below = [$("#chatForm"), $("#gather"), $("#turnStatus")];
     const b = `${16 + below.reduce((sum, node) => sum + (node.hidden ? 0 : node.offsetHeight), 0)}px`;
     if (btn.style.bottom !== b) btn.style.bottom = b;
+    updateRail();
   }
+  /* 책갈피 리본 스크롤바: 손잡이 최소 64px, 끌기 · 레일 누르면 그 자리로 */
+  const rail = $("#logRail"), thumb = rail.firstElementChild;
+  let railGeo = "";
+  function updateRail() {
+    const ch = logBox.clientHeight, sh = logBox.scrollHeight;
+    rail.hidden = !ch || sh <= ch + 2;
+    if (rail.hidden) return;
+    const top = logBox.offsetTop + 10, h = ch - 20, geo = `${top}|${h}`;
+    if (geo !== railGeo) { railGeo = geo; rail.style.top = `${top}px`; rail.style.height = `${h}px`; }
+    const th = Math.max(64, Math.round(h * ch / sh)), y = Math.round((h - th) * logBox.scrollTop / (sh - ch));
+    thumb.style.height = `${th}px`; thumb.style.transform = `translateY(${y}px)`;
+  }
+  rail.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const h = rail.clientHeight, th = thumb.offsetHeight, max = logBox.scrollHeight - logBox.clientHeight;
+    const r0 = rail.getBoundingClientRect(), y0 = new DOMMatrix(getComputedStyle(thumb).transform).m42;
+    const grab = e.target === thumb ? e.clientY - r0.top - y0 : th / 2;   // 레일을 누르면 손잡이 가운데를 그 자리로
+    const go = (cy) => { logBox.scrollTop = Math.max(0, Math.min(1, (cy - r0.top - grab) / Math.max(1, h - th))) * max; };
+    skipTyping(); markUserScroll(); go(e.clientY);
+    rail.classList.add("drag"); rail.setPointerCapture(e.pointerId);
+    const mv = (ev) => go(ev.clientY);
+    const up = () => { rail.classList.remove("drag"); rail.removeEventListener("pointermove", mv); rail.removeEventListener("pointerup", up); markUserScroll(); };
+    rail.addEventListener("pointermove", mv); rail.addEventListener("pointerup", up);
+  });
   let scrollRaf = 0;   // 스크롤 중엔 한 프레임에 한 번만
   const onLogScroll = () => { if (!scrollRaf) scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; updateBottomButton(); }); };
   logBox.addEventListener("wheel", () => markUserScroll(), { passive: true });
@@ -11394,7 +11428,7 @@ const BannerArt = (() => {
     const inSide = (ev) => { const sr = side.getBoundingClientRect(); return ev.clientX >= sr.left && ev.clientX <= sr.right && ev.clientY >= sr.top && ev.clientY <= sr.bottom; };
     const r = dragFrom(e, card, {
       onMove(ev, x, y) {
-        Object.assign(card.style, { left: `${x}px`, top: `${y}px` });
+        card.style.transform = `translate(${x - r.left}px, ${y - r.top}px) rotate(1.5deg)`;   // 합성만 (다시 칠하지 않음)
         if (inSide(ev)) {
           side.classList.add("drop-here");
           const sr = side.getBoundingClientRect();   // 가장자리에서 자동 스크롤
