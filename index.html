@@ -2152,9 +2152,15 @@ html.has-3d .topbar { box-shadow: none; }
 .pic-edit .pe-acts { display: flex; justify-content: flex-end; gap: 6px; margin-top: 12px; }
 #historyDialog { box-sizing:border-box; width:min(960px,90vw); max-height:86vh; background:var(--paper); color:var(--ink); border:3px solid var(--ink); padding:20px; font:15px/1.6 var(--font-body); }
 #historyDialog::backdrop { background:rgba(0,0,0,.75); }
-.log-bottom, .log-top { position:absolute; left:auto; right:14px; transform:none; z-index:5; display:grid; place-items:center; width:35px; height:35px; padding:0; border:2px solid var(--ink); background:var(--paper-hi); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,.35); font-size:23px; line-height:1; }
-.log-top { top:calc(var(--cover) + 12px); }
-.log-top .jump-ic, .log-bottom .jump-ic { display:block; width:22px; height:22px; margin:0; pointer-events:none; }
+/* 맨 위/아래 버튼 = 리본 스크롤바 양 끝의 리본 조각 + 도트 겹꺾쇠 (A-3). 리본 모양은 ::before에만 → 숫자 배지는 안 잘림 */
+.log-bottom, .log-top { position:absolute; right:33px; z-index:5; display:grid; place-items:center; width:22px; height:28px; padding:0; border:0; cursor:pointer; color:#f4ecd8; background:none; }
+.log-top::before, .log-bottom::before { content:""; position:absolute; inset:0; background:linear-gradient(90deg, #5e0f0b 0 2px, #8a1c14 2px calc(100% - 2px), #5e0f0b calc(100% - 2px)); filter:drop-shadow(2px 2px 0 rgba(0,0,0,.3)); }
+.log-bottom { height:32px; }
+.log-bottom::before { clip-path:polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 6px), 0 100%); }
+.log-top:hover::before, .log-bottom:hover::before { background:linear-gradient(90deg, #7a1a14 0 2px, #a8281c 2px calc(100% - 2px), #7a1a14 calc(100% - 2px)); }
+.log-top:focus-visible, .log-bottom:focus-visible { outline:2px dashed var(--ink); outline-offset:2px; }
+.log-top .jump-ic, .log-bottom .jump-ic { position:relative; display:block; width:18px; height:16px; margin:0; pointer-events:none; }
+.log-bottom .jump-ic { margin-top:-6px; }
 .log-bottom, .log-top { transition: opacity .4s; }
 .log-bottom.out, .log-top.out { opacity: 0; pointer-events: none; }
 .log-bottom[hidden], .log-top[hidden] { display:none; }
@@ -2571,8 +2577,8 @@ html.has-3d .topbar { box-shadow: none; }
       <span id="recentInfo" class="sr-only">최근 기록</span>
       <div id="log" class="log" aria-live="polite"></div>
       <div id="logRail" class="log-rail" hidden><div class="log-thumb" title="끌어서 스크롤"></div></div>
-      <button id="logTop" class="log-top btn small" type="button" hidden aria-label="채팅 맨 위로 이동" title="맨 위"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="8,2.5 15,13 1,13" fill="currentColor"/></svg></button>
-      <button id="logBottom" class="log-bottom btn small" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래"><svg class="jump-ic" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><polygon points="1,3 15,3 8,13.5" fill="currentColor"/></svg><span id="logUnread" class="jump-badge" hidden></span></button>
+      <button id="logTop" class="log-top" type="button" hidden aria-label="채팅 맨 위로 이동" title="맨 위"><svg class="jump-ic" viewBox="0 0 9 8" width="18" height="16" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true" focusable="false"><rect x="4" y="0" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="7" y="3" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="2" y="6" width="1" height="1"/><rect x="3" y="6" width="1" height="1"/><rect x="5" y="6" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="1" y="7" width="1" height="1"/><rect x="2" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/><rect x="7" y="7" width="1" height="1"/></svg></button>
+      <button id="logBottom" class="log-bottom" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래"><svg class="jump-ic" viewBox="0 0 9 8" width="18" height="16" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true" focusable="false"><rect x="1" y="0" width="1" height="1"/><rect x="2" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="7" y="0" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/><rect x="1" y="4" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="7" y="4" width="1" height="1"/><rect x="2" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="3" y="6" width="1" height="1"/><rect x="4" y="6" width="1" height="1"/><rect x="5" y="6" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/></svg><span id="logUnread" class="jump-badge" hidden></span></button>
       <div id="turnBoard" class="turn-board" hidden></div>
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="gather-now" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
       <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면입니다. 호스트와 연결되면 최신 상태로 바뀝니다.</div>
@@ -9442,9 +9448,6 @@ const BannerArt = (() => {
   function updateBottomButton() {
     const btn = $("#logBottom");
     updateScrollArrows();
-    const below = [$("#chatForm"), $("#gather"), $("#turnStatus")];
-    const b = `${16 + below.reduce((sum, node) => sum + (node.hidden ? 0 : node.offsetHeight), 0)}px`;
-    if (btn.style.bottom !== b) btn.style.bottom = b;
     updateRail();
   }
   /* 책갈피 리본 스크롤바: 손잡이 최소 64px, 끌기 · 레일 누르면 그 자리로 */
@@ -9454,8 +9457,12 @@ const BannerArt = (() => {
     const ch = logBox.clientHeight, sh = logBox.scrollHeight;
     rail.hidden = !ch || sh <= ch + 2;
     if (rail.hidden) return;
-    const top = logBox.offsetTop + 10, h = ch - 20, geo = `${top}|${h}`;
-    if (geo !== railGeo) { railGeo = geo; rail.style.top = `${top}px`; rail.style.height = `${h}px`; }
+    // 레일 위·아래 끝에 맨 위/아래 리본 버튼 자리(각 32px)를 비워 둠
+    const top0 = logBox.offsetTop + 10, top = top0 + 32, h = ch - 20 - 68, geo = `${top}|${h}`;
+    if (geo !== railGeo) {
+      railGeo = geo; rail.style.top = `${top}px`; rail.style.height = `${h}px`;
+      $("#logTop").style.top = `${top0}px`; $("#logBottom").style.top = `${top + h + 4}px`;
+    }
     const th = Math.max(64, Math.round(h * ch / sh)), y = Math.round((h - th) * logBox.scrollTop / (sh - ch));
     thumb.style.height = `${th}px`; thumb.style.transform = `translateY(${y}px)`;
   }
