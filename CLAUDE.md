@@ -5,6 +5,7 @@
 - 시안·분석처럼 판단이 필요할 때만 길게. 시안은 이미지 목업(Playwright 렌더)로 제시, 2~4안 + 추천 1개
 - 수정은 작은 단위: 브랜치 → 구문 검사 → 푸시 → PR(REST `gh api`, GraphQL 불가) → squash 병합
 - 구문 검사: `<script>` 인라인 블록을 합쳐 `node --check`
+- 회귀 테스트: `npm install && npm test` (node:test, `tests/`). `tests/load.mjs`가 스크립트의 로직 부분(Rules~Net, `createScene3D` 앞까지)만 vm으로 불러옴. PR마다 GitHub Actions(`test`)도 실행. 로직 수정 시 해당 테스트 추가
 - 커밋 메시지·PR 본문은 한두 줄. 브라우저 실제 테스트는 사용자가 함 → 미테스트면 그렇게 보고
 - 새 기능은 하지 말고 요청된 것만. 불필요한 UI 문구 추가 금지 (예: "자동 분류" 라벨)
 - 확정된 디자인·동작은 아래 "확정된 결정"에 한 줄씩 추가
