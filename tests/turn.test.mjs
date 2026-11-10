@@ -121,3 +121,13 @@ test("결과 블록은 입력이 들어온 순서대로", () => {
   const r = run({ narration: "", results: [{ who: "한서", text: "한서가 문을 엶." }, { who: "도윤", text: "도윤이 등불을 듦." }] }, info);
   assert.equal(r.plan.blocks.map((b) => b.name).join(","), "도윤,한서");
 });
+
+test("판정 결과만 있는 차례: 장소 변경(new_place · left_place)도 금지, 첫 시도는 다시 요청", () => {
+  const info = turn({ checkReveals: [], rollOnly: true, actors: [] });
+  const obj = { narration: "바르톨이 열쇠를 쥔 손을 내려다봄.", new_place: { name: "철문 앞" } };
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /new_place/.test(i.msg)));
+  const last = run(obj, info, true);
+  assert.equal(last.plan.place, null);
+  assert.equal(run({ narration: "바르톨이 고개를 끄덕임.", left_place: true }, info, true).plan.leavePlace, false);
+  assert.equal(run(obj, turn({ checkReveals: [], rollOnly: false, actors: [] }), true).plan.place?.name, "철문 앞");
+});
