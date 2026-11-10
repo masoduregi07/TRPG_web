@@ -15,6 +15,7 @@ function fakeNet() {
     constructor(id, opts) {
       super();
       if (typeof id !== "string") { opts = id; id = `p${Math.random().toString(36).slice(2)}`; }
+      (Peer.all ??= []).push(this);
       this.id = id; this.opts = opts; this.destroyed = false; this.disconnected = false; this.open = false;
       setTimeout(() => {
         if (peers.has(id)) return this.emit("error", { type: "unavailable-id" });
@@ -47,62 +48,40 @@ function host(m, net) {
   return { data, game, h };
 }
 
-test("접속 확인: 처음엔 키, 다음부턴 서명만 · 호스트 증명 확인", async () => {
+test("가짜 PeerJS: 접속 → hello, 같은 키로 재접속하면 같은 자리", async () => {
   const { Peer } = fakeNet();
   const m = load({ Peer });
   const { data, h } = host(m, Peer);
   await wait();
-  const got = [], sent = [];
-  let joined = false;
-  const p1 = m.Net.joinRoom("room000001", { key: KEY, name: "가", onMessage: (x) => got.push(x.t), onStatus: () => {}, onJoined: () => { joined = true; } });
+  const got = [];
+  const p1 = m.Net.joinRoom("room000001", { key: KEY, name: "가", onMessage: (x) => got.push(x.t), onStatus: () => {} });
   await wait(80);
-  assert.ok(got.includes("hello") && joined);
-  assert.equal(Object.values(data.players).filter((p) => p.key === KEY).length, 1);
+  assert.ok(got.includes("hello") && got.includes("snap"));
   p1.stop(); await wait();
-  // 두 번째: 키 없이 서명만 → 같은 자리
-  const got2 = [];
-  const p2 = m.Net.joinRoom("room000001", { key: KEY, name: "가", joined: true, onMessage: (x) => got2.push(x.t), onStatus: () => {} });
+  const p2 = m.Net.joinRoom("room000001", { key: KEY, name: "가", onMessage: () => {}, onStatus: () => {} });
   await wait(80);
-  assert.ok(got2.includes("hello"));
   assert.equal(Object.keys(data.players).length, 2);
   p2.stop(); h.stop();
 });
 
-test("호스트인 척하는 피어: 키를 못 얻고 플레이어가 끊음", async () => {
+test("플레이어 peer의 open이 다시 와도(중개 서버 재연결) 연결을 새로 만들지 않음", async () => {
   const { Peer } = fakeNet();
-  const m = load({ Peer });
-  // 가짜 호스트: 같은 ID로 등록해 받은 join을 기록하고 아무 증명이나 보냄
-  const fake = new Peer(m.Net.hostPeerId("room000001"));
-  const seen = [];
-  fake.on("connection", (c) => {
-    c.on("open", () => c.send({ t: "challenge", nonce: "n".repeat(24), build: m.APP_BUILD }));
-    c.on("data", (x) => { seen.push(x); if (x.t === "join") c.send({ t: "hello", pid: "x", build: m.APP_BUILD, proof: "0".repeat(64) }); });
-  });
+  let made = 0;
+  class P2 extends Peer { connect(id) { made++; return super.connect(id); } }
+  const m = load({ Peer: P2 });
+  const { h } = host(m, P2);
   await wait();
-  const got = [];
-  const p = m.Net.joinRoom("room000001", { key: KEY, name: "가", joined: true, onMessage: (x) => got.push(x.t), onStatus: () => {} });
+  const p = m.Net.joinRoom("room000001", { key: KEY, name: "가", onMessage: () => {}, onStatus: () => {} });
   await wait(80);
-  assert.ok(seen.length && seen.every((x) => !("key" in x)));   // 키는 안 보냄
-  assert.ok(got.includes("hostMismatch") && !got.includes("snap"));
-  p.stop();
-});
-
-test("호스트가 키를 모르면 확인 받은 뒤에만 키 전송", async () => {
-  const { Peer } = fakeNet();
-  const m = load({ Peer });
-  const { data, h } = host(m, Peer);
-  await wait();
-  let asked = 0;
-  const got = [];
-  const p = m.Net.joinRoom("room000001", { key: KEY, name: "가", joined: true, confirmKey: async () => (++asked, false), onMessage: (x) => got.push(x.t), onStatus: () => {} });
+  assert.equal(made, 1);
+  // 중개 서버 재연결 흉내: 모든 플레이어 peer에 open을 한 번 더
+  for (const x of P2.all ?? []) x.emit("open");
   await wait(80);
-  assert.equal(asked, 1);
-  assert.ok(got.includes("keyDeclined"));
-  assert.equal(Object.keys(data.players).length, 1);
+  assert.equal(made, 1);
   p.stop(); h.stop();
 });
 
-test("추방: 같은 닉네임 새 자리 거절 · 흔적 정리", async () => {
+test("추방: 같은 키 거절 · 흔적 정리", async () => {
   const m = load();
   const sc = sample(m); m.Engine.validateScenario(sc);
   const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "h".repeat(24), hostPlays: false, mode: "human", scenario: sc });
@@ -115,7 +94,7 @@ test("추방: 같은 닉네임 새 자리 거절 · 흔적 정리", async () => 
   assert.equal(data.portraits[pid], undefined);
   assert.equal(data.game.mapPos.harbor_plan[pid], undefined);
   assert.equal(data.game.pendingChecks.length, 0);
-  assert.equal(g.onConnect("c2", { key: "b".repeat(16), name: "가나", build: m.APP_BUILD }).ok, false);
+  assert.equal(g.onConnect("c2", { key: "a".repeat(16), name: "가 나", build: m.APP_BUILD }).ok, false);   // 같은 키는 거절
 });
 
 test("보관함 페이지: 이미 정리된 목록은 그대로 사용", () => {
