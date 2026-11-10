@@ -2127,11 +2127,21 @@ html.has-3d .topbar { box-shadow: none; }
 .hm-room { fill: #efe3c3; stroke: #2b1a0c; stroke-width: 1.6; }
 .hm-label { font-size: 4.2px; fill: #3a2c20; text-anchor: middle; dominant-baseline: middle; }
 .hm-tray { font-size: 4px; fill: #7a6548; }
-.hm-tok circle { stroke: #f1e8cf; stroke-width: 1.2; }
-.hm-tok text { font-size: 4.6px; fill: #f4ecd8; text-anchor: middle; pointer-events: none; }
+/* 지도 말 = 종이 인형(D1): 나무 받침 + 초상 카드 + 아래 플레이어 색 띠. 원점 = 받침 가운데(발 자리) */
+.hm-shadow { fill: rgba(30, 20, 10, .35); transition: transform .12s, opacity .12s; }
+.hm-base { fill: #6b4423; stroke: #2b1a0c; stroke-width: .5; }
+.hm-card { fill: #f4ecd8; stroke: #2b1a0c; stroke-width: .5; }
+.hm-face-bg { fill: #d9c9a3; } .hm-face-sil { fill: #8a7656; }
+.hm-body { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .12s; }
 .hm-tok.mine { cursor: grab; }
-.hm-tok.mine circle { stroke: #f6d27a; stroke-width: 1.6; }
+.hm-tok.mine .hm-card { stroke: #b07a1e; stroke-width: .8; }
 .hm-tok.drag { cursor: grabbing; }
+/* 끄는 중: 들어 올려 살짝 기울임 + 그림자는 비켜서 옅게 */
+.hm-tok.drag .hm-body { transform: translateY(-3.5px) rotate(-6deg); }
+.hm-tok.drag .hm-shadow { transform: translate(2.4px, 1.2px) scale(1.15); opacity: .7; }
+.hm-from { fill: none; stroke-width: .7; stroke-dasharray: 1.4 1; }
+.hm-room.hot { fill: #f6e7b8; stroke: #a5321e; stroke-width: 2.2; }
+.hm-label.hot { fill: #a5321e; font-weight: 700; }
 .ho-map.live { touch-action: none; }
 .ho-th-map { background: #f1e8cf; }
 .ho-th-map .ho-map { width: 100%; height: 100%; }
@@ -9930,15 +9940,20 @@ const BannerArt = (() => {
     for (let y = 0; y <= H; y++) root.append(svg("line", { x1: 0, y1: y * MAP_U, x2: W * MAP_U, y2: y * MAP_U, class: "hm-grid" }));
     for (const r of rooms) {
       const [x, y, w, hh] = r.at;
-      root.append(svg("rect", { x: x * MAP_U, y: y * MAP_U, width: w * MAP_U, height: hh * MAP_U, class: "hm-room" }));
-      const t = svg("text", { x: (x + w / 2) * MAP_U, y: y * MAP_U + 6, class: "hm-label" }); t.textContent = r.name; root.append(t);   // 방 이름은 위쪽 (가운데는 말 자리)
+      root.append(svg("rect", { x: x * MAP_U, y: y * MAP_U, width: w * MAP_U, height: hh * MAP_U, class: "hm-room", "data-room": r.name }));
+      const t = svg("text", { x: (x + w / 2) * MAP_U, y: y * MAP_U + 6, class: "hm-label", "data-room": r.name }); t.textContent = r.name; root.append(t);   // 방 이름은 위쪽 (가운데는 말 자리)
     }
     if (trayH) { const t = svg("text", { x: 4, y: (H + 2.6) * MAP_U, class: "hm-tray" }); t.textContent = "내 말 →"; root.append(t); }
     const token = (pid, x, y) => {
       const q = app.snap?.players.find((pp) => pp.pid === pid), mine = pid === me;
       const g = svg("g", { class: `hm-tok${mine && live ? " mine" : ""}`, transform: `translate(${x * MAP_U} ${y * MAP_U})` });
-      g.append(svg("circle", { r: 4.6, fill: q ? spineOf(pid) : "#5a4936" }));
-      const t = svg("text", { y: 1.9 }); t.textContent = (q?.character?.name ?? "?").slice(0, 1); g.append(t);
+      const src = q?.portrait && app.sceneImgs[q.portrait], body = svg("g", { class: "hm-body" });
+      g.append(svg("ellipse", { class: "hm-shadow", rx: 4.4, ry: 1.5 }));
+      body.append(svg("ellipse", { class: "hm-base", rx: 4.4, ry: 1.6 }), svg("rect", { class: "hm-card", x: -3.2, y: -11, width: 6.4, height: 10.4 }));
+      if (typeof src === "string" && src.startsWith("data:image/")) body.append(svg("image", { href: src, x: -2.6, y: -10.4, width: 5.2, height: 6.6, preserveAspectRatio: "xMidYMid slice" }));
+      else body.append(svg("rect", { class: "hm-face-bg", x: -2.6, y: -10.4, width: 5.2, height: 6.6 }), svg("circle", { class: "hm-face-sil", cx: 0, cy: -7.8, r: 1.1 }), svg("path", { class: "hm-face-sil", d: "M-1.9 -3.8 Q0 -6.6 1.9 -3.8 Z" }));
+      body.append(svg("rect", { x: -3.2, y: -3.2, width: 6.4, height: 2.6, fill: q ? spineOf(pid) : "#5a4936" }));
+      g.append(body);
       const title = svg("title", {}); title.textContent = q?.character?.name ?? ""; g.append(title);
       if (mine && live) mapDrag(root, g, h, W, H);
       return g;
@@ -9949,10 +9964,18 @@ const BannerArt = (() => {
   }
   function mapDrag(root, g, h, W, H) {
     g.addEventListener("pointerdown", (e) => {
-      e.preventDefault(); e.stopPropagation(); g.setPointerCapture(e.pointerId); g.classList.add("drag");
+      e.preventDefault(); e.stopPropagation();
+      root.append(g);   // 다른 말 위로 (포인터 잡기 전에 옮겨야 잡힌 채 유지)
+      g.setPointerCapture(e.pointerId); g.classList.add("drag");
+      // 원래 자리 = 점선 타원, 들어갈 방 = 붉은 테
+      const m = /translate\(([-\d.]+) ([-\d.]+)\)/.exec(g.getAttribute("transform") ?? "");
+      const from = m ? svg("ellipse", { class: "hm-from", cx: +m[1], cy: +m[2], rx: 4.4, ry: 1.6, stroke: g.querySelector(".hm-body rect:last-of-type")?.getAttribute("fill") ?? "#2b1a0c" }) : null;
+      if (from) g.before(from);
+      let hot = null;
+      const light = (name) => { if (name === hot) return; hot = name; for (const n of root.querySelectorAll("[data-room]")) n.classList.toggle("hot", n.dataset.room === name); };
       const at = (ev) => { const pt = root.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const q = pt.matrixTransform(root.getScreenCTM().inverse()); return [Math.max(0, Math.min(W, q.x / MAP_U)), Math.max(0, Math.min(H, q.y / MAP_U))]; };
-      const mv = (ev) => { const [x, y] = at(ev); g.setAttribute("transform", `translate(${x * MAP_U} ${y * MAP_U})`); };
-      const up = (ev) => { g.removeEventListener("pointermove", mv); g.removeEventListener("pointerup", up); g.classList.remove("drag"); const [x, y] = at(ev); send({ t: "mapMove", hid: h.id, x, y }); };
+      const mv = (ev) => { const [x, y] = at(ev); g.setAttribute("transform", `translate(${x * MAP_U} ${y * MAP_U})`); light(Engine.roomAt(h, x, y) || null); };
+      const up = (ev) => { g.removeEventListener("pointermove", mv); g.removeEventListener("pointerup", up); g.classList.remove("drag"); from?.remove(); light(null); const [x, y] = at(ev); send({ t: "mapMove", hid: h.id, x, y }); };
       g.addEventListener("pointermove", mv); g.addEventListener("pointerup", up);
     });
   }
