@@ -7214,10 +7214,10 @@ void main() {
    * 닫힌 모양 기준: 책등 x = -0.5, 쪽 x ∈ [-0.5, 0.5], 깊이 z = zc ± D/2, 높이 = 뒤표지 c + 쪽 B + 앞표지 c
    * 앞표지 + 왼쪽 쪽 묶음 + 지나온 장의 탭은 한 덩어리로 책등 축(x = -0.5, y = T/2)을 돌아 왼쪽 탁자 위로 넘어감
    * 펼치면 카메라가 바로 위에서 내려다봄 → 화면에 비친 쪽 자리에 DOM 쪽 내용을 겹침 */
-  const BK = { zc: -.85, D: 1.36, c: .024, B: .14, step: .03, tabL: .46, tabD: .15, tabZ: [-.48, -.29, -.1], hL0: .006 };
+  const BK = { zc: -.85, D: 1.36, c: .024, B: .17, step: .03, tabL: .46, tabD: .15, tabZ: [-.48, -.29, -.1], hL0: .006 };
   BK.T = BK.B + BK.c * 2;
   const CH_START = [0, 2, 3], chOf = (sp) => (sp >= 3 ? 2 : sp >= 2 ? 1 : 0);
-  const hLof = (s) => .012 + s * BK.step;
+  const hLof = (s) => .04 + s * BK.step;   // 펼치면 왼쪽도 앞쪽 몇 장이 있어 양쪽 골이 비슷하게 내려앉음
   /** 단위 판 (x 0~1 · y 0~1 · z -0.5~0.5). 윗면 uv = 캔버스 그대로(위 = 먼 쪽), 아랫면은 좌우 뒤집음(넘어가 뒤집히면 바로 읽힘). 윗면·아랫면은 잘게 나눠 원근 없는 텍스처가 덜 일그러지게 */
   function slab(n = 6) {
     const face = (y, ny, flip) => {
@@ -7241,6 +7241,47 @@ void main() {
     return { top: face(1, 1, false), bot: face(0, -1, true), side: mesh(pos, nrm, uv, idx) };
   }
   const SL = slab();
+  /** 펼친 쪽 묶음: 책등 쪽(x = 0)으로 갈수록 종이가 완만하게 내려앉음(실제 책의 골). 높이 h(세계 단위)마다 따로 만들어 둠
+   * up = 종이 면이 위(오른쪽 묶음), 아니면 아래(왼쪽 묶음은 표지와 함께 뒤집혀 아랫면이 위로 옴) */
+  const blockCache = new Map();
+  function pageBlock(h, up) {
+    const key = `${up ? 1 : 0}:${h.toFixed(4)}`;
+    let m = blockCache.get(key);
+    if (m) return m;
+    const nx = 14, nz = 6, w0 = .3, g = Math.min(.05, h * .8), D = BK.D;
+    const dip = (x) => (x < w0 ? g * (1 - x / w0) ** 2 : 0), slope = (x) => (x < w0 ? 2 * g / w0 * (1 - x / w0) : 0);
+    const xs = Array.from({ length: nx + 1 }, (_, i) => (i / nx) ** 1.6);   // 책등 쪽을 촘촘히
+    const topY = (x) => (up ? h - dip(x) : h), botY = (x) => (up ? 0 : dip(x));
+    // 종이 면
+    const pos = [], nrm = [], uv = [], idx = [];
+    for (let j = 0; j <= nz; j++) for (const x of xs) {
+      const z = j / nz - .5, sl = slope(x), l = Math.hypot(sl, 1);
+      if (up) { pos.push(x, topY(x), z * D); nrm.push(-sl / l, 1 / l, 0); uv.push(x, j / nz); }
+      else { pos.push(x, botY(x), z * D); nrm.push(-sl / l, -1 / l, 0); uv.push(1 - x, j / nz); }
+    }
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const a = j * (nx + 1) + i; idx.push(a, a + 1, a + nx + 2, a, a + nx + 2, a + nx + 1); }
+    const paper = mesh(pos, nrm, uv, idx);
+    // 나머지 면: 앞·뒤(곡선 따라) + 바깥 · 책등 쪽 + 반대 면(평평)
+    const P = [], N = [], U = [], I = [];
+    const quad = (v, n) => { const b = P.length / 3; v.forEach((q) => { P.push(...q); N.push(...n); }); U.push(0, 0, 4, 0, 4, 1, 0, 1); I.push(b, b + 1, b + 2, b, b + 2, b + 3); };
+    for (let i = 0; i < nx; i++) {
+      const a = xs[i], b = xs[i + 1];
+      quad([[a, botY(a), D / 2], [b, botY(b), D / 2], [b, topY(b), D / 2], [a, topY(a), D / 2]], [0, 0, 1]);
+      quad([[b, botY(b), -D / 2], [a, botY(a), -D / 2], [a, topY(a), -D / 2], [b, topY(b), -D / 2]], [0, 0, -1]);
+    }
+    quad([[1, 0, D / 2], [1, 0, -D / 2], [1, h, -D / 2], [1, h, D / 2]], [1, 0, 0]);
+    quad([[0, botY(0), -D / 2], [0, botY(0), D / 2], [0, topY(0), D / 2], [0, topY(0), -D / 2]], [-1, 0, 0]);
+    const fy = up ? 0 : h;
+    quad([[0, fy, -D / 2], [1, fy, -D / 2], [1, fy, D / 2], [0, fy, D / 2]], [0, up ? -1 : 1, 0]);
+    m = { paper, rest: mesh(P, N, U, I) };
+    blockCache.set(key, m);
+    if (blockCache.size > 48) {   // 오래된 것 정리 (GPU 버퍼)
+      const [k0, old] = blockCache.entries().next().value;
+      blockCache.delete(k0);
+      for (const o of [old.paper, old.rest]) for (const b of [o.p, o.n, o.u, o.i]) gl.deleteBuffer(b);
+    }
+    return m;
+  }
   /** 크기 자유 캔버스 텍스처 (반복 없음). 글꼴이 늦게 오면 repaint로 다시 그림 */
   function ctex(w, h, draw) {
     const c = document.createElement("canvas"); c.width = w; c.height = h;
@@ -7298,7 +7339,7 @@ void main() {
     }),
     // 쪽 윗면: 누런 종이 + 결 + 잔 얼룩, 책등 쪽(안쪽)은 그늘
     paper: [1, 0].map((gutterLeft) => ctex(96, 128, (g, w, h) => {
-      grain(g, w, h, [239, 224, 180], .05, 2, (x) => { const e = gutterLeft ? x : w - 1 - x; return e < 10 ? -(10 - e) / 10 * .1 : 0; });
+      grain(g, w, h, [239, 224, 180], .05, 2, (x) => { const e = gutterLeft ? x : w - 1 - x; return e < 16 ? -(((16 - e) / 16) ** 2) * .22 : 0; });
       g.fillStyle = "rgba(120,80,30,.08)";
       for (let i = 0; i < 6; i++) { const x = rnd() * w | 0, y = rnd() * h | 0, r = 2 + rnd() * 4 | 0; g.fillRect(x - r, y, r * 2, 1); g.fillRect(x - r + 1, y - 1, r * 2 - 2, 3); }
     })),
@@ -7387,8 +7428,8 @@ void main() {
     const { c, B, D, zc } = BK, cp = pivot(bk.a, ys0), hR = B - bk.hL;
     return {
       back: chain(M.T(-.515, 0, zc), M.S(1.035, c, D + .04)),
-      right: chain(M.T(-.5, c, zc), M.S(1, hR, D)),
-      left: chain(cp, M.T(-.5, c + B - bk.hL, zc), M.S(1, bk.hL, D)),
+      right: chain(M.T(-.5, c, zc)),
+      left: chain(cp, M.T(-.5, c + B - bk.hL, zc)),
       front: chain(cp, M.T(-.515, c + B, zc), M.S(1.035, c, D + .04)),
       spine: chain(M.T(-.535, 0, zc), M.S(.035, lerp(BK.T, c, bk.a / Math.PI), D + .04)),
     };
@@ -7413,8 +7454,13 @@ void main() {
     const P = bookParts(), pe = .28 + .34 * bk.p;   // 펼치면 종이가 조금 더 밝게 (글 읽기)
     drawSlab(P.back, BT.leather, BT.leather, BT.leather, .08);
     drawSlab(P.spine, BT.leather, BT.leather, BT.leather, .08);
-    drawSlab(P.right, BT.paper[0].t, BT.edge, BT.edge, pe);
-    drawSlab(P.left, BT.edge, BT.paper[1].t, BT.edge, pe);
+    for (const [model, h, up, tx] of [[P.right, BK.B - bk.hL, true, BT.paper[0].t], [P.left, bk.hL, false, BT.paper[1].t]]) {
+      const m = pageBlock(h, up);
+      gl.uniformMatrix4fv(U.u_model, false, model);
+      gl.uniform1f(U.u_emissive, pe);
+      gl.bindTexture(gl.TEXTURE_2D, tx); drawMesh(m.paper);
+      gl.bindTexture(gl.TEXTURE_2D, BT.edge); drawMesh(m.rest);
+    }
     drawSlab(P.front, BT.cover.t, BT.leather, BT.leather, .14);
     for (const s of bk.sheets) {
       const m = chain(pivot(s.th, (s.yR + s.yL) / 2), M.T(-.5, s.yR, BK.zc), M.S(1, .002, BK.D));
