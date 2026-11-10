@@ -462,7 +462,9 @@ textarea.code { font: 12px/1.6 var(--font); }
 .roll-result.ok { color: var(--moss); }
 .roll-result.fail { color: var(--blood); }
 /* 판정 결과: 단계 꼬리표만 색(크림 글씨), 글은 먹색 · 굴린 숫자 상자 테두리·숫자도 결과 색(상자 안 바탕은 그대로) */
-.roll-result.lv { color: var(--ink); }
+.roll-result.lv.ok { color: var(--moss); }
+.roll-result.lv.fail { color: var(--blood); }
+.roll-result .rr-q { text-decoration: underline dotted 2px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 4px; text-decoration-skip-ink: none; }
 .roll-result .rr-lv { display: inline-block; margin-right: 6px; padding: 0 5px; font-size: 12px; line-height: 17px; font-weight: 400; color: #fff6dc; background: var(--moss); vertical-align: 1px; }
 .roll-result.fail .rr-lv { background: var(--blood); }
 .roll.r-ok .roll-detail b { color: var(--moss); box-shadow: inset 0 0 0 2px var(--moss); }
@@ -10049,7 +10051,9 @@ const BannerArt = (() => {
     const ok = e.ok ? "ok" : "fail";
     if (!e.level || e.dmg) return el("div", { class: `roll-result ${ok}` }, e.result);
     const i = e.result.indexOf(" — "), lv = i < 0 ? e.result : e.result.slice(0, i);
-    return el("div", { class: `roll-result lv ${ok}` }, el("b", { class: "rr-lv" }, lv), i < 0 ? null : e.result.slice(i + 3));
+    // 서술은 단계와 같은 색, 따옴표 대사는 점선 밑줄
+    const rest = i < 0 ? [] : e.result.slice(i + 3).split(/(["“][^"”\n]+["”]|「[^」\n]+」)/).map((t, k) => k % 2 ? el("span", { class: "rr-q" }, t) : t);
+    return el("div", { class: `roll-result lv ${ok}` }, el("b", { class: "rr-lv" }, lv), ...rest);
   }
   function renderEntry(e, { live = false } = {}) {
     const hold = live && (e.kind === "clue" || e.kind === "system" || e.kind === "handout") && isTyping();
