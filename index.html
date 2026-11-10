@@ -2372,81 +2372,37 @@ html.has-3d .topbar { box-shadow: none; }
 .float-layer .block::before { content: none; }
 
 /* ================================================================
- * 첫 화면: 탁자 위 붉은 가죽 책 (로우폴리 · CSS 3D)
- * 닫힘 = 기울여 놓인 책 + 오른쪽 색인 탭, 펼침 = 평면(배율 1)으로 다가온 두 쪽
- * --pw · --ph · --thick 은 JS(Book.measure)가 화면 크기로 정함
+ * 첫 화면: 탁자 위 붉은 가죽 책 (오두막 WebGL 안의 물체 · Scene3D book*)
+ * 닫힘 = 비스듬히 본 책 + 오른쪽 색인 탭, 펼침 = 카메라가 바로 위로 → 쪽 자리에 DOM 쪽 내용(#bkPages)을 겹침
+ * 색인 탭은 3D로 그리고, 화면에 비친 자리에 투명 버튼(.bk-tab)을 맞춤. WebGL이 없으면 #home.flat (평면 대체)
  * ================================================================ */
 .book-screen { position: fixed; inset: 0; overflow: hidden; font-family: var(--font); color: var(--ink); }
-.book-screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(0, 0, 0, .55) 100%); }
-.bk-stage { position: absolute; inset: 0; perspective: 1600px; perspective-origin: 50% 42%; }
-.bk-tilt { position: absolute; inset: 0; pointer-events: none; transform-style: preserve-3d; transform-origin: 50% 50%; transition: transform .5s cubic-bezier(.4, 0, .2, 1); }
-.bk-book { position: absolute; left: 50%; top: calc(50% - var(--ph) / 2); width: 0; height: 0; transform-style: preserve-3d; transition: transform .5s cubic-bezier(.4, 0, .2, 1); }
-/* 쪽 묶음: 윗면(쪽) + 옆면 · 아랫면(종이 단면, 닫혔을 때만 보임) */
-.bk-blk { position: absolute; top: 0; width: var(--pw); height: var(--ph); transform-style: preserve-3d; transition: transform .5s cubic-bezier(.4, 0, .2, 1); }
-.bk-R { left: 0; transform: translateZ(var(--zr)); }
-.bk-L { left: calc(var(--pw) * -1); transform: translateZ(var(--zl)); visibility: hidden; transition: transform .5s, visibility 0s .95s; }
-.bk-book.open .bk-L { visibility: visible; transition: transform .5s, visibility 0s .45s; }
-.bk-side, .bk-bot { position: absolute; background: repeating-linear-gradient(90deg, #d8c595 0 2px, #b39c6a 2px 3px); }
-.bk-side { left: var(--pw); top: 0; width: var(--zr); height: var(--ph); transform-origin: 0 0; transform: rotateY(90deg); }
-.bk-bot { left: 0; top: var(--ph); width: var(--pw); height: var(--zr); transform-origin: 0 0; transform: rotateX(-90deg); background: repeating-linear-gradient(0deg, #d8c595 0 2px, #b39c6a 2px 3px); }
-.bk-L .bk-side, .bk-L .bk-bot { display: none; }
-.bk-pg { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #b39c6a transparent; }
-.bk-pg.r { background: linear-gradient(90deg, #d9c592, #e7d6a8 5%, #efe0b4); }
-.bk-pg.l { background: linear-gradient(270deg, #d9c592, #e7d6a8 5%, #efe0b4); }
-.bk-page { position: relative; min-height: 100%; padding: 38px 44px 64px; font-size: 14px; line-height: 1.55; }
-.bk-book.narrow .bk-page { padding: 26px 22px 56px; }
-.bk-book.narrow .bk-page + .bk-page { border-top: 2px dashed rgba(42, 26, 16, .35); min-height: 0; }
-/* 표지: 닫히면 쪽 위, 펼치면 왼쪽으로 넘어가 쪽 아래 (테두리처럼 보임) */
-.bk-cover { position: absolute; left: 0; top: -6px; width: calc(var(--pw) + 8px); height: calc(var(--ph) + 12px); transform-origin: 0 50%; transform-style: preserve-3d;
-  transform: translateZ(calc(var(--thick) + 1px)); transition: transform .5s cubic-bezier(.4, 0, .2, 1); }
-.bk-book.open .bk-cover { transform: translateZ(-1px) rotateY(-180deg); }
-.bk-face { position: absolute; inset: 0; backface-visibility: hidden; }
-.bk-front { background: linear-gradient(135deg, #8e2a1c 0 50%, #7c2316 50%); box-shadow: inset 0 0 0 3px #5a170e; color: #f0cc6a; }
-.bk-back { transform: rotateY(180deg); background: #5a170e; box-shadow: inset 0 0 0 10px #6b1d12; }
-.bk-frame { position: absolute; inset: 7%; border: 3px solid #d6a93e; outline: 1px solid #8a6a1e; outline-offset: 5px; }
-.bk-corner { position: absolute; width: 8%; aspect-ratio: 1; background: linear-gradient(135deg, #f0cc6a 0 50%, #b88a2c 50%); }
-.bk-corner.a { right: 0; top: 0; clip-path: polygon(0 0, 100% 0, 100% 100%); }
-.bk-corner.b { right: 0; bottom: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
-.bk-ctitle { position: absolute; left: 0; right: 0; top: 22%; text-align: center; }
-.bk-ctitle .k { font-size: calc(var(--pw) * .028); color: #d6a93e; letter-spacing: .2em; }
-.bk-ctitle h1 { margin: .4em 0 .35em; font-family: "Galmuri11", var(--font); font-weight: 400; font-size: calc(var(--pw) * .1); text-shadow: 3px 3px 0 #3e0f08; }
-.bk-ctitle .s { font-size: calc(var(--pw) * .026); color: #d6a93e; }
-.bk-emb { position: absolute; left: 50%; top: 60%; width: 22%; aspect-ratio: 1; translate: -50% 0; background: #d6a93e; clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
-.bk-emb::after { content: ""; position: absolute; inset: 6%; background: #7c2316; clip-path: inherit; }
-.bk-emb i { position: absolute; left: 41%; top: 24%; width: 18%; height: 54%; z-index: 1; background: #f0cc6a; clip-path: polygon(25% 0, 75% 0, 100% 100%, 0 100%); }
-.bk-spine { position: absolute; left: calc(var(--thick) * -1); top: -6px; width: var(--thick); height: calc(var(--ph) + 12px); background: linear-gradient(90deg, #5a170e, #7c2316); transform-origin: 100% 50%; transform: rotateY(-90deg); }
-.bk-book.open .bk-spine { display: none; }
-/* 넘어가는 장 */
-.bk-sheet { position: absolute; left: 0; top: 0; width: var(--pw); height: var(--ph); transform-origin: 0 50%; transform-style: preserve-3d; pointer-events: none; }
-.bk-sheet .bk-face { overflow: hidden; background: linear-gradient(90deg, #d9c592, #e7d6a8 5%, #efe0b4); box-shadow: inset 0 0 0 1px rgba(90, 60, 30, .2); }
-.bk-sheet .bk-sb { transform: rotateY(180deg); background: linear-gradient(270deg, #d9c592, #e7d6a8 5%, #efe0b4); }
-.bk-blank { width: 100%; height: 100%; }
-/* 색인 탭: 장 색 종이 (섬유 결 · 잔 얼룩 · 직선 끝), 바깥 끝에 도트 아이콘. 마우스를 올리면 빼꼼 */
-.bk-tabs { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
-.bk-tab {
-  position: absolute; left: calc(var(--pw) + 4px); width: 132px; height: 44px; padding: 0 14px 0 18px;
-  display: flex; align-items: center; justify-content: space-between; border: 0; cursor: pointer;
-  font-family: "Galmuri11", var(--font); font-size: 16px; color: #f8efd8; text-shadow: 1px 1px 0 rgba(0, 0, 0, .45);
-  background-color:color-mix(in srgb, var(--c) 80%, #efe2b8);
-  background-image: var(--tab-tex), radial-gradient(circle at 20% 30%, rgba(0, 0, 0, .08) 0 1px, transparent 2px);
-  background-size: 96px 48px, 7px 6px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18), 1px 2px 0 rgba(0, 0, 0, .25);
-  transform: translateZ(calc(var(--zr) + 3px)) rotate(var(--r, -2deg)); transition: transform .15s, filter .15s, left .4s;
-}
-.bk-pg, .bk-tab, .bk-cover { pointer-events: auto; }
-/* 닫힌 책: 색인 탭이 한눈에 보이게 크게 */
-.bk-book:not(.open) .bk-tab { width: 196px; height: 62px; padding: 0 18px 0 24px; font-size: 23px; }
-.bk-book:not(.open) .bk-tab .bk-ic { width: 24px; height: 24px; }
-.bk-book:not(.open) .bk-tab[data-ch="1"] { top: calc(9% + 72px); } .bk-book:not(.open) .bk-tab[data-ch="2"] { top: calc(9% + 144px); }
-.bk-tab[data-ch="0"] { top: 9%; } .bk-tab[data-ch="1"] { top: calc(9% + 52px); --r: 1.5deg; } .bk-tab[data-ch="2"] { top: calc(9% + 104px); --r: -1deg; }
-.bk-tab .bk-ic { width: 16px; height: 16px; flex: none; filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, .45)); }
-.bk-tab:hover, .bk-tab.peek, .bk-tab:focus-visible { transform: translateZ(calc(var(--zr) + 3px)) translateX(14px) rotate(var(--r, -2deg)); filter: brightness(1.1); outline: 0; }
-.bk-tab.cur { transform: translateZ(1px) translateX(10px) rotate(var(--r, -2deg)); }
-/* 지나온 장의 탭 = 왼쪽 쪽 묶음 가장자리 (아이콘이 바깥쪽) */
-.bk-tab.L { left: calc(var(--pw) * -1 - 136px); flex-direction: row-reverse; padding: 0 18px 0 14px; transform: translateZ(1px) rotate(calc(var(--r, -2deg) * -1)); }
-.bk-tab.L:hover, .bk-tab.L.peek, .bk-tab.L:focus-visible { transform: translateZ(1px) translateX(-14px) rotate(calc(var(--r, -2deg) * -1)); }
-.bk-book.narrow .bk-tab, .bk-book.narrow:not(.open) .bk-tab { width: 46px; padding: 0; justify-content: center; font-size: 0; }
-.bk-book.narrow .bk-tab .bk-ic { width: 20px; height: 20px; }
+.book-screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, .5) 100%); }
+.bk-stage { position: absolute; inset: 0; }
+.bk-pages { position: absolute; inset: 0; pointer-events: none; transform-origin: 50% 50%; }
+.bk-pg { position: absolute; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #9c8455 transparent; pointer-events: auto; visibility: hidden; opacity: 0; }
+.bk-pg.on { visibility: visible; opacity: 1; transition: opacity .18s; }
+.bk-page { position: relative; min-height: 100%; padding: 30px 38px 58px; font-size: 14px; line-height: 1.55; }
+#home.narrow .bk-page { padding: 22px 20px 52px; }
+#home.narrow .bk-page + .bk-page { border-top: 2px dashed rgba(42, 26, 16, .35); min-height: 0; }
+/* 색인 탭 = 3D 탭 위 투명 단추 (글자는 읽기 프로그램용) */
+.bk-tabs { position: absolute; inset: 0; pointer-events: none; }
+.bk-tab { position: absolute; left: 0; top: 0; width: 0; height: 0; padding: 0; border: 0; background: transparent; color: transparent; font-size: 0; cursor: pointer; pointer-events: auto; }
+.bk-tab .bk-ic { display: none; }
+.bk-tab:focus-visible { outline: 2px dashed #e3c26a; outline-offset: 2px; }
+#home.busy .bk-tab { pointer-events: none; }
+/* WebGL 없을 때: 평면 표지 + 탭 목록 */
+.bk-flat { display: none; }
+#home.flat .bk-flat { position: absolute; left: 50%; top: 50%; width: min(52vh, 70vw); aspect-ratio: .74; translate: -60% -50%; display: grid; align-content: center; justify-items: center; gap: 10px;
+  background: #6e1f16; box-shadow: inset 0 0 0 10px #5a170e, inset 0 0 0 12px #b08a3e, 0 18px 40px rgba(0, 0, 0, .5); color: #c9a04a; text-align: center; }
+#home.flat .bk-flat h1 { margin: 0; font-family: "Galmuri14", var(--font); font-weight: 400; font-size: 34px; }
+#home.flat.open .bk-flat { display: none; }
+#home.flat .bk-pg { background: #e2cf9e; box-shadow: 0 12px 30px rgba(0, 0, 0, .45); }
+#home.flat .bk-tabs { inset: auto; left: calc(50% + min(52vh, 70vw) * .4 + 4px); top: 22%; display: grid; gap: 8px; pointer-events: auto; }
+#home.flat.open .bk-tabs { left: auto; right: 12px; }
+#home.flat .bk-tab { position: static; width: 150px; height: 42px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; background: var(--c); color: #f8efd8; font-family: "Galmuri11", var(--font); font-size: 15px; }
+#home.flat .bk-tab .bk-ic { display: block; width: 16px; height: 16px; }
+#home.flat.leaving .bk-pages { transform: scale(1.3); transition: transform .6s cubic-bezier(.5, 0, .8, .4); }
 /* 쪽 안 */
 .bk-kick { font-size: 12px; color: var(--blood); letter-spacing: .2em; }
 .bk-head { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 0 16px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); }
@@ -2484,58 +2440,26 @@ html.has-3d .topbar { box-shadow: none; }
 .bk-file small { color: #8f7f66; margin-left: 4px; }
 .bk-file:hover { color: var(--blood); }
 .bk-error { position: fixed; left: 50%; bottom: 3vh; transform: translateX(-50%); z-index: 9; }
-@media (prefers-reduced-motion: reduce) { .bk-tilt, .bk-book, .bk-blk, .bk-cover, .bk-tab { transition: none; } }
-
-/* 여닫는 순서: 열 때 = 카메라(0.5초) 뒤 표지, 덮을 때 = 표지 뒤 카메라. 움직이는 동안 쪽 내용 숨김 */
-#home.opening .bk-cover { transition-delay: .45s; }
-#home.closing .bk-tilt, #home.closing .bk-book, #home.closing .bk-blk { transition-delay: .45s; }
-#home.moving .bk-pg > * { visibility: hidden; }
-#home.moving .bk-tilt, #home.moving .bk-blk, #home.moving .bk-cover { will-change: transform; }   /* 움직이는 동안 한 번 그린 그림을 늘였다 줄임 (매 프레임 다시 그리지 않게) */
-/* 탁자에 놓인 느낌: 촛불(오른쪽 위) 반대쪽으로 지는 그림자 + 표지·쪽에 촛불빛 · 오두막과 같은 잔 디더링 */
-.bk-book::before { content: ""; position: absolute; left: -10px; top: 6px; width: calc(var(--pw) + 30px); height: calc(var(--ph) + 26px); transform: translate(-18px, 18px) translateZ(-2px);
-  background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, .55) 55%, transparent 72%); transition: left .5s, width .5s, transform .5s; pointer-events: none; }
-.bk-book.open::before { left: calc(var(--pw) * -1 - 24px); width: calc(var(--pw) * 2 + 48px); transform: translate(0, 12px) translateZ(-2px); }
-.bk-front::after { content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(circle at 92% 6%, rgba(255, 196, 110, .24), transparent 55%), linear-gradient(to left bottom, transparent 55%, rgba(0, 0, 0, .28)),
-    repeating-conic-gradient(rgba(0, 0, 0, .07) 0 25%, transparent 0 50%) 0 0 / 4px 4px; }
-.bk-blk::after { content: ""; position: absolute; inset: 0; pointer-events: none; transform: translateZ(.5px);
-  background: radial-gradient(ellipse at 100% 0%, rgba(255, 196, 110, .14), transparent 60%), radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(60, 30, 10, .22)),
-    repeating-conic-gradient(rgba(60, 30, 10, .045) 0 25%, transparent 0 50%) 0 0 / 4px 4px; }
-.bk-L::after { background: radial-gradient(ellipse at 100% 0%, rgba(255, 196, 110, .08), transparent 60%), radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(60, 30, 10, .26)),
-    repeating-conic-gradient(rgba(60, 30, 10, .045) 0 25%, transparent 0 50%) 0 0 / 4px 4px; }
-/* 방으로 들어갈 때: 보던 쪽으로 화면이 다가가며 어두워짐 → 다음 화면은 어둠에서 밝아짐 */
-#home.leaving .bk-tilt { transform: scale(1.3) !important; transition: transform .6s cubic-bezier(.5, 0, .8, .4) !important; }
+/* 방으로 들어갈 때: 3D 카메라가 보던 쪽으로 다가가며 어두워짐 → 다음 화면은 어둠에서 밝아짐 */
 .veil { position: fixed; inset: 0; z-index: 1000; pointer-events: none; background: #0b0705; }
 .veil.out { animation: veil-out .55s ease-in forwards; }
 .veil.in { animation: veil-in .6s ease-out .05s both; }
 @keyframes veil-out { from { opacity: 0; } to { opacity: 1; } }
 @keyframes veil-in { from { opacity: 1; } to { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .veil.out, .veil.in { animation-duration: .01s; } #home.leaving .bk-tilt { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .veil.out, .veil.in { animation-duration: .01s; } #home.flat.leaving .bk-pages { transition: none; } }
 </style>
 </head>
 <body>
 <!-- 첫 화면: 탁자 위 붉은 가죽 책. 오른쪽 색인 탭 = 메뉴, 누르면 그 장이 펼쳐짐 -->
 <main id="home" class="book-screen" hidden>
-  <div class="bk-stage" id="bkStage">
-    <div class="bk-tilt" id="bkTilt">
-      <div class="bk-book" id="bkBook">
-        <div class="bk-blk bk-R"><div class="bk-side"></div><div class="bk-bot"></div><div class="bk-pg r" id="bkPgR"></div></div>
-        <div class="bk-blk bk-L"><div class="bk-side"></div><div class="bk-bot"></div><div class="bk-pg l" id="bkPgL"></div></div>
-        <div class="bk-cover" id="bkCover">
-          <div class="bk-face bk-front"><div class="bk-frame"></div><i class="bk-corner a"></i><i class="bk-corner b"></i>
-            <div class="bk-ctitle"><div class="k">탐사자 기록국 장서</div><h1>TRPG 테이블</h1><div class="s">링크 하나로 모이는 4인 실시간 TRPG</div></div>
-            <div class="bk-emb" aria-hidden="true"><i></i></div></div>
-          <div class="bk-face bk-back"></div>
-        </div>
-        <div class="bk-spine"></div>
-        <nav class="bk-tabs" id="bkTabs" aria-label="메뉴">
+  <div class="bk-stage" id="bkStage"></div>
+  <div class="bk-flat" aria-hidden="true"><div>탐사자 기록국 장서</div><h1>TRPG 테이블</h1></div>
+  <div class="bk-pages" id="bkPages"><div class="bk-pg l" id="bkPgL"></div><div class="bk-pg r" id="bkPgR"></div></div>
+  <nav class="bk-tabs" id="bkTabs" aria-label="메뉴">
           <button class="bk-tab" type="button" data-ch="0" style="--c:#a5321e">새 테이블<svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="1" height="2" fill="#ffd36a"/><rect x="2" y="2" width="3" height="5" fill="currentColor"/></svg></button>
           <button class="bk-tab" type="button" data-ch="1" style="--c:#8a6a1e">이어하기<svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 0h5v7l-2.5-2-2.5 2z" fill="currentColor"/></svg></button>
           <button class="bk-tab" type="button" data-ch="2" style="--c:#2c4a6a">참가하기<svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="1" width="3" height="3" fill="currentColor"/><rect x="1" y="2" width="1" height="1" fill="var(--c)"/><rect x="3" y="2" width="4" height="1" fill="currentColor"/><rect x="5" y="3" width="1" height="2" fill="currentColor"/></svg></button>
         </nav>
-      </div>
-    </div>
-  </div>
   <p id="homeError" class="error bk-error" role="alert"></p>
   <!-- 쪽 내용: 펼친 면마다 왼쪽 · 오른쪽 쪽. 보이는 면만 책 안으로 옮겨 넣음 -->
   <div id="bkStore" hidden>
@@ -6997,12 +6921,12 @@ const Net = (() => {
  *  - 원근 보정 없는 텍스처 (affine mapping)
  *  - 정점 단위 조명 + 촛불 깜빡임
  *  - 4×4 디더링 + 색 단계 감소, 안개
- * 오두막 배경 (첫 화면 책은 DOM). WebGL이 없으면 Scene3D.ok = false (CSS 배경으로 대체)
+ * 오두막 배경 + 첫 화면 책(펼친 쪽 내용만 DOM). WebGL이 없으면 Scene3D.ok = false (CSS 배경으로 대체)
  * ================================================================== */
 function createScene3D(canvas) {
   const noop = () => {};
   const API = {
-    ok: false, setIdle: noop,
+    ok: false, setIdle: noop, book: noop, onBook: noop, bookHover: noop,
   };
   const gl = canvas.getContext("webgl", { antialias: false, alpha: false, preserveDrawingBuffer: false })
     || canvas.getContext("experimental-webgl", { antialias: false, alpha: false });
@@ -7091,6 +7015,7 @@ void main() {
       const c = Math.cos(ry) * s, n = Math.sin(ry) * s;
       return [c, 0, -n, 0, 0, s, 0, 0, n, 0, c, 0, x, y, z, 1];
     },
+    RZ(a) { const c = Math.cos(a), n = Math.sin(a); return [c, n, 0, 0, -n, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]; },
     T: (x, y, z) => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1],
     S: (x, y = x, z = x) => [x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1],
     persp(fov, asp, near, far) {
@@ -7273,6 +7198,223 @@ void main() {
     { mesh: G.flameS, x: CANDLE[1][0], y: .35, z: CANDLE[1][1] },
   ];
 
+  /* ---------------- 첫 화면 책 (붉은 가죽 장부, 오두막 안 물체) ----------------
+   * 닫힌 모양 기준: 책등 x = -0.5, 쪽 x ∈ [-0.5, 0.5], 깊이 z = zc ± D/2, 높이 = 뒤표지 c + 쪽 B + 앞표지 c
+   * 앞표지 + 왼쪽 쪽 묶음 + 지나온 장의 탭은 한 덩어리로 책등 축(x = -0.5, y = T/2)을 돌아 왼쪽 탁자 위로 넘어감
+   * 펼치면 카메라가 바로 위에서 내려다봄 → 화면에 비친 쪽 자리에 DOM 쪽 내용을 겹침 */
+  const BK = { zc: -.85, D: 1.36, c: .024, B: .14, step: .03, tabL: .46, tabD: .15, tabZ: [-.48, -.29, -.1], hL0: .006 };
+  BK.T = BK.B + BK.c * 2;
+  const CH_START = [0, 2, 3], chOf = (sp) => (sp >= 3 ? 2 : sp >= 2 ? 1 : 0);
+  const hLof = (s) => .012 + s * BK.step;
+  /** 단위 판 (x 0~1 · y 0~1 · z -0.5~0.5). 윗면 uv = 캔버스 그대로(위 = 먼 쪽), 아랫면은 좌우 뒤집음(넘어가 뒤집히면 바로 읽힘). 윗면·아랫면은 잘게 나눠 원근 없는 텍스처가 덜 일그러지게 */
+  function slab(n = 6) {
+    const face = (y, ny, flip) => {
+      const pos = [], nrm = [], uv = [], idx = [];
+      for (let j = 0; j <= n; j++) for (let i = 0; i <= n; i++) {
+        pos.push(i / n, y, j / n - .5); nrm.push(0, ny, 0); uv.push(flip ? 1 - i / n : i / n, j / n);
+      }
+      for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const a = j * (n + 1) + i; idx.push(a, a + 1, a + n + 2, a, a + n + 2, a + n + 1); }
+      return mesh(pos, nrm, uv, idx);
+    };
+    const pos = [], nrm = [], uv = [], idx = [];
+    for (const [nv, vs] of [
+      [[0, 0, 1], [[0, 0, .5], [1, 0, .5], [1, 1, .5], [0, 1, .5]]], [[0, 0, -1], [[1, 0, -.5], [0, 0, -.5], [0, 1, -.5], [1, 1, -.5]]],
+      [[1, 0, 0], [[1, 0, .5], [1, 0, -.5], [1, 1, -.5], [1, 1, .5]]], [[-1, 0, 0], [[0, 0, -.5], [0, 0, .5], [0, 1, .5], [0, 1, -.5]]],
+    ]) {
+      const b = pos.length / 3;
+      vs.forEach((v) => { pos.push(...v); nrm.push(...nv); });
+      uv.push(0, 0, 4, 0, 4, 1, 0, 1);
+      idx.push(b, b + 1, b + 2, b, b + 2, b + 3);
+    }
+    return { top: face(1, 1, false), bot: face(0, -1, true), side: mesh(pos, nrm, uv, idx) };
+  }
+  const SL = slab();
+  /** 크기 자유 캔버스 텍스처 (반복 없음). 글꼴이 늦게 오면 repaint로 다시 그림 */
+  function ctex(w, h, draw) {
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const t = gl.createTexture();
+    const paint = () => {
+      const g = c.getContext("2d"); g.clearRect(0, 0, w, h); g.imageSmoothingEnabled = false; draw(g, w, h);
+      gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+    };
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.NEAREST], [gl.TEXTURE_MAG_FILTER, gl.NEAREST], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+    paint();
+    return { t, paint };
+  }
+  /** 화소마다 결 · 얼룩 · 닳은 가장자리 (ImageData 한 번에) */
+  function grain(g, w, h, rgb, amp, wear = 0, fn = null) {
+    const img = g.createImageData(w, h), d = img.data;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const e = Math.min(x, y, w - 1 - x, h - 1 - y);
+      let k = 1 + (rnd() - .5) * amp + (wear && e < wear ? -(wear - e) / wear * .3 : 0);
+      if (fn) k += fn(x, y);
+      const i = (y * w + x) * 4;
+      d[i] = rgb[0] * k; d[i + 1] = rgb[1] * k; d[i + 2] = rgb[2] * k; d[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+  }
+  const LEATHER = [100, 30, 22];
+  const mottle = (x, y) => Math.sin(x * .11 + Math.sin(y * .07) * 2) * .06 + Math.sin(y * .13 + x * .03) * .05;
+  const scratch = (g, w, h, n) => { g.fillStyle = "rgba(196,128,96,.16)"; for (let i = 0; i < n; i++) g.fillRect(rnd() * w | 0, rnd() * h | 0, 1 + rnd() * 6 | 0, 1); };
+  const FOIL = "#c29a48", FOIL_D = "#5e4119";
+  const BT = {
+    leather: tex(32, (g, s) => { grain(g, s, s, LEATHER, .2, 0, mottle); scratch(g, s, s, 4); }),
+    edge: tex(16, (g, s) => { for (let y = 0; y < s; y++) { g.fillStyle = y % 3 === 2 ? "#8c7650" : y % 3 ? "#cdb98c" : "#dccb9e"; g.fillRect(0, y, s, 1); } g.fillStyle = "rgba(60,40,20,.25)"; g.fillRect(5, 0, 1, s); }),
+    cover: ctex(128, 176, (g, w, h) => {
+      grain(g, w, h, LEATHER, .2, 5, mottle); scratch(g, w, h, 22);
+      // 겹테(바랜 금박) + 모서리 꺾쇠
+      const rect = (i, c) => { g.fillStyle = c; g.fillRect(i, i, w - i * 2, 1); g.fillRect(i, h - 1 - i, w - i * 2, 1); g.fillRect(i, i, 1, h - i * 2); g.fillRect(w - 1 - i, i, 1, h - i * 2); };
+      rect(9, FOIL); rect(10, FOIL_D); rect(13, FOIL);
+      g.fillStyle = FOIL;
+      for (const [x, y, sx, sy] of [[9, 9, 1, 1], [w - 10, 9, -1, 1], [9, h - 10, 1, -1], [w - 10, h - 10, -1, -1]]) for (let k = 0; k < 7; k++) { g.fillRect(x + sx * k, y + sy * 3, 1, 1); g.fillRect(x + sx * 3, y + sy * k, 1, 1); }
+      // 글자: 눌러 찍은 금박 (아래 1px 어두운 홈)
+      const txt = (s, font, y) => { g.font = font; g.textAlign = "center"; g.textBaseline = "top"; g.fillStyle = "#3a0f09"; g.fillText(s, w / 2 + 1, y + 1); g.fillStyle = "#d8b25a"; g.fillText(s, w / 2, y); };
+      txt("탐사자 기록국 장서", "10px Galmuri9", 30);
+      txt("TRPG", "15px Galmuri14", 50);
+      txt("테이블", "15px Galmuri14", 68);
+      // 등대 문장 (육각 테 + 탑 + 빛)
+      const cx = w / 2, cy = 124;
+      g.fillStyle = FOIL;
+      for (let y = -16; y <= 16; y++) { const hw = 14 - Math.max(0, Math.abs(y) - 8); g.fillRect(cx - hw, cy + y, 1, 1); g.fillRect(cx + hw - 1, cy + y, 1, 1); }
+      g.fillRect(cx - 6, cy - 17, 12, 1); g.fillRect(cx - 6, cy + 16, 12, 1);
+      for (let y = 0; y < 18; y++) { const hw = 2 + (y / 6 | 0); g.fillRect(cx - hw, cy - 8 + y, hw * 2, 1); }
+      g.fillStyle = "#3a0f09"; g.fillRect(cx - 3, cy - 2, 6, 1); g.fillRect(cx - 4, cy + 4, 8, 1);
+      g.fillStyle = "#e3c26a"; g.fillRect(cx - 2, cy - 12, 4, 3);
+      g.fillStyle = "rgba(227,194,106,.55)"; g.fillRect(cx + 3, cy - 12, 7, 1); g.fillRect(cx - 10, cy - 12, 7, 1);
+    }),
+    // 쪽 윗면: 누런 종이 + 결 + 잔 얼룩, 책등 쪽(안쪽)은 그늘
+    paper: [1, 0].map((gutterLeft) => ctex(96, 128, (g, w, h) => {
+      grain(g, w, h, [226, 208, 164], .07, 3, (x) => { const e = gutterLeft ? x : w - 1 - x; return e < 14 ? -(14 - e) / 14 * .28 : 0; });
+      g.fillStyle = "rgba(120,80,30,.08)";
+      for (let i = 0; i < 6; i++) { const x = rnd() * w | 0, y = rnd() * h | 0, r = 2 + rnd() * 4 | 0; g.fillRect(x - r, y, r * 2, 1); g.fillRect(x - r + 1, y - 1, r * 2 - 2, 3); }
+    })),
+    // 색인 탭: 장 색 종이 + 결 + 크림 글자 + 바깥 끝 도트 아이콘. [오른쪽(아이콘 오른쪽), 왼쪽(넘어간 뒤, 아이콘 왼쪽)]
+    tabs: [["새 테이블", [165, 50, 30], "candle"], ["이어하기", [138, 106, 30], "mark"], ["참가하기", [44, 74, 106], "key"]].map(([label, rgb, icon]) => [0, 1].map((left) => ctex(72, 24, (g, w, h) => {
+      const base = rgb.map((v, i) => v * .8 + [239, 226, 184][i] * .2);
+      grain(g, w, h, base, .12, 0, (x, y) => Math.sin(x * .9 + y * .2) * .04 + (y % 7 === 0 ? .04 : 0));
+      g.fillStyle = "rgba(0,0,0,.22)"; g.fillRect(0, h - 2, w, 2); g.fillRect(left ? w - 2 : 0, 0, 2, h);
+      const ix = left ? 5 : w - 5 - 14, iy = 5, P = (x, y, ww = 1, hh = 1, c = "#f8efd8") => { g.fillStyle = c; g.fillRect(ix + x * 2, iy + y * 2, ww * 2, hh * 2); };
+      if (icon === "candle") { P(3, 0, 1, 2, "#ffd36a"); P(2, 2, 3, 5); }
+      else if (icon === "mark") { P(1, 0, 5, 5); P(1, 5, 2, 1); P(4, 5, 2, 1); P(1, 6, 1, 1); P(5, 6, 1, 1); }
+      else { P(0, 1, 3, 3); P(1, 2, 1, 1, `rgb(${base.join(",")})`); P(3, 2, 4, 1); P(5, 3, 1, 2); }
+      g.font = "10px Galmuri9"; g.textBaseline = "middle"; g.textAlign = "center";
+      const tx = left ? (w + 18) / 2 : (w - 18) / 2;
+      g.fillStyle = "rgba(0,0,0,.45)"; g.fillText(label, tx + 1, h / 2 + 1);
+      g.fillStyle = "#f8efd8"; g.fillText(label, tx, h / 2);
+    }))),
+  };
+  // 픽셀 글꼴이 늦게 오면 표지 · 탭 글자를 다시 그림
+  document.fonts?.load?.("10px Galmuri9").then(() => document.fonts.load("15px Galmuri14")).then(() => {
+    if (!gl.isContextLost()) { BT.cover.paint(); BT.tabs.flat().forEach((x) => x.paint()); scheduleFrame(); }
+  }, noop);
+
+  const bk = { on: false, p: 0, a: 0, hL: BK.hL0, sp: 0, zoom: 0, sheets: [], side: ["R", "R", "R"], ride: [null, null, null], peek: [0, 0, 0], hover: -1, cur: -1, cb: null };
+  const pivot = (a, ys) => chain(M.T(-.5, ys, 0), M.RZ(a), M.T(.5, -ys, 0));
+  const easeIO = (k) => (k < .5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
+  const anims = [];
+  /** 시간에 따라 값을 바꾸는 움직임. 움직임 줄이기면 바로 끝 */
+  function anim(dur, delay, step, ease = easeIO) {
+    return new Promise((res) => {
+      const reduce = motionPreference.matches;
+      anims.push({ t0: performance.now() + (reduce ? 0 : delay), dur: reduce ? 0 : dur, step, ease, res });
+      scheduleFrame();
+    });
+  }
+  function tickAnims(now) {
+    for (const a of [...anims]) {
+      if (now < a.t0) continue;
+      const k = a.dur ? Math.min(1, (now - a.t0) / a.dur) : 1;
+      a.step(a.ease(k), k);
+      if (k >= 1) { anims.splice(anims.indexOf(a), 1); a.res(); }
+    }
+  }
+  /** 한 장 넘김: dir 1 = 오른쪽 → 왼쪽. leaf = 그 장에 붙은 색인 탭을 같이 넘김. per = 왼쪽 묶음 두께 변화 */
+  function flySheet(dir, delay, dur, leaf, per) {
+    const s = { th: 0, yR: 0, yL: 0 };
+    const tabs = [0, 1, 2].filter((i) => CH_START[i] === leaf);
+    let on = false;
+    return anim(dur, delay, (e, k) => {
+      if (!on) {
+        on = true;
+        if (dir < 0) bk.hL += per;
+        s.yR = BK.c + BK.B - bk.hL; s.yL = BK.c + bk.hL;
+        bk.sheets.push(s); tabs.forEach((i) => (bk.ride[i] = s));
+      }
+      s.th = (dir > 0 ? e : 1 - e) * Math.PI;
+      if (k >= 1) {
+        bk.sheets.splice(bk.sheets.indexOf(s), 1);
+        tabs.forEach((i) => { bk.ride[i] = null; bk.side[i] = dir > 0 ? "L" : "R"; });
+        if (dir > 0) bk.hL += per;
+      }
+    }, (k) => (k < .5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2));
+  }
+  function bookSet(on, spread = -1) {
+    for (const a of anims.splice(0)) a.res();
+    Object.assign(bk, { on: !!on, sheets: [], zoom: 0, ride: [null, null, null] });
+    if (spread < 0) Object.assign(bk, { p: 0, a: 0, hL: BK.hL0, sp: 0, cur: -1, side: ["R", "R", "R"] });
+    else Object.assign(bk, { p: 1, a: Math.PI, hL: hLof(spread), sp: spread, cur: chOf(spread), side: CH_START.map((k) => (k < spread ? "L" : "R")) });
+    resize(); scheduleFrame();
+  }
+  const narrowNow = () => innerWidth < 760;
+  /** 카메라: p = 0 닫힘(비스듬히) ~ 1 펼침(바로 위). 펼친 면이 화면 높이 76% 안 → 위아래로 탁자가 보임 */
+  function homePose(p, t, sway) {
+    const asp = innerWidth / innerHeight, fov = 40, tn = Math.tan(fov * Math.PI / 360), narrow = narrowNow();
+    const el = 58 * Math.PI / 180;
+    const tc = [.2, BK.T * .5, BK.zc + .04];
+    const dc = Math.max(1.36 / .7, 1.8 / (.9 * asp)) / (2 * tn);
+    const closed = { eye: [tc[0] + Math.sin(t * .23) * .05 * sway, tc[1] + dc * Math.sin(el) + Math.sin(t * .41) * .02 * sway, tc[2] + dc * Math.cos(el)], target: tc, up: [0, 1, 0] };
+    const to = [narrow ? 0 : -.5, BK.T * .5, BK.zc];
+    const d = Math.max(BK.D / .76, (narrow ? 1.46 / .94 : 2.86 / .96) / asp) / (2 * tn);
+    const open = { eye: [to[0], to[1] + d, to[2] + 1e-4], target: to, up: [0, 0, -1] };
+    const e = easeIO(p), mix = (a, b) => a.map((v, i) => lerp(v, b[i], e));
+    const pose = { eye: mix(closed.eye, open.eye), target: mix(closed.target, open.target), up: mix(closed.up, open.up), fov };
+    if (bk.zoom) pose.eye = pose.eye.map((v, i) => lerp(v, pose.target[i], .32 * bk.zoom));
+    return pose;
+  }
+  // 각 부분의 모형 행렬 (지금 상태)
+  const ys0 = BK.T / 2;
+  const bookParts = () => {
+    const { c, B, D, zc } = BK, cp = pivot(bk.a, ys0), hR = B - bk.hL;
+    return {
+      back: chain(M.T(-.515, 0, zc), M.S(1.035, c, D + .04)),
+      right: chain(M.T(-.5, c, zc), M.S(1, hR, D)),
+      left: chain(cp, M.T(-.5, c + B - bk.hL, zc), M.S(1, bk.hL, D)),
+      front: chain(cp, M.T(-.515, c + B, zc), M.S(1.035, c, D + .04)),
+      spine: chain(M.T(-.535, 0, zc), M.S(.035, lerp(BK.T, c, bk.a / Math.PI), D + .04)),
+    };
+  };
+  function tabModel(i) {
+    const { c, zc } = BK, k = CH_START[i], hR = BK.B - bk.hL, out = .5 + bk.peek[i];
+    const local = (y) => chain(M.T(out, y, zc + BK.tabZ[i]), M.S(BK.tabL, .004, BK.tabD));
+    const s = bk.ride[i];
+    if (s) return chain(pivot(s.th, (s.yR + s.yL) / 2), local(s.yR - .004));
+    if (bk.side[i] === "R") return local(Math.max(c + .004, c + hR - Math.max(0, k - bk.sp) * BK.step) - .004);
+    const yw = Math.max(c + .004, c + bk.hL - Math.max(0, bk.sp - 1 - k) * BK.step);
+    return chain(pivot(bk.a, ys0), local(BK.T - yw));
+  }
+  function drawSlab(model, top, bot, side, em = 0) {
+    gl.uniformMatrix4fv(U.u_model, false, model);
+    gl.uniform1f(U.u_emissive, em);
+    gl.bindTexture(gl.TEXTURE_2D, top); drawMesh(SL.top);
+    gl.bindTexture(gl.TEXTURE_2D, bot); drawMesh(SL.bot);
+    gl.bindTexture(gl.TEXTURE_2D, side); drawMesh(SL.side);
+  }
+  function drawBook() {
+    const P = bookParts(), pe = .34 + .3 * bk.p;   // 펼치면 종이가 조금 더 밝게 (글 읽기)
+    drawSlab(P.back, BT.leather, BT.leather, BT.leather, .08);
+    drawSlab(P.spine, BT.leather, BT.leather, BT.leather, .08);
+    drawSlab(P.right, BT.paper[0].t, BT.edge, BT.edge, pe);
+    drawSlab(P.left, BT.edge, BT.paper[1].t, BT.edge, pe);
+    drawSlab(P.front, BT.cover.t, BT.leather, BT.leather, .14);
+    for (const s of bk.sheets) {
+      const m = chain(pivot(s.th, (s.yR + s.yL) / 2), M.T(-.5, s.yR, BK.zc), M.S(1, .002, BK.D));
+      drawSlab(m, BT.paper[0].t, BT.paper[1].t, BT.edge, pe);
+    }
+    for (let i = 0; i < 3; i++) drawSlab(tabModel(i), BT.tabs[i][0].t, BT.tabs[i][1].t, BT.tabs[i][0].t, .42);
+  }
+
 
   /* ---------------- 카메라 ---------------- */
   const ROOM = { fov: 52, fog: [3.2, 6.5], amb: [.14, .105, .09], dirc: [0, 0, 0] };
@@ -7287,8 +7429,8 @@ void main() {
 
   let W = 0, H = 0;
   function resize() {
-    // 내부 해상도: 화면의 약 1/3 (도트가 크게 보이도록)
-    const w = Math.round(Math.max(240, Math.min(480, innerWidth / 3)));
+    // 내부 해상도: 화면의 약 1/3 (도트가 크게 보이도록). 첫 화면은 책 글자가 읽히게 조금 더 촘촘히
+    const w = Math.round(bk.on ? Math.max(300, Math.min(640, innerWidth / 2.6)) : Math.max(240, Math.min(480, innerWidth / 3)));
     const h = Math.max(160, Math.round(w * innerHeight / innerWidth));
     if (w === W && h === H) return;
     W = w; H = h;
@@ -7299,6 +7441,24 @@ void main() {
   resize();
 
   const lerp = (a, b, t) => a + (b - a) * t;
+  /** 세계 좌표 → 화면 CSS 좌표 */
+  function toScreen(vp, p) {
+    const x = vp[0] * p[0] + vp[4] * p[1] + vp[8] * p[2] + vp[12], y = vp[1] * p[0] + vp[5] * p[1] + vp[9] * p[2] + vp[13], w = vp[3] * p[0] + vp[7] * p[1] + vp[11] * p[2] + vp[15];
+    return [(x / w + 1) / 2 * innerWidth, (1 - y / w) / 2 * innerHeight];
+  }
+  /** 단위 판 윗면 네 귀를 화면에 비춘 둘레 상자 */
+  function screenRect(vp, model) {
+    const pts = [[0, 1, -.5], [1, 1, -.5], [1, 1, .5], [0, 1, .5]].map((q) => toScreen(vp, [0, 1, 2].map((r) => model[r] * q[0] + model[4 + r] * q[1] + model[8 + r] * q[2] + model[12 + r])));
+    const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
+    const x = Math.min(...xs), y = Math.min(...ys);
+    return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
+  }
+  // 방으로 들어갈 때 다가간 만큼 쪽이 커지는 배율 (DOM 쪽 내용을 같이 키움)
+  const bookZoom = (eye, tg) => {
+    if (!bk.zoom) return 1;
+    const yp = BK.c + BK.B - bk.hL, e0 = tg[1] + (eye[1] - tg[1]) / (1 - .32 * bk.zoom);
+    return (e0 - yp) / (eye[1] - yp);
+  };
 
   // 촛불 깜빡임: 일정하지 않은 간격으로 단계적으로 바뀜
   const flick = [1, .7];
@@ -7319,7 +7479,7 @@ void main() {
     if (!active || document.hidden) return;
     const still = idle;   // 테이블 화면: 가장자리만 보이므로 한 장 그리고 멈춤 (크기 바뀌면 다시 한 장)
     if (!still) scheduleFrame();
-    if (!still && now - last < 33) return;   // 표시 중 30fps, 숨긴 탭에서는 RAF 자체 중단
+    if (!still && now - last < (bk.on && bk.p === 1 && !anims.length ? 66 : 33)) return;   // 표시 중 30fps(펼친 책을 보고만 있을 땐 15fps), 숨긴 탭에서는 RAF 자체 중단
     last = now;
     const reduceMotion = motionPreference.matches;
     const t = now / 1000, dt = Math.min(.1, t - (lastT || t)); lastT = t;
@@ -7331,15 +7491,17 @@ void main() {
     const sway = reduceMotion ? 0 : 1;
     const f0 = flames[0], f1 = flames[1];
     const lightsRoom = { l0p: [f0.x, f0.y + .15, f0.z], l0c: [2.6, 1.55, .75], l1p: [f1.x, f1.y + .1, f1.z], l1c: [1.3, .75, .35], att: [.32, .45] };
-    const want = { eye: [Math.sin(t * .23) * .06 * sway, 2.45 + Math.sin(t * .41) * .025 * sway, 3.05], target: [0, -.15, -1.25], fov: ROOM.fov, fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom };
-    if (!cam || reduceMotion) cam = JSON.parse(JSON.stringify(want));
+    tickAnims(now);
+    const want = bk.on ? { ...homePose(bk.p, t, sway * (1 - bk.p)), fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom }
+      : { eye: [Math.sin(t * .23) * .06 * sway, 2.45 + Math.sin(t * .41) * .025 * sway, 3.05], target: [0, -.15, -1.25], up: [0, 1, 0], fov: ROOM.fov, fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom };
+    if (!cam || reduceMotion || bk.on) cam = JSON.parse(JSON.stringify(want));   // 첫 화면: 카메라는 책 움직임에 맞춰 바로 따라감
     else {
       const k = 1 - Math.exp(-dt * 4);
       for (const key of Object.keys(want)) cam[key] = Array.isArray(want[key]) ? cam[key].map((v, i) => lerp(v, want[key][i], k)) : lerp(cam[key], want[key], k);
     }
     const eye = cam.eye;
     const proj = M.persp(cam.fov * Math.PI / 180, W / H, .3, 30);   // 가까운 면을 멀리 → 깊이 정밀도 확보 (얇게 겹친 종이·글씨 깜빡임 방지)
-    const view = M.lookAt(eye, cam.target);
+    const view = M.lookAt(eye, cam.target, cam.up);
     gl.uniformMatrix4fv(U.u_proj, false, proj);
     gl.uniformMatrix4fv(U.u_view, false, view);
     gl.uniform2f(U.u_snap, W / cam.snap, H / cam.snap);
@@ -7363,6 +7525,14 @@ void main() {
       gl.uniformMatrix4fv(U.u_model, false, model);
       drawMesh(m);
     });
+    if (bk.on) {
+      gl.uniform1f(U.u_alphaTest, 0); gl.uniform1f(U.u_ghost, 0); gl.uniform3f(U.u_tint, 1, 1, 1);
+      drawBook();
+      if (bk.cb) {
+        const vp = M.mul(proj, view);
+        bk.cb({ tabs: [0, 1, 2].map((i) => screenRect(vp, tabModel(i))), zoom: bookZoom(eye, cam.target) });
+      }
+    }
 
     // 불꽃: 카메라를 향한 판, 깜빡임에 따라 높이가 달라짐
     gl.uniform1f(U.u_emissive, 1);
@@ -7409,6 +7579,40 @@ void main() {
     },
     /** 테이블 화면: 배경은 가장자리만 보이니 천천히 그림 */
     setIdle(on) { idle = !!on; scheduleFrame(); },
+    /** 첫 화면 책: 켜기(닫힌 책 또는 펼친 면 spread) */
+    book(on, spread = -1) { bookSet(on, spread); },
+    onBook(fn) { bk.cb = fn; },
+    bookHover(i) { bk.hover = i; },
+    /** 닫힌 책 → 카메라가 위로 다가옴 + 표지 + 여러 장 차라락 → spread 면 */
+    bookOpen(to) {
+      bk.sp = to; bk.cur = chOf(to);
+      const n = 2 + to * 2, per = (hLof(to) - bk.hL) / n, leafAt = new Map();
+      for (let k = 0; k < to; k++) leafAt.set(3 + k * 2, k);
+      return Promise.all([anim(640, 0, (e) => (bk.p = e)), anim(560, 280, (e) => (bk.a = e * Math.PI)),
+        ...Array.from({ length: n }, (_, j) => flySheet(1, 780 + j * 55, 380, leafAt.get(j) ?? -1, per))]);
+    },
+    /** 펼친 채로 다른 면: 넘길 장 수만큼 (앞으로 = 오른쪽 → 왼쪽) */
+    bookFlip(to) {
+      const from = bk.sp, dir = to > from ? 1 : -1, n = Math.abs(to - from), per = (hLof(to) - bk.hL) / n;
+      bk.sp = to; bk.cur = chOf(to);
+      return Promise.all(Array.from({ length: n }, (_, j) => flySheet(dir, j * 90, 600, dir > 0 ? from + j : from - 1 - j, per)));
+    },
+    /** 덮기: 표지(+ 왼쪽 묶음)가 덮인 뒤 카메라가 물러남 */
+    async bookClose() {
+      bk.cur = -1;
+      await Promise.all([anim(540, 0, (e) => (bk.a = (1 - e) * Math.PI)), anim(620, 320, (e) => (bk.p = 1 - e))]);
+      bookSet(true, -1);
+    },
+    /** 방으로 들어가기: 보던 쪽으로 다가감 */
+    bookLeave() { return anim(560, 0, (e) => (bk.zoom = e), (k) => k * k); },
+    /** 펼친 면(spread)의 왼쪽 · 오른쪽 쪽이 화면에 비치는 자리 (흔들림 없는 펼친 카메라 기준) */
+    bookRects(spread) {
+      const pose = homePose(1, 0, 0);
+      const vp = M.mul(M.persp(pose.fov * Math.PI / 180, innerWidth / innerHeight, .3, 30), M.lookAt(pose.eye, pose.target, pose.up));
+      const hL = hLof(spread), { c, B, D, zc } = BK;
+      const r = (x0, y) => { const a = toScreen(vp, [x0, y, zc - D / 2]), b = toScreen(vp, [x0 + 1, y, zc + D / 2]); return { x: a[0], y: a[1], w: b[0] - a[0], h: b[1] - a[1] }; };
+      return { L: r(-1.5, c + hL), R: r(-.5, c + B - hL), narrow: narrowNow() };
+    },
   });
   return API;
 }
@@ -7420,15 +7624,19 @@ const Scene3D = (() => {
   canvas.id = "bg3d";
   canvas.setAttribute("aria-hidden", "true");
   let current = null;
-  let idleOn = false;
+  let idleOn = false, bookOn = false, bookSp = -1, bookCb = null;
   function restore() {
     current?.dispose?.();
     current = null;
     current = createScene3D(canvas);
     if (current.ok) {
       current.setIdle?.(idleOn);
+      current.onBook(bookCb); current.book(bookOn, bookSp);
     } else document.documentElement.classList.remove("has-3d");
   }
+  const done = Promise.resolve();
+  // 책 움직임: 화면이 사라지면(컨텍스트 잃음) 바로 끝난 것으로
+  const call = (fn, ...a) => (current?.ok ? current[fn](...a) : done);
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();  // 복원이 허용되도록 브라우저 기본 동작 취소
     current?.dispose?.();
@@ -7450,6 +7658,14 @@ const Scene3D = (() => {
   return {
     get ok() { return !!current?.ok; },
     setIdle(on) { idleOn = on; current?.setIdle?.(on); },
+    book(on, spread = -1) { bookOn = on; bookSp = spread; current?.book(on, spread); },
+    onBook(fn) { bookCb = fn; current?.onBook(fn); },
+    bookHover(i) { current?.bookHover(i); },
+    bookOpen(to) { bookSp = to; return call("bookOpen", to); },
+    bookFlip(to) { bookSp = to; return call("bookFlip", to); },
+    bookClose() { bookSp = -1; return call("bookClose"); },
+    bookLeave() { return call("bookLeave"); },
+    bookRects(spread) { return current?.ok ? current.bookRects(spread) : null; },
   };
 })();
 
@@ -8240,7 +8456,8 @@ const BannerArt = (() => {
       skipTyping(); DiceFX.skip(); cancelReleases();  // 떠난 화면에서 연출/단서 효과음이 뒤늦게 재생되지 않도록
     }
     for (const s of ["home", "join", "message", "table"]) $(`#${s}`).hidden = s !== id;
-    Scene3D.setIdle(id === "table" || id === "home");   // 첫 화면도 배경은 멈춘 한 장 (책과 따로 흔들리지 않게 · 책 움직일 때 GPU 몫 줄임)
+    Scene3D.setIdle(id === "table");
+    if (id !== "home") Scene3D.book(false);
     if (id !== "table") Sfx.Bgm.set(null);   // 테이블을 나가면 배경음 끔
   }
   let toastTimer;
@@ -8369,127 +8586,111 @@ const BannerArt = (() => {
     const CH_START = [0, 2, 3];                      // 장 → 첫 면
     const chOf = (sp) => (sp >= 3 ? 2 : sp >= 2 ? 1 : 0);
     const N = 4;
-    const home = $("#home"), book = $("#bkBook"), tilt = $("#bkTilt"), stage = $("#bkStage"), pgL = $("#bkPgL"), pgR = $("#bkPgR"), cover = $("#bkCover");
+    const home = $("#home"), stage = $("#bkStage"), pages = $("#bkPages"), pgL = $("#bkPgL"), pgR = $("#bkPgR");
+    const tabEls = [...document.querySelectorAll("#bkTabs .bk-tab")];
     const pageOf = (sp, side) => $(`#bkStore .bk-page[data-spread="${sp}"][data-side="${side}"]`) ?? document.querySelector(`.bk-page[data-spread="${sp}"][data-side="${side}"]`);
     const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let spread = -1, busy = false, geo = null, onOpen = null;
+    let spread = -1, busy = false, onOpen = null, flat = false, narrow = false, rects = null;
     const wait = (ms) => new Promise((r) => setTimeout(r, reduce() ? 0 : ms));
-    // 색인 탭 종이 결: SVG 필터 대신 작은 캔버스에 한 번 그려 둔 그림 (움직일 때 다시 계산하지 않게)
-    {
-      const c = document.createElement("canvas"); c.width = 96; c.height = 48;
-      const g = c.getContext("2d"), img = g.createImageData(96, 48);
-      for (let i = 0; i < img.data.length; i += 4) {
-        const x = (i / 4) % 96, y = Math.floor(i / 4 / 96), v = Math.random() * .6 + Math.sin(x * .9 + Math.random()) * .15 + (y % 7 === 0 ? .1 : 0);
-        img.data[i] = 255; img.data[i + 1] = 242; img.data[i + 2] = 216; img.data[i + 3] = Math.max(0, Math.min(255, v * 70));
-      }
-      g.putImageData(img, 0, 0);
-      home.style.setProperty("--tab-tex", `url(${c.toDataURL()})`);
-    }
-    /** 화면 크기 → 쪽 크기 · 닫힌 책 배율 (펼친 상태가 배율 1 = 글자 선명) */
+    const safe = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(r, ms))]);   // 3D가 멈춰도(탭 숨김 · 컨텍스트 잃음) 막히지 않게
+    const setBusy = (on) => { busy = on; home.classList.toggle("busy", on); };
+    /** 쪽 자리 = 3D 책의 쪽이 화면에 비친 자리 (WebGL이 없으면 화면 가운데) */
     function measure() {
-      const narrow = innerWidth < 760;
-      const pw = Math.round(narrow ? Math.min(560, innerWidth - 84) : Math.min(680, (innerWidth - 300) / 2));
-      const ph = Math.round(Math.min(900, innerHeight - 56, pw * 1.6));   // 좁은 화면에서도 책 모양 유지
-      const sc = Math.min(1, (innerHeight * .64) / ph, (innerWidth * .62) / (pw + 200));
-      geo = { narrow, pw, ph, sc, thick: Math.round(pw * .09) };
-      const st = book.style;
-      st.setProperty("--pw", `${pw}px`); st.setProperty("--ph", `${ph}px`); st.setProperty("--thick", `${geo.thick}px`);
-      book.classList.toggle("narrow", narrow);
-      place();
+      narrow = innerWidth < 760; flat = !Scene3D.ok;
+      home.classList.toggle("narrow", narrow); home.classList.toggle("flat", flat);
+      if (spread < 0) return;
+      let r = Scene3D.bookRects(spread);
+      if (!r) {
+        const ph = Math.min(860, innerHeight * .8), pw = Math.min(narrow ? innerWidth - 40 : (innerWidth - 360) / 2, ph * .74), y = (innerHeight - ph) / 2, cx = innerWidth / 2;
+        r = { L: { x: cx - pw, y, w: pw, h: ph }, R: { x: narrow ? cx - pw / 2 : cx, y, w: pw, h: ph } };
+      }
+      rects = r;
+      const ins = 5;   // 3D 종이 가장자리(도트로 끊긴 선) 안쪽
+      const put = (node, q) => Object.assign(node.style, { left: `${q.x + ins}px`, top: `${q.y + ins}px`, width: `${q.w - ins * 2}px`, height: `${q.h - ins * 2}px` });
+      put(pgL, r.L); put(pgR, r.R); pgL.hidden = narrow;
+      home.style.setProperty("--ph", `${Math.round(r.R.h)}px`);
     }
-    /** 카메라(기울기 · 배율) + 책 위치 + 두께 */
-    function place() {
-      const open = spread >= 0, { pw, sc, thick, narrow } = geo;
-      tilt.style.transform = open ? "none" : `rotateX(26deg) scale(${sc.toFixed(3)})`;
-      book.style.transform = `translateX(${open && !narrow ? 0 : -pw / 2 - (open ? 0 : 70)}px)`;
-      const lt = open ? 0 : 0, rt = open ? 0 : thick;   // 펼치면 모두 바닥(z=0) = 배율 1
-      book.style.setProperty("--zl", `${lt}px`); book.style.setProperty("--zr", `${rt}px`);
-      book.classList.toggle("open", open);
-    }
-    /** 보이는 면 채우기. hold = 넘기는 동안 덮일 쪽은 옛 내용 유지 */
-    function fill(sp, hold = null) {
+    /** 보이는 면 채우기 */
+    function fill(sp) {
       const store = $("#bkStore");
       for (const pg of [...pgL.children, ...pgR.children]) store.append(pg);
       if (sp < 0) return;
-      const L = hold?.side === "L" ? hold.node : pageOf(sp, "L"), R = hold?.side === "R" ? hold.node : pageOf(sp, "R");
-      if (geo.narrow) { pgR.append(R); if (L.dataset.spread === R.dataset.spread) pgR.append(L); }
+      const L = pageOf(sp, "L"), R = pageOf(sp, "R");
+      if (narrow) { pgR.append(R); if (L.dataset.spread === R.dataset.spread) pgR.append(L); }
       else { pgL.append(L); pgR.append(R); }
       pgL.scrollTop = pgR.scrollTop = 0;
     }
-    /** 색인 탭: 지나온 장의 탭은 왼쪽 쪽 묶음 가장자리로 */
-    function tabs() {
-      for (const t of document.querySelectorAll("#bkTabs .bk-tab")) {
-        const c = +t.dataset.ch, left = spread >= 0 && !geo.narrow && CH_START[c] < spread;
-        t.classList.toggle("L", left); t.classList.toggle("cur", spread >= 0 && chOf(spread) === c);
-        t.setAttribute("aria-current", spread >= 0 && chOf(spread) === c ? "page" : "false");
-      }
+    const reveal = (on, which = [pgL, pgR]) => which.forEach((p) => p.classList.toggle("on", on));
+    function tabsState() {
+      home.classList.toggle("open", spread >= 0);
+      tabEls.forEach((t, c) => t.setAttribute("aria-current", spread >= 0 && chOf(spread) === c ? "page" : "false"));
     }
-    // 넘어가는 한 장: 앞 = 떠나는 쪽 모습, 뒤 = 새로 올 쪽 모습 (복사본, id 지움)
-    const ghost = (node) => { const c = node?.cloneNode(true) ?? el("div"); for (const n of [c, ...c.querySelectorAll("[id]")]) n.removeAttribute("id"); return c; };
-    function sheet(front, back, dir, dur, delay = 0) {
-      const s = el("div", { class: "bk-sheet" }, el("div", { class: "bk-face bk-sf" }, front), el("div", { class: "bk-face bk-sb" }, back));
-      book.append(s);
-      const from = dir > 0 ? 0 : -180, to = dir > 0 ? -180 : 0;
-      const a = s.animate([{ transform: `translateZ(1px) rotateY(${from}deg)` }, { transform: "translateZ(18px) rotateY(-90deg)", offset: .5 }, { transform: `translateZ(1px) rotateY(${to}deg)` }],
-        { duration: reduce() ? 0 : dur, delay: reduce() ? 0 : delay, easing: "cubic-bezier(.45,0,.55,1)", fill: "both" });
-      a.finished.then(() => s.remove(), () => s.remove());
-      return a;
-    }
+    // 3D 탭이 화면에 비친 자리에 투명 단추를 맞춤 (매 프레임, 바뀐 것만) + 방으로 들어갈 때 쪽 내용도 같이 커짐
+    Scene3D.onBook(({ tabs, zoom }) => {
+      tabs.forEach((r, i) => {
+        const t = tabEls[i], k = `${r.x | 0},${r.y | 0},${r.w | 0},${r.h | 0}`;
+        if (t._k === k) return;
+        t._k = k;
+        Object.assign(t.style, { transform: `translate(${r.x | 0}px, ${r.y | 0}px)`, width: `${r.w | 0}px`, height: `${r.h | 0}px` });
+      });
+      if (pages._z !== zoom) { pages._z = zoom; pages.style.transform = zoom === 1 ? "" : `scale(${zoom.toFixed(4)})`; }
+    });
     async function go(to) {
       if (busy || to === spread || to < 0 || to >= N) return;
-      busy = true; $("#homeError").textContent = "";
+      setBusy(true); $("#homeError").textContent = "";
       onOpen?.(to);
       const from = spread;
+      spread = to; tabsState();
       try {
-        if (from < 0) {
-          // 닫힌 책 → ① 카메라가 다가오며 평평해짐(0.5초) → ② 표지 + 여러 장이 차라락(0.5초). 움직이는 동안 쪽 내용은 숨김(다시 그리기 줄임)
-          home.classList.add("moving", "opening");
-          spread = to; fill(to); place();
-          setTimeout(tabs, reduce() ? 0 : 460);   // 탭은 표지가 넘어갈 때 제자리로 (카메라가 다가오는 동안엔 닫힌 책 그대로)
-          const n = 3 + to * 2, waits = [wait(980)];
-          setTimeout(() => Sfx.play("page"), reduce() ? 0 : 460);
-          for (let k = 0; k < n; k++) waits.push(sheet(el("div", { class: "bk-blank" }), el("div", { class: "bk-blank" }), 1, 360, 520 + k * 45).finished);
-          await Promise.all(waits).catch(() => {});
-          home.classList.remove("moving", "opening");
-        } else if (geo.narrow) {
-          spread = to; fill(to); tabs(); Sfx.play("page");
-          await sheet(ghost(pgR.firstElementChild), el("div", { class: "bk-blank" }), to > from ? 1 : -1, 500).finished.catch(() => {});
+        if (flat) { measure(); fill(to); reveal(true); Sfx.play("page"); }
+        else if (from < 0) {
+          // 닫힌 책 → 카메라가 위로 다가오며 표지가 넘어가고 여러 장이 차라락. 쪽 내용은 다 펼친 뒤 한 번에 (움직이는 동안 DOM 다시 그리기 없음)
+          reveal(false);
+          setTimeout(() => Sfx.play("page"), reduce() ? 0 : 320);
+          await safe(Scene3D.bookOpen(to), 4000);
+          measure(); fill(to); reveal(true);
         } else {
-          const dir = to > from ? 1 : -1, oldL = pgL.firstElementChild, oldR = pgR.firstElementChild;
-          const newL = pageOf(to, "L"), newR = pageOf(to, "R");
-          const a = dir > 0 ? sheet(ghost(oldR), ghost(newL), 1, 620) : sheet(ghost(newR), ghost(oldL), -1, 620);
-          spread = to; fill(to, dir > 0 ? { side: "L", node: oldL } : { side: "R", node: oldR }); tabs(); Sfx.play("page");
-          await a.finished.catch(() => {});
-          fill(to);
+          // 넘어가는 장이 먼저 덮는 쪽부터 숨김 (앞으로 = 오른쪽, 뒤로 = 왼쪽), 반쯤 넘어가면 나머지
+          reveal(false, narrow ? [pgR] : [to > from ? pgR : pgL]);
+          setTimeout(() => reveal(false), reduce() ? 0 : 280);
+          Sfx.play("page");
+          await safe(Scene3D.bookFlip(to), 4000);
+          measure(); fill(to); reveal(true);
         }
-      } finally { busy = false; }
+      } finally { setBusy(false); }
       (pgR.querySelector("input:not([type=file]), textarea, button") ?? pgR).focus?.({ preventScroll: true });
     }
-    // 덮기: ① 표지가 덮임 → ② 카메라가 물러남 (여는 순서의 반대)
+    // 덮기: 쪽 내용 숨김 → 표지가 덮이고 카메라가 물러남
     async function close() {
       if (busy || spread < 0) return;
-      busy = true;
-      home.classList.add("moving", "closing");
-      spread = -1; place(); tabs();
-      await wait(1000);
-      home.classList.remove("moving", "closing");
-      fill(-1); busy = false;
+      setBusy(true);
+      reveal(false); spread = -1; tabsState();
+      if (!flat) await safe(Scene3D.bookClose(), 3000);
+      fill(-1); setBusy(false);
     }
-    for (const t of document.querySelectorAll("#bkTabs .bk-tab")) t.addEventListener("click", (e) => { e.stopPropagation(); go(CH_START[+t.dataset.ch]); });
+    tabEls.forEach((t, i) => {
+      t.addEventListener("click", (e) => { e.stopPropagation(); go(CH_START[i]); });
+      for (const [ev, v] of [["pointerenter", i], ["pointerleave", -1], ["focus", i], ["blur", -1]]) t.addEventListener(ev, () => Scene3D.bookHover(v));
+    });
     for (const b of document.querySelectorAll("#bkStore .bk-turn")) b.addEventListener("click", () => go(+b.dataset.to));
-    // 3D로 기울인 탭은 브라우저에 따라 눌림 판정이 빠지기도 함 → 화면 좌표로 한 번 더 찾음
-    const tabAt = (e) => [...document.querySelectorAll("#bkTabs .bk-tab")].find((t) => { const r = t.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; });
-    stage.addEventListener("pointermove", (e) => { const t = e.target === stage ? tabAt(e) : null; for (const x of document.querySelectorAll("#bkTabs .bk-tab")) x.classList.toggle("peek", x === t); stage.style.cursor = t ? "pointer" : ""; });
-    stage.addEventListener("click", (e) => { if (e.target !== stage) return; const t = tabAt(e); if (t) go(CH_START[+t.dataset.ch]); else close(); });
-    document.addEventListener("keydown", (e) => { if (!$("#home").hidden && e.key === "Escape") close(); });
-    addEventListener("resize", () => { if (!$("#home").hidden) { measure(); fill(spread); tabs(); } });
-    /** 방으로 들어가기: 보던 쪽으로 화면이 빨려 들어가며 어두워진 뒤 이동 (다음 화면은 어둠에서 밝아짐) */
+    // 책 밖 누르기 = 덮기 (펼친 쪽 둘레 여백은 빼고)
+    const onPage = (e) => rects && [rects.L, rects.R].some((q) => e.clientX >= q.x - 16 && e.clientX <= q.x + q.w + 16 && e.clientY >= q.y - 16 && e.clientY <= q.y + q.h + 16);
+    stage.addEventListener("click", (e) => { if (!onPage(e)) close(); });
+    document.addEventListener("keydown", (e) => { if (!home.hidden && e.key === "Escape") close(); });
+    addEventListener("resize", () => { if (!home.hidden) { const sp = spread; measure(); if (sp >= 0 && !busy) fill(sp); } });
+    /** 방으로 들어가기: 보던 쪽으로 카메라가 다가가며 어두워진 뒤 이동 (다음 화면은 어둠에서 밝아짐) */
     function leave(hash) {
-      if ($("#home").classList.contains("leaving")) return;
-      Scene.fadeOutThen(() => (location.hash = hash), () => $("#home").classList.add("leaving"));
+      if (home.classList.contains("leaving")) return;
+      home.classList.add("leaving");
+      Scene3D.bookLeave();
+      Scene.fadeOutThen(() => (location.hash = hash));
     }
     return {
-      show() { spread = -1; busy = false; $("#home").classList.remove("leaving"); fill(-1); measure(); tabs(); },
+      show() {
+        spread = -1; setBusy(false); rects = null;
+        home.classList.remove("leaving"); pages.style.transform = ""; pages._z = 1;
+        reveal(false); fill(-1); Scene3D.book(true); measure(); tabsState();
+      },
       go, close, leave, onOpen(fn) { onOpen = fn; },
     };
   })();
