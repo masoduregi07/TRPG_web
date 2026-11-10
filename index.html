@@ -1968,6 +1968,34 @@ html.has-3d .topbar { box-shadow: none; }
 .ec-key li { display: grid; grid-template-columns: auto 1fr; gap: 6px; }
 .ec-key li small { color: #9a8a70; font-size: 10px; white-space: nowrap; }
 .ec-key li.mad { color: #5a2a6e; }
+/* 결과 화면(V2): 결말 인용문 · 서류철 카드(색 탭) · 사건 4개까지 + 호버 [자세히 보기] → 크게 보기 · 버튼 위계 */
+.end-head { margin-bottom: 2px; }
+.end-summary { justify-items: center; gap: 6px; margin-top: -4px; padding: 0 40px; text-align: center; }
+.end-summary .es-k { font-size: 11px; letter-spacing: 3px; color: var(--blood); }
+.end-summary .es-t { max-width: 660px; padding: 10px 18px; font: 17px/1.65 var(--font-body, var(--font)); color: #3a2a1a; border-block: 1px solid rgba(43, 36, 32, .35); }
+.end-summary .es-t::before { content: "“"; margin-right: 2px; color: var(--blood); }
+.end-summary .es-t::after { content: "”"; margin-left: 2px; color: var(--blood); }
+.end-summary .es-s { max-width: 660px; font-size: 12px; color: #2a3550; }
+.end-chars { grid-template-columns: repeat(auto-fit, minmax(300px, 420px)); justify-content: center; align-items: start; gap: 28px 18px; padding-top: 20px; }
+.end-card { position: relative; background: #e6d3a3; border-radius: 0 4px 4px 4px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); cursor: pointer; transition: translate .18s ease, box-shadow .18s ease; }
+.end-card::before { content: ""; position: absolute; left: 0; top: -14px; width: 120px; height: 14px; background: #e6d3a3; border-radius: 4px 4px 0 0; box-shadow: inset 0 3px 0 var(--spine); }
+.end-card .ec-name b { color: var(--spine); }
+.end-card .ec-pic .polaroid { width: 84px; height: 106px; transform: none; rotate: none; }
+.end-card .ec-pic .polaroid img, .end-card .ec-pic .polaroid-empty { width: 76px; height: 86px; }
+.end-card .ec-key li:nth-child(n+5):not(.ec-more) { display: none; }
+.end-card .ec-key li.ec-more { display: block; color: #7a6548; }
+.end-card .ec-open { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: #6f5230; opacity: 0; transition: opacity .18s ease; }
+.end-card:hover, .end-card:focus-visible { translate: 0 -3px; box-shadow: 3px 6px 0 rgba(60, 40, 20, .3); outline: 0; }
+.end-card:hover .ec-open, .end-card:focus-visible .ec-open { opacity: 1; }
+.end-card.full { cursor: default; translate: none; }
+.end-card.full .ec-key li { display: grid !important; }
+.end-card.full .ec-key li.ec-more, .end-card.full .ec-open { display: none !important; }
+.end-detail { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 30px; background: rgba(12, 8, 5, .55); }
+.end-detail-in { position: relative; width: min(560px, 92vw); max-height: calc(100vh - 80px); overflow-y: auto; padding-top: 14px; }
+.end-detail .ed-x { position: absolute; right: 6px; top: 20px; z-index: 1; padding: 0 6px; font: 20px/1 var(--font); color: var(--ink); background: none; border: 0; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .end-card { transition: none; } .end-card:hover { translate: none; } }
+#endSave { order: 9; }
+#endQuit { background: none; box-shadow: none; border: 0; padding: 4px 2px; font-size: 12px; color: #5a4128; text-decoration: underline; text-underline-offset: 3px; }
 .end-act { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 9px; padding-top: 12px; border-top: 1px solid rgba(43, 26, 12, .45); }
 .end-act .end-q { margin-right: auto; font-size: 12px; color: #5a4128; }
 
@@ -5634,6 +5662,7 @@ class HostGame {
       at: Date.now(), title: this.sc.title, ending: sceneTitle(g.currentScene), endingReached: !!this.sc.scenes[g.currentScene]?.ending,
       startedAt: g.startedAt ?? null, scenes: (g.visited ?? []).map(sceneTitle), clues: g.revealedClues.length,
       summary: (g.summaries ?? []).map((x) => x.text).slice(-3),
+      endingText: String(this.sc.scenes[g.currentScene]?.description ?? "").trim().slice(0, 600),
       chars,
     };
   }
@@ -11579,10 +11608,13 @@ const BannerArt = (() => {
     if (!r || app.endHidden === r.at) { box.hidden = true; return; }
     $("#endResume").hidden = !s.isHost;
     if (box.dataset.at === String(r.at) && !box.hidden) return;
-    box.dataset.at = String(r.at);
+    box.dataset.at = String(r.at); closeEndCard();
     $("#endSub").textContent = `${r.title} · 결말: ${r.ending}${r.endingReached ? "" : " (결말 전 마무리)"}`;
     $("#endMeta").replaceChildren(el("span", {}, "진행 ", el("b", {}, dur(r.startedAt, r.at) || "—")), el("span", {}, "사건 ", el("b", {}, String(r.scenes.length))), el("span", {}, "단서 ", el("b", {}, String(r.clues))));
-    $("#endSummary").replaceChildren(...(r.summary.length ? r.summary.map((t) => el("p", {}, t)) : [el("p", { class: "muted" }, r.scenes.join(" → "))]));
+    // 결말: 결말 장면 묘사를 인용문으로, 그 아래 요약(있으면) — 둘 다 없으면 지나온 사건 순서
+    $("#endSummary").replaceChildren(el("div", { class: "es-k" }, "결말"),
+      r.endingText ? el("p", { class: "es-t" }, r.endingText) : null,
+      ...(r.summary.length ? r.summary.map((t) => el("p", { class: "es-s" }, t)) : r.endingText ? [] : [el("p", { class: "es-s muted" }, r.scenes.join(" → "))]));
     $("#endChars").replaceChildren(...r.chars.map((c) => {
       const lost = c.sanStart != null ? c.sanStart - c.san : 0;
       return el("article", { class: `end-card${c.alive ? "" : " dead"}`, "data-pid": c.pid, style: `--spine:${spineOf(c.pid)}` },
@@ -11598,12 +11630,25 @@ const BannerArt = (() => {
             el("dt", {}, "행운"), el("dd", {}, String(c.luck), c.luckStart != null && c.luckStart !== c.luck ? el("small", {}, ` (처음 ${c.luckStart})`) : "")),
           c.madHistory.length ? el("div", { class: "ec-mad" }, el("b", {}, "광기 이력 "), c.madHistory.map((m) => `${m.type} · ${m.scene}`).join(" → ")) : null,
           el("div", { class: "ec-items" }, el("b", {}, "소지품 "), c.items.join(" · ") || "—"),
-          el("ul", { class: "ec-key" }, ...(c.key.length ? c.key.map((k) => el("li", { class: k.mad ? "mad" : k.hurt ? "hurt" : "" }, el("small", {}, k.scene), k.text)) : [el("li", { class: "muted" }, "기록된 큰 사건 없음")]))));
+          el("ul", { class: "ec-key" }, ...(c.key.length ? c.key.map((k) => el("li", { class: k.mad ? "mad" : k.hurt ? "hurt" : "" }, el("small", {}, k.scene), k.text)) : [el("li", { class: "muted" }, "기록된 큰 사건 없음")]),
+            c.key.length > 4 ? el("li", { class: "ec-more" }, `＋${c.key.length - 4}건 더`) : null)),
+        el("span", { class: "ec-open", "aria-hidden": "true" }, "[자세히 보기]"));
     }));
+    for (const card of $("#endChars").children) { card.tabIndex = 0; card.setAttribute("role", "button"); card.addEventListener("click", () => openEndCard(card)); card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEndCard(card); } }); }
     box.hidden = false;
     Sfx.play("page");
     $("#endSave").focus();
   }
+  // 결과 카드 크게 보기: 같은 카드를 화면 가운데에 전부 펼쳐 띄움(길면 안에서 스크롤). 바깥 · Esc · ×로 닫음
+  function openEndCard(card) {
+    closeEndCard();
+    const big = card.cloneNode(true); big.classList.add("full"); big.removeAttribute("role"); big.removeAttribute("tabindex");
+    const x = el("button", { class: "ed-x", type: "button", "aria-label": "닫기", on: { click: closeEndCard } }, "×");
+    const ov = el("div", { class: "end-detail", on: { click: (e) => { if (e.target === ov) closeEndCard(); } } }, el("div", { class: "end-detail-in" }, big, x));
+    $("#endBox").append(ov); x.focus();
+  }
+  function closeEndCard() { $("#endBox .end-detail")?.remove(); }
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#endBox .end-detail")) { e.stopPropagation(); closeEndCard(); } }, true);
   $("#endSave").addEventListener("click", () => {
     const s = app.snap, r = s?.result;
     if (!r) return;
