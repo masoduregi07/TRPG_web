@@ -618,7 +618,6 @@ body.memo-dragging { cursor: grabbing; }
   content: ""; position: absolute; left: 22px; top: -14px; width: 12px; height: 30px; opacity: .55;
   background: var(--px-clip) 0 0 / 12px 30px no-repeat;
 }
-.side.drop-here { outline-color: rgba(240, 164, 60, .8); }
 /* 떼어 둔 메모 */
 .float-layer.off { display: none; }
 .float-layer .block { position: fixed; z-index: 30; width: 352px; overflow-y: auto; margin: 0; }
@@ -12100,7 +12099,7 @@ const BannerArt = (() => {
         const y = prev === gap ? gap.offsetTop + gap.offsetHeight / 2 : sib.offsetTop - half;
         return { sib, mid: b.top + b.height / 2 + top, y };
       });
-      const last = mids.at(-1)?.sib, tail = st.lastElementChild === mark ? mark.previousElementSibling : st.lastElementChild;
+      const last = mids.at(-1)?.sib, tail = [...st.children].reverse().find((c) => c !== mark && !c.classList.contains("dragging"));
       mids.endY = tail === gap ? gap.offsetTop + gap.offsetHeight / 2 : last ? last.offsetTop + last.offsetHeight + half : 0;
     };
     // 놓일 자리: 바뀔 때만 표시를 옮김 (transform만 → 공책은 다시 배치하지 않음)
@@ -12108,7 +12107,7 @@ const BannerArt = (() => {
       const at = y + side.scrollTop, m = mids.find((m) => at < m.mid), my = m ? m.y : mids.endY;
       target = m?.sib ?? null;
       if (my === markY) return;
-      markY = my; mark.style.transform = `translateY(${Math.round(my - 9)}px)`;
+      markY = my; mark.style.transform = `translateY(${Math.round(my - 14)}px)`;   // 틈 가운데보다 5px 위 (아래 메모 클립과 안 겹치게)
     };
     // 가장자리 자동 스크롤: 마우스가 멈춰 있어도 프레임마다 일정하게 (가장자리에 가까울수록 빠르게)
     const autoScroll = () => {
@@ -12123,7 +12122,7 @@ const BannerArt = (() => {
         card.style.transform = `translate(${x - r.left}px, ${y - r.top}px) rotate(1.5deg)`;   // 합성만 (다시 칠하지 않음)
         const now = inSide(ev);
         if (now !== over) {
-          over = now; side.classList.toggle("drop-here", now);
+          over = now;
           mark.hidden = !now; markY = null;
           if (now) measure();
         }
@@ -12138,7 +12137,6 @@ const BannerArt = (() => {
         cancelAnimationFrame(scrollRaf); vel = 0;
         document.body.classList.remove("memo-dragging");
         const inside = inSide(ev);   // 위치 읽기는 DOM을 바꾸기 전에 (강제 레이아웃 방지)
-        side.classList.remove("drop-here");
         card.classList.remove("dragging");
         card.removeAttribute("style");
         settle(card);
