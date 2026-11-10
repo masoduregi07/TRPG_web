@@ -12094,7 +12094,8 @@ const BannerArt = (() => {
     const measure = () => {
       const top = side.scrollTop, half = parseFloat(getComputedStyle(st).rowGap) / 2 || 15;
       mids = sibs().map((sib) => {
-        const b = sib.getBoundingClientRect(), prev = sib.previousElementSibling;
+        let prev = sib.previousElementSibling; if (prev?.classList.contains("dragging")) prev = prev.previousElementSibling;   // 끄는 메모는 빈 칸 바로 뒤에 그대로 있음
+        const b = sib.getBoundingClientRect();
         // 표시 = 놓으면 메모 윗변이 올 자리 위 틈. 바로 위가 원래 자리(빈 칸)면 빈 칸 위 틈
         const y = (prev === gap ? gap.offsetTop : sib.offsetTop) - half;
         return { sib, mid: b.top + b.height / 2 + top, y };
