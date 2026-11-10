@@ -824,6 +824,7 @@ html.calm-item .dos-items .item.lost { display: none; }
 .char-col .dossier { padding: 12px 15px 12px; }
 #myCard .dossier { padding-top: 27px; }   /* 집게가 문 자리만큼 */
 #myCardBox h4 { display: none; }
+#myCardBox[hidden] + #mateBox { padding-top: 27px; }   /* 내 기록이 없으면 일행 목록이 집게에 안 가리게 */
 /* 일행: 기본은 접힌 한 줄, 누르면 인물 기록이 펼쳐짐 */
 .mate-list .mate { grid-template-columns: 40px 1fr auto 12px; }
 .mate::after { content: ""; width: 0; height: 0; border-left: 5px solid #7a6548; border-top: 4px solid transparent; border-bottom: 4px solid transparent; justify-self: end; }
@@ -1118,6 +1119,9 @@ textarea { resize: vertical; margin-top: 8px; }
 .gather.flip .hg { rotate: 180deg; }
 .stale-bar { margin: 6px var(--cover) 4px; padding: 6px 10px; background: #2a2118; color: var(--amber); border: 1px solid #4a3a28; font-family: var(--font); font-size: 12px; }
 .stale-bar[hidden] { display: none; }
+/* 진행 중 합류 기록지: 화면 정중앙, 넘치면 기록지 안에서 스크롤 */
+.my-sheet.mid-sheet { position: fixed; left: 50%; top: 50%; z-index: 60; width: auto; max-width: calc(100vw - 32px); max-height: calc(100vh - 48px); box-sizing: border-box; overflow: auto; translate: -50% -50%; rotate: 0deg;
+  box-shadow: 0 0 0 2px #2b1a0c, 6px 8px 0 3px rgba(0, 0, 0, .45), 0 0 0 100vmax rgba(10, 6, 3, .45); }
 /* 호스트 대기 쪽지: 테이블 화면을 걷어 내고 3D 테이블 위에 테이프로 붙인 쪽지만 */
 .game.waiting > :not(.host-wait) { display: none !important; }
 .host-wait { position: absolute; left: 50%; top: 52%; width: 360px; max-width: calc(100vw - 32px); box-sizing: border-box; padding: 22px 24px 18px; transform: translate(-50%, -50%) rotate(-1.2deg);
@@ -6000,6 +6004,8 @@ class HostGame {
 
   chat(pid, text, host, msg = {}) {
     if (!text) return;
+    // 진행 중 합류해 기록지를 쓰는 중이면 (캐릭터 준비 전) 입력 무시
+    if (this.data.phase === "play" && !host && !this.data.players[pid]?.ready) return this.notice(pid, "캐릭터 준비 완료 후 입력 가능.");
     const by = this.speaker(pid);
     const m = /^\/(\w+)\s*([\s\S]*)$/.exec(text);
     if (m) {
@@ -9194,8 +9200,13 @@ const BannerArt = (() => {
   function setStale(on) {
     app.stale = !!on;
     $("#staleBar").hidden = !on;
-    $("#chatForm").classList.toggle("stale", !!on);
-    for (const n of $("#chatForm").querySelectorAll("input, button, textarea")) n.disabled = !!on;
+    syncChatLock();
+  }
+  // 입력 잠금: 저장본 화면이거나 진행 중 합류해 기록지를 쓰는 중
+  function syncChatLock() {
+    const lock = !!(app.stale || app.building);
+    $("#chatForm").classList.toggle("stale", lock);
+    for (const n of $("#chatForm").querySelectorAll("input, button, textarea")) n.disabled = lock;
   }
   function handleMsg(msg) {
     switch (msg?.t) {
@@ -10307,8 +10318,8 @@ const BannerArt = (() => {
 
     // 캐릭터 만들기: 시작 전엔 준비실 '캐릭터 생성' 칸 안에, 진행 중(늦게 합류)엔 오른쪽에
     const showBuilder = lobby ? !!charHome && needBuilder : needBuilder;
-    const bb = $("#builderBox"), home = lobby ? charHome : document.querySelector(".side");
-    if (showBuilder && home && bb.parentNode !== home) { if (lobby) home.append(bb); else $("#sideTabs").after(bb); }
+    const bb = $("#builderBox"), home = lobby ? charHome : midSheet(s, me, showBuilder, bb);
+    if (showBuilder && home && bb.parentNode !== home) home.append(bb);
     bb.hidden = !showBuilder;
     if (needBuilder) ensureBuilder(s, me);
     if (app.builderEls?.readyBtn) app.builderEls.readyBtn.textContent = lobby ? "작성 완료" : "준비 완료";
@@ -10320,6 +10331,8 @@ const BannerArt = (() => {
     Sfx.Bgm.set(s.phase === "play" ? s.view?.scene?.bgm ?? null : null);
     if (s.phase === "play") drawBanner(s);
     $("#charCol").hidden = s.phase !== "play";
+    if (s.phase === "play" && needBuilder) renderCharCol(s);   // 기록지 쓰는 중에도 일행 목록
+    app.building = s.phase === "play" && needBuilder; syncChatLock();
     $(".layout").classList.toggle("has-col", s.phase === "play");
     if (s.phase === "play" && !needBuilder) renderPlay(s);
     renderEnd(s);
@@ -10629,6 +10642,14 @@ const BannerArt = (() => {
     big.querySelector(".fh-n").textContent = `No.${String(no).padStart(2, "0")}`;
     big.querySelector(".fh-gm").textContent = s.mode === "ai" ? "AI GM" : host?.name ?? "—";
     big.querySelector(".fh-sub").textContent = `INVESTIGATOR RECORD · ${s.scenario.title}`;
+  }
+  /* 진행 중 합류: 탐사자 기록지를 화면 정중앙에 (로비 기록지와 같은 서식) */
+  function midSheet(s, me, on, bb) {
+    let w = $("#midSheet");
+    if (!on) { if (w) { if (bb.parentNode === w) document.querySelector(".side").append(bb); w.remove(); } return null; }
+    if (!w) { w = el("div", { id: "midSheet", class: "my-sheet mid-sheet", role: "dialog", "aria-label": "탐사자 기록지" }, sheetHead()); $("#table").append(w); }
+    fillSheetHead(w, s, me, s.players.find((p) => p.isHost));
+    return w;
   }
   /* 작성 완료: 시트에 "작성 완료" 도장을 쾅 찍은 뒤 보냄 (시트가 없으면 바로) */
   // 작성 완료가 거부되면 (호스트 notice) 도장을 떼고 기록지를 다시 펼침 + 이유 표시

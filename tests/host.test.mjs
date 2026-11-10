@@ -120,3 +120,20 @@ test("turnContext: 판정 공개 단서 · 문체 · 판정만 차례 정보", (
   assert.equal(info.rollOnly, false);
   assert.ok(ctx.가능한판정.some((c) => c.id === "persuade_fisherman" && c.성공시공개단서 === "daughter"));
 });
+
+test("진행 중 합류해 기록지를 쓰는 중이면 채팅 무시", () => {
+  const { m, g, data, sent } = table();
+  const a = g.onConnect("c1", { key: KEY, name: "가", build: m.APP_BUILD });
+  g.onMessage("c1", { t: "rollChars" });
+  const bg = m.Engine.charRules(data.scenario).backgrounds[0]?.name ?? "";
+  g.onMessage("c1", { t: "char", character: { name: "한서", background: bg, alloc: {} }, ready: true });
+  g.handle(data.hostPid, { t: "start" }, true);
+  assert.equal(data.phase, "play");
+  const b = g.onConnect("c2", { key: KEY2, name: "나", build: m.APP_BUILD });
+  const n = data.log.length;
+  g.onMessage("c2", { t: "chat", text: "*문을 연다" });
+  g.onMessage("c2", { t: "chat", text: "/r d100" });
+  assert.equal(data.log.length, n, "준비 전 입력은 기록에 안 남음");
+  g.onMessage("c1", { t: "chat", text: "*문을 연다" });
+  assert.ok(data.log.length > n, "준비된 플레이어는 그대로");
+});
