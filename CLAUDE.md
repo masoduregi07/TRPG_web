@@ -26,6 +26,7 @@
 - 모듈: `Rules`(CoC 7e) · `Engine`(시나리오 검증/상태/뷰) · `AI`(호출·프롬프트·parseGM) · `Turn`(AI 응답 검증) · `WebFeatures`(단서 표시 등)
 - AI 흐름: `queueAI`(8초 모음, 입력마다 +5초 연장, 최대 20초) → `runAI` → `turnContext` → `askGM` → `Turn.validate` → `applyPlan`
 - 접속: 플레이어가 연결되면 `join`(키 · 닉네임 · APP_BUILD) → 호스트 `hello`. APP_BUILD 9 (8은 잠깐 쓴 서명 방식, 섞이면 버전 다름 안내)
+- 전송: 플레이어가 `serialization: "binary"`로 접속(호스트는 따라감) → 16KB 넘는 메시지(최근 기록 300개 · 보관함 쪽 · 그림)를 PeerJS가 조각으로 나눠 보냄. json은 16,300바이트 넘으면 못 보내고 error → 예전엔 호스트가 그 플레이어를 끊음. 보낼 때 `wire()`(JSON 왕복)로 undefined 칸 제거·Infinity→null. `message-too-big`·`not-open-yet` 오류는 끊김으로 안 봄. 보관함 요청(`history`)은 입력 횟수 제한과 따로 셈(5초 30회)
 - 재연결: 중개 서버만 끊기면 peer 유지 + `reconnect()` 백오프(2→30초), 플레이어 peer는 `once("open")`, P2P 살아 있으면 peer 오류 무시. ICE = 설정의 내 TURN(`trpg:ice`) + PeerJS 기본(공용 STUN·TURN)
 - 추방: 키 기억, 초상·지도 말·위치·대기 판정·재굴림 정리
 - 자동 저장 0.4초 묶음(창 닫기·탭 숨김은 즉시). 호스트 탭 잠금 = Web Locks(없으면 localStorage 심장박동). 보관함 병합 결과는 `logSeq`가 같으면 재사용
