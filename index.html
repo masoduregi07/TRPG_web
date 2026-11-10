@@ -1170,7 +1170,8 @@ textarea { resize: vertical; margin-top: 8px; }
 .tr-tag { --k: #6f5230; display: inline-flex; align-items: center; padding: 0 6px; font: 11px/1.7 var(--font); color: var(--k); border: 1px solid var(--k); background: rgba(255, 250, 235, .6); white-space: nowrap; cursor: pointer; }
 .tr-tag.t-it { --k: #3c5a2a; } .tr-tag.t-hp { --k: #8a1c14; } .tr-tag.t-ck { --k: #2a3550; }
 .tr-tag:hover, .tr-tag:focus-visible { background: rgba(255, 250, 235, .95); outline: none; box-shadow: 0 0 0 1px var(--k); }
-.entry.flash { animation: entry-flash 1.2s ease-out; }
+.entry.flash, .block[data-memo].flash { animation: entry-flash 1.2s ease-out; }
+.entry[hidden] { display: none; }
 @keyframes entry-flash { 0%, 30% { background-color: rgba(201, 160, 64, .35); } 100% { background-color: transparent; } }
 .turn-board { margin: 6px calc(var(--cover) + 44px) 4px calc(var(--cover) + 48px); padding: 7px 10px; background: var(--paper-hi); border: 2px solid var(--paper-lo); color: var(--ink); font-family: var(--font); font-size: 12px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); }
 .turn-board[hidden] { display: none; }
@@ -10052,7 +10053,8 @@ const BannerArt = (() => {
       for (let n = logBox.lastElementChild; n && inputs.length < 24; n = n.previousElementSibling) {
         if (n.classList.contains("turn-res") || n.classList.contains("scene-entry") || n.classList.contains("focus")) break;
         if (n.classList.contains("ai") && ++ai > 1) break;
-        if (n.classList.contains("say") && n.dataset.by) inputs.push(n);
+        // 행동 · 질문 · @NPC 대사만 (일행끼리 나눈 대사는 기록에 그대로 둠)
+        if (n.classList.contains("say") && n.dataset.by && (n.classList.contains("s-act") || n.classList.contains("s-ask") || n.querySelector(".to-tag[data-npc]"))) inputs.push(n);
       }
       table.inputs = inputs.reverse();
       logBox.append(table);
@@ -10097,8 +10099,11 @@ const BannerArt = (() => {
     for (const [pid, cls, text] of tagOf(e)) {
       const box = lastRes.querySelector(`.tr-row[data-pid="${CSS.escape(pid)}"] .tr-tags`);
       if (!box) continue;
-      box.append(el("span", { class: `tr-tag t-${cls}`, role: "button", tabindex: "0", title: "그 기록으로",
-        on: { click: (ev) => { ev.stopPropagation(); if (!node.isConnected) return; node.scrollIntoView({ block: "center", behavior: reduceMotionUI() ? "auto" : "smooth" }); node.classList.remove("flash"); void node.offsetWidth; node.classList.add("flash"); },
+      // 판정 요청은 꼬리표로 붙으면 SYSTEM 줄을 숨기고, 꼬리표는 판정 메모를 가리킴
+      if (cls === "ck") node.hidden = true;
+      const target = () => cls === "ck" ? document.querySelector('[data-memo="checks"]') : node;
+      box.append(el("span", { class: `tr-tag t-${cls}`, role: "button", tabindex: "0", title: cls === "ck" ? "판정 메모로" : "그 기록으로",
+        on: { click: (ev) => { ev.stopPropagation(); const t = target(); if (!t?.isConnected || t.closest("[hidden]")) return; t.scrollIntoView({ block: "center", behavior: reduceMotionUI() ? "auto" : "smooth" }); t.classList.remove("flash"); void t.offsetWidth; t.classList.add("flash"); },
               keydown: (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.currentTarget.click(); } } } }, text));
     }
   }
