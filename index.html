@@ -1979,10 +1979,11 @@ html.has-3d .topbar { box-shadow: none; }
 .end-chars { grid-template-columns: repeat(auto-fit, minmax(300px, 420px)); justify-content: center; align-items: start; gap: 38px 18px; padding-top: 30px; }
 .end-card { position: relative; background: #e6d3a3; border-radius: 0 4px 4px 4px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); cursor: pointer; transition: translate .18s ease, box-shadow .18s ease; }
 /* 서류철 탭에 이름(캐릭터) — 카드 안에는 직업 · 플레이어만 */
-.end-card::before { content: attr(data-name); position: absolute; left: 0; top: -24px; min-width: 96px; max-width: 70%; height: 24px; padding: 3px 14px 0; box-sizing: border-box; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 15px/21px var(--font); color: var(--spine); background: #e6d3a3; border-radius: 4px 4px 0 0; box-shadow: inset 0 3px 0 var(--spine); }
+.end-card::before { content: attr(data-name); position: absolute; left: 0; top: -26px; min-width: 96px; max-width: 70%; height: 26px; padding: 3px 14px 0; box-sizing: border-box; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 15px/23px var(--font); color: var(--spine); background: #e6d3a3; border-radius: 4px 4px 0 0; box-shadow: inset 0 3px 0 var(--spine); }
 .end-card .ec-name b { display: none; }
 .end-card .ec-name b { color: var(--spine); }
-.end-card .ec-pic .polaroid { width: 84px; height: 106px; transform: none; rotate: none; }
+.end-card { padding: 14px 14px 12px; }
+.end-card .ec-pic .polaroid { width: 84px; height: 106px; margin-top: 2px; transform: none; rotate: none; }
 .end-card .ec-pic .polaroid img, .end-card .ec-pic .polaroid-empty { width: 76px; height: 86px; }
 .end-card .ec-key li:nth-child(n+5):not(.ec-more) { display: none; }
 .end-card .ec-key li.ec-more { display: block; color: #7a6548; }
