@@ -456,11 +456,19 @@ textarea.code { font: 12px/1.6 var(--font); }
   color: var(--blood); font-size: 18px; line-height: 1; font-weight: 400;
   box-shadow: inset 0 0 0 2px var(--blood);
 }
-.roll.secret .roll-detail b { color: var(--navy); box-shadow: inset 0 0 0 2px var(--navy); }
+.roll.secret.roll .roll-detail b { color: var(--navy); box-shadow: inset 0 0 0 2px var(--navy); }
 .roll .tag { vertical-align: middle; }
 .roll-result { margin-top: 3px; }
 .roll-result.ok { color: var(--moss); }
 .roll-result.fail { color: var(--blood); }
+/* 판정 결과: 단계 꼬리표만 색(크림 글씨), 글은 먹색 · 굴린 숫자 상자 테두리·숫자도 결과 색(상자 안 바탕은 그대로) */
+.roll-result.lv { color: var(--ink); }
+.roll-result .rr-lv { display: inline-block; margin-right: 6px; padding: 0 5px; font-size: 12px; line-height: 17px; font-weight: 400; color: #fff6dc; background: var(--moss); vertical-align: 1px; }
+.roll-result.fail .rr-lv { background: var(--blood); }
+.roll.r-ok .roll-detail b { color: var(--moss); box-shadow: inset 0 0 0 2px var(--moss); }
+.roll.r-fail .roll-detail b { color: var(--blood); box-shadow: inset 0 0 0 2px var(--blood); }
+.roll.secret.roll .roll-detail b { color: var(--navy); box-shadow: inset 0 0 0 2px var(--navy); }
+.entry.place-line .pl-sep { margin: 0 5px 0 4px; }
 
 .thinking { margin: 0 var(--cover); color: var(--blood); font-family: var(--font); font-size: 12px; animation: glow 1.4s steps(1) infinite; }
 
@@ -10017,6 +10025,13 @@ const BannerArt = (() => {
     fn();
     if (at) requestAnimationFrame(() => { logBox.scrollTop = logBox.scrollHeight; });
   }
+  // 판정 결과: 성공 단계(맨 앞 " — " 앞)만 색 꼬리표, 나머지 글은 먹색. 피해·치료 굴림은 예전처럼 한 줄 색 글
+  function rollResult(e) {
+    const ok = e.ok ? "ok" : "fail";
+    if (!e.level || e.dmg) return el("div", { class: `roll-result ${ok}` }, e.result);
+    const i = e.result.indexOf(" — "), lv = i < 0 ? e.result : e.result.slice(0, i);
+    return el("div", { class: `roll-result lv ${ok}` }, el("b", { class: "rr-lv" }, lv), i < 0 ? null : e.result.slice(i + 3));
+  }
   function renderEntry(e, { live = false } = {}) {
     const hold = live && (e.kind === "clue" || e.kind === "system" || e.kind === "handout") && isTyping();
     if (live && !hold) { if (e.kind === "scene") Sfx.play("page"); else if (e.kind === "clue" || e.kind === "handout") Sfx.play("clue"); }
@@ -10031,13 +10046,13 @@ const BannerArt = (() => {
       if (para) { if (animate) typeInto(para, e.text); else para.textContent = e.text; }
     } else if (e.kind === "roll" && e.roll) {
       const r = e.roll;
-      node = el("div", { class: `entry roll${e.secret ? " secret" : ""}` },
+      node = el("div", { class: `entry roll${e.secret ? " secret" : ""}${e.level && !e.dmg ? (e.ok ? " r-ok" : " r-fail") : ""}` },
         el("span", { class: "who" }, e.by),
         e.text ? el("span", { class: "roll-label" }, e.text) : null,
         e.detail ? el("span", { class: "roll-detail" }, (/^.*? → /.exec(e.detail)?.[0] ?? ""), el("b", {}, String(r.total)), e.detail.replace(/^.*? → \d+/, ""))
           : el("span", { class: "roll-detail" }, `${r.expr} → [${r.rolls.join(", ")}]${r.mod ? (r.mod > 0 ? ` +${r.mod}` : ` ${r.mod}`) : ""} = `, el("b", {}, String(r.total))),
         e.secret ? el("span", { class: "tag" }, "비밀") : null,
-        e.result ? el("div", { class: `roll-result ${e.ok ? "ok" : "fail"}` }, e.result) : null);
+        e.result ? rollResult(e) : null);
       if (live) {
         // 새 굴림: 기록 위로 3D 주사위가 굴러와 멈춘 뒤에 기록 줄을 보여 줌
         const sides = Number(/d(\d+)/.exec(r.expr)?.[1]) || 20;
@@ -10066,6 +10081,8 @@ const BannerArt = (() => {
       const textNode = el("span", { class: e.kind === "gm" || e.kind === "ai" ? "text npcq" : "text" });
       if (animate) typeInto(textNode, body); else setText(textNode, body);
       const placeIc = e.kind === "system" && (e.place || /^장소: /.test(e.text ?? "")) ? el("span", { class: "place-ic", "aria-hidden": "true" }, iconSvg("pin")) : null;
+      // 장소 줄: "장소 : 이름" — 쌍점 양옆 간격을 같게
+      if (placeIc && /^장소: /.test(body ?? "") && !animate) textNode.replaceChildren(document.createTextNode("장소"), el("span", { class: "pl-sep" }, ":"), document.createTextNode(body.slice(4)));
       // 말한 사람: 상자 없이 플레이어 색 잉크 이름 + 줄표
       const ink = e.kind === "say" && e.byId && app.snap?.players.some((p) => p.pid === e.byId) ? spineOf(e.byId) : null;
       // GM이 질문에 답할 때: 질문한 사람을 플레이어 색 꼬리표로
