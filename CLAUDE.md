@@ -5,6 +5,7 @@
 - 시안·분석처럼 판단이 필요할 때만 길게. 시안은 이미지 목업(Playwright 렌더)로 제시, 2~4안 + 추천 1개
 - 수정은 작은 단위: 브랜치 → 구문 검사 → 푸시 → PR(REST `gh api`, GraphQL 불가) → squash 병합
 - PR 묶기: 같은 요청에서 나온 관련 수정은 PR 하나로(CLAUDE.md 갱신 포함). 성격이 다른 수정(기능 버그 · 디자인 등)은 따로 되돌릴 수 있게 나눔
+- 화면 다듬기 묶음: 한 화면을 시안·미세 조정으로 다듬는 동안에는 수정을 한 브랜치에 커밋만 쌓고(병합 안 함), 그 화면이 확정되면 PR 하나로 병합. 사용자가 바로 사이트에서 보고 싶다고 한 수정만 따로 병합
 - 병합 시점: 코드가 바뀐 PR은 Actions(`test`) 통과 후 병합. 문서(CLAUDE.md 등)만 바뀐 PR은 기다리지 않고 바로 병합
 - 구문 검사: `<script>` 인라인 블록을 합쳐 `node --check`
 - 회귀 테스트: `npm install && npm test` (node:test, `tests/`). `tests/load.mjs`가 스크립트의 로직 부분(Rules~Net, `createScene3D` 앞까지)만 vm으로 불러옴. PR마다 GitHub Actions(`test`)도 실행. 로직 수정 시 해당 테스트 추가
