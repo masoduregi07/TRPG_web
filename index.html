@@ -1166,9 +1166,10 @@ textarea { resize: vertical; margin-top: 8px; }
 .turn-res .tr-row:first-child { border-top: 0; }
 .turn-res .tr-row.mine { background: rgba(110, 36, 32, .06); }
 .turn-res .tr-name { color: var(--c); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
-/* 이름: 칸 오른쪽으로 붙여 결과 글 첫 줄과 높이 맞춤 (인용 줄이 보이면 그만큼 내림) */
-.turn-res .tr-row { align-items: start; column-gap: 10px; }
-.turn-res .tr-name { justify-self: end; text-align: right; padding-top: 3px; line-height: 19px; }
+/* 이름 칸 폭 = 표 안 가장 긴 이름(최소 64px, subgrid로 줄끼리 맞춤), 이름은 칸 가운데 · 결과 글 첫 줄 높이 */
+.entry.turn-res { display: grid; grid-template-columns: minmax(64px, max-content) minmax(0, 1fr) 14px; }
+.turn-res .tr-row { grid-column: 1 / -1; grid-template-columns: subgrid; align-items: start; column-gap: 12px; padding-left: 13px; }
+.turn-res .tr-name { max-width: 6em; justify-self: center; text-align: center; padding-top: 3px; line-height: 19px; }
 .turn-res .tr-row:is(.mine, .open):has(.tr-q:not(:empty)) .tr-name { padding-top: 23px; }
 .turn-res .tr-x { align-self: center; }
 .turn-res .tr-body { min-width: 0; }
