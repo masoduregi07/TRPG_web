@@ -784,6 +784,15 @@ html.calm-item .dos-items .item.lost { display: none; }
  * ================================================================ */
 .scene-banner { position: relative; flex: none; height: 168px; overflow: hidden; background: var(--grain), linear-gradient(180deg, #3a2516, #22150c); box-shadow: inset 0 -3px 0 #120a05; }
 .scene-banner[hidden] { display: none; }
+/* 접속 상태 이름 칩: 배너 왼쪽 위. 램프 초록 = 접속 · 노랑 = 기록지 작성 중 · 회색 = 끊김, 아래 선 = 플레이어 색 */
+.roster { position: absolute; left: 16px; top: 14px; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 40%); }
+.rc { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 7px; font: 12px var(--font); color: #e9dcb7; white-space: nowrap; background: rgba(20, 12, 6, .55); box-shadow: inset 0 0 0 1px rgba(217, 185, 121, .35), inset 0 -2px 0 var(--c); }
+.rc i { width: 6px; height: 6px; flex: none; background: #6fd050; box-shadow: 0 0 5px #6fd050; }
+.rc b { margin-right: -2px; font-weight: 400; font-size: 10px; color: #d9b979; }
+.rc.wr i { background: #e8c46a; box-shadow: 0 0 5px #e8c46a; }
+.rc.off { color: #7a6e5e; box-shadow: inset 0 0 0 1px rgba(122, 110, 94, .35), inset 0 -2px 0 #4a4038; }
+.rc.off i { background: #5a5048; box-shadow: none; }
+.rc.me { color: #f4ecd8; background: rgba(60, 36, 18, .7); }
 .scene-banner canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: none; }
 .scene-banner.has-pic canvas { display: block; }
 .sb-fade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(18, 10, 5, .85), rgba(18, 10, 5, .2) 45%, transparent 70%); }
@@ -2504,6 +2513,7 @@ html.has-3d .topbar { box-shadow: none; }
     <canvas id="bannerCanvas" aria-hidden="true"></canvas>
     <div class="sb-fade"></div>
     <h2 id="sceneTitle"></h2>
+    <div id="roster" class="roster" aria-label="접속 상태"></div>
   </section>
   <div class="layout">
     <!-- 시작 전 로비: 위에서 내려다본 세션 테이블 (로우폴리 나무 테이블 위에 GM 스크린 · 펼친 시나리오 책 · 자리마다 캐릭터 시트) -->
@@ -10329,7 +10339,7 @@ const BannerArt = (() => {
     $("#sceneBanner").hidden = s.phase !== "play";
     // 배경음: 지금 사건의 bgm (없으면 시나리오 맨 위 bgm). 바뀌면 크로스페이드
     Sfx.Bgm.set(s.phase === "play" ? s.view?.scene?.bgm ?? null : null);
-    if (s.phase === "play") drawBanner(s);
+    if (s.phase === "play") { drawBanner(s); renderRoster(s); }
     $("#charCol").hidden = s.phase !== "play";
     if (s.phase === "play" && needBuilder) renderCharCol(s);   // 기록지 쓰는 중에도 일행 목록
     app.building = s.phase === "play" && needBuilder; syncChatLock();
@@ -11432,6 +11442,18 @@ const BannerArt = (() => {
 
   addEventListener("resize", () => { if (app.snap?.phase === "play") drawBanner(app.snap); });
   /* 장면 배너: 제목은 시나리오 제목으로 고정, 그림만 장면마다 양피지 톤 도트로 바뀜 */
+  /* 접속 상태 이름 칩: 캐릭터 이름(없으면 닉네임), 5자 이상은 앞 4자 + … (전체 이름은 title) */
+  function renderRoster(s) {
+    if (!changed("roster", s.me, s.hostPlays, s.players.map((p) => [p.pid, p.name, p.online, p.ready, p.character?.name, p.isHost]))) return;
+    const cut = (n) => [...n].length >= 5 ? [...n].slice(0, 4).join("") + "…" : n;
+    $("#roster").replaceChildren(...s.players.map((p) => {
+      const gm = p.isHost && !s.hostPlays, name = (p.ready && p.character?.name) || p.name;
+      const st = !p.online ? "off" : !gm && !p.ready ? "wr" : "";
+      return el("span", { class: ["rc", st, p.pid === s.me && "me"].filter(Boolean).join(" "), style: `--c:${gm ? "#d9b979" : spineOf(p.pid)}`,
+        title: `${name}${name !== p.name ? ` (${p.name})` : ""} · ${st === "off" ? "끊김" : st === "wr" ? "기록지 작성 중" : "접속"}` },
+        el("i", { "aria-hidden": "true" }), gm ? el("b", {}, "GM") : null, cut(name));
+    }));
+  }
   function drawBanner(s) {
     const v = s.view, cv = $("#bannerCanvas"), ban = $("#sceneBanner"), src = v?.image ?? null;   // 시나리오 그림 주소만
     $("#sceneTitle").textContent = s.scenario.title;
