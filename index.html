@@ -6408,6 +6408,9 @@ class HostGame {
     this.ai.controller = controller;
     const epoch = this.ai.epoch, game = this.data.game, scene = game.currentScene;
     let context, batchEndSeq;
+    // 판정 결과가 상태를 바꿨는지 (AI가 생각하는 동안 굴림 · 행운 사용). 글 입력은 다음 차례로 넘어가므로 셈하지 않음
+    const rollSig = () => JSON.stringify([game.passedChecks, game.triedChecks, game.revealedClues.length, game.flags, Engine.pendingList(game).map((p) => p.checkId)]);
+    const sig0 = rollSig();
     const stale = () => controller.signal.aborted || epoch !== this.ai.epoch ||
       this.data.game !== game || game.currentScene !== scene || game.result ||
       this.data.phase !== "play" || this.data.mode !== "ai";
@@ -6417,6 +6420,8 @@ class HostGame {
       batchEndSeq = this.data.logSeq;
       const plan = await this.askGM(context, controller.signal);
       if (stale()) return; // 이전 장면/세션을 바탕으로 만든 결과는 절대 적용하지 않음
+      // 기다리는 동안 판정이 끝나 상태가 바뀜 → 이 응답은 굴리기 전 상황 기준이므로 버리고 새 상황으로 다시
+      if (rollSig() !== sig0) { this.note("AI 응답 대기 중 판정 결과가 나옴 → 응답 버리고 다시 요청"); this.ai.again = true; return; }
       if (!plan) { this.addLog({ kind: "system", text: "AI GM 응답이 비어 있음. 다시 행동하거나 /gm 으로 진행." }); return; }
       const label = Engine.clip(plan.narration || plan.answers[0]?.text || plan.arrival || "", 24);
       try {
