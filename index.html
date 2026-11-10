@@ -415,7 +415,7 @@ textarea.code { font: 12px/1.6 var(--font); }
 .entry.say.mine { padding-right: 40px; background: linear-gradient(90deg, rgba(255, 248, 228, .5), rgba(255, 248, 228, 0)); }
 .entry.say .who::after { color: rgba(90, 60, 30, .45); content: ""; }
 /* GM 서술 속 NPC 대사 */
-.npc-line { color: #6f2a10; font-family: var(--font-talk); text-decoration: underline 2px rgba(111, 42, 16, .45); text-underline-offset: 4px; text-decoration-skip-ink: none; }
+.npc-line { color: #6f2a10; font-family: var(--font-talk); text-decoration: underline dotted 2px rgba(111, 42, 16, .45); text-underline-offset: 4px; text-decoration-skip-ink: none; }
 /* GM 서술 = 크게, 진행자의 목소리 */
 .entry.gm, .entry.ai { font-family: var(--font); font-size: 18px; color: #120c08; padding: 3px 0 3px 15px; box-shadow: inset 4px 0 0 var(--ink); }
 .entry.gm .who, .entry.ai .who { display: none; }
@@ -1975,7 +1975,6 @@ html.has-3d .topbar { box-shadow: none; }
 .ho-photo .ho-cap { order: 2; justify-self: center; }
 .ho-photo::before { content: ""; position: absolute; top: -6px; left: 50%; width: 10px; height: 10px; margin-left: -5px; background: var(--blood); box-shadow: 0 0 0 2px var(--ink); }
 .ho:not(.big):hover { box-shadow: 0 0 0 1px var(--blood), 3px 4px 0 rgba(0, 0, 0, .25); }
-.ho-view { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px; background: rgba(20, 12, 6, .72); }
 .ho.big { max-width: min(640px, 92vw); max-height: 88vh; overflow: auto; cursor: default; rotate: 0deg; padding: 18px 22px 20px; }
 .ho.big .ho-cap { font-size: 13px; }
 .ho.big .ho-body { max-height: none; font-size: 15px; line-height: 26px; }
@@ -2014,16 +2013,15 @@ html.has-3d .topbar { box-shadow: none; }
 .ho-float-card .ho.big { display: block; box-sizing: border-box; width: 100%; max-width: none; max-height: none; overflow: visible; margin: 0; padding: 12px 14px 14px; box-shadow: none; rotate: 0deg; }
 .ho-float-card .ho.big .ho-body { font-size: 14px; line-height: 24px; }
 .ho-float-map .ho-map { width: 100%; height: 100%; }
-.ho-float-pin { position: absolute; top: 4px; right: 32px; width: 24px; height: 24px; padding: 0; border: 0; cursor: pointer; display: grid; place-items: center; color: #e9dcb7; background: rgba(28, 18, 12, .75); }
-.ho-float-pin .ic-svg { width: 14px; height: 14px; }
+.ho-float-pin { position: absolute; top: 3px; right: 23px; width: 18px; height: 18px; padding: 0; border: 0; cursor: pointer; display: grid; place-items: center; color: #e9dcb7; background: rgba(28, 18, 12, .75); }
+.ho-float-pin .ic-svg { width: 11px; height: 11px; }
 .ho-float-pin:hover { background: #553a23; }
 .ho-float-pin[aria-pressed="true"] { color: #2b1a0c; background: #e8c46a; }
 .ho-float img { display: block; width: 100%; height: 100%; object-fit: contain; filter: sepia(.25); pointer-events: none; user-select: none; }
-.ho-float-x { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; border: 0; cursor: pointer; font: 18px/24px var(--font); color: #f4ecd8; background: rgba(28, 18, 12, .75); }
+.ho-float-x { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; padding: 0; border: 0; cursor: pointer; font: 14px/18px var(--font); color: #f4ecd8; background: rgba(28, 18, 12, .75); }
 .ho-float-x:hover { background: var(--blood); }
 .ho-map-card .ho-map, .ho-th-map .ho-map { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .ho .ho-img img, .ho-th img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
-.ho-x { position: fixed; top: 18px; right: 22px; width: 36px; height: 36px; border: 0; cursor: pointer; font: 24px/1 var(--font); color: #f4ecd8; background: none; }
 /* 소지품 얻음·잃음 꼬리표 */
 #log .entry.system.item-line::before { display: none; }
 #log .entry.item-line { display: flex; align-items: center; gap: 6px; font-size: 12px; }
@@ -9454,13 +9452,8 @@ const BannerArt = (() => {
     const src = h.kind === 'photo' || h.image ? handoutSrc(h.image) : null;
     return el('span',{class:`ho-th ho-th-${h.kind}`,'aria-hidden':'true','data-hid':h.id}, h.image ? el('img',{src:src ?? 'data:image/gif;base64,R0lGODlhAQABAAAAACw=','data-ref':h.image.startsWith('ho:')?h.image:null,alt:'',draggable:'false'}) : null);
   }
-  function refreshMapView(v) {
-    const card = document.querySelector("#hoView .ho-map-card"); if (!card || card.querySelector(".hm-tok.drag")) return;
-    const h = (v.handouts ?? []).find((x) => x.id === card.dataset.hid); if (!h) return;
-    card.querySelector(".ho-img").replaceChildren(mapSvg(h, { live: true }));
-  }
   function renderHandoutBox(v) {
-    refreshMapView(v); refreshMapFloats(v);
+    refreshMapFloats(v);
     const hos = [...(v.handouts ?? [])].sort((a,b)=>(a.at??0)-(b.at??0)), block = document.querySelector('[data-memo="handouts"]');
     block.hidden = !hos.length;
     $('#hoCount').textContent = String(hos.length);
@@ -9707,9 +9700,20 @@ const BannerArt = (() => {
     if (h.kind !== "map") {
       const img = src.querySelector?.("img");
       if (img && !h.text) return floatFrom(img);   // 그림만 있는 섬네일 · 카드
-      // 글 핸드아웃: 크게 보기 카드를 창에 넣고 내용 높이에 맞춤 (넘치면 창 안에서 스크롤)
+    }
+    return floatHandout(h);
+  }
+  /* 핸드아웃 미니 창: 글·그림은 크게 보기 카드를 창에 넣고 내용 높이에 맞춤(넘치면 창 안에서 스크롤), 지도는 말 옮기기 되는 도면 */
+  function floatHandout(h) {
+    const hid = h.id;
+    if (h.kind !== "map") {
       const win = floatWin(`card:${hid}`, el("div", { class: "ho-float-card" }, handoutCard(h, { big: true })), 320, 200);
-      if (!win.dataset.fit) { win.dataset.fit = "1"; requestAnimationFrame(() => { const c = win.querySelector(".ho.big"); if (c) win.style.height = `${Math.min(innerHeight * .7, c.offsetHeight)}px`; }); }
+      if (!win.dataset.fit) {
+        win.dataset.fit = "1";
+        const fit = () => { const c = win.querySelector(".ho.big"); if (c) win.style.height = `${Math.min(innerHeight * .7, c.offsetHeight)}px`; };
+        requestAnimationFrame(fit);
+        win.querySelector(".ho-float-card img")?.addEventListener("load", fit, { once: true });
+      }
       return win;
     }
     const svgEl = mapSvg(h, { live: true }), vb = svgEl.viewBox.baseVal;
@@ -9781,14 +9785,12 @@ const BannerArt = (() => {
   }
   function openHandout(h) {
     h = app.snap?.view?.handouts?.find((x) => x.id === h.id) ?? h;   // 도면은 최신 말 위치로
-    $("#hoView")?.remove();
-    const close = () => { box.remove(); document.removeEventListener("keydown", esc); };
-    const esc = (e) => { if (e.key === "Escape") close(); };
-    const box = el("div", { id: "hoView", class: "ho-view", role: "dialog", "aria-modal": "true", "aria-label": h.title, on: { click: (e) => { if (e.target === box) close(); } } },
-      handoutCard(h, { big: true }), el("button", { class: "ho-x", type: "button", "aria-label": "닫기", on: { click: close } }, "×"));
-    document.body.append(box);
-    document.addEventListener("keydown", esc);
-    box.querySelector(".ho-x").focus();
+    const fresh = !document.querySelector(`.ho-float[data-key="${CSS.escape(`${h.kind === "map" ? "map" : "card"}:${h.id}`)}"]`);
+    const win = floatHandout(h);
+    if (fresh) requestAnimationFrame(() => {   // 새 창은 화면 가운데쯤, 여러 개면 조금씩 비켜서
+      const n = document.querySelectorAll(".ho-float").length - 1;
+      placeWin(win, (innerWidth - win.offsetWidth) / 2 + n * 24, (innerHeight - win.offsetHeight) / 3 + n * 24);
+    });
   }
   /* 타이핑 연출: 새로 들어온 시나리오 나레이션(사건 도입)과 AI GM 서술만. 차례로 한 줄씩, 기록을 누르면 바로 끝까지 */
   const typeQueue = [];
