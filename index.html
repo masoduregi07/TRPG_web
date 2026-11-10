@@ -100,10 +100,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
   --flap: var(--px-flap) 100% 0 / 12px 12px no-repeat;
   clip-path: var(--tear-a);
 }
-.block:nth-of-type(2n), .narrow > .card:nth-of-type(2n), .setup > .card:nth-of-type(2n), .pending { clip-path: var(--tear-b); }
-.block:nth-of-type(3n), .narrow > .card:nth-of-type(3n), .setup > .card:nth-of-type(3n), .panel { clip-path: var(--tear-c); }
+.block:nth-of-type(2n), .narrow > .card:nth-of-type(2n), .pending { clip-path: var(--tear-b); }
+.block:nth-of-type(3n), .narrow > .card:nth-of-type(3n), .panel { clip-path: var(--tear-c); }
 /* 종이 그림자는 묶음 단위로 (잘린 모양을 따라감) */
-.narrow, .setup { filter: drop-shadow(6px 9px 0 rgba(0, 0, 0, .5)); }
+.narrow { filter: drop-shadow(6px 9px 0 rgba(0, 0, 0, .5)); }
 
 /* ---------------- 버튼 ---------------- */
 .btn {
@@ -203,17 +203,6 @@ textarea.code { font: 12px/1.6 var(--font); }
 .center-row { justify-content: center; }
 
 /* ---------------- 설정 ---------------- */
-.setup { max-width: 780px; margin: 0 auto; padding: 24px 18px 60px; display: grid; }
-.setup-head { display: flex; align-items: center; gap: 15px; color: var(--bone); }
-.setup-head h1 { font-size: 24px; text-shadow: 3px 3px 0 #000; }
-.setup-head .btn.ghost { color: var(--bone); }
-.step-title { display: flex; align-items: center; gap: 12px; }
-.step-title h2 { font-size: 24px; }
-.step {
-  width: 30px; height: 30px; display: grid; place-items: center; flex: none;
-  background: var(--blood); color: var(--bone); font-family: var(--font); font-size: 12px;
-  box-shadow: inset calc(var(--p) * -1) calc(var(--p) * -1) 0 0 var(--blood-lo), inset var(--p) var(--p) 0 0 var(--blood-hi), var(--outline);
-}
 .tabs { display: flex; gap: 9px; padding-bottom: 3px; }
 .tab { border: 0; border-radius: 0; cursor: pointer; padding: 7px 12px; font-family: var(--font); font-size: 12px; color: var(--ink-2); background: var(--paper-lo); box-shadow: var(--outline); }
 .tab.active { background: var(--note); color: var(--ink); box-shadow: inset calc(var(--p) * -1) calc(var(--p) * -1) 0 0 var(--note-lo), var(--outline); }
@@ -222,9 +211,6 @@ textarea.code { font: 12px/1.6 var(--font); }
 .validate .err { color: var(--blood); }
 .validate .warn { color: #7a5612; }
 .validate ul { margin: 4px 0; padding-left: 20px; }
-.setup-actions { display: grid; gap: 12px; justify-items: center; }
-.recover { max-width: 560px; font-size: 14px; color: var(--bone); text-shadow: 2px 2px 0 #000; }
-.recover summary { cursor: pointer; text-align: center; font-family: var(--font); font-size: 12px; }
 .ai-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
 .ai-grid .full { grid-column: 1 / -1; }
 
@@ -959,65 +945,6 @@ html.has-3d .layout { box-shadow: 0 0 0 3px #0c0705, 0 18px 40px rgba(0, 0, 0, .
 }
 
 /* ================================================================
- * 첫 화면: 촛불이 비추는 탁자 위 책 세 권 = 메뉴 (책등이 버튼)
- * ================================================================ */
-.title-screen { position: relative; min-height: 100vh; }
-.title-logo { position: fixed; left: 7vw; top: 8vh; z-index: 5; }
-.title-logo h1 { margin: 0; font-family: "Galmuri11", var(--font); font-weight: 400; font-size: 34px; line-height: 1.2; letter-spacing: .22em; color: #eadfc6; text-shadow: 0 2px 0 #000; }
-.title-logo p { margin: 10px 0 0; font-family: var(--font); font-size: 12px; letter-spacing: .16em; color: #8f7f66; text-shadow: 0 1px 0 #000; }
-.title-books { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
-.spine-btn {
-  position: fixed; left: -999px; top: 0; pointer-events: auto;
-  display: grid; place-items: center; padding: 0; border: 0; background: transparent; cursor: pointer;
-  font-family: "Galmuri11", var(--font); font-weight: 400; font-size: 20px; line-height: 1;
-  color: rgba(201, 162, 92, .75); text-shadow: 0 -1px 0 rgba(0, 0, 0, .55), 0 1px 0 rgba(255, 220, 150, .12);
-}
-.spine-btn span { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: .08em; white-space: nowrap; }
-.spine-btn.on { color: #f0cf86; text-shadow: 0 -1px 0 rgba(60, 25, 5, .8), 0 0 10px rgba(255, 190, 90, .35); }
-.spine-btn:focus-visible { outline: 1px dashed rgba(246, 210, 122, .7); outline-offset: 2px; }
-.title-sub {
-  position: fixed; z-index: 5; transform: translateX(-50%); pointer-events: none; white-space: nowrap;
-  font-family: var(--font); font-size: 12px;
-}
-.title-sub:empty { display: none; }
-
-.title-error { position: fixed; left: 50%; bottom: 12vh; transform: translateX(-50%); z-index: 9; }
-.title-page {
-  position: fixed; z-index: 10; width: 320px; color: var(--ink); font-size: 13px; line-height: 1.5;
-  background: radial-gradient(ellipse at 30% 20%, rgba(255, 244, 210, .5), transparent 70%), var(--grain), #e8d7ab;
-  box-shadow: var(--outline), 8px 10px 0 3px rgba(0, 0, 0, .55);
-}
-.title-page[hidden] { display: none; }
-.title-page h3 { margin: 0 0 10px; font-family: var(--font); font-weight: 400; font-size: 16px; color: var(--blood); letter-spacing: .1em; }
-.title-page p { margin: 0; }
-.title-tables { list-style: none; margin: 0; padding: 0; display: grid; max-height: 40vh; overflow-y: auto; }
-.title-tables li { display: flex; align-items: stretch; }
-.tt-open { position: relative; flex: 1; display: grid; text-align: left; border: 0; background: transparent; cursor: pointer; font-family: var(--font); color: var(--ink); }
-.tt-open b { font-weight: 400; font-size: 14px; }
-.tt-open span { font-size: 11px; color: #6d6253; }
-.tt-open:hover, .tt-open:focus-visible { background: rgba(138, 28, 20, .1); outline: none; }
-.tt-del { border: 0; background: transparent; color: #8a7a62; cursor: pointer; font-size: 16px; }
-.tt-del:hover { color: var(--blood); }
-.title-file { display: block; border-top: 1px dashed rgba(90, 60, 30, .45); font-family: var(--font); font-size: 12px; color: #5d4e3b; cursor: pointer; }
-.title-file small { color: #8f7f66; margin-left: 4px; }
-.title-file:hover { color: var(--blood); }
-.page-x { position: absolute; right: 8px; top: 6px; border: 0; background: transparent; font-size: 18px; color: #8a7a62; cursor: pointer; }
-/* WebGL이 없으면 CSS로 그린 책 세 권 */
-html:not(.has-3d) .title-books { display: flex; align-items: flex-end; justify-content: center; gap: 8px; inset: auto 0 22vh; height: 300px; }
-html:not(.has-3d) .spine-btn { position: relative; left: auto; width: 74px; height: 270px; font-size: 22px; transition: transform .1s steps(2);
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .4), inset 0 14px 0 -10px #d9b25a, inset 0 -14px 0 -10px #d9b25a; }
-html:not(.has-3d) .spine-btn[data-i="0"] { background: #5a1a12; }
-html:not(.has-3d) .spine-btn[data-i="1"] { background: #2f4a35; }
-html:not(.has-3d) .spine-btn[data-i="2"] { background: #2e3a5e; }
-html:not(.has-3d) .spine-btn.on { transform: translateY(-14px); }
-html:not(.has-3d) .title-sub { left: 50%; bottom: 17vh; }
-@media (max-width: 800px) {
-  .title-logo { left: 20px; top: 5vh; }
-  .title-logo h1 { font-size: 24px; }
-  .title-page { left: 12px !important; right: 12px; bottom: 12px; top: auto !important; width: auto; }
-}
-
-/* ================================================================
  * 간격 정리: 글자 대비 과한 여백 줄이기 (위 간격 규칙 적용)
  * ================================================================ */
 body {
@@ -1047,7 +974,6 @@ textarea { resize: vertical; margin-top: 8px; }
 
 /* 처음 화면 밖의 종이 카드 (설정 · 참가 · 안내) */
 .narrow { gap: 16px; }
-.setup { gap: 16px; padding-top: 16px; }
 .card { padding: 16px 18px; gap: 10px; }
 .panel { padding: 14px 16px; gap: 10px; }
 .panel h2 { font-size: 20px; }
@@ -1087,75 +1013,19 @@ textarea { resize: vertical; margin-top: 8px; }
 .thinking { padding: 4px 44px 4px 48px; }
 .chat { gap: 12px; padding: 10px 44px 12px 48px; }
 
-/* 첫 화면 종이 · 나가기 쪽지 · 지도 띠 */
-.title-page { padding: 14px 16px 12px; }
-
-.title-page .field { display: grid; gap: 4px; margin-top: 8px; }
-
+/* 나가기 쪽지 */
 .exit-pop { padding: 10px 12px; }
 .exit-pop .row { margin-top: 8px; gap: 8px; }
 
 /* 이어하기 목록: 줄 간격 줄이고, 삭제는 마우스 올린 줄에만 휴지통 */
-.title-tables { gap: 0; }
 .tt-open { padding: 4px 8px 4px 18px; gap: 0; line-height: 1.4; }
 .tt-open:hover::before, .tt-open:focus-visible::before { content: ""; position: absolute; border-left: 6px solid var(--blood); border-top: 5px solid transparent; border-bottom: 5px solid transparent; left: 6px; top: 9px; }
 .tt-del { display: grid; place-items: center; width: 28px; padding: 0; opacity: 0; }
 .tt-del .ic-svg { width: 16px; height: 16px; }
-.title-tables li:hover .tt-del, .tt-del:focus-visible { opacity: .55; }
-.title-tables li .tt-del:hover, .tt-del:focus-visible { opacity: 1; }
-.title-tables li:hover .tt-open { background: rgba(138, 28, 20, .1); }
-.title-file { margin-top: 6px; padding: 6px 8px 0 18px; }
-.title-page h3 { margin-bottom: 4px; }
+.bk-tables li:hover .tt-del, .tt-del:focus-visible { opacity: .55; }
+.bk-tables li .tt-del:hover, .tt-del:focus-visible { opacity: 1; }
+.bk-tables li:hover .tt-open { background: rgba(138, 28, 20, .1); }
 
-/* 참가하기: 입력칸 + 들어가기 한 줄 (닫기는 오른쪽 위 × 하나) */
-.join-row { display: flex; gap: 6px; align-items: stretch; margin-top: 2px; }
-.join-row input { flex: 1; min-width: 0; padding: 5px 8px; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-#joinPage { width: 360px; }
-
-/* 책 설명 = 접혀 있다 펼쳐지는 메모지 */
-.title-sub { color: var(--ink); text-shadow: none; letter-spacing: .02em; transform-origin: 50% 0;
-}
-
-/* 책 설명 메모지: 바깥은 위치, 안쪽 .memo가 펼쳐짐 (위쪽을 축으로 접혀 있다 내려옴) */
-.title-sub, .title-sub.unfold { padding: 0; background: none; box-shadow: none; rotate: none; animation: none; perspective: 420px; }
-.title-sub::before { position: absolute; left: 50%; top: -5px; width: 8px; height: 8px; margin-left: -4px; background: var(--blood-hi); box-shadow: inset 2px 2px 0 #e8705a, inset -2px -2px 0 var(--blood-lo), 0 0 0 2px var(--ink); content: none; }
-.title-sub .memo {
-  position: relative; display: block; padding: 7px 14px 8px;
-  font-family: var(--font); font-size: 12px; letter-spacing: .02em; color: var(--ink); white-space: nowrap;
-  background: linear-gradient(180deg, rgba(120, 90, 50, .16) 0 2px, transparent 2px) 0 50% / 100% 2px no-repeat, var(--grain), #e8d7ab;
-  box-shadow: 0 0 0 2px var(--ink), 3px 4px 0 2px rgba(0, 0, 0, .5);
-  transform: rotate(-1.5deg); transform-origin: 50% 0;
-}
-
-.title-sub .memo.unfold { animation: memo-unfold2 .6s steps(10) both; }
-@keyframes memo-unfold2 {
-  0%   { transform: rotate(-1.5deg) rotateX(-90deg); filter: brightness(.4); }
-  35%  { transform: rotate(-1.5deg) rotateX(-55deg); filter: brightness(.6); }
-  60%  { transform: rotate(-1.5deg) rotateX(14deg); filter: brightness(1.05); }
-  100% { transform: rotate(-1.5deg) rotateX(0deg); filter: none; }
-}
-
-/* 책을 펼친 동안: 책등 글씨 숨김, 종이는 펼친 책 위에 내려앉듯 나타남 */
-.title-books.reading .spine-btn { opacity: 0; pointer-events: none; transition: opacity .15s; }
-.title-page.appear { animation: page-in .28s steps(5) both; }
-@keyframes page-in { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
-/* 새테이블: 펼친 페이지가 화면 가득 넘어옴 */
-.page-turn {
-  position: fixed; z-index: 50; pointer-events: none;
-  background: radial-gradient(ellipse at 30% 20%, rgba(255, 244, 210, .5), transparent 70%), var(--grain), #e8d7ab;
-  box-shadow: var(--outline), 0 0 0 9999px rgba(0, 0, 0, 0);
-  transform-origin: 50% 100%;
-  transition: left .5s steps(8), top .5s steps(8), width .5s steps(8), height .5s steps(8), box-shadow .5s steps(8), opacity .35s steps(5);
-}
-.page-turn.full { left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; box-shadow: none; }
-.page-turn.fade { opacity: 0; }
-@media (prefers-reduced-motion: reduce) { .title-sub .memo.unfold { animation: none; } .page-turn, .title-page.appear { transition: none; animation: none; } }
-
-/* 참가하기: 제목과 입력칸 사이 한 단계 띄움, 들어가기 = 엔터 아이콘 정사각 버튼 */
-#joinPage h3 { margin-bottom: 10px; }
-.join-row .enter-btn { display: grid; place-items: center; width: 36px; padding: 0; }
-.join-row .enter-btn .ic-svg { width: 24px; height: 24px; }
 .say-box:not([data-mode="talk"]) > input:focus { outline-color: var(--say); }
 
 /* AI GM 행동 모음 대기: 모래시계 + "지켜보는 중…" */
@@ -2229,7 +2099,6 @@ html.has-3d .topbar { box-shadow: none; }
 #tab-yaml[hidden] { display: none; }
 .sample-link { justify-self: start; padding: 3px 3px; border: 0; background: none; cursor: pointer; font-family: var(--font); font-size: 13px; color: var(--ink); }
 .sample-link:hover, .sample-link:focus-visible { text-decoration: underline dashed var(--blood); text-underline-offset: 4px; outline: 0; }
-.card > .step-title { padding-bottom: 12px; margin-bottom: 3px; background: repeating-linear-gradient(90deg, var(--blood) 0 6px, transparent 6px 10px) 0 100% / 100% 2px no-repeat; }
 
 /* ===== 메모 버튼: 종이 칸 + 잉크 테두리 + 왼쪽 붉은 띠 (굴리기 · 지금 판정 · 밀어붙이기 등) ===== */
 .pending .btn, .pending .btn.primary, .memo-btn {
@@ -2501,39 +2370,228 @@ html.has-3d .topbar { box-shadow: none; }
 .float-layer .block :is(#clueBox, #checkBox) { max-height: calc(80vh - 120px); overflow-y: auto; }
 /* 떼어 둔 메모는 클립을 뺌 (공책에 다시 꽂으면 클립이 돌아옴) */
 .float-layer .block::before { content: none; }
+
+/* ================================================================
+ * 첫 화면: 탁자 위 붉은 가죽 책 (로우폴리 · CSS 3D)
+ * 닫힘 = 기울여 놓인 책 + 오른쪽 색인 탭, 펼침 = 평면(배율 1)으로 다가온 두 쪽
+ * --pw · --ph · --thick 은 JS(Book.measure)가 화면 크기로 정함
+ * ================================================================ */
+.book-screen { position: fixed; inset: 0; overflow: hidden; font-family: var(--font); color: var(--ink); }
+.book-screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(0, 0, 0, .55) 100%); }
+.bk-stage { position: absolute; inset: 0; perspective: 1600px; perspective-origin: 50% 42%; }
+.bk-tilt { position: absolute; inset: 0; pointer-events: none; transform-style: preserve-3d; transform-origin: 50% 50%; transition: transform .8s cubic-bezier(.4, 0, .2, 1); }
+.bk-book { position: absolute; left: 50%; top: calc(50% - var(--ph) / 2); width: 0; height: 0; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.4, 0, .2, 1); }
+/* 쪽 묶음: 윗면(쪽) + 옆면 · 아랫면(종이 단면, 닫혔을 때만 보임) */
+.bk-blk { position: absolute; top: 0; width: var(--pw); height: var(--ph); transform-style: preserve-3d; transition: transform .8s cubic-bezier(.4, 0, .2, 1); }
+.bk-R { left: 0; transform: translateZ(var(--zr)); }
+.bk-L { left: calc(var(--pw) * -1); transform: translateZ(var(--zl)); visibility: hidden; transition: transform .8s, visibility 0s .8s; }
+.bk-book.open .bk-L { visibility: visible; transition: transform .8s, visibility 0s; }
+.bk-side, .bk-bot { position: absolute; background: repeating-linear-gradient(90deg, #d8c595 0 2px, #b39c6a 2px 3px); }
+.bk-side { left: var(--pw); top: 0; width: var(--zr); height: var(--ph); transform-origin: 0 0; transform: rotateY(90deg); }
+.bk-bot { left: 0; top: var(--ph); width: var(--pw); height: var(--zr); transform-origin: 0 0; transform: rotateX(-90deg); background: repeating-linear-gradient(0deg, #d8c595 0 2px, #b39c6a 2px 3px); }
+.bk-L .bk-side, .bk-L .bk-bot { display: none; }
+.bk-pg { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #b39c6a transparent; }
+.bk-pg.r { background: linear-gradient(90deg, #d9c592, #e7d6a8 5%, #efe0b4); }
+.bk-pg.l { background: linear-gradient(270deg, #d9c592, #e7d6a8 5%, #efe0b4); }
+.bk-page { position: relative; min-height: 100%; padding: 38px 44px 64px; font-size: 14px; line-height: 1.55; }
+.bk-book.narrow .bk-page { padding: 26px 22px 56px; }
+.bk-book.narrow .bk-page + .bk-page { border-top: 2px dashed rgba(42, 26, 16, .35); min-height: 0; }
+/* 표지: 닫히면 쪽 위, 펼치면 왼쪽으로 넘어가 쪽 아래 (테두리처럼 보임) */
+.bk-cover { position: absolute; left: 0; top: -6px; width: calc(var(--pw) + 8px); height: calc(var(--ph) + 12px); transform-origin: 0 50%; transform-style: preserve-3d;
+  transform: translateZ(calc(var(--thick) + 1px)); transition: transform .65s cubic-bezier(.5, 0, .4, 1); }
+.bk-book.open .bk-cover { transform: translateZ(-1px) rotateY(-180deg); }
+.bk-face { position: absolute; inset: 0; backface-visibility: hidden; }
+.bk-front { background: linear-gradient(135deg, #8e2a1c 0 50%, #7c2316 50%); box-shadow: inset 0 0 0 3px #5a170e; color: #f0cc6a; }
+.bk-back { transform: rotateY(180deg); background: #5a170e; box-shadow: inset 0 0 0 10px #6b1d12; }
+.bk-frame { position: absolute; inset: 7%; border: 3px solid #d6a93e; outline: 1px solid #8a6a1e; outline-offset: 5px; }
+.bk-corner { position: absolute; width: 8%; aspect-ratio: 1; background: linear-gradient(135deg, #f0cc6a 0 50%, #b88a2c 50%); }
+.bk-corner.a { right: 0; top: 0; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+.bk-corner.b { right: 0; bottom: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.bk-ctitle { position: absolute; left: 0; right: 0; top: 22%; text-align: center; }
+.bk-ctitle .k { font-size: calc(var(--pw) * .028); color: #d6a93e; letter-spacing: .2em; }
+.bk-ctitle h1 { margin: .4em 0 .35em; font-family: "Galmuri11", var(--font); font-weight: 400; font-size: calc(var(--pw) * .1); text-shadow: 3px 3px 0 #3e0f08; }
+.bk-ctitle .s { font-size: calc(var(--pw) * .026); color: #d6a93e; }
+.bk-emb { position: absolute; left: 50%; top: 60%; width: 22%; aspect-ratio: 1; translate: -50% 0; background: #d6a93e; clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
+.bk-emb::after { content: ""; position: absolute; inset: 6%; background: #7c2316; clip-path: inherit; }
+.bk-emb i { position: absolute; left: 41%; top: 24%; width: 18%; height: 54%; z-index: 1; background: #f0cc6a; clip-path: polygon(25% 0, 75% 0, 100% 100%, 0 100%); }
+.bk-spine { position: absolute; left: calc(var(--thick) * -1); top: -6px; width: var(--thick); height: calc(var(--ph) + 12px); background: linear-gradient(90deg, #5a170e, #7c2316); transform-origin: 100% 50%; transform: rotateY(-90deg); }
+.bk-book.open .bk-spine { display: none; }
+/* 넘어가는 장 */
+.bk-sheet { position: absolute; left: 0; top: 0; width: var(--pw); height: var(--ph); transform-origin: 0 50%; transform-style: preserve-3d; pointer-events: none; }
+.bk-sheet .bk-face { overflow: hidden; background: linear-gradient(90deg, #d9c592, #e7d6a8 5%, #efe0b4); box-shadow: inset 0 0 0 1px rgba(90, 60, 30, .2); }
+.bk-sheet .bk-sb { transform: rotateY(180deg); background: linear-gradient(270deg, #d9c592, #e7d6a8 5%, #efe0b4); }
+.bk-blank { width: 100%; height: 100%; }
+/* 색인 탭: 장 색 종이 (섬유 결 · 잔 얼룩 · 직선 끝), 바깥 끝에 도트 아이콘. 마우스를 올리면 빼꼼 */
+.bk-tabs { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.bk-tab {
+  position: absolute; left: calc(var(--pw) + 4px); width: 132px; height: 44px; padding: 0 14px 0 18px;
+  display: flex; align-items: center; justify-content: space-between; border: 0; cursor: pointer;
+  font-family: "Galmuri11", var(--font); font-size: 16px; color: #f8efd8; text-shadow: 1px 1px 0 rgba(0, 0, 0, .45);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9 .25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E") 0 0 / 120px 60px,
+    radial-gradient(circle at 20% 30%, rgba(0, 0, 0, .08) 0 1px, transparent 2px) 0 0 / 7px 6px,
+    color-mix(in srgb, var(--c) 80%, #efe2b8);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18), 1px 2px 0 rgba(0, 0, 0, .25);
+  transform: translateZ(calc(var(--zr) + 3px)) rotate(var(--r, -2deg)); transition: transform .15s, filter .15s, left .4s;
+}
+.bk-pg, .bk-tab, .bk-cover { pointer-events: auto; }
+/* 닫힌 책: 색인 탭이 한눈에 보이게 크게 */
+.bk-book:not(.open) .bk-tab { width: 196px; height: 62px; padding: 0 18px 0 24px; font-size: 23px; }
+.bk-book:not(.open) .bk-tab .bk-ic { width: 24px; height: 24px; }
+.bk-book:not(.open) .bk-tab[data-ch="1"] { top: calc(9% + 72px); } .bk-book:not(.open) .bk-tab[data-ch="2"] { top: calc(9% + 144px); }
+.bk-tab[data-ch="0"] { top: 9%; } .bk-tab[data-ch="1"] { top: calc(9% + 52px); --r: 1.5deg; } .bk-tab[data-ch="2"] { top: calc(9% + 104px); --r: -1deg; }
+.bk-tab .bk-ic { width: 16px; height: 16px; flex: none; filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, .45)); }
+.bk-tab:hover, .bk-tab.peek, .bk-tab:focus-visible { transform: translateZ(calc(var(--zr) + 3px)) translateX(14px) rotate(var(--r, -2deg)); filter: brightness(1.1); outline: 0; }
+.bk-tab.cur { transform: translateZ(1px) translateX(10px) rotate(var(--r, -2deg)); }
+/* 지나온 장의 탭 = 왼쪽 쪽 묶음 가장자리 (아이콘이 바깥쪽) */
+.bk-tab.L { left: calc(var(--pw) * -1 - 136px); flex-direction: row-reverse; padding: 0 18px 0 14px; transform: translateZ(1px) rotate(calc(var(--r, -2deg) * -1)); }
+.bk-tab.L:hover, .bk-tab.L.peek, .bk-tab.L:focus-visible { transform: translateZ(1px) translateX(-14px) rotate(calc(var(--r, -2deg) * -1)); }
+.bk-book.narrow .bk-tab, .bk-book.narrow:not(.open) .bk-tab { width: 46px; padding: 0; justify-content: center; font-size: 0; }
+.bk-book.narrow .bk-tab .bk-ic { width: 20px; height: 20px; }
+/* 쪽 안 */
+.bk-kick { font-size: 12px; color: var(--blood); letter-spacing: .2em; }
+.bk-head { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 0 16px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); }
+.bk-head h2 { margin: 0; font-family: "Galmuri14", var(--font); font-weight: 400; font-size: 28px; }
+.bk-head h2 small { font-size: 12px; }
+.bk-sub { margin: 18px 0 8px; font-weight: 400; font-size: 14px; color: var(--blood); }
+.bk-page .field { display: grid; gap: 6px; margin-top: 14px; }
+.bk-page .tabs { flex-wrap: wrap; }
+.bk-page #yamlInput { min-height: calc(var(--ph) - 300px); }
+.bk-page #proseInput { min-height: calc(var(--ph) - 330px); }
+.bk-nav { display: flex; justify-content: flex-start; margin-top: 18px; }
+.bk-nav.end { justify-content: flex-end; }
+.bk-turn { border: 2px solid var(--ink); background: transparent; padding: 6px 12px; cursor: pointer; font-family: var(--font); font-size: 13px; color: var(--ink); }
+.bk-turn:hover, .bk-turn:focus-visible { background: rgba(138, 28, 20, .1); outline: 0; }
+.bk-turn.next { margin-left: auto; }
+.bk-page .recover { margin-top: 28px; padding-top: 8px; border-top: 1px dashed rgba(90, 60, 30, .5); font-size: 13px; color: #6d5a40; }
+.bk-page .recover summary { cursor: pointer; font-size: 12px; }
+.bk-page .recover p { margin: 6px 0; }
+.bk-folio { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-size: 11px; color: #8a7a5c; }
+.bk-page .review { overflow-x: auto; }
+.bk-chap { display: grid; justify-items: center; gap: 8px; padding-top: 12%; text-align: center; }
+.bk-roman { font-family: "Galmuri14", var(--font); font-size: 64px; line-height: 1; color: var(--blood); }
+.bk-chap-t { font-size: 16px; }
+.bk-plate { width: 46%; aspect-ratio: .8; margin-top: 18px; border: 2px solid var(--ink); position: relative; background: repeating-linear-gradient(0deg, var(--ink) 0 1px, transparent 1px 4px); }
+.bk-plate::after { content: ""; position: absolute; left: 42%; top: 18%; width: 16%; height: 82%; background: #efe0b4; clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%); }
+.bk-tables { list-style: none; margin: 0; padding: 0; display: grid; }
+.bk-tables li { display: flex; align-items: stretch; border-bottom: 1px solid rgba(90, 60, 30, .3); }
+.tt-open { position: relative; flex: 1; display: grid; text-align: left; border: 0; background: transparent; cursor: pointer; font-family: var(--font); color: var(--ink); }
+.tt-open b { font-weight: 400; font-size: 15px; }
+.tt-open span { font-size: 11px; color: #6d6253; }
+.tt-open:hover, .tt-open:focus-visible { background: rgba(138, 28, 20, .1); outline: none; }
+.tt-del { border: 0; background: transparent; color: #8a7a62; cursor: pointer; font-size: 16px; }
+.tt-del:hover { color: var(--blood); }
+.bk-file { display: block; margin-top: 10px; padding: 8px 0 0 18px; border-top: 1px dashed rgba(90, 60, 30, .45); font-size: 13px; color: #5d4e3b; cursor: pointer; }
+.bk-file small { color: #8f7f66; margin-left: 4px; }
+.bk-file:hover { color: var(--blood); }
+.bk-error { position: fixed; left: 50%; bottom: 3vh; transform: translateX(-50%); z-index: 9; }
+@media (prefers-reduced-motion: reduce) { .bk-tilt, .bk-book, .bk-blk, .bk-cover, .bk-tab { transition: none; } }
 </style>
 </head>
 <body>
-<!-- 홈: 촛불이 비추는 탁자 위 책 세 권이 메뉴 (책등 = 버튼) -->
-<main id="home" class="title-screen" hidden>
-  <header class="title-logo">
-    <h1>TRPG 테이블</h1>
-    <p>링크 하나로 모이는 4인 실시간 TRPG</p>
-  </header>
-  <nav id="titleBooks" class="title-books" aria-label="메뉴">
-    <button id="newTableBtn" class="spine-btn" type="button" data-i="0"><span>새테이블</span></button>
-    <button id="contBook" class="spine-btn" type="button" data-i="1"><span>이어하기</span></button>
-    <button id="joinBook" class="spine-btn" type="button" data-i="2"><span>참가하기</span></button>
-  </nav>
-  <div id="titleSub" class="title-sub" aria-live="polite" hidden><div class="memo"><span class="memo-text"></span></div></div>
-
-  <section id="contPage" class="title-page" role="dialog" aria-label="이어하기" hidden>
-    <h3>이어하기</h3>
-    <ul id="myTables" class="title-tables"></ul>
-    <p id="noTables" class="small muted" hidden>이 브라우저에 저장된 테이블 없음.</p>
-    <label class="title-file">파일에서 불러오기 <small>.json 세이브</small><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
-    <button class="page-x" type="button" aria-label="닫기">×</button>
-  </section>
-
-  <section id="joinPage" class="title-page" role="dialog" aria-label="참가하기" hidden>
-    <h3>참가하기</h3>
-    <label class="join-row"><span class="sr">초대 링크 또는 코드</span>
-      <input id="joinLinkInput" placeholder="받은 초대 링크나 코드 붙여넣기" />
-      <button id="joinLinkBtn" class="btn small primary enter-btn" type="button" aria-label="들어가기" title="들어가기 (Enter)"></button></label>
-    <button class="page-x" type="button" aria-label="닫기">×</button>
-  </section>
-
-  <p id="homeError" class="error title-error" role="alert"></p>
+<!-- 첫 화면: 탁자 위 붉은 가죽 책. 오른쪽 색인 탭 = 메뉴, 누르면 그 장이 펼쳐짐 -->
+<main id="home" class="book-screen" hidden>
+  <div class="bk-stage" id="bkStage">
+    <div class="bk-tilt" id="bkTilt">
+      <div class="bk-book" id="bkBook">
+        <div class="bk-blk bk-R"><div class="bk-side"></div><div class="bk-bot"></div><div class="bk-pg r" id="bkPgR"></div></div>
+        <div class="bk-blk bk-L"><div class="bk-side"></div><div class="bk-bot"></div><div class="bk-pg l" id="bkPgL"></div></div>
+        <div class="bk-cover" id="bkCover">
+          <div class="bk-face bk-front"><div class="bk-frame"></div><i class="bk-corner a"></i><i class="bk-corner b"></i>
+            <div class="bk-ctitle"><div class="k">탐사자 기록국 장서</div><h1>TRPG 테이블</h1><div class="s">링크 하나로 모이는 4인 실시간 TRPG</div></div>
+            <div class="bk-emb" aria-hidden="true"><i></i></div></div>
+          <div class="bk-face bk-back"></div>
+        </div>
+        <div class="bk-spine"></div>
+        <nav class="bk-tabs" id="bkTabs" aria-label="메뉴">
+          <button class="bk-tab" type="button" data-ch="0" style="--c:#a5321e">새 테이블<svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="1" height="2" fill="#ffd36a"/><rect x="2" y="2" width="3" height="5" fill="currentColor"/></svg></button>
+          <button class="bk-tab" type="button" data-ch="1" style="--c:#8a6a1e">이어하기<svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 0h5v7l-2.5-2-2.5 2z" fill="currentColor"/></svg></button>
+          <button class="bk-tab" type="button" data-ch="2" style="--c:#2c4a6a">참가하기<svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="1" width="3" height="3" fill="currentColor"/><rect x="1" y="2" width="1" height="1" fill="var(--c)"/><rect x="3" y="2" width="4" height="1" fill="currentColor"/><rect x="5" y="3" width="1" height="2" fill="currentColor"/></svg></button>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <p id="homeError" class="error bk-error" role="alert"></p>
+  <!-- 쪽 내용: 펼친 면마다 왼쪽 · 오른쪽 쪽. 보이는 면만 책 안으로 옮겨 넣음 -->
+  <div id="bkStore" hidden>
+    <section class="bk-page" data-spread="0" data-side="L">
+      <div class="bk-kick">제 1 장 · 새 테이블</div>
+      <div class="bk-head"><h2>검사 결과</h2></div>
+      <div id="validateResult" class="validate"></div>
+      <h3 class="bk-sub">사건 흐름</h3>
+      <div id="tab-review"><div id="reviewBox" class="review"></div></div>
+      <div class="bk-folio">1</div>
+    </section>
+    <section class="bk-page" data-spread="0" data-side="R">
+      <div class="bk-head"><h2>시나리오 넣기</h2></div>
+      <div class="tabs">
+        <button class="tab active" data-tab="yaml">시나리오 데이터 (YAML)</button>
+        <button class="tab" data-tab="prose">줄글을 AI로 변환</button>
+        <div id="yamlTools" class="tab-tools">
+        <label id="fileOpenBtn" class="ic-btn box-ic file-btn" data-icon="folder" tabindex="0" role="button" aria-label="파일 열기"><span class="ic-tip">파일 열기</span><input id="scenarioFile" type="file" accept=".yaml,.yml,.json,.txt" hidden /></label>
+        <button id="validateBtn" class="ic-btn box-ic" type="button" data-icon="clipcheck" aria-label="검사"><span class="ic-tip">검사</span></button>
+      </div>
+      </div>
+      <div id="tab-yaml">
+      <button id="sampleBtn" class="sample-link" type="button">샘플 「낡은 등대의 비밀」</button>
+      <textarea id="yamlInput" class="code" spellcheck="false" rows="16"></textarea>
+    </div>
+    <div id="tab-prose" hidden>
+      <p class="muted small">줄글을 붙여넣으면 AI가 사건·단서·판정·캐릭터 규칙으로 나눔. 길이 제한 없음: 긴 글은 뼈대를 먼저 잡고 사건별로 나눠 변환 (사건 수만큼 AI 호출, 시간이 더 걸림). 결과는 사건 흐름 검토 탭으로. 검토 필수. (3번 AI 설정 필요)</p>
+      <textarea id="proseInput" rows="12" placeholder="시나리오 줄글 붙여넣기"></textarea>
+      <div class="row"><button id="convertBtn" class="btn">AI로 변환</button><span id="convertStatus" class="small muted" aria-live="polite"></span></div>
+    </div>
+    
+      <div class="bk-nav"><button class="bk-turn next" type="button" data-to="1">다음 쪽 ▸</button></div>
+      <div class="bk-folio">2</div>
+    </section>
+    <section class="bk-page" data-spread="1" data-side="L">
+      <div class="bk-kick">제 1 장 · 새 테이블</div>
+      <div class="bk-head"><h2>테이블 설정</h2></div>
+    <label class="field"><span>내 닉네임</span><input id="hostNameInput" maxlength="16" placeholder="예: 민수" /></label>
+    <fieldset class="field"><span>진행 방식 (게임 중 변경 가능)</span>
+      <div class="seg">
+        <label><input type="radio" name="mode" value="ai" checked /> AI GM</label>
+        <label><input type="radio" name="mode" value="human" /> 내가 GM <small class="muted">(비상용)</small></label>
+      </div>
+    </fieldset>
+    <label class="check"><input id="hostPlaysInput" type="checkbox" checked /> 나도 캐릭터를 만들어 플레이 <span class="muted small">(AI GM일 때 추천)</span></label>
+    <p class="muted small">최대 4명. 호스트 포함.</p>
+      <details class="recover">
+      <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
+      <p class="muted small">시나리오 넣기 쪽(2쪽)에 같은 시나리오를 넣고 검사 통과 → 친구의 "내 사본" 파일 선택. 장면·단서·캐릭터·로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
+      <label class="btn small file-btn">사본 파일 선택<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
+    </details>
+  
+      <div class="bk-nav"><button class="bk-turn prev" type="button" data-to="0">◂ 이전 쪽</button></div>
+      <div class="bk-folio">3</div>
+    </section>
+    <section class="bk-page" data-spread="1" data-side="R">
+      <div class="bk-head"><h2>AI 설정 <small class="muted">(선택)</small></h2></div>
+      <div id="setupAi"></div>
+<h3 class="sub-title">AI GM 성향</h3>
+<div id="setupStyle"></div>
+      <p id="setupError" class="error" role="alert"></p>
+      <div class="bk-nav end"><button id="openTableBtn" class="btn primary big" disabled>테이블 열기</button></div>
+      <div class="bk-folio">4</div>
+    </section>
+    <section class="bk-page" data-spread="2" data-side="L"><div class="bk-chap"><div class="bk-kick">제 2 장</div><div class="bk-roman">Ⅱ</div><div class="bk-chap-t">이어하기</div><div class="bk-plate" aria-hidden="true"></div></div><div class="bk-folio">27</div></section>
+    <section class="bk-page" data-spread="2" data-side="R">
+      <div class="bk-head"><h2>이어하기</h2></div>
+      <ul id="myTables" class="bk-tables"></ul>
+      <p id="noTables" class="small muted" hidden>이 브라우저에 저장된 테이블 없음.</p>
+      <label class="bk-file">파일에서 불러오기 <small>.json 세이브</small><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
+      <div class="bk-folio">28</div>
+    </section>
+    <section class="bk-page" data-spread="3" data-side="L"><div class="bk-chap"><div class="bk-kick">제 3 장</div><div class="bk-roman">Ⅲ</div><div class="bk-chap-t">참가하기</div><div class="bk-plate" aria-hidden="true"></div></div><div class="bk-folio">53</div></section>
+    <section class="bk-page" data-spread="3" data-side="R">
+      <div class="bk-head"><h2>참가하기</h2></div>
+      <label class="field"><span>초대 링크 또는 방 코드</span><input id="joinLinkInput" placeholder="받은 초대 링크나 코드 붙여넣기" /></label>
+      <label class="field"><span>닉네임 (플레이어 이름)</span><input id="bkJoinName" maxlength="16" placeholder="예: 루나" autocomplete="nickname" /></label>
+      <div class="bk-nav end"><button id="joinLinkBtn" class="btn primary" type="button">자리에 앉기</button></div>
+      <div class="bk-folio">54</div>
+    </section>
+  </div>
 </main>
 
 <!-- 참가 -->
@@ -2562,67 +2620,6 @@ html.has-3d .topbar { box-shadow: none; }
   </section>
 </main>
 
-<!-- 호스트 설정 -->
-<main id="setup" class="setup" hidden>
-  <header class="setup-head">
-    <button id="setupBackBtn" class="btn small ghost">← 처음으로</button>
-    <h1>새 테이블 만들기</h1>
-  </header>
-
-  <section class="card">
-    <div class="step-title"><span class="step">1</span><h2>시나리오 넣기</h2></div>
-    <div class="tabs">
-      <button class="tab active" data-tab="yaml">시나리오 데이터 (YAML)</button>
-      <button class="tab" data-tab="prose">줄글을 AI로 변환</button>
-      <button class="tab" data-tab="review">사건 흐름 검토</button>
-      <div id="yamlTools" class="tab-tools">
-        <label id="fileOpenBtn" class="ic-btn box-ic file-btn" data-icon="folder" tabindex="0" role="button" aria-label="파일 열기"><span class="ic-tip">파일 열기</span><input id="scenarioFile" type="file" accept=".yaml,.yml,.json,.txt" hidden /></label>
-        <button id="validateBtn" class="ic-btn box-ic" type="button" data-icon="clipcheck" aria-label="검사"><span class="ic-tip">검사</span></button>
-      </div>
-    </div>
-    <div id="tab-yaml">
-      <button id="sampleBtn" class="sample-link" type="button">샘플 「낡은 등대의 비밀」</button>
-      <textarea id="yamlInput" class="code" spellcheck="false" rows="16"></textarea>
-    </div>
-    <div id="tab-prose" hidden>
-      <p class="muted small">줄글을 붙여넣으면 AI가 사건·단서·판정·캐릭터 규칙으로 나눔. 길이 제한 없음: 긴 글은 뼈대를 먼저 잡고 사건별로 나눠 변환 (사건 수만큼 AI 호출, 시간이 더 걸림). 결과는 사건 흐름 검토 탭으로. 검토 필수. (3번 AI 설정 필요)</p>
-      <textarea id="proseInput" rows="12" placeholder="시나리오 줄글 붙여넣기"></textarea>
-      <div class="row"><button id="convertBtn" class="btn">AI로 변환</button><span id="convertStatus" class="small muted" aria-live="polite"></span></div>
-    </div>
-    <div id="tab-review" hidden><div id="reviewBox" class="review"></div></div>
-    <div id="validateResult" class="validate"></div>
-  </section>
-
-  <section class="card">
-    <div class="step-title"><span class="step">2</span><h2>테이블 설정</h2></div>
-    <label class="field"><span>내 닉네임</span><input id="hostNameInput" maxlength="16" placeholder="예: 민수" /></label>
-    <fieldset class="field"><span>진행 방식 (게임 중 변경 가능)</span>
-      <div class="seg">
-        <label><input type="radio" name="mode" value="ai" checked /> AI GM</label>
-        <label><input type="radio" name="mode" value="human" /> 내가 GM <small class="muted">(비상용)</small></label>
-      </div>
-    </fieldset>
-    <label class="check"><input id="hostPlaysInput" type="checkbox" checked /> 나도 캐릭터를 만들어 플레이 <span class="muted small">(AI GM일 때 추천)</span></label>
-    <p class="muted small">최대 4명. 호스트 포함.</p>
-  </section>
-
-  <section class="card">
-    <div class="step-title"><span class="step">3</span><h2>AI 설정 <span class="muted small">(선택)</span></h2></div>
-    <div id="setupAi"></div>
-    <h3 class="sub-title">AI GM 성향</h3>
-    <div id="setupStyle"></div>
-  </section>
-
-  <div class="setup-actions">
-    <button id="openTableBtn" class="btn primary big" disabled>테이블 열기</button>
-    <p id="setupError" class="error" role="alert"></p>
-    <details class="recover">
-      <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
-      <p class="muted small">1번에 같은 시나리오를 넣고 검사 통과 → 친구의 "내 사본" 파일 선택. 장면·단서·캐릭터·로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
-      <label class="btn small file-btn">사본 파일 선택<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
-    </details>
-  </div>
-</main>
 
 <!-- 테이블 -->
 <main id="table" class="game" hidden>
@@ -6974,14 +6971,12 @@ const Net = (() => {
  *  - 원근 보정 없는 텍스처 (affine mapping)
  *  - 정점 단위 조명 + 촛불 깜빡임
  *  - 4×4 디더링 + 색 단계 감소, 안개
- * 첫 화면은 촛불이 비추는 책 세 권(메뉴), 그 밖의 화면은 오두막 배경.
- * WebGL이 없으면 Scene3D.ok = false (CSS 배경 + CSS 책등 메뉴로 대체)
+ * 오두막 배경 (첫 화면 책은 DOM). WebGL이 없으면 Scene3D.ok = false (CSS 배경으로 대체)
  * ================================================================== */
 function createScene3D(canvas) {
   const noop = () => {};
   const API = {
-    ok: false, onFrame: noop, setTitle: noop, setIdle: noop, flash: noop,
-    openBook: () => Promise.resolve(), closeBook: () => Promise.resolve(), titleSpread: () => null, titleSpines: () => null,
+    ok: false, setIdle: noop,
   };
   const gl = canvas.getContext("webgl", { antialias: false, alpha: false, preserveDrawingBuffer: false })
     || canvas.getContext("experimental-webgl", { antialias: false, alpha: false });
@@ -7059,7 +7054,6 @@ void main() {
 
   /* ---------------- 행렬 (열 우선) ---------------- */
   const M = {
-    ident: () => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
     mul(a, b) {
       const o = new Array(16);
       for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
@@ -7073,9 +7067,6 @@ void main() {
     },
     T: (x, y, z) => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1],
     S: (x, y = x, z = x) => [x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1],
-    RY(a) { const c = Math.cos(a), s = Math.sin(a); return [c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1]; },
-    RX(a) { const c = Math.cos(a), s = Math.sin(a); return [1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]; },
-    RZ(a) { const c = Math.cos(a), s = Math.sin(a); return [c, s, 0, 0, -s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]; },
     persp(fov, asp, near, far) {
       const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
       return [f / asp, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0];
@@ -7089,26 +7080,6 @@ void main() {
       const d = (a) => -(a[0] * e[0] + a[1] * e[1] + a[2] * e[2]);
       return [x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, d(x), d(y), d(z), 1];
     },
-    tf(m, v) {
-      const w = v[3] ?? 1, o = [0, 0, 0, 0];
-      for (let i = 0; i < 4; i++) o[i] = m[i] * v[0] + m[4 + i] * v[1] + m[8 + i] * v[2] + m[12 + i] * w;
-      return o;
-    },
-    inv(m) {
-      const [a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33] = m;
-      const b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11;
-      const b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30;
-      const b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32;
-      const det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
-      if (!det) return null;
-      const d = 1 / det;
-      return [
-        (a11 * b11 - a12 * b10 + a13 * b09) * d, (a02 * b10 - a01 * b11 - a03 * b09) * d, (a31 * b05 - a32 * b04 + a33 * b03) * d, (a22 * b04 - a21 * b05 - a23 * b03) * d,
-        (a12 * b08 - a10 * b11 - a13 * b07) * d, (a00 * b11 - a02 * b08 + a03 * b07) * d, (a32 * b02 - a30 * b05 - a33 * b01) * d, (a20 * b05 - a22 * b02 + a23 * b01) * d,
-        (a10 * b10 - a11 * b08 + a13 * b06) * d, (a01 * b08 - a00 * b10 - a03 * b06) * d, (a30 * b04 - a31 * b02 + a33 * b00) * d, (a21 * b02 - a20 * b04 - a23 * b00) * d,
-        (a11 * b07 - a10 * b09 - a12 * b06) * d, (a00 * b09 - a01 * b07 + a02 * b06) * d, (a31 * b01 - a30 * b03 - a32 * b00) * d, (a20 * b03 - a21 * b01 + a22 * b00) * d,
-      ];
-    },
   };
   const chain = (...ms) => ms.reduce((a, b) => M.mul(a, b));
 
@@ -7117,22 +7088,12 @@ void main() {
   function mesh(pos, nrm, uv, idx) {
     return { p: buf(new Float32Array(pos)), n: buf(new Float32Array(nrm)), u: buf(new Float32Array(uv)), i: buf(new Uint16Array(idx), gl.ELEMENT_ARRAY_BUFFER), count: idx.length };
   }
-  /** 면 단위 법선 도형 (인덱스 없음) */
-  const newG = () => ({ pos: [], nrm: [], uv: [] });
-  function upload(g) {
-    if (!g.pos.length) return null;
-    return { p: buf(new Float32Array(g.pos)), n: buf(new Float32Array(g.nrm)), u: buf(new Float32Array(g.uv)), count: g.pos.length / 3 };
-  }
-  function bind(m) {
+  function drawMesh(m) {
     gl.bindBuffer(gl.ARRAY_BUFFER, m.p); gl.enableVertexAttribArray(A.pos); gl.vertexAttribPointer(A.pos, 3, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, m.n); gl.enableVertexAttribArray(A.nrm); gl.vertexAttribPointer(A.nrm, 3, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, m.u); gl.enableVertexAttribArray(A.uv); gl.vertexAttribPointer(A.uv, 2, gl.FLOAT, false, 0, 0);
-    if (m.i) gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.i);
-  }
-  function drawMesh(m) {
-    bind(m);
-    if (m.i) gl.drawElements(gl.TRIANGLES, m.count, gl.UNSIGNED_SHORT, 0);
-    else gl.drawArrays(gl.TRIANGLES, 0, m.count);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.i);
+    gl.drawElements(gl.TRIANGLES, m.count, gl.UNSIGNED_SHORT, 0);
   }
 
   /** 상자 (밑면 중심이 원점). t = 텍스처 반복 비율 */
@@ -7179,42 +7140,6 @@ void main() {
     return mesh([-w / 2, 0, 0, w / 2, 0, 0, w / 2, h, 0, -w / 2, h, 0], [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], [0, 0, 1, 0, 1, 1, 0, 1], [0, 1, 2, 0, 2, 3]);
   }
 
-  /* --- 면 법선 자동 정렬 + 월드 좌표 UV --- */
-  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-  const worldUV = (v, n) => (Math.abs(n[1]) > .6 ? [v[0], v[2]] : Math.abs(n[0]) > .6 ? [v[2], v[1]] : [v[0], v[1]]);
-  function tri(g, a, b, c, ref, uvf = worldUV) {
-    let n = cross(sub(b, a), sub(c, a));
-    const l = Math.hypot(...n) || 1; n = n.map((v) => v / l);
-    const m = sub([(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3, (a[2] + b[2] + c[2]) / 3], ref);
-    if (n[0] * m[0] + n[1] * m[1] + n[2] * m[2] < 0) n = n.map((v) => -v);
-    for (const v of [a, b, c]) { g.pos.push(...v); g.nrm.push(...n); g.uv.push(...uvf(v, n)); }
-  }
-  const quadG = (g, a, b, c, d, ref, uvf) => { tri(g, a, b, c, ref, uvf); tri(g, a, c, d, ref, uvf); };
-  function boxG(g, x0, x1, y0, y1, z0, z1, side) {
-    const r = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], s = side || g;
-    quadG(g, [x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1], r);
-    quadG(s, [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], r);
-    quadG(s, [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], r);
-    quadG(s, [x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], r);
-    quadG(s, [x1, y0, z0], [x1, y0, z1], [x1, y1, z1], [x1, y1, z0], r);
-  }
-  function frustum(g, cx, cz, y0, y1, r0, r1, n = 6, rot = 0) {
-    const ref = [cx, (y0 + y1) / 2, cz];
-    const R = (r, y, i) => { const a = rot + i / n * Math.PI * 2; return [cx + Math.cos(a) * r, y, cz + Math.sin(a) * r]; };
-    const uvf = (v) => [Math.atan2(v[2] - cz, v[0] - cx), v[1]];
-    for (let i = 0; i < n; i++) {
-      const j = (i + 1) % n;
-      quadG(g, R(r0, y0, i), R(r0, y0, j), R(r1, y1, j), R(r1, y1, i), ref, uvf);
-      if (r1 > 0) tri(g, R(r1, y1, i), R(r1, y1, j), [cx, y1, cz], [cx, y0, cz], uvf);
-      tri(g, R(r0, y0, j), R(r0, y0, i), [cx, y0, cz], [cx, y1, cz], uvf);
-    }
-  }
-  function octaG(g, cx, cy, cz, r, ry = r) {
-    const v = [[r, 0, 0], [-r, 0, 0], [0, ry, 0], [0, -ry, 0], [0, 0, r], [0, 0, -r]].map((p) => [p[0] + cx, p[1] + cy, p[2] + cz]);
-    for (const [a, b, c] of [[0, 2, 4], [2, 1, 4], [1, 3, 4], [3, 0, 4], [2, 0, 5], [1, 2, 5], [3, 1, 5], [0, 3, 5]]) tri(g, v[a], v[b], v[c], [cx, cy, cz]);
-  }
-
   /* ---------------- 텍스처 (작게 그려서 확대) ---------------- */
   let seed = 7;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -7239,7 +7164,6 @@ void main() {
       g.fillRect(x, y, 1, 1);
     }
   };
-  const flat = (rgb, amp = .15) => tex(8, (g, s) => noise(g, s, rgb, amp));
   const T = {
     planks: tex(32, (g, s) => {           // 세로 판자벽
       noise(g, s, [58, 38, 24], .25);
@@ -7283,7 +7207,6 @@ void main() {
     }, true)),
     // 불꽃 둘레의 빛무리 (디더로 구멍 뚫어 반투명처럼)
     glow: tex(16, (g, s) => { const d = g.createRadialGradient(8, 8, 0, 8, 8, 8); d.addColorStop(0, "rgba(255,200,110,1)"); d.addColorStop(.6, "rgba(255,150,60,.7)"); d.addColorStop(1, "rgba(255,120,40,0)"); g.fillStyle = d; g.fillRect(0, 0, s, s); }, true),
-    white: tex(4, (g, s) => { g.fillStyle = "#fff"; g.fillRect(0, 0, s, s); }),
   };
   const bookTex = [T.book([120, 28, 22]), T.book([46, 72, 52]), T.book([40, 52, 86])];
 
@@ -7325,244 +7248,9 @@ void main() {
   ];
 
 
-  /* ================================================================
-   * 첫 화면: 촛불 하나가 비추는 책 세 권(메뉴) + TRPG 소품
-   * ================================================================ */
-  /* 책 펼친 면 글줄: 위아래 여백, 3px 간격 가로줄, 문단 끝 짧은 줄 + 들여쓰기 */
-  function pageTex(initial) {
-    return tex(32, (g, s) => {
-      noise(g, s, [232, 220, 188], .05);
-      const ML = 3, MR = 3, top = 4, bot = s - 3;
-      let indent = initial ? 5 : 2, n = 0;
-      g.fillStyle = "rgba(60,40,20,.45)";
-      for (let y = top; y < bot; y += 3, n++) {
-        const last = (n % 4 === 3) || y + 3 >= bot;
-        const x0 = ML + indent, x1 = last ? x0 + 7 + (rnd() * 10 | 0) : s - MR - (rnd() * 2 | 0);
-        g.fillRect(x0, y, x1 - x0, 1);
-        indent = last ? 2 : 0;
-      }
-      if (initial) { g.fillStyle = "rgba(122,25,19,.8)"; g.fillRect(ML, top, 3, 4); }
-    });
-  }
-  const TTX = {
-    leather: tex(16, (g, s) => noise(g, s, [92, 40, 26], .2)),
-    pagesV: tex(16, (g, s) => { noise(g, s, [228, 214, 178], .06); g.fillStyle = "rgba(120,90,50,.35)"; for (let x = 1; x < s; x += 2) g.fillRect(x, 0, 1, s); }),
-    spine: tex(32, (g, s) => {
-      noise(g, s, [200, 200, 200], .12);
-      g.fillStyle = "#d9b25a"; for (const y of [1, 2, 4, 5, 26, 27, 29, 30]) g.fillRect(2, y, s - 4, 1);
-      g.fillStyle = "rgba(0,0,0,.25)"; g.fillRect(0, 0, 2, s); g.fillRect(s - 2, 0, 2, s);
-    }),
-    env: flat([232, 218, 182], .06), flap: flat([206, 190, 150], .06), seal: flat([150, 30, 22], .12), gold: flat([226, 180, 80], .15),
-    sheet: tex(32, (g, s) => {
-      noise(g, s, [226, 212, 176], .06); g.fillStyle = "#7a1913"; g.fillRect(4, 3, 14, 2);
-      g.fillStyle = "rgba(60,40,20,.55)"; for (let y = 8; y < 29; y += 3) g.fillRect(4, y, 18 + (rnd() * 8 | 0), 1);
-      g.strokeStyle = "rgba(60,40,20,.5)"; g.strokeRect(22.5, 8.5, 6, 6);
-    }),
-    ivory: flat([226, 214, 188], .06), dred: flat([150, 26, 20], .1),
-    d6: tex(16, (g, s) => { noise(g, s, [232, 222, 196], .04); g.fillStyle = "#2a1810"; for (const [x, y] of [[3, 3], [11, 3], [3, 11], [11, 11], [7, 7], [0, 0], [15, 0], [0, 15], [15, 15]]) g.fillRect(x, y, 2, 2); }),
-    coin: tex(8, (g, s) => { noise(g, s, [212, 160, 60], .18); g.fillStyle = "rgba(120,80,20,.6)"; g.fillRect(2, 2, 4, 4); }),
-    feather: flat([236, 230, 214], .08), ink: flat([24, 34, 32], .3), wood: flat([96, 58, 30], .2),
-    letter: tex(16, (g, s) => { noise(g, s, [236, 224, 194], .05); g.fillStyle = "rgba(120,90,60,.18)"; for (let y = 2; y < s; y += 2) g.fillRect(1, y, s - 2, 1); }),
-    inkGlass: tex(16, (g, s) => { noise(g, s, [70, 120, 200], .18); g.fillStyle = "rgba(14,20,60,.45)"; g.fillRect(0, 0, s, 5); g.fillStyle = "rgba(190,220,255,.55)"; g.fillRect(3, 5, 1, 9); g.fillRect(11, 7, 1, 4); }),
-    // 펼친 면: 캔버스 그대로 화면에 보임 (가로 = 읽는 방향, 세로 = 줄 쌓임). 왼쪽 면엔 붉은 머리글자
-    pageL: pageTex(true),
-    pageR: pageTex(false),
-
-  };
-  const TB = { z: -.95, d: .62, candle: { x: .78, z: -.88 } };
-  const BOOKS = [{ col: [.2, .33, .24], w: .29, h: .93 }, { col: [.42, .12, .09], w: .3, h: 1 }, { col: [.2, .26, .42], w: .28, h: .97 }];   // 새테이블 · 이어하기 · 참가하기
-  {
-    let bx = -.42;
-    for (const b of BOOKS) {
-      const { w, h } = b, d = TB.d;
-      b.x = bx + w / 2; bx += w + .035; b.pull = 0; b.rot = 0;
-      const cover = newG(), pages = newG(), face = newG();
-      boxG(cover, -w / 2, w / 2, 0, h, d / 2 - .02, d / 2);
-      boxG(cover, -w / 2, -w / 2 + .02, 0, h, -d / 2, d / 2); boxG(cover, w / 2 - .02, w / 2, 0, h, -d / 2, d / 2);
-      boxG(pages, -w / 2 + .02, w / 2 - .02, .02, h - .02, -d / 2 + .01, d / 2 - .02);
-      const z = d / 2 + .001;
-      quadG(face, [-w / 2, 0, z], [w / 2, 0, z], [w / 2, h, z], [-w / 2, h, z], [0, h / 2, 0], (v) => [(v[0] + w / 2) / w, v[1] / h]);
-      b.meshes = [{ mesh: upload(cover), t: TTX.leather }, { mesh: upload(pages), t: TTX.pagesV, pages: true }, { mesh: upload(face), t: TTX.spine, face: true }];
-      // 눕혀서 펼치는 책: 등뼈 = x축(z=0), 뒤쪽 반(z<0)은 고정, 앞쪽 반은 등뼈를 축으로 180° 넘어감
-      const L = h, Tk = w, D = d;
-      const sp = newG();
-      quadG(sp, [-L / 2, 0, .001], [L / 2, 0, .001], [L / 2, Tk, .001], [-L / 2, Tk, .001], [0, Tk / 2, -1], (v) => [v[1] / Tk, (v[0] + L / 2) / L]);
-      const leaf = newG(), lx0 = -L / 2 + .03, lx1 = L / 2 - .03, lz = D - .03;
-      for (let j = 0; j < 8; j++) for (let i = 0; i < 4; i++) {   // 잘게 나눠 아핀 UV 쏠림 방지
-        const xa = lx0 + (lx1 - lx0) * j / 8, xb = lx0 + (lx1 - lx0) * (j + 1) / 8, za = -lz * i / 4, zb = -lz * (i + 1) / 4;
-        for (const [y, up] of [[.006, 1], [0, -1]]) {   // 윗면 = 왼쪽 면 배치, 아랫면(넘어간 뒤 위) = 오른쪽 면 배치
-          const uvf = (v) => { const w = Math.abs(v[2]) / lz; return [up > 0 ? 1 - w : w, (v[0] - lx0) / (lx1 - lx0)]; };
-          quadG(leaf, [xa, y, za], [xb, y, za], [xb, y, zb], [xa, y, zb], [(xa + xb) / 2, y - up, (za + zb) / 2], uvf);
-        }
-      }
-      b.open = { L, Tk, D, spine: { mesh: upload(sp), t: TTX.spine }, leaf: { mesh: upload(leaf), t: TTX.pageR }, cache: new Map() };
-    }
-  }
-  const TPROPS = [];
-  const LETTER = { x: -1.02, z: -.12, r: .28, w: .5, d: .66 };
-  let QUILL = null;
-  {
-    const add = (g, t, extra = {}) => TPROPS.push({ mesh: upload(g), t, ...extra });
-    const rotAt = (x, z, a) => chain(M.T(x, 0, z), M.RY(a), M.T(-x, 0, -z));
-    let g = newG(); boxG(g, -.04, .04, 0, .5, -.3, .3); boxG(g, -.04, .3, 0, .03, -.3, .3); add(g, TTX.gold, { model: M.T(-.49, 0, TB.z) });
-    const C = TB.candle;
-    g = newG(); frustum(g, C.x, C.z, 0, .05, .22, .22, 8); add(g, T.metal);
-    g = newG(); frustum(g, C.x, C.z, .05, .48, .085, .08, 7); add(g, T.wax, { glow: .45 });
-    // 편지 (왼쪽 앞)
-    { const ox = -1.38, oz = -.78, m = rotAt(ox, oz, .5);
-      g = newG(); boxG(g, ox - .3, ox + .3, 0, .015, oz - .2, oz + .2); add(g, TTX.env, { model: m });
-      g = newG(); tri(g, [ox - .3, .03, oz - .2], [ox + .3, .03, oz - .2], [ox, .036, oz + .04], [ox, -1, oz]); add(g, TTX.flap, { model: m });
-      g = newG(); frustum(g, ox, oz + .03, .03, .055, .07, .06, 8); add(g, TTX.seal, { model: m }); }
-    // 쓰다 만 초대장 편지지 (왼쪽 앞): 종이 + 옅은 괘선. 글줄·깃펜은 drawWriting (움직이지 않음)
-    { const L = LETTER, m = rotAt(L.x, L.z, L.r);
-      g = newG(); boxG(g, L.x - L.w / 2, L.x + L.w / 2, 0, .006, L.z - L.d / 2, L.z + L.d / 2); add(g, TTX.letter, { model: m, tint: [1.05, 1.02, .95] }); }
-    // 밀랍 막대 + 인장 도장
-    { g = newG(); frustum(g, 0, 0, 0, .34, .028, .028, 6); add(g, TTX.seal, { model: chain(M.T(-1.6, .028, -.25), M.RY(.9), M.RX(Math.PI / 2), M.T(0, -.17, 0)) });
-      g = newG(); frustum(g, -.6, -.62, 0, .035, .085, .085, 10); frustum(g, -.6, -.62, .035, .06, .05, .04, 8); add(g, TTX.gold);
-      g = newG(); frustum(g, -.6, -.62, .06, .26, .035, .05, 7); octaG(g, -.6, .29, -.62, .055, .045); add(g, TTX.wood);
-      g = newG(); frustum(g, -.82, -.42, 0, .012, .07, .062, 9); add(g, TTX.seal); }   // 탁자에 떨어진 밀랍 방울
-    // 캐릭터 시트 (오른쪽 앞)
-    { const ox = 1.25, oz = -.28, m = rotAt(ox, oz, -.4);
-      g = newG(); boxG(g, ox - .26, ox + .26, 0, .008, oz - .36, oz + .36); add(g, TTX.env, { model: m });
-      g = newG(); quadG(g, [ox - .26, .022, oz + .36], [ox + .26, .022, oz + .36], [ox + .26, .022, oz - .36], [ox - .26, .022, oz - .36], [ox, -1, oz], (v) => [(v[0] - ox + .26) / .52, 1 - (v[2] - oz + .36) / .72]);
-      add(g, TTX.sheet, { model: m }); }
-    // 금화
-    g = newG(); for (const [x, z, y] of [[-.62, -.05, 0], [-.62, -.05, .022], [-.62, -.05, .044], [-.6, -.04, .066], [-.42, .08, 0], [.98, -.62, 0]]) frustum(g, x, z, y, y + .02, .075, .075, 10); add(g, TTX.coin, { under: true });
-    // 주사위: d20 둘 + d6
-    const icosa = (g, cx, cy, cz, r) => {
-      const p = (1 + Math.sqrt(5)) / 2;
-      const v = [[-1, p, 0], [1, p, 0], [-1, -p, 0], [1, -p, 0], [0, -1, p], [0, 1, p], [0, -1, -p], [0, 1, -p], [p, 0, -1], [p, 0, 1], [-p, 0, -1], [-p, 0, 1]].map((a) => { const l = Math.hypot(...a); return [a[0] / l * r + cx, a[1] / l * r + cy, a[2] / l * r + cz]; });
-      for (const [a, b, c] of [[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11], [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8], [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9], [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]]) tri(g, v[a], v[b], v[c], [cx, cy, cz]);
-    };
-    g = newG(); icosa(g, .25, .085, -.22, .09); add(g, TTX.ivory, { under: true });
-    g = newG(); icosa(g, -.02, .075, .2, .08); add(g, TTX.dred, { under: true });
-    g = newG(); boxG(g, -.5, .5, 0, 1, -.5, .5); add(g, TTX.d6, { under: true, model: chain(M.T(.5, 0, -.1), M.RY(.6), M.S(.11)) });
-    // 잉크병 + 깃펜 (뒤 오른쪽)
-    // 잉크병: 푸른 유리 몸통 + 하이라이트 + 놋쇠 뚜껑 테 (탁자 갈색과 대비)
-    { const ix = 1.75, iz = -1.45, sc = chain(M.T(ix, 0, iz), M.S(.7), M.T(-ix, 0, -iz));   // 30% 작게
-      g = newG(); frustum(g, ix, iz, 0, .06, .26, .27, 8, Math.PI / 8); frustum(g, ix, iz, .06, .34, .27, .24, 8, Math.PI / 8); frustum(g, ix, iz, .34, .4, .24, .11, 8, Math.PI / 8); add(g, TTX.inkGlass, { tint: [1.25, 1.3, 1.45], model: sc });
-      g = newG(); frustum(g, ix, iz, .4, .47, .1, .1, 8, Math.PI / 8); add(g, TTX.gold, { model: sc });
-      g = newG(); frustum(g, ix, iz, .47, .5, .12, .12, 8, Math.PI / 8); add(g, TTX.gold, { tint: [.8, .7, .5], model: sc });
-      g = newG(); boxG(g, ix - .2, ix - .17, .1, .28, iz + .2, iz + .23); add(g, T.white, { glow: .6, tint: [.75, .85, 1], model: sc }); }
-    g = newG(); boxG(g, -.012, .012, 0, .75, -.012, .012);
-    for (let i = 0; i < 6; i++) { const y = .3 + i * .075, w = .02 + Math.sin((i + 1) / 7 * Math.PI) * .06; boxG(g, -w, w, y, y + .08, -.006, .006); }
-    QUILL = { mesh: upload(g), t: TTX.feather };   // 깃펜은 편지지 위 반쯤 쓴 줄 끝에 놓여 있음
-  }
-  // 펜 글씨 한 줄 = 짧은 획 여러 개 (x 0..1)
-  const INKLINE = (() => { const g = newG(); let x = 0; while (x < 1) { const w = .12 + rnd() * .16, y = (rnd() - .5) * .003; boxG(g, x, Math.min(1, x + w), .0, .002, -.0035 + y, .0035 + y); x += w + .012 + rnd() * .018; } return upload(g); })();
-  const TFLAME = { mesh: G.flame, x: TB.candle.x, y: .46, z: TB.candle.z };
-  let title = null;            // { sel, open: { i, p, dir, done } }
-  let flashT = -9;             // 클릭 때 촛불이 확 타오른 시각
-  const SPREAD = [.12, .02, .12];   // 화면 가운데 종이 창과 겹치지 않게 앞쪽(화면 아래)에   // 펼친 책이 놓일 자리
-
   /* ---------------- 카메라 ---------------- */
   const ROOM = { fov: 52, fog: [3.2, 6.5], amb: [.14, .105, .09], dirc: [0, 0, 0] };
   let cam = null;             // 지금 카메라·조명 (목표 프리셋으로 부드럽게 다가감)
-  let lastVP = null;
-  const frameFns = [];
-
-  /* 쓰다 만 초대장 (멈춰 있는 소품): 다 쓴 줄 5개 + 반쯤 쓴 줄, 그 끝에 깃펜이 놓여 있음 */
-  const LINE_LEN = [.86, .9, .78, .88, .84, .55];
-  function drawWriting() {
-    const L = LETTER, sheet = chain(M.T(L.x, 0, L.z), M.RY(L.r));
-    const x0 = -L.w / 2 + .05, span = L.w - .1, zAt = (i) => -L.d / 2 + .08 + i * .05;
-    set({ t: T.white, tint: [.32, .2, .12] });
-    LINE_LEN.forEach((len, i) => {
-      gl.uniformMatrix4fv(U.u_model, false, chain(sheet, M.T(x0, .02, zAt(i)), M.S(len * span, 1, 1)));
-      drawMesh(INKLINE);
-    });
-    if (!QUILL) return;
-    const last = LINE_LEN.length - 1;
-    const tip = M.tf(sheet, [x0 + LINE_LEN[last] * span, .025, zAt(last), 1]);
-    set({ ...QUILL, tint: [1.1, 1.02, .9], glow: .15 });
-    gl.uniformMatrix4fv(U.u_model, false, chain(M.T(tip[0], tip[1], tip[2]), M.RY(L.r - .9), M.RZ(-.55), M.RX(-.2), M.S(.7)));
-    drawMesh(QUILL.mesh);
-  }
-
-  /* 책을 뽑아 눕혀 펼치기 (p: 0 → 1, 이어진 한 동작)
-   *  0   ~ .18  뽑기: 책장에서 앞으로 미끄러져 나옴
-   *  .18 ~ .42  들어 올려 옆으로 눕힘 (표지가 위로), 탁자 앞쪽으로 옮김
-   *  .42 ~ .55  내려놓기: 살짝 튀었다 가라앉음
-   *  .55 ~ .78  표지 넘기기: 살짝 들렸다가 넘어감
-   *  .74 ~ 1    낱장 세 장이 차례로 넘어감 */
-  const sm = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
-  const seg = (p, a, b) => sm((p - a) / (b - a));
-  // 눕힌 책 좌표(x=길이, y=두께, z=폭, 등뼈 z=0) → 세운 책 좌표
-  const LIE = (o) => [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, -o.Tk / 2, o.L / 2, o.D / 2, 1];
-  /* 반쪽 책 (표지판 + 종이 뭉치). 등뼈 z=0, 바깥 가장자리 z=-D(뒤쪽 반) / +D(앞쪽 반)
-   * k = 펼친 정도: 0이면 납작한 직육면체, 1이면 종이가 등뼈 쪽으로 휘어 들어가고 가운데가 살짝 부풂 */
-  const CT = .022, INS = .03, NSEG = 10, NXS = 8;
-  function halfBook(o, k, dir) {
-    const L = o.L, D = o.D, Hp = o.Tk / 2 - CT;
-    const top = (u) => CT + Hp * (1 - k * .62 * Math.pow(1 - u, 3) + k * .14 * Math.sin(Math.PI * u) - k * .06 * u);
-    const Z = (u) => dir * u * (D - INS);
-    const cover = newG(), face = newG(), edge = newG();
-    boxG(cover, -L / 2, L / 2, 0, CT, dir < 0 ? -D : 0, dir < 0 ? 0 : D);
-    const x0 = -L / 2 + INS, x1 = L / 2 - INS;
-    for (let i = 0; i < NSEG; i++) {
-      const u0 = i / NSEG, u1 = (i + 1) / NSEG, ya = top(u0), yb = top(u1), za = Z(u0), zb = Z(u1);
-      // 윗면 (글줄 텍스처: 가로 = 폭 방향, 세로 = 길이 방향)
-      // 길이 방향도 잘게 나눔: 아핀 UV라 큰 사각형 하나면 원근 때문에 글줄이 쏠리고 비어 보임
-      // 화면 기준: 텍스처 가로 = 왼쪽→오른쪽(왼쪽 면은 바깥→등뼈, 오른쪽 면은 등뼈→바깥), 세로 = 위(먼 쪽)→아래
-      const uvf = (v) => { const w = Math.abs(v[2]) / (D - INS); return [dir < 0 ? 1 - w : w, (v[0] - x0) / (x1 - x0)]; };
-      for (let j = 0; j < NXS; j++) {
-        const xa = x0 + (x1 - x0) * j / NXS, xb = x0 + (x1 - x0) * (j + 1) / NXS;
-        quadG(face, [xa, ya, za], [xb, ya, za], [xb, yb, zb], [xa, yb, zb], [(xa + xb) / 2, -5, (za + zb) / 2], uvf);
-      }
-      // 양 끝 단면 (종이 결)
-      for (const x of [x0, x1]) quadG(edge, [x, CT, za], [x, CT, zb], [x, yb, zb], [x, ya, za], [x * 3, (ya + CT) / 2, (za + zb) / 2], (v) => [v[2] * 6, v[1] * 30]);
-    }
-    const ze = Z(1), ye = top(1);
-    quadG(edge, [x0, CT, ze], [x1, CT, ze], [x1, ye, ze], [x0, ye, ze], [0, ye / 2, ze * 3], (v) => [v[0] * 6, v[1] * 30]);
-    return [{ mesh: upload(cover), t: TTX.leather, cover: true }, { mesh: upload(face), t: dir < 0 ? TTX.pageL : TTX.pageR, pages: true }, { mesh: upload(edge), t: TTX.pagesV, pages: true }];
-  }
-  function bookHalves(o, k) {
-    const key = Math.round(k * 12);
-    if (!o.cache.has(key)) o.cache.set(key, { back: halfBook(o, key / 12, -1), front: halfBook(o, key / 12, 1) });
-    return o.cache.get(key);
-  }
-  function bookPose(b, p) {
-    const o = b.open;
-    const l = seg(p, 0, .3), d = seg(p, .3, .36);
-    const yaw = (lv) => b.rot * (1 - lv) - Math.sin(lv * Math.PI) * .2 + lv * Math.PI / 2;  // 끝에 등뼈가 앞뒤로 → 왼쪽·오른쪽 면
-    const roll = (lv) => lv * Math.PI / 2;
-    // 다 눕힌 자세에서 등뼈 가운데가 SPREAD에 오도록 위치를 거꾸로 계산
-    const R1 = chain(M.RY(yaw(1)), M.RZ(roll(1)), LIE(o));
-    const c = M.tf(R1, [0, 0, 0, 1]);
-    const end = [SPREAD[0] - c[0], .01 - M.tf(R1, [0, 0, -o.D / 2, 1])[1], SPREAD[2] - c[2]];
-    const start = [b.x, 0, TB.z + b.pull];
-    const lifted = [(start[0] + end[0]) / 2, .5, (start[2] + end[2]) / 2 + .2];
-    const pos = p < .3
-      ? [0, 1, 2].map((i) => (1 - l) * (1 - l) * start[i] + 2 * (1 - l) * l * lifted[i] + l * l * (i === 1 ? end[1] + .1 : end[i]))
-      : [end[0], end[1] + .1 * (1 - d), end[2]];
-    return chain(M.T(...pos), M.RY(yaw(l)), M.RZ(roll(l)), LIE(o));
-  }
-  function drawOpenBook(b, p) {
-    const o = b.open, W = bookPose(b, p), yh = o.Tk / 2;
-    // 표지: 한 번에 넘어감. th: 0 = 닫힘, π = 다 펼침
-    const th = Math.PI * seg(p, .36, .54);
-    const k = sm((th / Math.PI - .35) / .65);              // 펼쳐질수록 종이가 휨
-    const hv = bookHalves(o, k);
-    const hinge = (ang) => chain(W, M.T(0, yh, 0), M.RX(ang), M.T(0, -yh, 0));
-    const col = b.col.map((v) => v * 1.25 * .95);
-    const draw = (model, q, tint, glow = 0) => { gl.uniformMatrix4fv(U.u_model, false, model); set({ t: q.t, tint, glow }); drawMesh(q.mesh); };
-    const tintOf = (q) => (q.cover ? col : [.97, .95, .92]);
-    for (const q of hv.back) draw(W, q, tintOf(q));
-    for (const q of hv.front) draw(hinge(th - Math.PI), q, tintOf(q));   // 위로 들려 넘어가는 방향
-    if (th < 1.1) draw(W, o.spine, col.map((v) => v * 1.1));
-    // 낱장: 표지가 넘어간 뒤 뒤쪽 면에서 앞쪽 면으로 차례로 펄럭 넘어감
-    const lift = CT + (o.Tk / 2 - CT) * (1 + .1);
-    // '차라락': 표지 뒤를 따라 낱장 9장이 겹치며 빠르게 넘어감 (빨리 들렸다가 천천히 내려앉음)
-    // 낱장 6장: 한 장씩 넘어가는 게 보이게 간격을 두고, 각 장은 0.25초쯤 걸려 넘어감
-    for (let n = 0; n < 6; n++) {
-      const a0 = .5 + n * .06, x = (p - a0) / .18;   // 마지막 장도 p=.98에 끝남 (부동소수 오차로 1에 못 미쳐 남아 있던 장 제거)
-      if (x <= 0 || x >= .999) continue;
-      const f = 1 - Math.pow(1 - x, 2.2);
-      const k = .02 * ((n * 7) % 3);
-      draw(chain(W, M.T(0, lift + n * .002, 0), M.RX(f * Math.PI), M.T(0, Math.sin(f * Math.PI) * (.03 + .01 * (n % 3)), 0)), o.leaf, [1.22 - k, .96 - k, .6 - k], .75);   // 촛불에 비친 펼친 면과 같은 색으로 (빛 방향과 무관하게)   // 내려앉을수록 밑의 종이 밝기에 맞춰 이음매 없이 사라지게   // 넘어가는 동안 빛을 등져도 종이색이 보이게 은은하게 밝힘
-    }
-    b.spreadModel = W;
-  }
 
   /* ---------------- 그리기 ---------------- */
   gl.enable(gl.DEPTH_TEST);   // 면 뒤집힘 걱정 없이 양면 그림 (저폴리라 부담 없음)
@@ -7585,12 +7273,6 @@ void main() {
   resize();
 
   const lerp = (a, b, t) => a + (b - a) * t;
-  function set(it) {
-    gl.uniform1f(U.u_emissive, it.glow ?? 0);
-    gl.uniform1f(U.u_ghost, it.ghost ?? 0);
-    gl.uniform3fv(U.u_tint, it.tint ?? [1, 1, 1]);
-    gl.bindTexture(gl.TEXTURE_2D, it.t);
-  }
 
   // 촛불 깜빡임: 일정하지 않은 간격으로 단계적으로 바뀜
   const flick = [1, .7];
@@ -7609,7 +7291,7 @@ void main() {
   function frame(now) {
     frameId = null;
     if (!active || document.hidden) return;
-    const still = idle && !title;   // 테이블 화면: 가장자리만 보이므로 한 장 그리고 멈춤 (크기 바뀌면 다시 한 장)
+    const still = idle;   // 테이블 화면: 가장자리만 보이므로 한 장 그리고 멈춤 (크기 바뀌면 다시 한 장)
     if (!still) scheduleFrame();
     if (!still && now - last < 33) return;   // 표시 중 30fps, 숨긴 탭에서는 RAF 자체 중단
     last = now;
@@ -7623,20 +7305,7 @@ void main() {
     const sway = reduceMotion ? 0 : 1;
     const f0 = flames[0], f1 = flames[1];
     const lightsRoom = { l0p: [f0.x, f0.y + .15, f0.z], l0c: [2.6, 1.55, .75], l1p: [f1.x, f1.y + .1, f1.z], l1c: [1.3, .75, .35], att: [.32, .45] };
-    let want;
-    if (title) {
-      // 첫 화면: 책 더미를 비추는 촛불 하나. 세로 화면이면 카메라를 뒤로 물림
-      const asp = innerWidth / innerHeight;
-      const tgt = [asp < 1 ? .15 : .22, .3, -.85], base = [.2, 1.35, 2.35];
-      const d0 = Math.hypot(base[0] - tgt[0], base[1] - tgt[1], base[2] - tgt[2]);
-      const d1 = Math.max(d0, .85 / (Math.tan(23 * Math.PI / 180) * asp));
-      const eye = base.map((v, i) => tgt[i] + (v - tgt[i]) * d1 / d0);
-      const sb = BOOKS[title.sel] ?? { x: .02, idle: true };
-      want = { eye, target: tgt, fov: 46, fog: [3.6 + (d1 - d0), 7], amb: [.15, .115, .09], dirc: [.24, .19, .14], snap: 3,
-        l0p: [TB.candle.x, .7, TB.candle.z + .06], l0c: [2.6, 1.5, .62].map((v) => v * (1 + 1.3 * Math.exp(-(t - flashT) * 4))), l1p: [sb.x + .15, .9, TB.z + .9], l1c: sb.idle ? [.6, .42, .24] : [.85, .6, .32], att: [.8, .9] };
-    } else {
-      want = { eye: [Math.sin(t * .23) * .06 * sway, 2.45 + Math.sin(t * .41) * .025 * sway, 3.05], target: [0, -.15, -1.25], fov: ROOM.fov, fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom };
-    }
+    const want = { eye: [Math.sin(t * .23) * .06 * sway, 2.45 + Math.sin(t * .41) * .025 * sway, 3.05], target: [0, -.15, -1.25], fov: ROOM.fov, fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom };
     if (!cam || reduceMotion) cam = JSON.parse(JSON.stringify(want));
     else {
       const k = 1 - Math.exp(-dt * 4);
@@ -7645,7 +7314,6 @@ void main() {
     const eye = cam.eye;
     const proj = M.persp(cam.fov * Math.PI / 180, W / H, .3, 30);   // 가까운 면을 멀리 → 깊이 정밀도 확보 (얇게 겹친 종이·글씨 깜빡임 방지)
     const view = M.lookAt(eye, cam.target);
-    lastVP = M.mul(proj, view);
     gl.uniformMatrix4fv(U.u_proj, false, proj);
     gl.uniformMatrix4fv(U.u_view, false, view);
     gl.uniform2f(U.u_snap, W / cam.snap, H / cam.snap);
@@ -7656,71 +7324,31 @@ void main() {
     gl.uniform3fv(U.u_l0pos, cam.l0p);
     gl.uniform3fv(U.u_l0col, cam.l0c.map((v) => v * flick[0]));
     gl.uniform3fv(U.u_l1pos, cam.l1p);
-    gl.uniform3fv(U.u_l1col, cam.l1c.map((v) => v * (title ? 1 : flick[1])));
+    gl.uniform3fv(U.u_l1col, cam.l1c.map((v) => v * flick[1]));
 
     gl.clearColor(.047, .031, .024, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.uniform1f(U.u_alphaTest, 0);
     gl.uniform1f(U.u_ghost, 0);
     gl.uniform3f(U.u_tint, 1, 1, 1);
-    objs.forEach(([m, tx, model, glow = 0], i) => {
-      if (title && i >= 5) return;                                // 첫 화면에선 기본 소품 대신 메뉴 소품
+    objs.forEach(([m, tx, model, glow = 0]) => {
       gl.uniform1f(U.u_emissive, glow * (glow ? flick[0] : 0));   // 밀랍은 불빛에 은은하게 빛남
       gl.bindTexture(gl.TEXTURE_2D, tx);
       gl.uniformMatrix4fv(U.u_model, false, model);
       drawMesh(m);
     });
 
-    // --- 첫 화면 메뉴 소품 ---
-    if (title) {
-      const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 8);
-      const op = title.open;
-      if (op) {
-        op.p = reduceMotion ? (op.dir > 0 ? 1 : 0) : Math.max(0, Math.min(1, op.p + op.dir * dt / (op.dir > 0 ? .95 : .6)));
-        if (op.dir > 0 && op.p >= 1 && !op.done) { op.done = true; op.resolve?.(); }
-        if (op.dir < 0 && op.p <= 0) { op.resolve?.(); title.open = null; }
-      }
-      BOOKS.forEach((b, i) => {
-        const on = i === title.sel;
-        const opening = title.open && title.open.i === i ? title.open.p : 0;
-        if (opening > 0) { drawOpenBook(b, opening); return; }
-        const a = 0;
-        b.pull += ((on ? .2 : 0) - b.pull) * k;
-        b.rot = on ? -.08 * (b.pull / .2) : [-.015, .02, -.01][i];
-        b.model = chain(M.T(b.x, .3 * a, TB.z + b.pull + .55 * a), M.RY(b.rot), M.RX(-.5 * a));
-        const kk = on ? 1 : .9;
-        gl.uniformMatrix4fv(U.u_model, false, b.model);
-        for (const p of b.meshes) {
-          set({ t: p.t, tint: p.pages ? [kk, kk, kk] : b.col.map((v) => v * (p.face ? 1.6 : 1.4) * kk) });
-          drawMesh(p.mesh);
-        }
-      });
-      // 초대장 글줄·깃펜의 얇은 삼각형은 기본 3px 정점 스냅에서 면적이 0이 되므로,
-      // 이 소품을 그릴 때만 스냅 격자를 촘촘하게 하고 다른 3D 소품에는 기존 값 복원.
-      gl.uniform2f(U.u_snap, W * 8, H * 8);
-      drawWriting();
-      gl.uniform2f(U.u_snap, W / cam.snap, H / cam.snap);
-      const cleared = title.open && title.open.p > .3;   // 책을 펼칠 자리의 주사위·금화는 치움
-      for (const p of TPROPS) {
-        if (cleared && p.under) continue;
-        set(p);
-        gl.uniformMatrix4fv(U.u_model, false, p.model ?? M.ident());
-        drawMesh(p.mesh);
-      }
-    }
-
     // 불꽃: 카메라를 향한 판, 깜빡임에 따라 높이가 달라짐
     gl.uniform1f(U.u_emissive, 1);
     gl.uniform1f(U.u_alphaTest, .5);
     gl.uniform1f(U.u_ghost, 0);
     gl.uniform3f(U.u_tint, 1, 1, 1);
-    (title ? [TFLAME] : flames).forEach((f, i) => {
+    flames.forEach((f, i) => {
       const yaw = Math.atan2(eye[0] - f.x, eye[2] - f.z);
-      const fl = title ? 1 + .9 * Math.exp(-(t - flashT) * 4) : 1;
       const mo = reduceMotion ? 0 : 1;
       // 일렁임: 높이·폭이 숨 쉬듯, 끝이 좌우로 흔들림 (아래는 고정, 위로 갈수록 기울어짐)
-      const hgt = (.82 + flick[i] * .25 + Math.sin(t * 7.3 + i) * .06 * mo) * fl;
-      const wid = (1 + Math.sin(t * 5.1 + i * 2) * .07 * mo) * (title ? fl * .85 + .15 : 1);
+      const hgt = (.82 + flick[i] * .25 + Math.sin(t * 7.3 + i) * .06 * mo);
+      const wid = 1 + Math.sin(t * 5.1 + i * 2) * .07 * mo;
       const lean = (Math.sin(t * 2.3 + i) * .18 + Math.sin(t * 6.7 + i * 3) * .07) * mo;
       const shear = [1, 0, 0, 0, lean, hgt, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
       const base = M.trs(f.x, f.y, f.z, yaw);
@@ -7729,7 +7357,7 @@ void main() {
       gl.uniform1f(U.u_ghost, .86);
       gl.uniform3f(U.u_tint, .85, .55, .28);
       gl.bindTexture(gl.TEXTURE_2D, T.glow);
-      const gs = .3 * (.9 + flick[i] * .2) * (f.mesh === G.flameS ? .75 : 1) * fl;
+      const gs = .3 * (.9 + flick[i] * .2) * (f.mesh === G.flameS ? .75 : 1);
       gl.uniformMatrix4fv(U.u_model, false, M.mul(base, chain(M.T(0, .1 * hgt - gs / 2 + .04, -.01), M.S(gs, gs, 1))));
       drawMesh(G.glow);
       gl.uniform1f(U.u_alphaTest, .5);
@@ -7740,7 +7368,6 @@ void main() {
       gl.uniformMatrix4fv(U.u_model, false, M.mul(base, M.mul(shear, M.S(wid, 1, 1))));
       drawMesh(f.mesh);
     });
-    for (const fn of frameFns) { try { fn(); } catch (err) { console.warn(err); } }
   }
   scheduleFrame();
 
@@ -7753,61 +7380,9 @@ void main() {
       frameId = null;
       removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", onVisibility);
-      title?.open?.resolve?.();  // 컨텍스트 손실 중 멈춰 있는 책 펼침/닫힘 Promise 해제
-      title = null;
-      frameFns.length = 0;
     },
-    onFrame(fn) { frameFns.push(fn); },
     /** 테이블 화면: 배경은 가장자리만 보이니 천천히 그림 */
     setIdle(on) { idle = !!on; scheduleFrame(); },
-    /** 첫 화면 켜기/끄기. sel = 고른 책 */
-    setTitle(on, sel = 0) {
-      if (!on) { title = null; return; }
-      if (title) title.sel = sel; else title = { sel, open: null };
-    },
-    /** 클릭 순간: 촛불이 확 타오름 */
-    flash() { flashT = performance.now() / 1000; },
-    /** 책을 뽑아 눕혀 펼침. 다 펼쳐지면 resolve */
-    openBook(i) {
-      if (!title) return Promise.resolve();
-      return new Promise((resolve) => { title.open = { i, p: title.open?.i === i ? title.open.p : 0, dir: 1, done: false, resolve }; });
-    },
-    closeBook() {
-      if (!title?.open) return Promise.resolve();
-      return new Promise((resolve) => { Object.assign(title.open, { dir: -1, resolve }); });
-    },
-    /** 펼친 책 양면의 화면 위치 (CSS px) */
-    titleSpread() {
-      const op = title?.open; if (!op || op.p < .99 || !lastVP) return null;
-      const b = BOOKS[op.i], o = b.open, xs = [], ys = [];
-      for (const [x, z] of [[-o.L / 2, -o.D], [o.L / 2, -o.D], [o.L / 2, o.D], [-o.L / 2, o.D]]) {
-        const q = M.tf(lastVP, M.tf(b.spreadModel, [x, o.Tk / 2, z, 1]));
-        xs.push((q[0] / q[3] * .5 + .5) * innerWidth); ys.push((1 - (q[1] / q[3] * .5 + .5)) * innerHeight);
-      }
-      return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
-    },
-    /** 책등 화면 위치 (CSS px): [{ x0, x1, y0, y1 }] */
-    titleSpines() {
-      if (!title || !lastVP) return null;
-      const rect = (model, b) => {
-        const z = TB.d / 2, xs = [], ys = [];
-        for (const [x, y] of [[-b.w / 2, 0], [b.w / 2, 0], [b.w / 2, b.h], [-b.w / 2, b.h]]) {
-          const q = M.tf(lastVP, M.tf(model, [x, y, z, 1]));
-          xs.push((q[0] / q[3] * .5 + .5) * innerWidth); ys.push((1 - (q[1] / q[3] * .5 + .5)) * innerHeight);
-        }
-        return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
-      };
-      return BOOKS.map((b, i) => {
-        if (!b.model) return null;
-        // 보이는 책등(지금 위치) + 마우스 판정 영역(제자리 ∪ 다 뽑힌 자리).
-        // 판정 영역이 책을 따라 움직이면, 가장자리에서 책이 뽑히며 마우스가 영역 밖으로 빠졌다가 → 책이 들어가며 다시 들어오는 깜빡임이 생김
-        const now = rect(b.model, b);
-        const rest = rect(chain(M.T(b.x, 0, TB.z), M.RY([-.015, .02, -.01][i])), b);
-        const out = rect(chain(M.T(b.x, 0, TB.z + .2), M.RY(-.08)), b);
-        const hit = { x0: Math.min(rest.x0, out.x0), x1: Math.max(rest.x1, out.x1), y0: Math.min(rest.y0, out.y0), y1: Math.max(rest.y1, out.y1) };
-        return { ...now, hit };
-      });
-    },
   });
   return API;
 }
@@ -7819,37 +7394,26 @@ const Scene3D = (() => {
   canvas.id = "bg3d";
   canvas.setAttribute("aria-hidden", "true");
   let current = null;
-  let titleOn = false, titleSel = 0, idleOn = false;
-  const subscribers = [];
+  let idleOn = false;
   function restore() {
     current?.dispose?.();
     current = null;
     current = createScene3D(canvas);
     if (current.ok) {
-      current.setTitle(titleOn, titleSel);
       current.setIdle?.(idleOn);
-      for (const fn of subscribers) current.onFrame(fn);
     } else document.documentElement.classList.remove("has-3d");
-  }
-  function resetSpines() {
-    for (const b of document.querySelectorAll("#titleBooks .spine-btn")) {
-      b.removeAttribute("style");
-      b.firstElementChild?.style.removeProperty("transform");
-    }
   }
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();  // 복원이 허용되도록 브라우저 기본 동작 취소
     current?.dispose?.();
     current = null;
     document.documentElement.classList.remove("has-3d");
-    resetSpines();
   });
   canvas.addEventListener("webglcontextrestored", () => {
     try { restore(); }
     catch (err) {
       console.warn("[3D] 복원 실패, CSS 배경을 사용합니다:", err);
       document.documentElement.classList.remove("has-3d");
-      resetSpines();
     }
   });
   try { restore(); }
@@ -7859,14 +7423,7 @@ const Scene3D = (() => {
   }
   return {
     get ok() { return !!current?.ok; },
-    onFrame(fn) { subscribers.push(fn); current?.onFrame(fn); },
-    setTitle(on, sel = 0) { titleOn = on; titleSel = sel; current?.setTitle(on, sel); },
     setIdle(on) { idleOn = on; current?.setIdle?.(on); },
-    flash() { current?.flash(); },
-    openBook(i) { return current?.openBook(i) ?? Promise.resolve(); },
-    closeBook() { return current?.closeBook() ?? Promise.resolve(); },
-    titleSpread() { return current?.titleSpread() ?? null; },
-    titleSpines() { return current?.titleSpines() ?? null; },
   };
 })();
 
@@ -8656,8 +8213,7 @@ const BannerArt = (() => {
     if (id !== "table" && !$("#table").hidden) {
       skipTyping(); DiceFX.skip(); cancelReleases();  // 떠난 화면에서 연출/단서 효과음이 뒤늦게 재생되지 않도록
     }
-    for (const s of ["home", "join", "message", "setup", "table"]) $(`#${s}`).hidden = s !== id;
-    Scene3D.setTitle(id === "home", app?.titleSel ?? -1);
+    for (const s of ["home", "join", "message", "table"]) $(`#${s}`).hidden = s !== id;
     Scene3D.setIdle(id === "table");
     if (id !== "table") Sfx.Bgm.set(null);   // 테이블을 나가면 배경음 끔
   }
@@ -8762,12 +8318,115 @@ const BannerArt = (() => {
   $("#messageHomeBtn").addEventListener("click", () => { location.hash = ""; });
   $("#messageRetryBtn").addEventListener("click", () => { LS.del(K.me(roomFromHash())); location.reload(); });
 
-  /* ---------------- 홈: 책 세 권 메뉴 ---------------- */
-  // 책 자리(왼쪽부터) → 종류
-  const BOOK_KIND = ["new", "cont", "join"];
-  const BOOK_SUB = { new: "시나리오 생성 & 친구 초대", join: "받은 초대 링크로 기존 시나리오에 참여" };
-  const books = () => [...document.querySelectorAll("#titleBooks .spine-btn")];
-  app.titleSel = -1;   // -1 = 아무 책도 안 고름 (마우스가 책 밖에 있을 때)
+  /* ---------------- 첫 화면: 붉은 가죽 책 ----------------
+   * 닫힌 책 오른쪽 색인 탭(새 테이블 · 이어하기 · 참가하기)을 누르면 화면이 다가오며 평평해지고 책장이 차라락 넘어가 그 장이 펼쳐짐.
+   * 펼친 뒤 다른 탭 · 귀퉁이 버튼 = 한 장 넘김 (뒤 장이면 오른쪽→왼쪽, 앞 장이면 반대). Esc · 책 밖 누르기 = 덮기.
+   * 펼친 면(spread): 0 = 시나리오, 1 = 테이블 설정, 2 = 이어하기, 3 = 참가하기. 각 쪽 내용은 #bkStore에 두고 보이는 면만 옮겨 넣음 */
+  const Book = (() => {
+    const CH_START = [0, 2, 3];                      // 장 → 첫 면
+    const chOf = (sp) => (sp >= 3 ? 2 : sp >= 2 ? 1 : 0);
+    const N = 4;
+    const book = $("#bkBook"), tilt = $("#bkTilt"), stage = $("#bkStage"), pgL = $("#bkPgL"), pgR = $("#bkPgR"), cover = $("#bkCover");
+    const pageOf = (sp, side) => $(`#bkStore .bk-page[data-spread="${sp}"][data-side="${side}"]`) ?? document.querySelector(`.bk-page[data-spread="${sp}"][data-side="${side}"]`);
+    const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let spread = -1, busy = false, geo = null, onOpen = null;
+    /** 화면 크기 → 쪽 크기 · 닫힌 책 배율 (펼친 상태가 배율 1 = 글자 선명) */
+    function measure() {
+      const narrow = innerWidth < 760;
+      const pw = Math.round(narrow ? Math.min(560, innerWidth - 84) : Math.min(680, (innerWidth - 300) / 2));
+      const ph = Math.round(Math.min(900, innerHeight - 56, pw * 1.6));   // 좁은 화면에서도 책 모양 유지
+      const sc = Math.min(1, (innerHeight * .64) / ph, (innerWidth * .62) / (pw + 200));
+      geo = { narrow, pw, ph, sc, thick: Math.round(pw * .09) };
+      const st = book.style;
+      st.setProperty("--pw", `${pw}px`); st.setProperty("--ph", `${ph}px`); st.setProperty("--thick", `${geo.thick}px`);
+      book.classList.toggle("narrow", narrow);
+      place();
+    }
+    /** 카메라(기울기 · 배율) + 책 위치 + 두께 */
+    function place() {
+      const open = spread >= 0, { pw, sc, thick, narrow } = geo;
+      tilt.style.transform = open ? "none" : `rotateX(26deg) scale(${sc.toFixed(3)})`;
+      book.style.transform = `translateX(${open && !narrow ? 0 : -pw / 2 - (open ? 0 : 70)}px)`;
+      const lt = open ? 0 : 0, rt = open ? 0 : thick;   // 펼치면 모두 바닥(z=0) = 배율 1
+      book.style.setProperty("--zl", `${lt}px`); book.style.setProperty("--zr", `${rt}px`);
+      book.classList.toggle("open", open);
+    }
+    /** 보이는 면 채우기. hold = 넘기는 동안 덮일 쪽은 옛 내용 유지 */
+    function fill(sp, hold = null) {
+      const store = $("#bkStore");
+      for (const pg of [...pgL.children, ...pgR.children]) store.append(pg);
+      if (sp < 0) return;
+      const L = hold?.side === "L" ? hold.node : pageOf(sp, "L"), R = hold?.side === "R" ? hold.node : pageOf(sp, "R");
+      if (geo.narrow) { pgR.append(R); if (L.dataset.spread === R.dataset.spread) pgR.append(L); }
+      else { pgL.append(L); pgR.append(R); }
+      pgL.scrollTop = pgR.scrollTop = 0;
+    }
+    /** 색인 탭: 지나온 장의 탭은 왼쪽 쪽 묶음 가장자리로 */
+    function tabs() {
+      for (const t of document.querySelectorAll("#bkTabs .bk-tab")) {
+        const c = +t.dataset.ch, left = spread >= 0 && !geo.narrow && CH_START[c] < spread;
+        t.classList.toggle("L", left); t.classList.toggle("cur", spread >= 0 && chOf(spread) === c);
+        t.setAttribute("aria-current", spread >= 0 && chOf(spread) === c ? "page" : "false");
+      }
+    }
+    // 넘어가는 한 장: 앞 = 떠나는 쪽 모습, 뒤 = 새로 올 쪽 모습 (복사본, id 지움)
+    const ghost = (node) => { const c = node?.cloneNode(true) ?? el("div"); for (const n of [c, ...c.querySelectorAll("[id]")]) n.removeAttribute("id"); return c; };
+    function sheet(front, back, dir, dur, delay = 0) {
+      const s = el("div", { class: "bk-sheet" }, el("div", { class: "bk-face bk-sf" }, front), el("div", { class: "bk-face bk-sb" }, back));
+      book.append(s);
+      const from = dir > 0 ? 0 : -180, to = dir > 0 ? -180 : 0;
+      const a = s.animate([{ transform: `translateZ(1px) rotateY(${from}deg)` }, { transform: "translateZ(18px) rotateY(-90deg)", offset: .5 }, { transform: `translateZ(1px) rotateY(${to}deg)` }],
+        { duration: reduce() ? 0 : dur, delay: reduce() ? 0 : delay, easing: "cubic-bezier(.45,0,.55,1)", fill: "both" });
+      a.finished.then(() => s.remove(), () => s.remove());
+      return a;
+    }
+    async function go(to) {
+      if (busy || to === spread || to < 0 || to >= N) return;
+      busy = true; $("#homeError").textContent = "";
+      onOpen?.(to);
+      const from = spread;
+      try {
+        if (from < 0) {
+          // 닫힌 책 → 다가오며 평평해짐 + 표지와 여러 장이 차라락
+          spread = to; fill(to); place(); tabs(); Sfx.play("page");
+          const n = 3 + to * 2, waits = [];
+          for (let k = 0; k < n; k++) waits.push(sheet(el("div", { class: "bk-blank" }), el("div", { class: "bk-blank" }), 1, 380, 200 + k * 60).finished);
+          await Promise.all(waits).catch(() => {});
+        } else if (geo.narrow) {
+          spread = to; fill(to); tabs(); Sfx.play("page");
+          await sheet(ghost(pgR.firstElementChild), el("div", { class: "bk-blank" }), to > from ? 1 : -1, 500).finished.catch(() => {});
+        } else {
+          const dir = to > from ? 1 : -1, oldL = pgL.firstElementChild, oldR = pgR.firstElementChild;
+          const newL = pageOf(to, "L"), newR = pageOf(to, "R");
+          const a = dir > 0 ? sheet(ghost(oldR), ghost(newL), 1, 620) : sheet(ghost(newR), ghost(oldL), -1, 620);
+          spread = to; fill(to, dir > 0 ? { side: "L", node: oldL } : { side: "R", node: oldR }); tabs(); Sfx.play("page");
+          await a.finished.catch(() => {});
+          fill(to);
+        }
+      } finally { busy = false; }
+      (pgR.querySelector("input:not([type=file]), textarea, button") ?? pgR).focus?.({ preventScroll: true });
+    }
+    async function close() {
+      if (busy || spread < 0) return;
+      busy = true;
+      spread = -1; place(); tabs();
+      await new Promise((r) => setTimeout(r, reduce() ? 0 : 650));
+      fill(-1); busy = false;
+    }
+    for (const t of document.querySelectorAll("#bkTabs .bk-tab")) t.addEventListener("click", (e) => { e.stopPropagation(); go(CH_START[+t.dataset.ch]); });
+    for (const b of document.querySelectorAll("#bkStore .bk-turn")) b.addEventListener("click", () => go(+b.dataset.to));
+    // 3D로 기울인 탭은 브라우저에 따라 눌림 판정이 빠지기도 함 → 화면 좌표로 한 번 더 찾음
+    const tabAt = (e) => [...document.querySelectorAll("#bkTabs .bk-tab")].find((t) => { const r = t.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; });
+    stage.addEventListener("pointermove", (e) => { const t = e.target === stage ? tabAt(e) : null; for (const x of document.querySelectorAll("#bkTabs .bk-tab")) x.classList.toggle("peek", x === t); stage.style.cursor = t ? "pointer" : ""; });
+    stage.addEventListener("click", (e) => { if (e.target !== stage) return; const t = tabAt(e); if (t) go(CH_START[+t.dataset.ch]); else close(); });
+    document.addEventListener("keydown", (e) => { if (!$("#home").hidden && e.key === "Escape") close(); });
+    addEventListener("resize", () => { if (!$("#home").hidden) { measure(); fill(spread); tabs(); } });
+    return {
+      show() { spread = -1; busy = false; fill(-1); measure(); tabs(); },
+      go, close, onOpen(fn) { onOpen = fn; },
+    };
+  })();
+
   /** 테이블 목록(localStorage) 중 실제 세이브(IndexedDB)가 남아 있는 것만 → app.tables */
   async function loadTables() {
     const have = new Set(await DB.keys());
@@ -8778,66 +8437,6 @@ const BannerArt = (() => {
     if (m < 1) return "방금"; if (m < 60) return `${m}분 전`;
     const h = Math.round(m / 60); if (h < 24) return `${h}시간 전`;
     const d = Math.round(h / 24); return d === 1 ? "어제" : `${d}일 전`;
-  }
-  function selectBook(i, focus = false) {
-    app.titleSel = i < 0 ? -1 : (i + 3) % 3;
-    books().forEach((b, k) => { b.classList.toggle("on", k === app.titleSel); b.setAttribute("aria-current", k === app.titleSel ? "true" : "false"); });
-    Scene3D.setTitle(!$("#home").hidden, app.titleSel);
-    const sub = $("#titleSub");
-    if (app.titleSel < 0 || pageOpen()) { sub.hidden = true; sub.dataset.for = ""; return; }
-    const n = app.tables.length;
-    const kind = BOOK_KIND[app.titleSel];
-    const text = kind === "cont" ? (n ? `저장된 테이블 ${n}개 · 이어서 진행` : "세이브 파일에서 불러오기") : BOOK_SUB[kind];
-    if (sub.dataset.for !== String(app.titleSel)) {
-      // 고를 때마다 메모지가 위에서부터 펼쳐짐
-      sub.dataset.for = String(app.titleSel);
-      sub.querySelector(".memo-text").textContent = text;
-      sub.hidden = false;
-      const m = sub.querySelector(".memo");
-      m.classList.remove("unfold"); void m.offsetWidth; m.classList.add("unfold");
-    }
-    if (focus) books()[app.titleSel].focus();
-  }
-  // 책 펼침 중에는 마우스 호버로 선택이 바뀌지 않게
-  const pageOpen = () => !!app.bookBusy || !$("#contPage").hidden || !$("#joinPage").hidden;
-  function closePages() {
-    const wasOpen = !$("#contPage").hidden || !$("#joinPage").hidden;
-    $("#contPage").hidden = true; $("#joinPage").hidden = true;
-    if (!wasOpen) { $("#titleBooks").classList.remove("reading"); return; }
-    app.bookBusy = true;
-    Scene3D.closeBook().then(() => { app.bookBusy = false; $("#titleBooks").classList.remove("reading"); });   // 책이 책장에 다 들어간 뒤 글씨
-  }
-  async function openBook(i) {
-    if (app.bookBusy) return;
-    selectBook(i);
-    $("#homeError").textContent = "";
-    $("#titleSub").hidden = true;
-    Scene3D.flash();
-    app.bookBusy = true;
-    $("#titleBooks").classList.add("reading");
-    await Scene3D.openBook(i);            // 책을 뽑아 눕히고 표지를 넘김 (WebGL 없으면 바로)
-    app.bookBusy = false;
-    const kind = BOOK_KIND[i];
-    if (kind === "new") return turnToSetup();
-    const page = kind === "cont" ? $("#contPage") : $("#joinPage");
-    page.hidden = false;
-    page.classList.remove("appear"); void page.offsetWidth; page.classList.add("appear");
-    placePage();
-    (kind === "cont" ? page.querySelector("li button, .title-file") : $("#joinLinkInput"))?.focus();
-  }
-  // 새테이블: 펼친 책 페이지가 화면 가득 넘어오며 설정 화면이 됨
-  function turnToSetup() {
-    const r = Scene3D.titleSpread();
-    const sheet = el("div", { class: "page-turn" });
-    if (r) Object.assign(sheet.style, { left: `${r.x0}px`, top: `${r.y0}px`, width: `${r.x1 - r.x0}px`, height: `${r.y1 - r.y0}px` });
-    else Object.assign(sheet.style, { left: "40%", top: "40%", width: "20%", height: "20%" });
-    document.body.append(sheet);
-    requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add("full")));
-    setTimeout(() => {
-      showSetup();
-      sheet.classList.add("fade");
-      setTimeout(() => sheet.remove(), 400);
-    }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 520);
   }
   function renderTables() {
     const list = app.tables;
@@ -8852,64 +8451,31 @@ const BannerArt = (() => {
           catch { return toast('보관 기록 삭제 실패. 테이블은 유지됨.'); }
           await DB.del(K.host(t.room));
           LS.set(K.hostIndex, (LS.get(K.hostIndex) ?? []).filter((x) => x.room !== t.room));
-          await loadTables(); renderTables(); selectBook(app.titleSel);
+          await loadTables(); renderTables();
         } } }, iconSvg("trash")))));
   }
   function showHome() {
     show("home");
+    Book.show();
     renderTables();
-    closePages();
-    selectBook(-1);
-    loadTables().then(() => { renderTables(); if (app.titleSel >= 0) { $("#titleSub").dataset.for = ""; selectBook(app.titleSel); } });
+    loadTables().then(renderTables);
   }
-  books().forEach((b, i) => {
-    b.addEventListener("mouseenter", () => { if (!pageOpen()) selectBook(i); });
-    b.addEventListener("focus", () => { if (b.matches(":focus-visible")) selectBook(i); });
-    b.addEventListener("mouseleave", () => { if (!pageOpen() && document.activeElement !== b) selectBook(-1); });
-    if (b.id !== "newTableBtn") b.addEventListener("click", () => openBook(i));
-  });
-  $("#newTableBtn").addEventListener("click", () => openBook(0));
-  for (const x of document.querySelectorAll("#home .page-x, #home .page-close")) x.addEventListener("click", () => { closePages(); (books()[app.titleSel] ?? books()[0]).focus(); });
-  document.addEventListener("keydown", (e) => {
-    if ($("#home").hidden) return;
-    const open = !$("#contPage").hidden || !$("#joinPage").hidden;
-    if (e.key === "Escape" && open) { closePages(); (books()[app.titleSel] ?? books()[0]).focus(); return; }
-    if (open || /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName ?? "")) return;
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); selectBook(app.titleSel < 0 ? 0 : app.titleSel + 1, true); }
-    if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); selectBook(app.titleSel < 0 ? 2 : app.titleSel - 1, true); }
-  });
-  // 책등 버튼을 3D 책등 위에 겹침 (매 프레임). 3D가 없으면 CSS로 그린 책등 그대로
-  function placePage() {
-    const page = !$("#contPage").hidden ? $("#contPage") : !$("#joinPage").hidden ? $("#joinPage") : null;
-    if (!page) return;
-    const w = page.offsetWidth, h = page.offsetHeight;
-    const cx = innerWidth / 2, cy = innerHeight / 2;   // 화면 가운데
-    page.style.left = `${Math.round(Math.max(16, Math.min(innerWidth - w - 16, cx - w / 2)))}px`;
-    page.style.top = `${Math.round(Math.max(16, Math.min(innerHeight - h - 16, cy - h / 2)))}px`;
-  }
-  Scene3D.onFrame(() => {
-    if ($("#home").hidden) return;
-    const sp = Scene3D.titleSpines();
-    if (!sp) return;
-    books().forEach((b, i) => {
-      const r = sp[i];
-      if (!r) return;
-      // 버튼 = 고정된 판정 영역(책이 뽑혀도 안 움직임), 글씨 = 지금 책등 위치를 따라감
-      const h = r.hit, w = r.x1 - r.x0, hh = r.y1 - r.y0;
-      const dx = (r.x0 + r.x1) / 2 - (h.x0 + h.x1) / 2, dy = (r.y0 + r.y1) / 2 - (h.y0 + h.y1) / 2;
-      b.style.cssText = `left:${Math.round(h.x0)}px;top:${Math.round(h.y0)}px;width:${Math.round(h.x1 - h.x0)}px;height:${Math.round(h.y1 - h.y0)}px;font-size:${Math.max(11, Math.min(w * .55, hh * .6 / 4.3)).toFixed(1)}px`;
-      b.firstElementChild.style.transform = `translate(${Math.round(dx)}px, ${Math.round(dy)}px)`;
-    });
-    const s = sp[app.titleSel];
-    if (s) { const sub = $("#titleSub"); sub.style.left = `${Math.round((s.x0 + s.x1) / 2)}px`; sub.style.top = `${Math.round(s.y1 + 14)}px`; }
-    placePage();
+  // 장을 펼칠 때 필요한 준비: 새 테이블 = 설정 칸 채우기(처음 한 번), 참가하기 = 닉네임 기억
+  let setupReady = false;
+  Book.onOpen((sp) => {
+    if (sp <= 1 && !setupReady) { setupReady = true; initSetup(); }
+    if (sp === 3) $("#bkJoinName").value ||= LS.get(K.name) ?? "";
   });
 
   $("#joinLinkInput").addEventListener("keydown", (e) => e.key === "Enter" && $("#joinLinkBtn").click());
+  $("#bkJoinName").addEventListener("keydown", (e) => e.key === "Enter" && $("#joinLinkBtn").click());
   $("#joinLinkBtn").addEventListener("click", () => {
     const v = $("#joinLinkInput").value.trim();
     const code = /#room=([a-z0-9]{10})/.exec(v)?.[1] ?? (/^[a-z0-9]{10}$/.test(v) ? v : null);
     if (!code) return ($("#homeError").textContent = "잘못된 초대 링크.");
+    const name = $("#bkJoinName").value.trim();
+    // 닉네임을 적었으면 이름 입력 화면 없이 바로 자리에 앉음 (이미 앉았던 방이면 그 자리 그대로)
+    if (name) { LS.set(K.name, name); if (!LS.get(K.me(code))) LS.set(K.me(code), { key: randomId(24), name }); }
     location.hash = `room=${code}`;
   });
   $("#loadSaveInput").addEventListener("change", async (e) => {
@@ -8997,20 +8563,17 @@ const BannerArt = (() => {
 
   /* ---------------- 호스트 설정 ---------------- */
   let validScenario = null;
-  function showSetup() {
-    show("setup");
+  function initSetup() {
     if (!$("#yamlInput").value) $("#yamlInput").value = SAMPLE_COC_YAML;
     $("#hostNameInput").value ||= LS.get(K.name) ?? "";
     $("#setupAi").replaceChildren(aiForm());
     $("#setupStyle").replaceChildren(styleForm({ ...(LS.get(K.aiStyle) ?? {}) }, (v) => LS.set(K.aiStyle, v)));
     validate();
   }
-  $("#setupBackBtn").addEventListener("click", () => { location.hash = ""; showHome(); });
   for (const tab of document.querySelectorAll(".tab")) {
     tab.addEventListener("click", () => {
       for (const t of document.querySelectorAll(".tab")) { t.classList.toggle("active", t === tab); $(`#tab-${t.dataset.tab}`).hidden = t !== tab; }
       $("#yamlTools").hidden = tab.dataset.tab !== "yaml";   // 파일 열기 · 검사는 YAML 탭에서만
-      if (tab.dataset.tab === "review") { if (!validScenario) validate(); renderReview(); }
     });
   }
   $("#fileOpenBtn").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#scenarioFile").click(); } });
@@ -9052,7 +8615,7 @@ const BannerArt = (() => {
       $("#openTableBtn").disabled = false;
     }
     box.replaceChildren(...parts);
-    if (!$("#tab-review").hidden) renderReview();
+    renderReview();
     return validScenario;
   }
 
@@ -9152,7 +8715,7 @@ const BannerArt = (() => {
   $("#convertBtn").addEventListener("click", async () => {
     const prose = $("#proseInput").value.trim();
     if (prose.length < 50) return ($("#setupError").textContent = "줄글이 너무 짧음.");
-    if (!AI.ready(loadAI())) return ($("#setupError").textContent = "3번 AI 설정 먼저.");
+    if (!AI.ready(loadAI())) return ($("#setupError").textContent = "AI 설정 먼저 (4쪽).");
     const btn = $("#convertBtn");
     btn.disabled = true;
     $("#setupError").textContent = "";
@@ -9204,7 +8767,7 @@ const BannerArt = (() => {
   $("#recoverInput").addEventListener("change", async (e) => {
     try {
       const sc = validScenario ?? validate();
-      if (!sc) throw new Error("1번에 같은 시나리오를 넣고 검사 통과 먼저.");
+      if (!sc) throw new Error("시나리오 넣기 쪽에 같은 시나리오를 넣고 검사 통과 먼저.");
       const copy = JSON.parse(await readFile(e.target));
       if (copy?.snap?.scenario?.title && copy.snap.scenario.title !== sc.title &&
           !confirm(`사본은 「${copy.snap.scenario.title}」, 지금 것은 「${sc.title}」. 계속 진행?`)) return;
@@ -12336,7 +11899,6 @@ const BannerArt = (() => {
     if (tip != null) { btn.setAttribute("aria-label", tip); btn.querySelector(".ic-tip").textContent = tip; }
   }
   for (const b of document.querySelectorAll(".ic-btn")) setIcon(b, b.dataset.icon, null);
-  $("#joinLinkBtn").replaceChildren(iconSvg("enter"));
   showSayMode();   // 입력칸 왼쪽 종류 표시 (대사 말풍선으로 시작)   // 들어가기 = 엔터(↵) 아이콘
 
   let copiedTimer = null;
