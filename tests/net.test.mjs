@@ -8,7 +8,14 @@ function fakeNet() {
   const peers = new Map();
   class Conn extends EventEmitter {
     constructor() { super(); this.open = false; this.other = null; }
-    send(m) { if (!this.open) throw new Error("closed"); const o = this.other, d = JSON.parse(JSON.stringify(m)); setTimeout(() => o.open && o.emit("data", d), 0); }
+    send(m) {
+      if (!this.open) throw new Error("closed");
+      const o = this.other;
+      // 실제 PeerJS처럼: json은 16,300바이트 넘으면 보내지 않고 error, binary는 조각으로 나눠 그대로 전달(undefined → null)
+      if (this.ser === "json" && new TextEncoder().encode(JSON.stringify(m)).byteLength >= 16300) return void setTimeout(() => this.emit("error", { type: "message-too-big" }), 0);
+      const d = this.ser === "binary" ? JSON.parse(JSON.stringify(m, (k, v) => v === undefined ? null : v)) : JSON.parse(JSON.stringify(m));
+      setTimeout(() => o.open && o.emit("data", d), 0);
+    }
     close() { if (!this.open) return; this.open = false; this.other.open = false; setTimeout(() => { this.emit("close"); this.other.emit("close"); }, 0); }
   }
   class Peer extends EventEmitter {
@@ -22,8 +29,9 @@ function fakeNet() {
         peers.set(id, this); this.open = true; this.emit("open", id);
       }, 0);
     }
-    connect(id) {
+    connect(id, opts = {}) {
       const a = new Conn(), b = new Conn(); a.other = b; b.other = a;
+      a.ser = b.ser = opts.serialization ?? "binary"; (Peer.made ??= []).push(opts);
       setTimeout(() => {
         const host = peers.get(id);
         if (!host) return this.emit("error", { type: "peer-unavailable" });
@@ -112,4 +120,66 @@ test("내 TURN 설정은 기본 ICE 앞에", () => {
   const c = m2.Net.iceConfig();
   assert.equal(c.iceServers[0].urls, "turn:a.example:3478");
   assert.ok(c.iceServers.length >= 3);
+});
+
+test("플레이어는 binary로 접속 · 16KB 넘는 기록도 끊기지 않고 도착", async () => {
+  const { Peer } = fakeNet();
+  const m = load({ Peer });
+  const { data, game, h } = host(m, Peer);
+  const line = "짙은 안개 속에서 바르톨이 그물을 내려놓고 천천히 고개를 듦. 등대 쪽을 흘끗 본 뒤 낮게 중얼거림.";
+  for (let i = 0; i < 150; i++) game.addLog({ kind: "ai", text: `${line} ${i}` });
+  await wait();
+  let init = null;
+  const p = m.Net.joinRoom("room000001", { key: KEY, name: "가", onMessage: (x) => { if (x.t === "loginit") init = x; }, onStatus: () => {} });
+  await wait(100);
+  assert.equal(Peer.made.at(-1).serialization, "binary");
+  assert.ok(init && init.entries.length >= 150);
+  const pid = Object.keys(data.players).find((k) => !data.players[k].isHost);
+  assert.ok(game.online(pid));
+  p.stop(); h.stop();
+});
+
+test("보낼 때 JSON 모양으로 정리: 빈 칸은 빠지고 Infinity는 null", async () => {
+  const { Peer } = fakeNet();
+  const m = load({ Peer });
+  const { data, game, h } = host(m, Peer);
+  await wait();
+  const got = [];
+  const p = m.Net.joinRoom("room000001", { key: KEY, name: "가", onMessage: (x) => got.push(x), onStatus: () => {} });
+  await wait(80);
+  const pid = Object.keys(data.players).find((k) => !data.players[k].isHost);
+  game.emit(pid, { t: "probe", a: undefined, b: Infinity, c: null });
+  await wait(30);
+  const x = got.find((g) => g.t === "probe");
+  assert.ok(x && !("a" in x));
+  assert.equal(x.b, null);
+  assert.equal(x.c, null);
+  p.stop(); h.stop();
+});
+
+test("큰 메시지 오류(message-too-big)로는 연결을 끊지 않음", async () => {
+  const { Peer } = fakeNet();
+  class J extends Peer { connect(id, o) { return super.connect(id, { ...o, serialization: "json" }); } }   // 예전 json 플레이어
+  const m = load({ Peer: J });
+  const { data, game, h } = host(m, J);
+  await wait();
+  const p = m.Net.joinRoom("room000001", { key: KEY, name: "가", onMessage: () => {}, onStatus: () => {} });
+  await wait(80);
+  const pid = Object.keys(data.players).find((k) => !data.players[k].isHost);
+  game.emit(pid, { t: "big", s: "가".repeat(9000) });
+  await wait(50);
+  assert.ok(game.online(pid));
+  p.stop(); h.stop();
+});
+
+test("보관함 요청은 입력 횟수 제한과 따로 셈", () => {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "h".repeat(24), hostPlays: false, mode: "human", scenario: sc });
+  let closed = false;
+  const g = new m.HostGame(data, { transport: { send() {}, close() { closed = true; } }, onLocal() {}, readHistory: async () => [] });
+  g.onConnect("c1", { key: "a".repeat(16), name: "가", build: m.APP_BUILD });
+  for (let i = 0; i < 70; i++) g.onMessage("c1", { t: "history", requestId: `r${i}`, before: null });
+  assert.equal(closed, false);
+  assert.equal((g.rate.get("c1") ?? []).length, 0);
 });

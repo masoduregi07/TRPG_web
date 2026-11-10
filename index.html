@@ -5091,6 +5091,7 @@ class HostGame {
     this.conns = new Map();   // pid -> connId
     this.connPid = new Map(); // connId -> pid
     this.rate = new Map();    // connId -> timestamps
+    this.histRate = new Map(); // connId -> 보관함 요청 timestamps
     this.suggestAt = new Map();
     this.suggestHistory = new Map(); // 이전 제안과 인적사항이 연달아 겹치지 않도록
     this.ai = { timer: null, busy: false, again: false, epoch: 0, controller: null };
@@ -5772,6 +5773,7 @@ class HostGame {
     const pid = this.connPid.get(connId);
     this.connPid.delete(connId);
     this.rate.delete(connId);
+    this.histRate.delete(connId);
     if (pid && this.conns.get(pid) === connId) {
       this.conns.delete(pid);
       this.broadcast({ t: "typing", pid, name: this.speaker(pid), on: false });
@@ -5783,6 +5785,13 @@ class HostGame {
     const pid = this.connPid.get(connId);
     if (!pid || !this.data.players[pid]) return;
     const now = Date.now();
+    // 보관함 요청은 따로 셈: 기록을 여러 쪽 받는 동안 대사·굴림이 무시되거나 연결이 닫히지 않게
+    if (msg?.t === "history") {
+      const h = (this.histRate.get(connId) ?? []).filter((t) => now - t < 5000);
+      h.push(now); this.histRate.set(connId, h);
+      if (h.length <= 30) this.sendHistory(pid, msg);
+      return;
+    }
     const list = (this.rate.get(connId) ?? []).filter((t) => now - t < 5000);
     list.push(now);
     this.rate.set(connId, list);
@@ -6619,6 +6628,11 @@ const Net = (() => {
   const PREFIX = "trpgtable-v1-";
   const hostPeerId = (room) => `${PREFIX}${room}-host`;
   const MAX_MSG = 20000;
+  // 보낼 때 JSON으로 한 번 정리: 값이 없는 칸(undefined)은 빼고 Infinity·NaN은 null로 — json 방식 때와 같은 모양으로 도착
+  // (binary 방식은 undefined를 null로 보내고 Infinity는 보내지 못함)
+  const wire = (msg) => JSON.parse(JSON.stringify(msg));
+  // 연결과 무관한 전송 오류(큰 메시지 · 아직 안 열림)는 끊김으로 보지 않음
+  const softError = (err) => err?.type === "message-too-big" || err?.type === "not-open-yet";
   // PeerJS 기본값(공용 STUN · TURN) + 설정에서 넣은 내 TURN (앞에 둠)
   const DEFAULT_ICE = [{ urls: "stun:stun.l.google.com:19302" }, { urls: ["turn:eu-0.turn.peerjs.com:3478", "turn:us-0.turn.peerjs.com:3478"], username: "peerjs", credential: "peerjsp" }];
   function iceConfig() {
@@ -6640,7 +6654,7 @@ const Net = (() => {
     const transport = {
       send(connId, msg) {
         const c = conns.get(connId);
-        if (c?.open) { try { c.send(msg); } catch {} }
+        if (c?.open) { try { c.send(wire(msg)); } catch {} }
       },
       close(connId) {
         const c = conns.get(connId);
@@ -6741,7 +6755,7 @@ const Net = (() => {
           try { conn.close(); } catch {}
         };
         conn.on("close", gone);
-        conn.on("error", gone);
+        conn.on("error", (err) => { if (!softError(err)) gone(); });
       });
     }
 
@@ -6812,7 +6826,8 @@ const Net = (() => {
         const old = conn;
         conn = null; ready = false; stopHeartbeat();
         try { old?.close(); } catch {}
-        const c = peer.connect(hostPeerId(room), { reliable: true, serialization: "json" });
+        // binary: 16KB 넘는 메시지(긴 기록 · 보관함 · 그림)를 PeerJS가 조각으로 나눠 보내고 다시 합침 (json은 16KB 넘으면 못 보냄)
+        const c = peer.connect(hostPeerId(room), { reliable: true, serialization: "binary" });
         conn = c;
         const openTimer = setTimeout(() => { if (!c.open && conn === c) lostConnection(c); }, 10000);
         c.on("open", () => {
@@ -6846,13 +6861,13 @@ const Net = (() => {
           clearTimeout(openTimer);
           lostConnection(c);
         });
-        c.on("error", () => { clearTimeout(openTimer); lostConnection(c); });
+        c.on("error", (err) => { if (softError(err)) return; clearTimeout(openTimer); lostConnection(c); });
       });
     }
 
     connect();
     return {
-      send(msg) { if (ready && conn?.open) { try { conn.send(msg); return true; } catch { lostConnection(conn); } } return false; },
+      send(msg) { if (ready && conn?.open) { try { conn.send(wire(msg)); return true; } catch { lostConnection(conn); } } return false; },
       stop() { stopped = true; ready = false; clearTimeout(timer); stopHeartbeat(); try { conn?.close(); } catch {} try { peer?.destroy(); } catch {} },
     };
   }
@@ -9506,7 +9521,7 @@ const BannerArt = (() => {
         rememberHistory(page.entries);
         historyBefore = page.next; historyMore = page.more; historyTotal = page.total; more = page.more;
         drawHistory();
-        if (all && more) await new Promise(r => setTimeout(r, 100));
+        if (all && more) await new Promise(r => setTimeout(r, 250));
       } while (all && more && historyDialog.open && epoch === historyEpoch);
       if (epoch !== historyEpoch || !historyDialog.open) return false;
       $('#historyMessage').textContent = historyMore ? '과거 기록을 더 불러올 수 있음.' : '호스트가 보관한 공개 권한 내 전체 기록을 불러옴.';
