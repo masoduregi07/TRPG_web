@@ -7197,6 +7197,13 @@ void main() {
     { mesh: G.flame, x: CANDLE[0][0], y: .58, z: CANDLE[0][1] },
     { mesh: G.flameS, x: CANDLE[1][0], y: .35, z: CANDLE[1][1] },
   ];
+  // 첫 화면: 책 오른쪽 앞에 놓인 짧은 초 (책을 비추는 불빛, 펼친 화면에서도 보이게 탭 아래쪽)
+  const HOME_CANDLE = [.86, -.5];
+  const homeObjs = [
+    [G.dish, T.metal, M.trs(HOME_CANDLE[0], 0, HOME_CANDLE[1], 0, .7)],
+    [G.candleS, T.wax, M.trs(HOME_CANDLE[0], .035, HOME_CANDLE[1]), .75],
+  ];
+  const homeFlame = { mesh: G.flameS, x: HOME_CANDLE[0], y: .35, z: HOME_CANDLE[1], home: true };
 
   /* ---------------- 첫 화면 책 (붉은 가죽 장부, 오두막 안 물체) ----------------
    * 닫힌 모양 기준: 책등 x = -0.5, 쪽 x ∈ [-0.5, 0.5], 깊이 z = zc ± D/2, 높이 = 뒤표지 c + 쪽 B + 앞표지 c
@@ -7286,7 +7293,7 @@ void main() {
     }),
     // 쪽 윗면: 누런 종이 + 결 + 잔 얼룩, 책등 쪽(안쪽)은 그늘
     paper: [1, 0].map((gutterLeft) => ctex(96, 128, (g, w, h) => {
-      grain(g, w, h, [226, 208, 164], .07, 3, (x) => { const e = gutterLeft ? x : w - 1 - x; return e < 14 ? -(14 - e) / 14 * .28 : 0; });
+      grain(g, w, h, [239, 224, 180], .05, 2, (x) => { const e = gutterLeft ? x : w - 1 - x; return e < 10 ? -(10 - e) / 10 * .1 : 0; });
       g.fillStyle = "rgba(120,80,30,.08)";
       for (let i = 0; i < 6; i++) { const x = rnd() * w | 0, y = rnd() * h | 0, r = 2 + rnd() * 4 | 0; g.fillRect(x - r, y, r * 2, 1); g.fillRect(x - r + 1, y - 1, r * 2 - 2, 3); }
     })),
@@ -7366,7 +7373,7 @@ void main() {
     const dc = Math.max(1.36 / .7, 1.8 / (.9 * asp)) / (2 * tn);
     const closed = { eye: [tc[0] + Math.sin(t * .23) * .05 * sway, tc[1] + dc * Math.sin(el) + Math.sin(t * .41) * .02 * sway, tc[2] + dc * Math.cos(el)], target: tc, up: [0, 1, 0] };
     const to = [narrow ? 0 : -.5, BK.T * .5, BK.zc];
-    const d = Math.max(BK.D / .76, (narrow ? 1.46 / .94 : 2.86 / .96) / asp) / (2 * tn);
+    const d = Math.max(BK.D / .76, (narrow ? 1.46 / .94 : 3.2 / .96) / asp) / (2 * tn);
     const open = { eye: [to[0], to[1] + d, to[2] + 1e-4], target: to, up: [0, 0, -1] };
     const e = easeIO(p), mix = (a, b) => a.map((v, i) => lerp(v, b[i], e));
     const pose = { eye: mix(closed.eye, open.eye), target: mix(closed.target, open.target), up: mix(closed.up, open.up), fov };
@@ -7402,7 +7409,7 @@ void main() {
     gl.bindTexture(gl.TEXTURE_2D, side); drawMesh(SL.side);
   }
   function drawBook() {
-    const P = bookParts(), pe = .34 + .3 * bk.p;   // 펼치면 종이가 조금 더 밝게 (글 읽기)
+    const P = bookParts(), pe = .28 + .34 * bk.p;   // 펼치면 종이가 조금 더 밝게 (글 읽기)
     drawSlab(P.back, BT.leather, BT.leather, BT.leather, .08);
     drawSlab(P.spine, BT.leather, BT.leather, BT.leather, .08);
     drawSlab(P.right, BT.paper[0].t, BT.edge, BT.edge, pe);
@@ -7461,7 +7468,7 @@ void main() {
   };
 
   // 촛불 깜빡임: 일정하지 않은 간격으로 단계적으로 바뀜
-  const flick = [1, .7];
+  const flick = [1, .7, .9];
   let nextFlick = 0;
   let last = 0, lastT = 0;
   let active = true, frameId = null, idle = false;
@@ -7486,13 +7493,16 @@ void main() {
     if (now > nextFlick) {
       flick[0] = .82 + rnd() * .22;
       flick[1] = .55 + rnd() * .25;
+      flick[2] = .84 + rnd() * .2;
       nextFlick = now + (reduceMotion ? 900 : 70 + rnd() * 140);
     }
     const sway = reduceMotion ? 0 : 1;
     const f0 = flames[0], f1 = flames[1];
     const lightsRoom = { l0p: [f0.x, f0.y + .15, f0.z], l0c: [2.6, 1.55, .75], l1p: [f1.x, f1.y + .1, f1.z], l1c: [1.3, .75, .35], att: [.32, .45] };
+    // 첫 화면: 책 옆 초가 주 조명(0번), 오른쪽 뒤 큰 초가 보조(1번)
+    const lightsHome = { l0p: [homeFlame.x, homeFlame.y + .22, homeFlame.z], l0c: [2.3, 1.42, .7], l1p: [f0.x, f0.y + .15, f0.z], l1c: [1.5, .9, .44], att: [.36, .32] };
     tickAnims(now);
-    const want = bk.on ? { ...homePose(bk.p, t, sway * (1 - bk.p)), fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom }
+    const want = bk.on ? { ...homePose(bk.p, t, sway * (1 - bk.p)), fog: ROOM.fog, amb: [.2, .15, .12], dirc: ROOM.dirc, snap: 3.2, ...lightsHome }
       : { eye: [Math.sin(t * .23) * .06 * sway, 2.45 + Math.sin(t * .41) * .025 * sway, 3.05], target: [0, -.15, -1.25], up: [0, 1, 0], fov: ROOM.fov, fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom };
     if (!cam || reduceMotion || bk.on) cam = JSON.parse(JSON.stringify(want));   // 첫 화면: 카메라는 책 움직임에 맞춰 바로 따라감
     else {
@@ -7510,7 +7520,7 @@ void main() {
     gl.uniform3fv(U.u_dirc, cam.dirc);
     gl.uniform2fv(U.u_att, cam.att);
     gl.uniform3fv(U.u_l0pos, cam.l0p);
-    gl.uniform3fv(U.u_l0col, cam.l0c.map((v) => v * flick[0]));
+    gl.uniform3fv(U.u_l0col, cam.l0c.map((v) => v * flick[bk.on ? 2 : 0]));
     gl.uniform3fv(U.u_l1pos, cam.l1p);
     gl.uniform3fv(U.u_l1col, cam.l1c.map((v) => v * flick[1]));
 
@@ -7526,6 +7536,12 @@ void main() {
       drawMesh(m);
     });
     if (bk.on) {
+      homeObjs.forEach(([m, tx, model, glow = 0]) => {
+        gl.uniform1f(U.u_emissive, glow * flick[2]);
+        gl.bindTexture(gl.TEXTURE_2D, tx);
+        gl.uniformMatrix4fv(U.u_model, false, model);
+        drawMesh(m);
+      });
       gl.uniform1f(U.u_alphaTest, 0); gl.uniform1f(U.u_ghost, 0); gl.uniform3f(U.u_tint, 1, 1, 1);
       drawBook();
       if (bk.cb) {
@@ -7539,7 +7555,7 @@ void main() {
     gl.uniform1f(U.u_alphaTest, .5);
     gl.uniform1f(U.u_ghost, 0);
     gl.uniform3f(U.u_tint, 1, 1, 1);
-    flames.forEach((f, i) => {
+    (bk.on ? [...flames, homeFlame] : flames).forEach((f, i) => {
       const yaw = Math.atan2(eye[0] - f.x, eye[2] - f.z);
       const mo = reduceMotion ? 0 : 1;
       // 일렁임: 높이·폭이 숨 쉬듯, 끝이 좌우로 흔들림 (아래는 고정, 위로 갈수록 기울어짐)
@@ -7547,7 +7563,8 @@ void main() {
       const wid = 1 + Math.sin(t * 5.1 + i * 2) * .07 * mo;
       const lean = (Math.sin(t * 2.3 + i) * .18 + Math.sin(t * 6.7 + i * 3) * .07) * mo;
       const shear = [1, 0, 0, 0, lean, hgt, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-      const base = M.trs(f.x, f.y, f.z, yaw);
+      // 책 옆 초는 화면을 향한 판(바로 위에서 내려다봐도 불꽃이 위로 섬), 나머지는 세로 축으로만 돔
+      const base = f.home ? [view[0], view[4], view[8], 0, view[1], view[5], view[9], 0, view[2], view[6], view[10], 0, f.x, f.y, f.z, 1] : M.trs(f.x, f.y, f.z, yaw);
       // 빛무리 먼저 (불꽃 뒤)
       gl.uniform1f(U.u_alphaTest, .45);
       gl.uniform1f(U.u_ghost, .86);
