@@ -6240,7 +6240,8 @@ class HostGame {
       table: !!ctx.이번차례행동표,
       tone: d.aiStyle?.tone === "prose" ? "prose" : "nominal",
       // 주사위 결과만 있고 대사 · 행동 · 질문이 없는 차례
-      rollOnly: since.some((e) => e.kind === "roll" && e.result && !e.dmg) && !since.some((e) => e.kind === "say"),
+      // 일행끼리 나눈 대사(행동 · 질문 · @NPC가 아님)는 행동 선언이 아님
+      rollOnly: since.some((e) => e.kind === "roll" && e.result && !e.dmg) && !since.some((e) => e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc)),
       rollTexts: since.filter((e) => e.kind === "roll" && e.result && !e.dmg).map((e) => String(e.result)),
       checkReveals: (s.checks ?? []).filter((c) => c.success?.reveal && !(g.passedChecks ?? []).includes(c.id)).map((c) => ({ check: c.id, clue: c.success.reveal })),
       handouts: Object.keys(g.handouts ?? {}),
