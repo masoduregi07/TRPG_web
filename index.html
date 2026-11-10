@@ -12095,12 +12095,12 @@ const BannerArt = (() => {
       const top = side.scrollTop, half = parseFloat(getComputedStyle(st).rowGap) / 2 || 15;
       mids = sibs().map((sib) => {
         const b = sib.getBoundingClientRect(), prev = sib.previousElementSibling;
-        // 바로 위가 원래 자리(빈 칸)면 빈 칸 가운데, 아니면 위 틈 가운데
-        const y = prev === gap ? gap.offsetTop + gap.offsetHeight / 2 : sib.offsetTop - half;
+        // 표시 = 놓으면 메모 윗변이 올 자리 위 틈. 바로 위가 원래 자리(빈 칸)면 빈 칸 위 틈
+        const y = (prev === gap ? gap.offsetTop : sib.offsetTop) - half;
         return { sib, mid: b.top + b.height / 2 + top, y };
       });
       const last = mids.at(-1)?.sib, tail = [...st.children].reverse().find((c) => c !== mark && !c.classList.contains("dragging"));
-      mids.endY = tail === gap ? gap.offsetTop + gap.offsetHeight / 2 : last ? last.offsetTop + last.offsetHeight + half : 0;
+      mids.endY = tail === gap ? gap.offsetTop - half : last ? last.offsetTop + last.offsetHeight + half : 0;
     };
     // 놓일 자리: 바뀔 때만 표시를 옮김 (transform만 → 공책은 다시 배치하지 않음)
     const placeAt = (y) => {
