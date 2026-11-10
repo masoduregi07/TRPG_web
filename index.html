@@ -784,17 +784,24 @@ html.calm-item .dos-items .item.lost { display: none; }
  * ================================================================ */
 .scene-banner { position: relative; flex: none; height: 168px; overflow: hidden; background: var(--grain), linear-gradient(180deg, #3a2516, #22150c); box-shadow: inset 0 -3px 0 #120a05; }
 .scene-banner[hidden] { display: none; }
-/* 접속 상태 이름표: 배너 왼쪽 위, 오른쪽 위 상태 칩 · 아이콘 줄과 같은 높이(26px · 세로 가운데). 종이 꼬리표 = 플레이어(닉네임).
-   잉크 점 초록 = 접속 · 황토 = 기록지 작성 중 · 빈 동그라미 + 바랜 종이 = 끊김, 아래 3px = 플레이어 색 */
+/* 접속 상태 이름표: 배너 왼쪽 위, 오른쪽 위 상태 칩 · 아이콘 줄과 같은 높이(26px · 세로 가운데). 테이프색 극장 표 = 플레이어(닉네임).
+   점 초록 = 접속 · 황토 = 기록지 작성 중 · 빈 동그라미 + 바랜 표 = 끊김, 호스트는 별, 아래 2px = 플레이어 색 */
 .roster { position: absolute; left: 16px; top: var(--roster-top, 0px); z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 40%); }
-.rc { display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 13px; font: 13px var(--font); color: #2b2420; white-space: nowrap; background: #efe3c2;
-  box-shadow: inset 0 0 0 1px #2b2420, inset 0 -3px 0 var(--c), 2px 2px 0 rgba(0, 0, 0, .45); clip-path: polygon(6px 0, 100% 0, 100% 100%, 6px 100%, 0 50%); }
-.rc i { width: 7px; height: 7px; flex: none; border-radius: 50%; background: #3a8a2a; box-shadow: 0 0 0 1px rgba(43, 36, 32, .6); }
-.rc b { margin-right: -2px; font-weight: 400; font-size: 11px; color: #8a1c14; }
+.rc { --tape: rgba(214, 190, 130, .88); display: grid; grid-template-columns: 24px auto; align-items: center; height: 26px; padding: 0 0 2px; font: 13px/1 var(--font); color: #2b2420; white-space: nowrap;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .08) 0 2px, transparent 2px 5px), var(--tape); box-shadow: inset 0 -2px 0 var(--c);
+  -webkit-mask: radial-gradient(circle 4px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 4px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 4px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 4px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat; }
+/* 표 왼쪽 칸 = 접속 표시(홈 4px 뺀 칸의 가운데), 점선 절취선, 오른쪽 칸 = 이름(가운데) */
+.rc i { justify-self: center; translate: 2px 0; width: 7px; height: 7px; border-radius: 50%; background: #3a8a2a; box-shadow: 0 0 0 1px rgba(43, 36, 32, .6); }
+.rc span { align-self: stretch; display: flex; align-items: center; gap: 4px; padding: 0 14px 0 10px; border-left: 1px dashed rgba(43, 36, 32, .5); }
+.rc b { font-weight: 400; font-size: 11px; color: #8a1c14; }
 .rc.wr i { background: #c8962a; }
-.rc.off { color: #8a7d68; background: #cfc3a6; }
-.rc.off i { background: transparent; box-shadow: 0 0 0 1px #8a7d68; }
-.rc.me { background: #fff6dc; font-weight: 700; }
+.rc.off { --tape: rgba(170, 155, 120, .75); color: #5a4e3e; }
+.rc.off i { background: transparent; box-shadow: 0 0 0 1px #6e6250; }
+.rc.me { --tape: rgba(240, 222, 170, .95); font-weight: 700; }
+/* 호스트: 접속 표시가 별 */
+.rc.host i { width: 11px; height: 11px; border-radius: 0; box-shadow: none; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.rc.host.off i { background: #6e6250; opacity: .6; }
 .scene-banner canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: none; }
 .scene-banner.has-pic canvas { display: block; }
 .sb-fade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(18, 10, 5, .85), rgba(18, 10, 5, .2) 45%, transparent 70%); }
@@ -11563,9 +11570,9 @@ const BannerArt = (() => {
       // 이름표는 플레이어(닉네임). 캐릭터 이름은 일행 목록 · 기록지에서만
       const gm = p.isHost && !s.hostPlays, char = p.ready ? p.character?.name : null;
       const st = !p.online ? "off" : !gm && !p.ready ? "wr" : "";
-      return el("span", { class: ["rc", st, p.pid === s.me && "me"].filter(Boolean).join(" "), style: `--c:${gm ? "#8a6a2a" : spineOf(p.pid)}`,
+      return el("span", { class: ["rc", st, p.isHost && "host", p.pid === s.me && "me"].filter(Boolean).join(" "), style: `--c:${gm ? "#8a6a2a" : spineOf(p.pid)}`,
         title: `플레이어 ${p.name}${char ? ` · 캐릭터 ${char}` : ""} · ${st === "off" ? "끊김" : st === "wr" ? "기록지 작성 중" : "접속"}` },
-        el("i", { "aria-hidden": "true" }), gm ? el("b", {}, "GM") : null, cut(p.name));
+        el("i", { "aria-hidden": "true" }), el("span", {}, gm ? el("b", {}, "GM") : null, cut(p.name)));
     }));
     alignRoster();
   }
