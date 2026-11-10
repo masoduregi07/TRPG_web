@@ -2070,6 +2070,25 @@ html.has-3d .topbar { box-shadow: none; }
 #log .entry.item-line.lost .il-tag { color: #7a6548; }
 #log .entry.item-line.lost .il-tag b { color: var(--blood); }
 #log .entry.item-line.lost .il-tag .nm { text-decoration: line-through; text-decoration-color: var(--blood); text-decoration-thickness: 2px; }
+/* ===== 기록 밀도 (P1): 이야기 > 사건 > 시스템 3단계. 사건은 왼쪽 2px 색 막대 한 줄, 시스템은 작은 회색 줄 ===== */
+.log { gap: 6px; }
+.entry { line-height: 1.5; }
+.entry.gm, .entry.ai, .turn-res .tr-text { line-height: 1.5; }
+#log .entry.system:not(.item-line) { font-size: 12px; line-height: 17px; color: #7a6548; }
+#log .entry.system:not(.item-line)::before { content: "· "; display: inline; margin: 0; padding: 0; font: inherit; letter-spacing: 0; color: inherit; background: none; box-shadow: none; }
+#log .entry.system.place-line::before { content: none; }
+#log .entry.system + .entry.system { margin-top: -3px; }
+#log .entry.roll { padding: 1px 0 1px 10px; border: 0; box-shadow: inset 2px 0 0 #2a3550; }
+#log .entry.roll.secret { box-shadow: inset 2px 0 0 var(--navy); }
+#log .entry.roll .roll-result { margin-top: 0; font-size: 14px; color: #3a3226; }
+#log .entry.clue { justify-self: stretch; max-width: none; margin: 0; padding: 1px 0 1px 10px; background: none; rotate: 0deg; box-shadow: inset 2px 0 0 var(--blood); }
+#log .entry.clue::after { display: none; }
+#log .entry.clue .text { font-size: 14px; }
+#log .entry.handout-line { margin: 0; padding-left: 10px; box-shadow: inset 2px 0 0 #6f5230; }
+#log .entry.handout-line .ho { padding: 4px 8px; rotate: 0deg; box-shadow: 0 0 0 1px rgba(90, 60, 30, .35); max-width: min(420px, 100%); }
+#log .entry.handout-line .ho::before, #log .entry.handout-line .ho::after { display: none; }
+#log .entry.handout-line .ho-body { max-height: 20px; line-height: 20px; white-space: nowrap; text-overflow: ellipsis; column-width: auto; }
+#log .entry.item-line { padding-left: 10px; }
 /* 사건이 바뀌는 곳: 가는 갈색 구분선 */
 #log .scene-entry { margin: 6px 0 2px; padding-top: 18px; gap: 15px; border-top: 2px solid rgba(90, 60, 30, .45); }
 #log .scene-entry:first-child { border-top: 0; padding-top: 0; }
