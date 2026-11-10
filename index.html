@@ -9774,7 +9774,9 @@ const BannerArt = (() => {
       return win;
     }
     const svgEl = mapSvg(h, { live: true }), vb = svgEl.viewBox.baseVal;
-    const win = floatWin(`map:${hid}`, el("div", { class: "ho-float-map", "data-hid": hid }, svgEl), 360, Math.round(360 * vb.height / vb.width));
+    // 지도 창 기본 크기: 화면 폭 45%(최대 720px) · 높이 70% 안에서 지도 비율대로 (말 · 방 이름이 읽히게)
+    const ar = vb.height / vb.width, w0 = Math.round(Math.min(innerWidth - 32, Math.max(360, Math.min(720, innerWidth * .45, innerHeight * .7 / ar))));
+    const win = floatWin(`map:${hid}`, el("div", { class: "ho-float-map", "data-hid": hid }, svgEl), w0, Math.round(w0 * ar));
     return win;
   }
   // 자석: 화면 가장자리와 다른 창의 가장자리(맞닿기 · 줄 맞추기)에 SNAP px 안이면 붙음
