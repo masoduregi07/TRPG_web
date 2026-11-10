@@ -110,3 +110,27 @@ test("모델 이름 오류면 사용 가능한 모델을 알려 줌", async () =
   const m = load({ fetch });
   await assert.rejects(m.AI.call({ provider: "custom", baseURL: "https://x/v1", model: "old", apiKey: "" }, [{ role: "user", content: "a" }]), /사용 가능: gemini-9-flash, gpt-x/);
 });
+
+test("AI 응답 대기 중 판정이 끝나면 그 응답은 버리고 다시 요청", async () => {
+  const m = load({ TRPG_AI_WAIT_MS: 5 });
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  let calls = 0, roll = null;
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {}, aiCall: async () => {
+    calls++;
+    if (!roll) return JSON.stringify({ narration: calls > 1 ? "새 상황 서술." : "시작 서술.", on_track: true });
+    const f = roll; roll = null; f();   // 응답을 기다리는 동안 판정이 끝남
+    return JSON.stringify({ narration: "옛 상황 서술.", on_track: true });
+  } });
+  const pid = join(g, m, "c1", KEY, "가", "민준");
+  g.hostAction({ t: "start" });
+  await new Promise((r) => setTimeout(r, 120));
+  m.Engine.queuePending(data.game, { checkId: "persuade_fisherman", label: "어부 설득하기", skill: "설득" });
+  roll = () => g.resolveCheck(pid, { label: "어부 설득하기", skill: "설득" }, m.Engine.findCheck(sc, data.game, "persuade_fisherman"), false);
+  calls = 0;
+  g.onMessage("c1", { t: "chat", text: "어부에게 다가간다", style: "act" });
+  await new Promise((r) => setTimeout(r, 400));
+  const ai = data.log.filter((e) => e.kind === "ai").map((e) => e.text);
+  assert.ok(!ai.includes("옛 상황 서술."));
+  assert.ok(ai.includes("새 상황 서술."));
+});
