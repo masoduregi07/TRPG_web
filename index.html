@@ -1978,11 +1978,15 @@ html.has-3d .topbar { box-shadow: none; }
 .end-summary .es-s { max-width: 660px; font-size: 12px; color: #2a3550; }
 .end-chars { grid-template-columns: repeat(auto-fit, minmax(300px, 420px)); justify-content: center; align-items: start; gap: 38px 18px; padding-top: 30px; }
 .end-card { position: relative; background: #e6d3a3; border-radius: 0 4px 4px 4px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); cursor: pointer; transition: translate .18s ease, box-shadow .18s ease; }
-/* 서류철 탭에 이름(캐릭터) — 카드 안에는 직업 · 플레이어만 */
-.end-card::before { content: attr(data-name); position: absolute; left: 0; top: -24px; min-width: 96px; max-width: 70%; height: 24px; padding: 3px 14px 0; box-sizing: border-box; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 15px/21px var(--font); color: var(--spine); background: #e6d3a3; border-radius: 4px 4px 0 0; box-shadow: inset 0 3px 0 var(--spine); }
+/* 서류철 탭에 이름(캐릭터) — 탭 안 이름표 = 플레이어 색 마스킹 테이프(옅게 · 가는 먹 테), 이름은 정가운데. 카드 안에는 직업 · 플레이어만 */
+.end-card::before { content: attr(data-name); position: absolute; left: 0; top: -26px; min-width: 110px; max-width: 70%; height: 26px; padding: 5px 14px 0; box-sizing: border-box; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; font: 14px/18px var(--font); color: #2b2420; border-radius: 4px 4px 0 0;
+  background: linear-gradient(color-mix(in srgb, var(--spine) 50%, #efe2bd), color-mix(in srgb, var(--spine) 50%, #efe2bd)) 50% 5px / calc(100% - 14px) 18px no-repeat,
+    linear-gradient(rgba(26, 18, 13, .35), rgba(26, 18, 13, .35)) 50% 4px / calc(100% - 12px) 20px no-repeat, #e6d3a3; }
+.end-card .ec-pic .polaroid::before { display: none; }
 .end-card .ec-name b { display: none; }
 .end-card .ec-name b { color: var(--spine); }
-.end-card .ec-pic .polaroid { width: 84px; height: 106px; transform: none; rotate: none; }
+.end-card { padding: 14px 14px 12px; }
+.end-card .ec-pic .polaroid { width: 84px; height: 106px; margin-top: 2px; transform: none; rotate: none; }
 .end-card .ec-pic .polaroid img, .end-card .ec-pic .polaroid-empty { width: 76px; height: 86px; }
 .end-card .ec-key li:nth-child(n+5):not(.ec-more) { display: none; }
 .end-card .ec-key li.ec-more { display: block; color: #7a6548; }
@@ -1996,8 +2000,27 @@ html.has-3d .topbar { box-shadow: none; }
 .end-detail-in { position: relative; width: min(560px, 92vw); max-height: calc(100vh - 80px); overflow-y: auto; padding-top: 24px; }
 .end-detail .ed-x { position: absolute; right: 6px; top: 30px; z-index: 1; padding: 0 6px; font: 20px/1 var(--font); color: var(--ink); background: none; border: 0; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .end-card { transition: none; } .end-card:hover { translate: none; } }
-#endSave { order: 9; }
-#endQuit { background: none; box-shadow: none; border: 0; padding: 4px 2px; font-size: 12px; color: #5a4128; text-decoration: underline; text-underline-offset: 3px; }
+/* 아래 줄(G2 구조): 왼쪽 보조 동작 / 오른쪽 결정 상자 = 잉크 체크 "기록 보관" + 둥근 날인 [끝내기] */
+.end-sheet .end-act { justify-content: space-between; }
+.end-act .ea-side { display: flex; gap: 16px; }
+.end-act .ea-link { padding: 2px 0; font: 12px var(--font); color: #5a4128; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.end-act .ea-link.host { color: var(--blood); }
+.end-act .ea-link small { font-size: 10px; color: #9a8466; }
+.end-act .ea-box { display: flex; align-items: center; gap: 18px; padding: 8px 12px 8px 16px; background: rgba(255, 250, 235, .45); box-shadow: inset 0 0 0 1px rgba(43, 36, 32, .35); }
+.end-act .ea-check { position: relative; display: flex; align-items: center; gap: 8px; font: 13px var(--font); color: var(--ink); cursor: pointer; }
+.end-act .ea-check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.end-act .ea-mark { position: relative; width: 18px; height: 18px; box-shadow: inset 0 0 0 1px #2b2420; background: #fff8e6; }
+.end-act .ea-mark svg { position: absolute; left: -2px; top: -6px; width: 26px; height: 26px; fill: none; stroke: #23315a; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 30; stroke-dashoffset: 30; transition: stroke-dashoffset .25s ease; }
+.end-act .ea-check input:checked + .ea-mark svg { stroke-dashoffset: 0; }
+.end-act .ea-check input:focus-visible + .ea-mark { outline: 2px solid var(--blood); outline-offset: 2px; }
+/* [사건 종결] 버튼(칠한 네모) → 누르면 기관 관인(탐사자 기록국 · 종결 · CASE CLOSED)이 버튼 위에 쾅 (서류 밖으로 나가도 됨: body에 fixed) */
+.end-act .ea-seal { padding: 8px 18px; font: 13px var(--font); letter-spacing: 2px; color: #fff6dc; background: #6e2420; border: 0; box-shadow: 0 0 0 2px #2b1a0c, 2px 2px 0 2px rgba(0, 0, 0, .35); cursor: pointer; transition: background .15s; }
+.end-act .ea-seal:hover:not(.stamped), .end-act .ea-seal:focus-visible { background: #8a1c14; outline: 0; }
+.end-act .ea-seal.stamped { cursor: default; color: rgba(110, 36, 32, .3); background: #f1e6c6; box-shadow: inset 0 0 0 1px rgba(110, 36, 32, .35); transition: background .12s .2s, color .12s .2s; }
+.end-seal { position: fixed; z-index: 120; width: 128px; height: 128px; margin: -64px 0 0 -64px; pointer-events: none; rotate: -14deg; animation: stamp-slam .45s cubic-bezier(.3, 1.4, .5, 1) both; }
+.end-seal .seal-svg { display: block; width: 128px; height: 128px; }
+.end-seal .seal-svg g[filter] { filter: none; }
+@media (prefers-reduced-motion: reduce) { .end-seal { animation: none; } }
 .end-act { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 9px; padding-top: 12px; border-top: 1px solid rgba(43, 26, 12, .45); }
 .end-act .end-q { margin-right: auto; font-size: 12px; color: #5a4128; }
 
@@ -2762,11 +2785,8 @@ html.has-3d .topbar { box-shadow: none; }
     <div id="endSummary" class="end-summary"></div>
     <div id="endChars" class="end-chars"></div>
     <footer class="end-act">
-      <span class="end-q">이 기록을 남길까?</span>
-      <button id="endClose" class="btn small ghost" type="button">기록 다시 보기</button>
-      <button id="endResume" class="btn small ghost" type="button" hidden>이야기 이어 가기</button>
-      <button id="endQuit" class="btn" type="button">저장하지 않고 끝내기</button>
-      <button id="endSave" class="btn primary" type="button">기록 저장하고 끝내기</button>
+      <div class="ea-side"><button id="endClose" class="ea-link" type="button">← 기록 다시보기</button><button id="endResume" class="ea-link host" type="button" hidden>이야기 계속하기 <small>(호스트)</small></button></div>
+      <div class="ea-box"><label class="ea-check"><input id="endKeep" type="checkbox" checked /><span class="ea-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 13.5c2.2 1.2 3.8 3 5 5.2C11 11.6 15.6 6.4 21.5 3"/></svg></span>기록 보관</label><button id="endSave" class="ea-seal" type="button">사건 종결</button></div>
     </footer>
   </div>
 </section>
@@ -10879,7 +10899,7 @@ const BannerArt = (() => {
     toast(text);
   }
   /** 작성 완료 도장 = 원형 관인: 바깥 원 "탐사자 기록국" · 아래 "INVESTIGATOR · No.xx" · 가운데 "접수" + 날짜 */
-  function readySeal(d, no) {
+  function readySeal(d, no, mid = "접수", bottom = null) {
     const C = "#a3221a", date = `${d.getFullYear()}·${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`;
     const arc = (txt, size, gap, href) => svg("text", { "font-size": size, "letter-spacing": gap, fill: C }, svg("textPath", { href, startOffset: "50%", "text-anchor": "middle" }, txt));
     return svg("svg", { class: "seal-svg", viewBox: "0 0 150 150", width: 112, height: 112 },
@@ -10890,8 +10910,8 @@ const BannerArt = (() => {
           svg("feColorMatrix", { values: "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.6", result: "m" }), svg("feComposite", { in: "SourceGraphic", in2: "m", operator: "in" }))),
       svg("g", { filter: "url(#sealInk)", "font-family": "Galmuri11, monospace" },
         svg("g", { fill: "none", stroke: C }, svg("circle", { cx: 75, cy: 75, r: 68, "stroke-width": 4 }), svg("circle", { cx: 75, cy: 75, r: 61, "stroke-width": 1.5 }), svg("circle", { cx: 75, cy: 75, r: 35, "stroke-width": 2 })),
-        arc("탐사자 기록국", 10, 3, "#sealTop"), arc(`INVESTIGATOR${no ? ` · ${no}` : ""}`, 8, 2, "#sealBot"),
-        svg("text", { x: 75, y: 73, "font-size": 16, "text-anchor": "middle", "letter-spacing": 2, fill: C }, "접수"),
+        arc("탐사자 기록국", 10, 3, "#sealTop"), arc(bottom ?? `INVESTIGATOR${no ? ` · ${no}` : ""}`, 8, 2, "#sealBot"),
+        svg("text", { x: 75, y: 73, "font-size": 16, "text-anchor": "middle", "letter-spacing": 2, fill: C }, mid),
         svg("text", { x: 75, y: 88, "font-size": 8, "text-anchor": "middle", fill: C }, date),
         svg("text", { x: 17, y: 79, "font-size": 10, fill: C }, "✦"), svg("text", { x: 124, y: 79, "font-size": 10, fill: C }, "✦")));
   }
@@ -11607,10 +11627,11 @@ const BannerArt = (() => {
   }
   function renderEnd(s) {
     const box = $("#endBox"), r = s?.phase === "play" ? s.result : null;
-    if (!r || app.endHidden === r.at) { box.hidden = true; return; }
+    if (!r || app.endHidden === r.at) { box.hidden = true; document.querySelector(".end-seal")?.remove(); return; }
     $("#endResume").hidden = !s.isHost;
     if (box.dataset.at === String(r.at) && !box.hidden) return;
     box.dataset.at = String(r.at); closeEndCard();
+    $("#endSave").classList.remove("stamped"); document.querySelector(".end-seal")?.remove();
     $("#endSub").textContent = `${r.title} · 결말: ${r.ending}${r.endingReached ? "" : " (결말 전 마무리)"}`;
     $("#endMeta").replaceChildren(el("span", {}, "진행 ", el("b", {}, dur(r.startedAt, r.at) || "—")), el("span", {}, "사건 ", el("b", {}, String(r.scenes.length))), el("span", {}, "단서 ", el("b", {}, String(r.clues))));
     // 결말: 결말 장면 묘사를 인용문으로, 그 아래 요약(있으면) — 둘 다 없으면 지나온 사건 순서
@@ -11651,9 +11672,20 @@ const BannerArt = (() => {
   }
   function closeEndCard() { $("#endBox .end-detail")?.remove(); }
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#endBox .end-detail")) { e.stopPropagation(); closeEndCard(); } }, true);
+  // 날인 [끝내기]: "기록 보관"에 체크돼 있으면 저장하고, 아니면 확인 뒤 저장 없이 끝냄
   $("#endSave").addEventListener("click", () => {
-    const s = app.snap, r = s?.result;
-    if (!r) return;
+    const s = app.snap, r = s?.result, btn = $("#endSave");
+    if (!r || btn.classList.contains("stamped")) return;
+    const keep = $("#endKeep").checked;
+    if (!keep && !confirm("기록을 저장하지 않고 끝냄. 진행?")) return;
+    // 날인 연출: 네모 칸에 관인이 쾅 → 잠시 뒤 저장 · 나가기
+    const br = btn.getBoundingClientRect();
+    const seal = el("div", { class: "end-seal", "aria-hidden": "true", style: `left:${br.left + br.width / 2}px;top:${br.top + br.height / 2}px` }, readySeal(new Date(), "", "종결", "CASE CLOSED"));
+    btn.classList.add("stamped"); document.body.append(seal);
+    setTimeout(() => Sfx.play("stamp"), 180);
+    setTimeout(() => keep ? saveEndAndLeave(s, r) : leaveTable(), 900);
+  });
+  function saveEndAndLeave(s, r) {
     download(`trpg-기록-${r.title}-${today()}.json`, {
       kind: "trpg-session-record", v: 1, savedAt: Date.now(), result: r, text: endText(r),
       characters: s.players.filter((p) => p.ready && p.character).map((p) => ({ player: p.name, character: p.character })),
@@ -11661,10 +11693,9 @@ const BannerArt = (() => {
     });
     toast("기록 저장됨");
     setTimeout(leaveTable, 700);
-  });
-  $("#endQuit").addEventListener("click", () => { if (confirm("기록을 저장하지 않고 끝냄. 진행?")) leaveTable(); });
+  }
   $("#endClose").addEventListener("click", () => { app.endHidden = app.snap?.result?.at ?? null; render(); });
-  $("#endResume").addEventListener("click", () => { if (confirm("결과 정리를 닫고 이야기를 이어 감. 진행?")) send({ t: "unfinish" }); });
+  $("#endResume").addEventListener("click", () => { if (confirm("결말을 취소하고 이야기를 계속함(모두의 결과 화면이 닫힘). 진행?")) send({ t: "unfinish" }); });
 
   function renderPlay(s) {
     const v = s.view;
