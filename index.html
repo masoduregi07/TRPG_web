@@ -2010,14 +2010,14 @@ html.has-3d .topbar { box-shadow: none; }
 .end-act .ea-mark svg { position: absolute; left: -2px; top: -6px; width: 26px; height: 26px; fill: none; stroke: #23315a; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 30; stroke-dashoffset: 30; transition: stroke-dashoffset .25s ease; }
 .end-act .ea-check input:checked + .ea-mark svg { stroke-dashoffset: 0; }
 .end-act .ea-check input:focus-visible + .ea-mark { outline: 2px solid var(--blood); outline-offset: 2px; }
-/* 날인란: 네모 칸 [사건 종결] → 누르면 기관 관인(탐사자 기록국 · 종결 · CASE CLOSED)이 쾅 */
-.end-act .ea-seal { position: relative; display: grid; place-items: center; width: 64px; height: 64px; margin: 0; padding: 0 0 0 1px; font: 12px/1.3 var(--font); letter-spacing: 1px; text-align: center; color: var(--blood); background: rgba(255, 250, 235, .6); border: 0; box-shadow: inset 0 0 0 1px var(--blood), inset 0 0 0 4px rgba(255, 250, 235, .6), inset 0 0 0 5px rgba(138, 28, 20, .45); cursor: pointer; transition: background .15s; }
-.end-act .ea-seal:hover:not(.stamped), .end-act .ea-seal:focus-visible { background: rgba(138, 28, 20, .08); outline: 0; }
-.end-act .ea-seal.stamped { cursor: default; }
-.end-act .ea-seal.stamped span { opacity: 0; }
-.end-act .ea-seal .seal-svg g[filter] { filter: none; }
-.end-act .ea-seal .seal-svg { position: absolute; left: 50%; top: 50%; z-index: 1; width: 86px; height: 86px; margin: -43px 0 0 -43px; pointer-events: none; animation: stamp-slam .45s cubic-bezier(.3, 1.4, .5, 1) both; rotate: -14deg; }
-@media (prefers-reduced-motion: reduce) { .end-act .ea-seal .seal-svg { animation: none; } }
+/* [사건 종결] 버튼(칠한 네모) → 누르면 기관 관인(탐사자 기록국 · 종결 · CASE CLOSED)이 버튼 위에 쾅 (서류 밖으로 나가도 됨: body에 fixed) */
+.end-act .ea-seal { padding: 8px 18px; font: 13px var(--font); letter-spacing: 2px; color: #fff6dc; background: #6e2420; border: 0; box-shadow: 0 0 0 2px #2b1a0c, 2px 2px 0 2px rgba(0, 0, 0, .35); cursor: pointer; transition: background .15s; }
+.end-act .ea-seal:hover:not(.stamped), .end-act .ea-seal:focus-visible { background: #8a1c14; outline: 0; }
+.end-act .ea-seal.stamped { cursor: default; color: rgba(110, 36, 32, .3); background: #f1e6c6; box-shadow: inset 0 0 0 1px rgba(110, 36, 32, .35); transition: background .12s .2s, color .12s .2s; }
+.end-seal { position: fixed; z-index: 120; width: 128px; height: 128px; margin: -64px 0 0 -64px; pointer-events: none; rotate: -14deg; animation: stamp-slam .45s cubic-bezier(.3, 1.4, .5, 1) both; }
+.end-seal .seal-svg { display: block; width: 128px; height: 128px; }
+.end-seal .seal-svg g[filter] { filter: none; }
+@media (prefers-reduced-motion: reduce) { .end-seal { animation: none; } }
 .end-act { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 9px; padding-top: 12px; border-top: 1px solid rgba(43, 26, 12, .45); }
 .end-act .end-q { margin-right: auto; font-size: 12px; color: #5a4128; }
 
@@ -2783,7 +2783,7 @@ html.has-3d .topbar { box-shadow: none; }
     <div id="endChars" class="end-chars"></div>
     <footer class="end-act">
       <div class="ea-side"><button id="endClose" class="ea-link" type="button">← 기록 다시보기</button><button id="endResume" class="ea-link host" type="button" hidden>이야기 계속하기 <small>(호스트)</small></button></div>
-      <div class="ea-box"><label class="ea-check"><input id="endKeep" type="checkbox" checked /><span class="ea-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 13.5c2.2 1.2 3.8 3 5 5.2C11 11.6 15.6 6.4 21.5 3"/></svg></span>기록 보관</label><button id="endSave" class="ea-seal" type="button"><span>사건<br>종결</span></button></div>
+      <div class="ea-box"><label class="ea-check"><input id="endKeep" type="checkbox" checked /><span class="ea-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 13.5c2.2 1.2 3.8 3 5 5.2C11 11.6 15.6 6.4 21.5 3"/></svg></span>기록 보관</label><button id="endSave" class="ea-seal" type="button">사건 종결</button></div>
     </footer>
   </div>
 </section>
@@ -11624,11 +11624,11 @@ const BannerArt = (() => {
   }
   function renderEnd(s) {
     const box = $("#endBox"), r = s?.phase === "play" ? s.result : null;
-    if (!r || app.endHidden === r.at) { box.hidden = true; return; }
+    if (!r || app.endHidden === r.at) { box.hidden = true; document.querySelector(".end-seal")?.remove(); return; }
     $("#endResume").hidden = !s.isHost;
     if (box.dataset.at === String(r.at) && !box.hidden) return;
     box.dataset.at = String(r.at); closeEndCard();
-    $("#endSave").classList.remove("stamped"); $("#endSave .seal-svg")?.remove();
+    $("#endSave").classList.remove("stamped"); document.querySelector(".end-seal")?.remove();
     $("#endSub").textContent = `${r.title} · 결말: ${r.ending}${r.endingReached ? "" : " (결말 전 마무리)"}`;
     $("#endMeta").replaceChildren(el("span", {}, "진행 ", el("b", {}, dur(r.startedAt, r.at) || "—")), el("span", {}, "사건 ", el("b", {}, String(r.scenes.length))), el("span", {}, "단서 ", el("b", {}, String(r.clues))));
     // 결말: 결말 장면 묘사를 인용문으로, 그 아래 요약(있으면) — 둘 다 없으면 지나온 사건 순서
@@ -11676,7 +11676,9 @@ const BannerArt = (() => {
     const keep = $("#endKeep").checked;
     if (!keep && !confirm("기록을 저장하지 않고 끝냄. 진행?")) return;
     // 날인 연출: 네모 칸에 관인이 쾅 → 잠시 뒤 저장 · 나가기
-    btn.classList.add("stamped"); btn.append(readySeal(new Date(), "", "종결", "CASE CLOSED"));
+    const br = btn.getBoundingClientRect();
+    const seal = el("div", { class: "end-seal", "aria-hidden": "true", style: `left:${br.left + br.width / 2}px;top:${br.top + br.height / 2}px` }, readySeal(new Date(), "", "종결", "CASE CLOSED"));
+    btn.classList.add("stamped"); document.body.append(seal);
     setTimeout(() => Sfx.play("stamp"), 180);
     setTimeout(() => keep ? saveEndAndLeave(s, r) : leaveTable(), 900);
   });
