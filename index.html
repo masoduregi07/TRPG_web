@@ -2002,6 +2002,9 @@ html.has-3d .topbar { box-shadow: none; }
   background: #1c120c; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #e9dcb7, 5px 6px 0 4px rgba(0, 0, 0, .45); touch-action: none; -webkit-user-select: none; user-select: none; }
 .ho-float.pinned { resize: none; cursor: default; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #c9a040, 5px 6px 0 4px rgba(0, 0, 0, .45); }
 .ho-float-map { width: 100%; height: 100%; background: #f1e8cf; }
+.ho-float-card { width: 100%; height: 100%; overflow: auto; background: #efe3c2; }
+.ho-float-card .ho.big { display: block; box-sizing: border-box; width: 100%; max-width: none; max-height: none; overflow: visible; margin: 0; padding: 12px 14px 14px; box-shadow: none; rotate: 0deg; }
+.ho-float-card .ho.big .ho-body { font-size: 14px; line-height: 24px; }
 .ho-float-map .ho-map { width: 100%; height: 100%; }
 .ho-float-pin { position: absolute; top: 4px; right: 32px; width: 24px; height: 24px; padding: 0; border: 0; cursor: pointer; display: grid; place-items: center; color: #e9dcb7; background: rgba(28, 18, 12, .75); }
 .ho-float-pin .ic-svg { width: 14px; height: 14px; }
@@ -9441,7 +9444,7 @@ const BannerArt = (() => {
   function handoutThumb(h) {
     if (h.kind === 'map') return el('span',{class:'ho-th ho-th-map','aria-hidden':'true','data-hid':h.id},mapSvg(h));
     const src = h.kind === 'photo' || h.image ? handoutSrc(h.image) : null;
-    return el('span',{class:`ho-th ho-th-${h.kind}`,'aria-hidden':'true'}, h.image ? el('img',{src:src ?? 'data:image/gif;base64,R0lGODlhAQABAAAAACw=','data-ref':h.image.startsWith('ho:')?h.image:null,alt:''}) : null);
+    return el('span',{class:`ho-th ho-th-${h.kind}`,'aria-hidden':'true','data-hid':h.id}, h.image ? el('img',{src:src ?? 'data:image/gif;base64,R0lGODlhAQABAAAAACw=','data-ref':h.image.startsWith('ho:')?h.image:null,alt:'',draggable:'false'}) : null);
   }
   function refreshMapView(v) {
     const card = document.querySelector("#hoView .ho-map-card"); if (!card || card.querySelector(".hm-tok.drag")) return;
@@ -9661,8 +9664,8 @@ const BannerArt = (() => {
         on: big ? {} : { click: () => openHandout(h) } },
         el("span", { class: "ho-cap" }, `핸드아웃 · ${h.title}`), el("span", { class: "ho-img" }, mapSvg(h, { live: big })));
     }
-    const img = h.image ? el("img", { src: handoutSrc(h.image) ?? "data:image/gif;base64,R0lGODlhAQABAAAAACw=", "data-ref": h.image.startsWith("ho:") ? h.image : null, alt: h.title }) : null;
-    const card = el(big ? "div" : "button", { class: `ho ho-${h.kind}${big ? " big" : ""}`, type: big ? null : "button", title: big ? null : "크게 보기",
+    const img = h.image ? el("img", { src: handoutSrc(h.image) ?? "data:image/gif;base64,R0lGODlhAQABAAAAACw=", "data-ref": h.image.startsWith("ho:") ? h.image : null, alt: h.title, draggable: "false" }) : null;
+    const card = el(big ? "div" : "button", { class: `ho ho-${h.kind}${big ? " big" : ""}`, type: big ? null : "button", title: big ? null : "크게 보기", "data-hid": h.id,
       on: big ? {} : { click: () => openHandout(h) } },
       el("span", { class: "ho-cap" }, `핸드아웃 · ${h.title}`),
       img ? el("span", { class: "ho-img" }, img) : null,
@@ -9691,8 +9694,16 @@ const BannerArt = (() => {
       return floatWin(`img:${src.dataset.ref || src.currentSrc || src.src}`,
         el("img", { src: src.currentSrc || src.src, alt: src.alt || "", draggable: "false", "data-ref": src.dataset.ref || null }), w0, h0);
     }
-    const hid = src.closest("[data-hid]")?.dataset.hid, h = app.snap?.view?.handouts?.find((x) => x.id === hid);
+    const hid = (src.closest("[data-hid]") ?? src.querySelector?.("[data-hid]"))?.dataset.hid, h = app.snap?.view?.handouts?.find((x) => x.id === hid);
     if (!h) return null;
+    if (h.kind !== "map") {
+      const img = src.querySelector?.("img");
+      if (img && !h.text) return floatFrom(img);   // 그림만 있는 섬네일 · 카드
+      // 글 핸드아웃: 크게 보기 카드를 창에 넣고 내용 높이에 맞춤 (넘치면 창 안에서 스크롤)
+      const win = floatWin(`card:${hid}`, el("div", { class: "ho-float-card" }, handoutCard(h, { big: true })), 320, 200);
+      if (!win.dataset.fit) { win.dataset.fit = "1"; requestAnimationFrame(() => { const c = win.querySelector(".ho.big"); if (c) win.style.height = `${Math.min(innerHeight * .7, c.offsetHeight)}px`; }); }
+      return win;
+    }
     const svgEl = mapSvg(h, { live: true }), vb = svgEl.viewBox.baseVal;
     const win = floatWin(`map:${hid}`, el("div", { class: "ho-float-map", "data-hid": hid }, svgEl), 360, Math.round(360 * vb.height / vb.width));
     return win;
@@ -9721,7 +9732,8 @@ const BannerArt = (() => {
   }
   {
     let lp = null, suppress = false;
-    const SRC = ".ho .ho-img img, .ho-th img, .cv-ho .ho-th img, .ho-map-card .ho-map, .ho-th-map .ho-map";
+    // 기록 카드 · 메모 섬네일 · 단서 열람의 연결 핸드아웃 (크게 보기 창 안의 카드는 제외)
+    const SRC = ".ho:not(.big) .ho-img img, .ho-th img, .ho-map-card:not(.big) .ho-map, .ho-th-map .ho-map, .ho:not(.big), .ho-th, .cv-ho, .ho-row";
     // 꾹 누르기 → 움직이면 창이 손을 따라옴 (기록 · 메모 · 크게 보기 어디서든)
     document.addEventListener("pointerdown", (e) => {
       if (e.button !== 0 || e.target.closest?.(".ho-float, .hm-tok.mine")) return;
@@ -9734,14 +9746,16 @@ const BannerArt = (() => {
       if (!lp) return;
       if (!lp.ready) { if (Math.hypot(e.clientX - lp.sx, e.clientY - lp.sy) > 8) { clearTimeout(lp.timer); lp = null; } return; }
       e.preventDefault();
-      if (!lp.win) { lp.win = floatFrom(lp.src); suppress = true; if (!lp.win) { lp = null; return; } }
+      if (!lp.win) { getSelection()?.removeAllRanges(); lp.win = floatFrom(lp.src); suppress = true; if (!lp.win) { lp = null; return; } }
       placeWin(lp.win, e.clientX - 30, e.clientY - 20);
     }, { passive: false });
     const endLp = () => { if (lp) { clearTimeout(lp.timer); lp = null; } };
     addEventListener("pointerup", endLp); addEventListener("pointercancel", endLp);
     // 꾹 눌러 띄운 직후의 클릭(크게 보기)은 무시
     document.addEventListener("click", (e) => { if (suppress && e.target.closest?.(".ho, .ho-row, .cv-ho")) { e.preventDefault(); e.stopPropagation(); } suppress = false; }, true);
-    document.addEventListener("contextmenu", (e) => { if (lp && e.target.closest?.(".ho-img, .ho-th")) e.preventDefault(); });
+    document.addEventListener("contextmenu", (e) => { if (lp && e.target.closest?.(".ho, .ho-th, .cv-ho")) e.preventDefault(); });
+    // 브라우저 기본 이미지 · 글 끌기가 시작되면 pointercancel이 와서 창이 안 뜸 → 막음
+    document.addEventListener("dragstart", (e) => { if (e.target.closest?.(SRC)) e.preventDefault(); });
     // 뜬 창 끌어 옮기기 (버튼 · 내 말 · 오른쪽 아래 크기 조절 모서리 제외, 고정이면 안 움직임)
     document.addEventListener("pointerdown", (e) => {
       const win = e.target.closest?.(".ho-float");
