@@ -151,3 +151,14 @@ test("turnContext: 굴림 + 일행 잡담만 있으면 판정만 차례, 행동 
   g.addLog({ kind: "say", byId: pid, by: "한서", text: "등대로 간다", style: "act" });
   assert.equal(g.turnContext().info.rollOnly, false);
 });
+
+test("결과 정리에 결말 장면 묘사(endingText)", () => {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "h".repeat(24), hostPlays: true, mode: "human", scenario: sc });
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {} });
+  data.phase = "play";
+  const r = g.sessionResult();
+  assert.equal(typeof r.endingText, "string");
+  assert.equal(r.endingText, String(sc.scenes[data.game.currentScene]?.description ?? "").trim().slice(0, 600));
+});
