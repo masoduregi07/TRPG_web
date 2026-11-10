@@ -1195,7 +1195,9 @@ textarea { resize: vertical; margin-top: 8px; }
 .turn-res .tr-row.mine { background: none; }
 .turn-res .tr-name { justify-self: end; text-align: right; align-self: center; }
 .turn-res .tr-body { padding-left: 10px; box-shadow: inset 2px 0 0 var(--c); }
-.turn-res .tr-row.mine .tr-body { background: rgba(110, 36, 32, .06); }
+/* 표 전체 옅은 크림 바탕(E3) + 내 줄은 이름에 형광펜(M3) */
+.entry.turn-res { background: rgba(255, 248, 225, .45); }
+.turn-res .tr-row.mine .tr-name { padding: 0 3px; background: linear-gradient(transparent 55%, rgba(240, 200, 60, .55) 55% 90%, transparent 90%); }
 .turn-res .tr-q { display: none; margin: 0 0 2px; font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
 .turn-res .tr-q:not(:empty)::before { content: "“"; } .turn-res .tr-q:not(:empty)::after { content: "”"; }
 .turn-res .tr-row.mine .tr-q, .turn-res .tr-row.open .tr-q { display: block; }
