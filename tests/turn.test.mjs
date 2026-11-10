@@ -131,3 +131,21 @@ test("판정 결과만 있는 차례: 장소 변경(new_place · left_place)도 
   assert.equal(run({ narration: "바르톨이 고개를 끄덕임.", left_place: true }, info, true).plan.leavePlace, false);
   assert.equal(run(obj, turn({ checkReveals: [], rollOnly: false, actors: [] }), true).plan.place?.name, "철문 앞");
 });
+
+test("단서 공개: 서술에 내용이 없으면 다시 요청, 마지막엔 공개 보류", () => {
+  const clue = "마을 사람들은 밤마다 등대 꼭대기에서 여자의 노랫소리가 들린다며 수군거림.";
+  const info = base({ secrets: [{ kind: "미공개 단서", clue: "c1", text: clue }] });
+  const off = { narration: '바르톨은 콧방귀를 뀜. "할 일도 없는 양반이구만. 등대 소문이라도 들으러 온 거요?"', reveal_clue: "c1" };
+  const a = run(off, info);
+  assert.ok(a.issues.some((i) => i.hard && /c1/.test(i.msg)));
+  assert.ok(!a.issues.some((i) => i.msg.includes("노랫소리")), "경고문에 단서 원문을 넣지 않음");
+  const b = run(off, info, true);
+  assert.equal(b.plan.clue, null);
+  const ok = run({ narration: '바르톨이 목소리를 낮춤. "마을 사람들 말로는 밤이면 등대 위에서 여자가 노래한다더군."', reveal_clue: "c1" }, info);
+  assert.equal(ok.plan.clue, "c1");
+  assert.ok(!ok.issues.some((i) => i.hard));
+});
+
+test("gmSystem: NPC가 묻지 않은 단서를 먼저 꺼내지 않음 규칙 포함", () => {
+  assert.match(AI.gmSystem(), /먼저 꺼내거나/);
+});
