@@ -784,15 +784,17 @@ html.calm-item .dos-items .item.lost { display: none; }
  * ================================================================ */
 .scene-banner { position: relative; flex: none; height: 168px; overflow: hidden; background: var(--grain), linear-gradient(180deg, #3a2516, #22150c); box-shadow: inset 0 -3px 0 #120a05; }
 .scene-banner[hidden] { display: none; }
-/* 접속 상태 이름 칩: 배너 왼쪽 위. 램프 초록 = 접속 · 노랑 = 기록지 작성 중 · 회색 = 끊김, 아래 선 = 플레이어 색 */
-.roster { position: absolute; left: 16px; top: 14px; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 40%); }
-.rc { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 7px; font: 12px var(--font); color: #e9dcb7; white-space: nowrap; background: rgba(20, 12, 6, .55); box-shadow: inset 0 0 0 1px rgba(217, 185, 121, .35), inset 0 -2px 0 var(--c); }
-.rc i { width: 6px; height: 6px; flex: none; background: #6fd050; box-shadow: 0 0 5px #6fd050; }
-.rc b { margin-right: -2px; font-weight: 400; font-size: 10px; color: #d9b979; }
-.rc.wr i { background: #e8c46a; box-shadow: 0 0 5px #e8c46a; }
-.rc.off { color: #7a6e5e; box-shadow: inset 0 0 0 1px rgba(122, 110, 94, .35), inset 0 -2px 0 #4a4038; }
-.rc.off i { background: #5a5048; box-shadow: none; }
-.rc.me { color: #f4ecd8; background: rgba(60, 36, 18, .7); }
+/* 접속 상태 이름표: 배너 왼쪽 위, 오른쪽 위 상태 칩 · 아이콘 줄과 같은 높이(26px · 세로 가운데). 종이 꼬리표 = 플레이어(닉네임).
+   잉크 점 초록 = 접속 · 황토 = 기록지 작성 중 · 빈 동그라미 + 바랜 종이 = 끊김, 아래 3px = 플레이어 색 */
+.roster { position: absolute; left: 16px; top: var(--roster-top, 0px); z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 40%); }
+.rc { display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 13px; font: 13px var(--font); color: #2b2420; white-space: nowrap; background: #efe3c2;
+  box-shadow: inset 0 0 0 1px #2b2420, inset 0 -3px 0 var(--c), 2px 2px 0 rgba(0, 0, 0, .45); clip-path: polygon(6px 0, 100% 0, 100% 100%, 6px 100%, 0 50%); }
+.rc i { width: 7px; height: 7px; flex: none; border-radius: 50%; background: #3a8a2a; box-shadow: 0 0 0 1px rgba(43, 36, 32, .6); }
+.rc b { margin-right: -2px; font-weight: 400; font-size: 11px; color: #8a1c14; }
+.rc.wr i { background: #c8962a; }
+.rc.off { color: #8a7d68; background: #cfc3a6; }
+.rc.off i { background: transparent; box-shadow: 0 0 0 1px #8a7d68; }
+.rc.me { background: #fff6dc; font-weight: 700; }
 .scene-banner canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: none; }
 .scene-banner.has-pic canvas { display: block; }
 .sb-fade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(18, 10, 5, .85), rgba(18, 10, 5, .2) 45%, transparent 70%); }
@@ -11531,13 +11533,23 @@ const BannerArt = (() => {
     if (!changed("roster", s.me, s.hostPlays, s.players.map((p) => [p.pid, p.name, p.online, p.ready, p.character?.name, p.isHost]))) return;
     const cut = (n) => [...n].length >= 5 ? [...n].slice(0, 4).join("") + "…" : n;
     $("#roster").replaceChildren(...s.players.map((p) => {
-      const gm = p.isHost && !s.hostPlays, name = (p.ready && p.character?.name) || p.name;
+      // 이름표는 플레이어(닉네임). 캐릭터 이름은 일행 목록 · 기록지에서만
+      const gm = p.isHost && !s.hostPlays, char = p.ready ? p.character?.name : null;
       const st = !p.online ? "off" : !gm && !p.ready ? "wr" : "";
-      return el("span", { class: ["rc", st, p.pid === s.me && "me"].filter(Boolean).join(" "), style: `--c:${gm ? "#d9b979" : spineOf(p.pid)}`,
-        title: `${name}${name !== p.name ? ` (${p.name})` : ""} · ${st === "off" ? "끊김" : st === "wr" ? "기록지 작성 중" : "접속"}` },
-        el("i", { "aria-hidden": "true" }), gm ? el("b", {}, "GM") : null, cut(name));
+      return el("span", { class: ["rc", st, p.pid === s.me && "me"].filter(Boolean).join(" "), style: `--c:${gm ? "#8a6a2a" : spineOf(p.pid)}`,
+        title: `플레이어 ${p.name}${char ? ` · 캐릭터 ${char}` : ""} · ${st === "off" ? "끊김" : st === "wr" ? "기록지 작성 중" : "접속"}` },
+        el("i", { "aria-hidden": "true" }), gm ? el("b", {}, "GM") : null, cut(p.name));
     }));
+    alignRoster();
   }
+  // 이름표 줄을 오른쪽 위 상태 칩(방 코드) · 아이콘 줄과 같은 높이로 (배너 위치는 화면 크기마다 다름)
+  function alignRoster() {
+    const chip = $("#connLamp"), ban = $("#sceneBanner"), ros = $("#roster");
+    if (!chip?.offsetParent || !ban || ban.hidden) return;
+    const c = chip.getBoundingClientRect(), b = ban.getBoundingClientRect();
+    ros.style.setProperty("--roster-top", `${Math.round(c.top + c.height / 2 - b.top - 13)}px`);
+  }
+  addEventListener("resize", () => requestAnimationFrame(alignRoster));
   function drawBanner(s) {
     const v = s.view, cv = $("#bannerCanvas"), ban = $("#sceneBanner"), src = v?.image ?? null;   // 시나리오 그림 주소만
     $("#sceneTitle").textContent = s.scenario.title;
