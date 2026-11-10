@@ -1189,6 +1189,14 @@ textarea { resize: vertical; margin-top: 8px; }
 .turn-res .tr-row:is(.mine, .open):has(.tr-q:not(:empty)) .tr-name { padding-top: 23px; }
 .turn-res .tr-x { align-self: center; }
 .turn-res .tr-body { min-width: 0; }
+/* 장부 줄(B1+B4): 바깥 상자 없이 위아래 가는 선 · 줄 사이 점선, 이름은 왼쪽 여백에 오른쪽 맞춤, 글 왼쪽에 플레이어 색 2px 세로선 */
+.entry.turn-res { border: 0; border-top: 1px solid rgba(90, 60, 30, .75); border-bottom: 1px solid rgba(90, 60, 30, .75); background: none; box-shadow: none; }
+.turn-res .tr-row { padding: 6px 0; column-gap: 10px; box-shadow: none; border-top: 1px dotted rgba(90, 60, 30, .35); }
+.turn-res .tr-row:first-child { border-top: 0; }
+.turn-res .tr-row.mine { background: none; }
+.turn-res .tr-name { justify-self: end; text-align: right; }
+.turn-res .tr-body { padding-left: 10px; box-shadow: inset 2px 0 0 var(--c); }
+.turn-res .tr-row.mine .tr-body { background: rgba(110, 36, 32, .06); }
 .turn-res .tr-q { display: none; margin: 0 0 2px; font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
 .turn-res .tr-q:not(:empty)::before { content: "“"; } .turn-res .tr-q:not(:empty)::after { content: "”"; }
 .turn-res .tr-row.mine .tr-q, .turn-res .tr-row.open .tr-q { display: block; }
