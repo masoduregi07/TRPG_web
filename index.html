@@ -1118,6 +1118,19 @@ textarea { resize: vertical; margin-top: 8px; }
 .gather.flip .hg { rotate: 180deg; }
 .stale-bar { margin: 6px var(--cover) 4px; padding: 6px 10px; background: #2a2118; color: var(--amber); border: 1px solid #4a3a28; font-family: var(--font); font-size: 12px; }
 .stale-bar[hidden] { display: none; }
+/* 호스트 대기 쪽지: 테이블 화면을 걷어 내고 3D 테이블 위에 테이프로 붙인 쪽지만 */
+.game.waiting > :not(.host-wait) { display: none !important; }
+.host-wait { position: absolute; left: 50%; top: 52%; width: 360px; max-width: calc(100vw - 32px); box-sizing: border-box; padding: 22px 24px 18px; transform: translate(-50%, -50%) rotate(-1.2deg);
+  background: #f3e7c4; color: #2b1a0c; text-align: center; font-family: var(--font); box-shadow: 0 0 0 1px #8a6a44, 4px 5px 0 rgba(0, 0, 0, .3); }
+.host-wait[hidden] { display: none; }
+.host-wait::before { content: ""; position: absolute; top: -9px; left: 50%; width: 70px; height: 18px; margin-left: -35px; background: rgba(230, 210, 160, .75); box-shadow: 0 0 0 1px rgba(120, 90, 50, .25); }
+.host-wait .hw-ic { display: block; width: 24px; height: 24px; margin: 0 auto 8px; }
+.host-wait .hw-ic .ic-svg { display: block; width: 24px; height: 24px; }
+.host-wait .hw-ic rect { fill: #553a23; }
+.host-wait h5 { margin: 0 0 10px; font: 16px var(--font-talk); letter-spacing: 1px; }
+.host-wait p { margin: 4px 0; font-size: 12px; line-height: 20px; color: #553a23; }
+.host-wait code { display: inline-block; margin-top: 6px; padding: 2px 8px; border: 1px dashed #8a6a44; font-size: 13px; letter-spacing: 2px; }
+.host-wait .hw-re { margin-top: 12px; font-size: 11px; color: #8a6a44; }
 #chatForm.stale { opacity: .5; }
 .focus-tag { display: block; margin: 0 0 2px; color: var(--c, var(--blood)); font-family: var(--font); font-size: 12px; font-weight: 700; }
 .entry.ai.focus { margin-top: 4px; }
@@ -2473,6 +2486,15 @@ html.has-3d .topbar { box-shadow: none; }
     </div>
   </header>
 
+  <!-- 호스트 대기: 처음 접속했는데 호스트가 아직 없을 때 (3D 테이블 위 쪽지) -->
+  <div id="hostWait" class="host-wait" role="status" hidden>
+    <span class="hw-ic"></span>
+    <h5>테이블이 아직 열리지 않음</h5>
+    <p>호스트가 방을 열면 바로 이어짐.</p>
+    <p>호스트에게 이 방 주소가 열려 있는지 확인.</p>
+    <code id="hostWaitRoom"></code>
+    <div class="hw-re">호스트 찾는 중… 3초마다 다시 시도</div>
+  </div>
   <!-- 장면 배너: 시나리오 제목 + 장면 그림 (시나리오 그림 또는 자동 도트 풍경) -->
   <section id="sceneBanner" class="scene-banner" hidden>
     <canvas id="bannerCanvas" aria-hidden="true"></canvas>
@@ -9090,6 +9112,7 @@ const BannerArt = (() => {
       render();
     }
     show("table");
+    if (!copy?.snap) setHostWait(true);
     if ("joined" in me) { delete me.joined; LS.set(K.me(room), me); }   // 잠깐 있던 접속 확인 표시 (없앰)
     app.net = Net.joinRoom(room, { key: me.key, name: me.name, onMessage: handleMsg, onStatus: setStatus });
     window.addEventListener("pagehide", flushCopy);
@@ -9135,6 +9158,7 @@ const BannerArt = (() => {
     lamp.classList.toggle("on", on); lamp.classList.toggle("off", !on); lamp.dataset.level = s?.level ?? "bad";
     $("#connText").textContent = on ? "접속 가능" : "접속 불가";
     $("#connRoom").textContent = app.room ?? "";
+    if (app.hostWait && s?.text) $("#hostWait .hw-re").textContent = s.text;
 
   }
 
@@ -9155,6 +9179,17 @@ const BannerArt = (() => {
     if (names.length) typingPresenceTimer = setTimeout(updateTypingPresence, 1200);
   }
 
+  /* 호스트 대기 쪽지: 저장본 없이 처음 접속했고 아직 실제 스냅샷이 없을 때. 대기 중엔 3D 테이블(촛불)을 움직임 */
+  function setHostWait(on) {
+    app.hostWait = !!on;
+    $("#table").classList.toggle("waiting", !!on);
+    $("#hostWait").hidden = !on;
+    if (on) {
+      if (!$("#hostWait .hw-ic").firstChild) $("#hostWait .hw-ic").append(iconSvg("hourglass"));
+      $("#hostWaitRoom").textContent = app.room ?? "";
+    }
+    Scene3D.setIdle(!on && !$("#table").hidden);
+  }
   /* 연결 전에 보여 주는 마지막 저장본 표시: 띠를 켜고 입력을 잠근다 (실제 스냅샷을 받으면 해제) */
   function setStale(on) {
     app.stale = !!on;
@@ -9193,6 +9228,7 @@ const BannerArt = (() => {
         const first = !app.snap || !app.liveSnap, prev = app.liveSnap ? app.snap : null;
         app.liveSnap = true;
         setStale(false);
+        if (app.hostWait) setHostWait(false);
         app.snap = msg.data; scheduleCopy();
         // GM 서술이 찍히는 동안엔 메모 · 카드 같은 결과 화면을 미뤘다가 다 찍히면 한 번에 (최대 10초)
         // 단, 게임 시작 · 사건 전환 · 내 캐릭터 준비처럼 화면 자체가 바뀌는 때는 바로
