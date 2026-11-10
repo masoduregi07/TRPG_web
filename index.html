@@ -415,7 +415,7 @@ textarea.code { font: 12px/1.6 var(--font); }
 .entry.say.mine { padding-right: 40px; background: linear-gradient(90deg, rgba(255, 248, 228, .5), rgba(255, 248, 228, 0)); }
 .entry.say .who::after { color: rgba(90, 60, 30, .45); content: ""; }
 /* GM 서술 속 NPC 대사 */
-.npc-line { color: #6f2a10; font-family: var(--font-talk); border-bottom: 2px dotted rgba(111, 42, 16, .45); }
+.npc-line { color: #6f2a10; font-family: var(--font-talk); text-decoration: underline 2px rgba(111, 42, 16, .45); text-underline-offset: 4px; text-decoration-skip-ink: none; }
 /* GM 서술 = 크게, 진행자의 목소리 */
 .entry.gm, .entry.ai { font-family: var(--font); font-size: 18px; color: #120c08; padding: 3px 0 3px 15px; box-shadow: inset 4px 0 0 var(--ink); }
 .entry.gm .who, .entry.ai .who { display: none; }
@@ -1138,6 +1138,14 @@ textarea { resize: vertical; margin-top: 8px; }
 .turn-res.many .tr-row:not(.mine) { cursor: pointer; }
 .turn-res.many .tr-row:not(.mine):focus-visible { outline: 2px solid var(--blood); outline-offset: -2px; }
 .entry.say.in-res { display: none; }
+/* 결과 표 줄 꼬리표: 그 사람에게 생긴 일 (누르면 그 기록으로) */
+.turn-res .tr-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.turn-res .tr-tags:empty { display: none; }
+.tr-tag { --k: #6f5230; display: inline-flex; align-items: center; padding: 0 6px; font: 11px/1.7 var(--font); color: var(--k); border: 1px solid var(--k); background: rgba(255, 250, 235, .6); white-space: nowrap; cursor: pointer; }
+.tr-tag.t-it { --k: #3c5a2a; } .tr-tag.t-hp { --k: #8a1c14; } .tr-tag.t-ck { --k: #2a3550; }
+.tr-tag:hover, .tr-tag:focus-visible { background: rgba(255, 250, 235, .95); outline: none; box-shadow: 0 0 0 1px var(--k); }
+.entry.flash { animation: entry-flash 1.2s ease-out; }
+@keyframes entry-flash { 0%, 30% { background-color: rgba(201, 160, 64, .35); } 100% { background-color: transparent; } }
 .turn-board { margin: 6px calc(var(--cover) + 44px) 4px calc(var(--cover) + 48px); padding: 7px 10px; background: var(--paper-hi); border: 2px solid var(--paper-lo); color: var(--ink); font-family: var(--font); font-size: 12px; box-shadow: 2px 3px 0 rgba(60, 40, 20, .25); }
 .turn-board[hidden] { display: none; }
 .turn-board .tb-head { display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: 700; }
@@ -5395,14 +5403,14 @@ class HostGame {
       if (ic.san) {
         if (!Rules.validLoss(ic.san)) return false;
         if (!Engine.queuePending(g, { checkId: `improv:${g.improvN}`, label, skill: "이성", improv: { san: String(ic.san).replace(/\s/g, "") }, ...own })) return false;
-        this.addLog({ kind: "system", text: `이성 판정 요청: ${label} (이성 ${ic.san}${whoTxt})` });
+        this.addLog({ kind: "system", text: `이성 판정 요청: ${label} (이성 ${ic.san}${whoTxt})`, ...(owner?.who ? { reqFor: owner.who, reqLabel: label } : {}) });
         return true;
       }
       const skill = String(ic.skill ?? "");
       if (!(r.skills.includes(skill) || Rules.charKey(skill) || Rules.isLuck(skill) || Rules.isCombatSkill(skill))) return false;
       const difficulty = Rules.normDiff(ic.difficulty) ?? "보통", dice = Math.max(-2, Math.min(2, Math.trunc(Number(ic.dice) || 0)));
       if (!Engine.queuePending(g, { checkId: `improv:${g.improvN}`, label, skill: Rules.charKey(skill) ?? skill, improv: { difficulty, ...(dice ? { dice } : {}) }, ...own })) return false;
-      this.addLog({ kind: "system", text: `판정 요청: ${label} (${Rules.charKey(skill) ?? skill}${difficulty !== "보통" ? ` · ${difficulty}` : ""}${whoTxt})` });
+      this.addLog({ kind: "system", text: `판정 요청: ${label} (${Rules.charKey(skill) ?? skill}${difficulty !== "보통" ? ` · ${difficulty}` : ""}${whoTxt})`, ...(owner?.who ? { reqFor: owner.who, reqLabel: label } : {}) });
       return true;
     }
   }
@@ -6312,7 +6320,7 @@ class HostGame {
       if (check) {
         const lb = check.label ?? check.skill ?? "이성 판정", sk = check.skill ?? (check.san ? "이성" : "");
         if (Engine.queuePending(d.game, { checkId: check.id, label: lb, skill: sk, ...(owner ?? {}) }))
-          this.addLog({ kind: "system", text: `판정 요청: ${lb} (${sk}${check.san ? ` ${check.san}` : ""}${owner ? ` · ${owner.whoName}` : ""})` });
+          this.addLog({ kind: "system", text: `판정 요청: ${lb} (${sk}${check.san ? ` ${check.san}` : ""}${owner ? ` · ${owner.whoName}` : ""})`, ...(owner?.who ? { reqFor: owner.who, reqLabel: lb } : {}) });
       }
     } else if (ck?.type === "improv") this.requestImprov(ck.spec, owner);
     if (plan.place) this.enterPlace(plan.place);
@@ -9957,6 +9965,7 @@ const BannerArt = (() => {
     }
     if (hold) { node.classList.add("awaiting"); held.push({ node, e }); }
     logBox.append(node);
+    tagResult(e, node);
     if (atBottom) logBox.scrollTop = logBox.scrollHeight;
     else if (live) unread++;
     requestAnimationFrame(updateBottomButton);
@@ -9992,11 +10001,12 @@ const BannerArt = (() => {
     const mineIn = (table.inputs ?? []).filter((n) => n.dataset.by === pid);
     const quote = mineIn.map((n) => n.querySelector(".text")?.textContent ?? "").filter(Boolean).join(" / ");
     for (const n of mineIn) n.classList.add("in-res");
-    const row = el("div", { class: `tr-row${mine ? " mine" : ""}${openSet().has(e.id) ? " open" : ""}`, style: `--c:${color}`, "data-id": e.id },
+    const row = el("div", { class: `tr-row${mine ? " mine" : ""}${openSet().has(e.id) ? " open" : ""}`, style: `--c:${color}`, "data-id": e.id, "data-pid": pid ?? null },
       el("span", { class: "tr-name" }, e.focus),
-      el("span", { class: "tr-body" }, el("span", { class: "tr-q" }, quote), (textNode.classList.add("tr-text"), textNode)),
+      el("span", { class: "tr-body" }, el("span", { class: "tr-q" }, quote), (textNode.classList.add("tr-text"), textNode), el("span", { class: "tr-tags" })),
       el("span", { class: "tr-x", "aria-hidden": "true" }, openSet().has(e.id) ? "▴" : "▾"));
     table.append(row);
+    lastRes = table;
     const many = table.querySelectorAll(".tr-row").length >= 3;
     table.classList.toggle("many", many);
     for (const r of table.querySelectorAll(".tr-row:not(.mine)")) {
@@ -10007,6 +10017,29 @@ const BannerArt = (() => {
     if (atBottom) logBox.scrollTop = logBox.scrollHeight;
     else if (live) unread++;
     requestAnimationFrame(updateBottomButton);
+  }
+  /* 같은 차례 결과 표의 그 사람 줄에 꼬리표: 핸드아웃 · 소지품 · 체력 · 쓰러짐 · 판정 요청.
+     새 입력(대사 · 굴림)이 오면 그 표는 닫힘 (다음 차례 일이 붙지 않게) */
+  let lastRes = null;
+  function tagOf(e) {
+    const list = [];
+    if (e.kind === "handout" && Array.isArray(e.toIds)) for (const pid of e.toIds) list.push([pid, "ho", `▤ ${e.title}`]);
+    else if (e.kind === "system" && e.item && e.who) list.push([e.who, "it", `${e.gain ? "＋" : "−"} ${e.item}`]);
+    else if (e.kind === "roll" && e.dmg && e.who && e.roll) list.push([e.who, "hp", `체력 ${e.by === "치료" ? "+" : "−"}${e.roll.total}`]);
+    else if (e.kind === "system" && e.who && (e.fall || e.fate)) list.push([e.who, "hp", e.fate ?? e.fall]);
+    else if (e.kind === "system" && e.reqFor) list.push([e.reqFor, "ck", `판정 · ${e.reqLabel ?? "요청"}`]);
+    return list;
+  }
+  function tagResult(e, node) {
+    if ((e.kind === "say") || (e.kind === "roll" && !e.dmg)) { lastRes = null; return; }
+    if (!lastRes?.isConnected) return;
+    for (const [pid, cls, text] of tagOf(e)) {
+      const box = lastRes.querySelector(`.tr-row[data-pid="${CSS.escape(pid)}"] .tr-tags`);
+      if (!box) continue;
+      box.append(el("span", { class: `tr-tag t-${cls}`, role: "button", tabindex: "0", title: "그 기록으로",
+        on: { click: (ev) => { ev.stopPropagation(); if (!node.isConnected) return; node.scrollIntoView({ block: "center", behavior: reduceMotionUI() ? "auto" : "smooth" }); node.classList.remove("flash"); void node.offsetWidth; node.classList.add("flash"); },
+              keydown: (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.currentTarget.click(); } } } }, text));
+    }
   }
   logBox.addEventListener("click", (ev) => {
     const row = ev.target.closest(".turn-res.many .tr-row:not(.mine)");
@@ -10023,6 +10056,7 @@ const BannerArt = (() => {
   function renderLogAll() {
     skipTyping(); DiceFX.skip(); cancelReleases(); held.splice(0);
     logBox.replaceChildren();
+    lastRes = null;
     unread = 0;
     app.log.slice(-300).forEach(e => renderEntry(e));
     updateHistoryStatus();
