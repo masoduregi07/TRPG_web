@@ -2083,6 +2083,8 @@ html.has-3d .topbar { box-shadow: none; }
 #log .entry.system:not(.item-line) { font-size: 12px; line-height: 17px; color: #7a6548; }
 #log .entry.system:not(.item-line)::before { content: "· "; display: inline; margin: 0; padding: 0; font: inherit; letter-spacing: 0; color: inherit; background: none; box-shadow: none; }
 #log .entry.system.place-line::before { content: none; }
+/* SYSTEM 라벨(S2): 옅은 갈색 칠 + 진한 갈색 글씨 */
+#log .entry.system:not(.item-line):not(.place-line)::before { content: "SYSTEM"; display: inline-block; margin-right: 8px; padding: 1px 5px 0; vertical-align: 1px; font-family: var(--font); font-size: 10px; line-height: 14px; letter-spacing: 1px; color: #6f5230; background: rgba(111, 82, 48, .14); box-shadow: none; }
 #log .entry.system + .entry.system { margin-top: -3px; }
 #log .entry.roll { padding: 1px 0 1px 10px; border: 0; box-shadow: inset 2px 0 0 #2a3550; }
 #log .entry.roll.secret { box-shadow: inset 2px 0 0 var(--navy); }
