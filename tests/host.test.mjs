@@ -137,3 +137,17 @@ test("진행 중 합류해 기록지를 쓰는 중이면 채팅 무시", () => {
   g.onMessage("c1", { t: "chat", text: "*문을 연다" });
   assert.ok(data.log.length > n, "준비된 플레이어는 그대로");
 });
+
+test("turnContext: 굴림 + 일행 잡담만 있으면 판정만 차례, 행동 선언이 있으면 아님", () => {
+  const { m, g, data } = table();
+  const { pid } = g.onConnect("c1", { key: KEY, name: "가", build: m.APP_BUILD });
+  g.onMessage("c1", { t: "rollChars" });
+  const bg = m.Engine.charRules(data.scenario).backgrounds[0]?.name ?? "";
+  g.onMessage("c1", { t: "char", character: { name: "한서", background: bg, alloc: {} }, ready: true });
+  g.handle(data.hostPid, { t: "start" }, true);
+  g.addLog({ kind: "roll", byId: pid, by: "한서", text: "설득", result: "보통 성공" });
+  g.addLog({ kind: "say", byId: pid, by: "한서", text: "안녕", style: "talk" });
+  assert.equal(g.turnContext().info.rollOnly, true);
+  g.addLog({ kind: "say", byId: pid, by: "한서", text: "등대로 간다", style: "act" });
+  assert.equal(g.turnContext().info.rollOnly, false);
+});
