@@ -1858,7 +1858,7 @@ html.has-3d .topbar { box-shadow: none; }
 .end-act .ea-mark svg { position: absolute; left: -2px; top: -6px; width: 26px; height: 26px; fill: none; stroke: #23315a; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 30; stroke-dashoffset: 30; transition: stroke-dashoffset .25s ease; }
 .end-act .ea-check input:checked + .ea-mark svg { stroke-dashoffset: 0; }
 .end-act .ea-check input:focus-visible + .ea-mark { outline: 2px solid var(--blood); outline-offset: 2px; }
-/* [사건 종결] 버튼(칠한 네모) → 누르면 기관 관인(탐사자 기록국 · 종결 · CASE CLOSED)이 버튼 위에 쾅 (서류 밖으로 나가도 됨: body에 fixed) */
+/* [사건 종결] 버튼(칠한 네모) → 누르면 기관 관인(탐사자 협회 · 종결 · CASE CLOSED)이 버튼 위에 쾅 (서류 밖으로 나가도 됨: body에 fixed) */
 .end-act .ea-seal { padding: 8px 18px; font: 13px var(--font); letter-spacing: 2px; color: #fff6dc; background: #6e2420; border: 0; box-shadow: 0 0 0 2px #2b1a0c, 2px 2px 0 2px rgba(0, 0, 0, .35); cursor: pointer; transition: background .15s; }
 .end-act .ea-seal:hover:not(.stamped), .end-act .ea-seal:focus-visible { background: #8a1c14; outline: 0; }
 .end-act .ea-seal.stamped { cursor: default; color: rgba(110, 36, 32, .3); background: #f1e6c6; box-shadow: inset 0 0 0 1px rgba(110, 36, 32, .35); transition: background .12s .2s, color .12s .2s; }
@@ -2453,7 +2453,7 @@ html.has-3d .topbar { box-shadow: none; }
 .lg-go { padding: 7px 16px 6px; border: 0; cursor: pointer; background: #5a4128; color: #f3e6c4; font: 14px/1.4 var(--font); letter-spacing: .05em; box-shadow: 2px 2px 0 rgba(60, 40, 20, .35); }
 .lg-go:hover, .lg-go:focus-visible { background: #7a1d12; outline: 0; }
 .lg-go:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(60, 40, 20, .35); }
-/* ===== 이어하기 · 참가하기 = 탐사자 기록국 도서실 (대출 카드 · 대출기간표 · 참가 신청) ===== */
+/* ===== 이어하기 · 참가하기 = 탐사자 협회 도서실 (대출 카드 · 대출기간표 · 참가 신청) ===== */
 .bk-page.lib { display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; }
 .bk-page.lib > .lib-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 24px; }
 .kraft, .lb-pocket { background: #c79a5b; background-image: radial-gradient(rgba(90, 55, 20, .18) 1px, transparent 1.5px), radial-gradient(rgba(255, 240, 200, .12) 1px, transparent 1.5px); background-size: 4px 4px, 7px 7px; background-position: 0 0, 2px 3px; }
@@ -2611,7 +2611,7 @@ html.has-3d .topbar { box-shadow: none; }
 <!-- 첫 화면: 탁자 위 붉은 가죽 책. 오른쪽 색인 탭 = 메뉴, 누르면 그 장이 펼쳐짐 -->
 <main id="home" class="book-screen" hidden>
   <div class="bk-stage" id="bkStage"></div>
-  <div class="bk-flat" aria-hidden="true"><div>탐사자 기록국 장서</div><h1>TRPG 테이블</h1></div>
+  <div class="bk-flat" aria-hidden="true"><div>탐사자 협회 장서</div><h1>TRPG 테이블</h1></div>
   <div class="bk-pages" id="bkPages"><div class="bk-pg l" id="bkPgL"></div><div class="bk-pg r" id="bkPgR"></div></div>
   <nav class="bk-tabs" id="bkTabs" aria-label="메뉴">
           <button class="bk-tab" type="button" data-ch="0" style="--c:#a5321e"><span class="lb">새 테이블</span><svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="1" height="2" fill="#ffd36a"/><rect x="2" y="2" width="3" height="5" fill="currentColor"/></svg></button>
@@ -2633,7 +2633,7 @@ html.has-3d .topbar { box-shadow: none; }
       <div id="scEnv" class="ev" data-state="empty">
         <div class="ev-flapsh"></div><div class="ev-flap"></div>
         <span class="ev-btn b1"></span><span class="ev-str"></span><span class="ev-btn b2"></span><span class="ev-str2"></span>
-        <div class="ev-ret"><b>탐사자 기록국</b>사건 기록 No. <span id="scNo">----</span></div>
+        <div class="ev-ret"><b>탐사자 협회</b>사건 기록 No. <span id="scNo">----</span></div>
         <div id="scLabel" class="ev-label"></div>
         <div class="ev-doc"><textarea id="yamlInput" class="code" spellcheck="false" aria-label="시나리오 원문"></textarea></div>
       </div>
@@ -2667,7 +2667,7 @@ html.has-3d .topbar { box-shadow: none; }
           <div class="lb-back"></div>
           <ul id="myTables" class="lb-cards"></ul>
           <div class="lb-shadow"></div>
-          <div class="lb-pocket"><div class="hd"><span>탐사자 기록국 도서실</span><b id="tableCount">0권</b></div>
+          <div class="lb-pocket"><div class="hd"><span>탐사자 협회 도서실</span><b id="tableCount">0권</b></div>
             <h4>주 의</h4><ol><li>카드를 뽑으면 그 테이블로 들어감.</li><li>카드 모서리 ✕ = 테이블 폐기 (되돌릴 수 없음).</li></ol></div>
         </div>
         <div class="lib-more">
@@ -2706,7 +2706,7 @@ html.has-3d .topbar { box-shadow: none; }
       <div class="bk-kick" aria-hidden="true">&nbsp;</div>
       <div class="bk-head"><h2>초대 코드 입력</h2></div>
       <div class="lib-body">
-        <div class="slip"><h4>참가 신청 <small>탐사자 기록국 도서실</small></h4>
+        <div class="slip"><h4>참가 신청 <small>탐사자 협회 도서실</small></h4>
           <label class="r"><span>초대 코드</span><input id="joinLinkInput" placeholder="초대 링크 · 방 코드" autocomplete="off" /></label>
           <label class="r"><span>플레이어</span><input id="bkJoinName" maxlength="16" placeholder="닉네임" autocomplete="nickname" /></label>
           <div class="go"><button id="joinLinkBtn" class="seal-btn blue" type="button"><span class="box"><span class="ghost">參</span><span class="ink">參</span></span><span class="cap">참가 날인</span></button></div>
@@ -7363,7 +7363,7 @@ void main() {
       for (const [x, y, sx, sy] of [[9, 9, 1, 1], [w - 10, 9, -1, 1], [9, h - 10, 1, -1], [w - 10, h - 10, -1, -1]]) for (let k = 0; k < 7; k++) { g.fillRect(x + sx * k, y + sy * 3, 1, 1); g.fillRect(x + sx * 3, y + sy * k, 1, 1); }
       // 글자: 눌러 찍은 금박 (아래 1px 어두운 홈)
       const txt = (s, font, y) => { g.font = font; g.textAlign = "center"; g.textBaseline = "top"; g.fillStyle = "#3a0f09"; g.fillText(s, w / 2 + 1, y + 1); g.fillStyle = "#d8b25a"; g.fillText(s, w / 2, y); };
-      txt("탐사자 기록국 장서", "10px Galmuri9", 30);
+      txt("탐사자 협회 장서", "10px Galmuri9", 30);
       txt("TRPG", "15px Galmuri14", 50);
       txt("테이블", "15px Galmuri14", 68);
       // 등대 문장 (육각 테 + 탑 + 빛)
@@ -10869,7 +10869,7 @@ const BannerArt = (() => {
     if (sheet.classList.contains("folding")) { sheet.classList.remove("folding"); sheet.classList.add("unfolding"); setTimeout(() => sheet.classList.remove("unfolding"), 700); }
     toast(text);
   }
-  /** 작성 완료 도장 = 원형 관인: 바깥 원 "탐사자 기록국" · 아래 "INVESTIGATOR · No.xx" · 가운데 "접수" + 날짜 */
+  /** 작성 완료 도장 = 원형 관인: 바깥 원 "탐사자 협회" · 아래 "INVESTIGATOR · No.xx" · 가운데 "접수" + 날짜 */
   function readySeal(d, no, mid = "접수", bottom = null) {
     const C = "#a3221a", date = `${d.getFullYear()}·${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`;
     const arc = (txt, size, gap, href) => svg("text", { "font-size": size, "letter-spacing": gap, fill: C }, svg("textPath", { href, startOffset: "50%", "text-anchor": "middle" }, txt));
@@ -10881,7 +10881,7 @@ const BannerArt = (() => {
           svg("feColorMatrix", { values: "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.6", result: "m" }), svg("feComposite", { in: "SourceGraphic", in2: "m", operator: "in" }))),
       svg("g", { filter: "url(#sealInk)", "font-family": "Galmuri11, monospace" },
         svg("g", { fill: "none", stroke: C }, svg("circle", { cx: 75, cy: 75, r: 68, "stroke-width": 4 }), svg("circle", { cx: 75, cy: 75, r: 61, "stroke-width": 1.5 }), svg("circle", { cx: 75, cy: 75, r: 35, "stroke-width": 2 })),
-        arc("탐사자 기록국", 10, 3, "#sealTop"), arc(bottom ?? `INVESTIGATOR${no ? ` · ${no}` : ""}`, 8, 2, "#sealBot"),
+        arc("탐사자 협회", 10, 3, "#sealTop"), arc(bottom ?? `INVESTIGATOR${no ? ` · ${no}` : ""}`, 8, 2, "#sealBot"),
         svg("text", { x: 75, y: 73, "font-size": 16, "text-anchor": "middle", "letter-spacing": 2, fill: C }, mid),
         svg("text", { x: 75, y: 88, "font-size": 8, "text-anchor": "middle", fill: C }, date),
         svg("text", { x: 17, y: 79, "font-size": 10, fill: C }, "✦"), svg("text", { x: 124, y: 79, "font-size": 10, fill: C }, "✦")));
