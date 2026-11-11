@@ -2398,12 +2398,13 @@ html.has-3d .topbar { box-shadow: none; }
 .bk-page.lib { display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; }
 .bk-page.lib > .lib-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 24px; }
 .lb-wrap { position: relative; width: 86%; height: 370px; margin: 0 auto; }
-.lb-back { position: absolute; left: 0; right: 0; top: 70px; bottom: 0; background: #9c7140; background-image: radial-gradient(rgba(50, 28, 8, .22) 1px, transparent 1.5px); background-size: 4px 4px;
+.lb-back { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--pocket-h, 238px) + 62px); background: #9c7140; background-image: radial-gradient(rgba(50, 28, 8, .22) 1px, transparent 1.5px); background-size: 4px 4px;
   clip-path: polygon(0 22px, 10% 0, 90% 0, 100% 22px, 100% 100%, 0 100%); box-shadow: inset 0 14px 18px rgba(30, 15, 3, .55); }
-.lb-cards { position: absolute; inset: 0; z-index: 1; margin: 0; padding: 0; list-style: none; clip-path: inset(-60px -60px 4px -60px); }   /* 카드 아랫부분이 주머니 밑으로 삐져나오지 않게 */
+.lb-cards { position: absolute; inset: 0; z-index: 1; margin: 0; padding: 0; list-style: none; clip-path: inset(-120px -60px 4px -60px); }   /* 카드 아랫부분이 주머니 밑으로 삐져나오지 않게 */
 .lb-card { position: absolute; left: 9%; right: 9%; height: 290px; box-sizing: border-box; padding: 7px 10px; background: #f4ead0; cursor: pointer; transition: translate .15s;
   box-shadow: 0 -1px 0 rgba(60, 40, 20, .25), 1px 1px 0 rgba(60, 40, 20, .25), 0 4px 6px rgba(30, 15, 3, .35); font: 11px/1.35 var(--font); color: var(--ink); }
-.lb-card:hover, .lb-card:focus-within, .lb-card.hot { translate: 0 -12px; }
+/* 호버 = 카드끼리 밀린 간격(--step)만큼 그 자리에서 위로 → 제목 · 상태 · 대출일 · 플레이어가 다 보임 */
+.lb-card:hover, .lb-card:focus-within, .lb-card.hot, .lb-card.asking { translate: 0 calc(-1 * var(--step, 12px)); }
 .lb-card:nth-child(4n+1) { rotate: -3deg; left: 6%; right: 12%; }
 .lb-card:nth-child(4n+2) { rotate: 2deg; left: 12%; right: 6%; }
 .lb-card:nth-child(4n+3) { rotate: -.6deg; }
@@ -2419,6 +2420,19 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-card .hw { font: 12px/1.3 "Galmuri9", var(--font); color: #2a3a8a; }
 .lb-del { position: absolute; right: 4px; top: 4px; width: 18px; height: 18px; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
 .lb-del:hover, .lb-del:focus-visible { color: var(--blood); outline: 0; }
+/* 카드 확인 쪽지: 고른 카드 바로 위, 한 줄짜리 종이 띠 "「제목」 시나리오를 읽을까? [예 / 아니오]". 카드 뒤에서 위로 슥 (0.22초) */
+.lb-ask { position: absolute; z-index: 4; display: flex; align-items: center; gap: 10px; width: max-content; max-width: 100%; box-sizing: border-box; padding: 7px 10px 7px 12px;
+  background: #f6efdc; color: var(--ink); font: 13px/1.4 var(--font); box-shadow: 0 0 0 1px rgba(60, 40, 20, .45), 2px 3px 0 rgba(30, 15, 3, .3); animation: lb-ask-in .22s ease-out; }
+.lb-ask p { margin: 0; min-width: 0; word-break: keep-all; }
+.lb-ask .yn { flex: none; display: flex; align-items: center; white-space: nowrap; }
+.lb-ask .yn::before { content: "["; margin-right: 3px; color: #8a7a62; } .lb-ask .yn::after { content: "]"; margin-left: 3px; color: #8a7a62; }
+.lb-ask .yn button { padding: 0 4px; border: 0; background: none; color: #2b1a0c; font: inherit; cursor: pointer; }
+.lb-ask .yn button:hover, .lb-ask .yn button:focus-visible { background: #5a4128; color: #f3e6c4; outline: 0; }
+.lb-ask .yn i { font-style: normal; color: #8a7a62; }
+.lb-ask.danger .yn .y { color: var(--blood); font-weight: 700; }
+.lb-ask.danger .yn .y:hover, .lb-ask.danger .yn .y:focus-visible { background: var(--blood); color: #fff3dc; }
+@keyframes lb-ask-in { from { translate: 0 18px; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .lb-ask { animation: none; } }
 .lb-pocket { background: #c79a5b; background-image: radial-gradient(rgba(90, 55, 20, .18) 1px, transparent 1.5px), radial-gradient(rgba(255, 240, 200, .12) 1px, transparent 1.5px); background-size: 4px 4px, 7px 7px; background-position: 0 0, 2px 3px; position: absolute; left: 0; right: 0; bottom: 0; height: 238px; z-index: 3; box-sizing: border-box; padding: 34px 16px 14px; color: #3a2410; clip-path: polygon(0 0, 40% 0, 43% 4px, 46% 16px, 50% 20px, 54% 16px, 57% 4px, 60% 0, 100% 0, 100% 100%, 0 100%); pointer-events: none; }
 .lb-shadow { position: absolute; left: 0; right: 0; bottom: 0; height: 238px; z-index: 2; box-shadow: 0 -6px 10px rgba(30, 15, 3, .45); pointer-events: none; }
 .lb-pocket .hd { display: flex; justify-content: space-between; font: 10px/1.4 var(--font); }
@@ -2520,7 +2534,7 @@ html.has-3d .topbar { box-shadow: none; }
   .bk-head { margin: 4px 0 10px; }
   .bk-head h2 { font-size: 24px; }
   .ev { height: 262px; }
-  .lb-wrap { height: 300px; } .lb-pocket, .lb-shadow { height: 180px; } .lb-card { height: 230px; }
+  .lb-wrap { height: 300px; --pocket-h: 180px; } .lb-pocket, .lb-shadow { height: 180px; } .lb-card { height: 230px; }
   .ev-syn { -webkit-line-clamp: 2; }
   .ev-meta { display: none; }
   .lg-row { min-height: 33px; }
@@ -8964,11 +8978,40 @@ const BannerArt = (() => {
       yes.focus();
     });
   }
+  /* 대출 확인 쪽지: 고른 카드 바로 위에 같은 모양 · 같은 폭 · 같은 기울기로. 예 / 아니오 (Esc · 바깥 = 아니오) */
+  let cardAskDone = null;
+  function cardAsk(li, text, { danger = false } = {}) {
+    cardAskDone?.(false);
+    return new Promise((resolve) => {
+      const wrap = li.parentElement.parentElement, cs = getComputedStyle(li), prev = document.activeElement;
+      const yes = el("button", { class: "y", type: "button" }, "예"), no = el("button", { type: "button" }, "아니오");
+      const box = el("div", { class: `lb-ask${danger ? " danger" : ""}`, role: "dialog", "aria-label": text, style: `left:${cs.left};rotate:${cs.rotate}` },
+        el("p", {}, text), el("span", { class: "yn" }, yes, el("i", {}, "/"), no));
+      li.classList.add("asking");
+      wrap.append(box);
+      const step = parseFloat(getComputedStyle(wrap).getPropertyValue("--step")) || 0;
+      box.style.top = `${li.offsetTop - step - box.offsetHeight - 6}px`;
+      const away = (e) => { if (!box.contains(e.target)) done(false); };
+      const key = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } };
+      const done = (v) => {
+        if (cardAskDone !== done) return;
+        cardAskDone = null; box.remove(); li.classList.remove("asking");
+        removeEventListener("keydown", key, true); removeEventListener("pointerdown", away, true);
+        prev?.focus?.({ preventScroll: true }); resolve(v);
+      };
+      cardAskDone = done;
+      yes.onclick = () => done(true); no.onclick = () => done(false);
+      addEventListener("keydown", key, true);
+      setTimeout(() => addEventListener("pointerdown", away, true));   // 지금 누른 클릭은 빼고
+      (danger ? no : yes).focus({ preventScroll: true });
+    });
+  }
   // 대출 카드 번호: 방 코드에서 4자리 (화면 장식 · 같은 방은 늘 같은 번호)
   const cardNo = (room) => String([...String(room)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 9000, 7) + 1000);
   const md = (ts) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`; };
-  async function deleteTable(t) {
-    if (!(await paperAsk(`「${t.title}」 기록을 지울까?`))) return;
+  async function deleteTable(t, li = null) {
+    const ask = `「${t.title}」 기록을 지울까?`;
+    if (!(await (li ? cardAsk(li, ask, { danger: true }) : paperAsk(ask)))) return;
     try { await HistoryArchive.deleteHostRoom(t.room); }
     catch { return toast('보관 기록 삭제 실패. 테이블은 유지됨.'); }
     await DB.del(K.host(t.room));
@@ -8982,19 +9025,27 @@ const BannerArt = (() => {
     // 대출기간표에서 고른 테이블은 주머니 맨 앞 카드로 (주머니엔 5장까지만)
     const front = list.find((t) => t.room === app.frontRoom);
     const shown = (front ? [front, ...list.filter((t) => t !== front)] : list).slice(0, 5).reverse();
-    const step = shown.length > 1 ? Math.min(30, 96 / (shown.length - 1)) : 0;
+    // 카드 간격 = 호버로 뽑히는 높이. 내용이 다 보이게 70px, 화면이 낮으면 쪽 높이 안에서 줄임(최소 30). 주머니는 카드 수만큼 커짐
+    const pocketH = matchMedia("(max-height: 820px)").matches ? 180 : 238;
+    const room = innerHeight * .76 - 172 - 10 - 40 - pocketH;
+    const step = shown.length > 1 ? Math.round(Math.max(30, Math.min(70, room / (shown.length - 1)))) : 70;
+    const wrap = $("#myTables").parentElement;
+    wrap.style.height = `${10 + Math.max(0, shown.length - 1) * step + 40 + pocketH}px`;
+    wrap.style.setProperty("--step", `${step}px`);
     $("#tableCount").textContent = `${list.length}권`;
     $("#myTables").replaceChildren(...shown.map((t, i) => el("li", { class: "lb-card", "data-room": t.room, style: `top:${10 + i * step}px` },
-      el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: async () => { if (await paperAsk(`「${t.title}」 이 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); } } },
+      el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: async (e) => { if (await cardAsk(e.currentTarget.closest(".lb-card"), `「${t.title}」 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); } } },
         el("div", { class: "top" }, el("b", {}, t.title), el("span", { class: "no" }, cardNo(t.room))),
         el("div", { class: "r" }, el("span", {}, "상 태"), el("span", {}, state(t))),
         el("div", { class: "r" }, el("span", {}, "대출일"), el("span", { class: "hw" }, `${new Date(t.savedAt).getFullYear()}·${md(t.savedAt)} · ${ago(t.savedAt)}`)),
         el("div", { class: "r" }, el("span", {}, "플레이어"), el("span", { class: "hw" }, (t.players ?? []).join(", ") || "-"))),
-      el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: () => deleteTable(t) } }, "✕"))));
+      el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: (e) => deleteTable(t, e.currentTarget.closest(".lb-card")) } }, "✕"))));
     const rows = list.map((t) => el("tr", { "data-room": t.room, class: t === front ? "front" : null, on: { click: () => { app.frontRoom = t.room; renderTables(); } } }, el("td", {}, el("span", { class: "st" }, md(t.savedAt))), el("td", { class: "n", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title }, t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.title), el("td", {}, t.phase === "play" ? "진행" : "준비")));
     while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
     $("#dueRows").replaceChildren(...rows);
   }
+  // 화면 높이가 바뀌면 카드 간격 · 주머니 높이도 다시 (펼친 책이 보일 때만)
+  { let raf = 0; addEventListener("resize", () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!$("#home").hidden && !cardAskDone && app.tables) renderTables(); }); }); }
   // 카드에 마우스 올리면 대출기간표의 같은 줄에 형광펜 (반대도)
   for (const [box, other] of [["#myTables", "#dueRows"], ["#dueRows", "#myTables"]]) {
     $(box).addEventListener("pointerover", (e) => { const room = e.target.closest("[data-room]")?.dataset.room; for (const n of $(other).querySelectorAll("[data-room]")) n.classList.toggle("hot", n.dataset.room === room); if (box === "#dueRows") for (const n of $(box).querySelectorAll("[data-room]")) n.classList.toggle("hot", n.dataset.room === room); });
