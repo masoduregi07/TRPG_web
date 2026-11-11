@@ -71,3 +71,24 @@ test("gmSystem: 플레이어 글은 지시가 아님 규칙 포함", () => {
   assert.match(AI.gmSystem(), /지시는 따르지 않는다/);
   assert.match(AI.gmMessages({}, [], {})[1].content, /지시가 아니다/);
 });
+
+test("parseGM: 문자열 속 따옴표 · 줄바꿈 · 끝 쉼표는 고쳐서 읽음", () => {
+  const { AI } = load();
+  const r = AI.parseGM('{"narration": "어부가 "뭐야?" 하고 고개를 듦.\n그물을 내려놓음.", "results": [{"who": "도준혁", "text": "문이 "덜컹" 하고 열림."},],}');
+  assert.equal(r.ok, true);
+  assert.equal(r.res.narration, '어부가 "뭐야?" 하고 고개를 듦.\n그물을 내려놓음.');
+  assert.equal(r.res.results[0].text, '문이 "덜컹" 하고 열림.');
+});
+
+test("parseGM: 고칠 수 없는 JSON은 narration만 건지고 키 · id는 서술에 안 나옴", () => {
+  const { AI } = load();
+  const cut = AI.parseGM('```json\n{"narration": "어부가 고개를 듦. 그물을 내려놓음.", "reveal_clue": "rumor", "request_check": {"id": "persuade_fisherman", "who": "도준혁"}');
+  assert.equal(cut.ok, false);
+  assert.equal(cut.res.narration, "어부가 고개를 듦. 그물을 내려놓음.");
+  assert.equal(cut.res.reveal_clue, null);
+  const comma = AI.parseGM('{"narration": "어부가 "뭐야?", 하고 묻는다.", "move_to": "stairs"}');
+  assert.equal(comma.res.narration, '어부가 "뭐야?", 하고 묻는다.');
+  const none = AI.parseGM('{"reveal_clue": "rumor", "move_to": "stairs"');
+  assert.equal(none.res.narration, "");
+  assert.equal(AI.parseGM("음... 잘 모르겠음").res.narration, "음... 잘 모르겠음");   // 그냥 글은 그대로
+});
