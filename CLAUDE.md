@@ -19,12 +19,12 @@
 
 ## 작업 환경 메모 (클라우드 세션)
 - 저장소 쓰기: `add_repo`(access: push) → `/home/claude/trpg_web`에 clone. 배포 주소 https://masoduregi07.github.io/TRPG_web/ (Pages, 접속 확인 불가)
-- CDN은 막힘 → 목업용 Galmuri는 `npm pack galmuri@2.40.3`로 받아 로컬 css 사용
+- CDN·npm은 막힘, GitHub는 됨. Galmuri는 저장소 `fonts/`에 있어 목업·테스트에서 그대로 보임. PeerJS가 없으니 브라우저 테스트는 가짜 Peer(중계)로 대신함
 - Playwright: 브라우저 설치 불가 → `executable_path='/usr/bin/google-chrome'`
 - 목업 방식: index.html에서 `<script>` 제거한 사본 + 필요한 마크업만 JS로 주입해 실제 CSS로 렌더. 아이콘은 `ICON_PAL`~`ICONS` 블록을 떼어 씀
 
 ## 구조
-- 한 파일: CSS + JS 인라인. 외부(CDN, 버전 고정 + SRI): PeerJS 1.5.5, js-yaml 4.3.2, Galmuri 2.40.3. 올릴 때는 `npm pack 패키지@버전` → dist 파일 `openssl dgst -sha384 -binary | openssl base64 -A`로 integrity 갱신
+- 한 파일: CSS + JS 인라인. 외부(CDN, 버전 고정 + SRI): PeerJS 1.5.5, js-yaml 4.3.2. Galmuri 2.40.3은 저장소 `fonts/`(woff2 6개: 14 · 11 · 11 Bold · 9 · 7 · Mono11, OFL 라이선스 동봉)를 `<style>` 맨 위 @font-face로 씀(GitHub `quiple/galmuri` 태그 v2.40.3의 dist). 올릴 때는 `npm pack 패키지@버전` → dist 파일 `openssl dgst -sha384 -binary | openssl base64 -A`로 integrity 갱신
 - 호스트 브라우저가 서버(`HostGame`), 플레이어는 PeerJS로 접속(`Net`). 호스트 ID `trpgtable-v1-<room>-host`
 - 모듈: `Rules`(CoC 7e) · `Engine`(시나리오 검증/상태/뷰) · `AI`(호출·프롬프트·parseGM) · `Turn`(AI 응답 검증) · `WebFeatures`(단서 표시 등)
 - AI 흐름: `queueAI`(8초 모음, 입력마다 +5초 연장, 최대 20초) → `runAI` → `turnContext` → `askGM` → `Turn.validate` → `applyPlan`
