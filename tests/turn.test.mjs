@@ -199,9 +199,13 @@ test("받은 물건이 서술에 없으면 다시 묻고, 마지막엔 주지 �
 
 test("NPC가 회피형 대답을 세 번 잇달아 하면 다시 물음", () => {
   const info = base({ npcNames: ["한진우"], npcRecent: { 한진우: ["\"무슨 소리인지 잘 모르겠군요.\"", "\"저도 당황스럽군요.\""] } });
-  assert.ok(run({ narration: "한진우는 고개를 저음. \"저도 모르겠습니다.\"" }, info).issues.some((i) => i.hard && /규칙 28\)/.test(i.msg)));
+  assert.ok(run({ narration: "한진우는 고개를 저음. \"저도 모르겠습니다.\"" }, info).issues.some((i) => i.hard && /규칙 28 · 31\)/.test(i.msg)));
   assert.ok(!run({ narration: "한진우는 쪽지를 뒤집어 봄. \"이 필체, 예전 기록실 담당자 것 같아요.\"" }, info).issues.some((i) => i.hard));
   assert.ok(!run({ narration: "한진우는 고개를 저음. \"저도 모르겠습니다.\"" }, base({ npcNames: ["한진우"], npcRecent: { 한진우: ["\"저도 당황스럽군요.\""] } })).issues.some((i) => i.hard), "두 번째까지는 통과");
+  // "짐작뿐 · 더 조사해 보자"로 미루는 대답도 회피로 셈
+  const put = base({ npcNames: ["한시준"], npcRecent: { 한시준: ["\"글쎄요, 예배당 안을 좀 더 둘러보면 단서가 나올지도요.\"", "\"저도 짐작뿐입니다만 무언가 있겠죠.\""] } });
+  assert.ok(run({ narration: "한시준은 안경을 추켜올림. \"저기 천장이나 벽 쪽을 조사해보는 게 순서 아닐까요? 당장 알 도리는 없습니다.\"" }, put).issues.some((i) => i.hard && /미루는/.test(i.msg)));
+  assert.ok(!run({ narration: "한시준은 숨을 고름. \"아마… 마을에 돌던 이단 이야기 아닐까요. 어릴 때 들은 적이 있어요.\"" }, put).issues.some((i) => i.hard), "짐작을 말하면 통과");
 });
 
 test("npcLines: 대사 앞의 가장 가까운 NPC 이름이 주인", () => {
