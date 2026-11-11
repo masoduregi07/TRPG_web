@@ -2574,7 +2574,7 @@ html.has-3d .topbar { box-shadow: none; }
 .pbtn:active, #bkPages .btn:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: inset 0 0 0 1px #5a4128; }
 .lib-more .recover .pbtn { margin-top: 4px; }
 /* 확인 쪽지 (화면 가운데 미니 창) */
-.pask { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(10, 6, 3, .45); }
+.pask { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; background: rgba(10, 6, 3, .45); }
 .pask[hidden] { display: none; }
 .pask-box { min-width: 260px; max-width: min(420px, 86vw); padding: 18px 22px 16px; background: #f1e5c2; color: var(--ink); text-align: center;
   background-image: radial-gradient(rgba(120, 80, 30, .08) 1px, transparent 1.5px); background-size: 5px 5px; box-shadow: inset 0 0 0 1px rgba(90, 65, 40, .5), 3px 4px 0 rgba(0, 0, 0, .35); rotate: -.6deg; }
@@ -8885,14 +8885,17 @@ const BannerArt = (() => {
     const d = Math.round(h / 24); return d === 1 ? "어제" : `${d}일 전`;
   }
   /** 화면 가운데 종이 쪽지 확인 창 (예 / 아니오). Esc · 바깥 누르기 = 아니오 */
+  let paperAskDone = null;
   function paperAsk(text) {
+    paperAskDone?.(false);   // 이미 떠 있던 쪽지는 '아니오'로 닫고 새 쪽지
     return new Promise((resolve) => {
       const box = $("#paperAsk");
       $("#paperAskText").textContent = text;
       box.hidden = false;
       const yes = $("#paperAskYes"), no = $("#paperAskNo"), prev = document.activeElement;
-      const done = (v) => { box.hidden = true; yes.onclick = no.onclick = box.onclick = null; removeEventListener("keydown", key, true); prev?.focus?.({ preventScroll: true }); resolve(v); };
+      const done = (v) => { if (paperAskDone !== done) return; paperAskDone = null; box.hidden = true; yes.onclick = no.onclick = box.onclick = null; removeEventListener("keydown", key, true); prev?.focus?.({ preventScroll: true }); resolve(v); };
       const key = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } };
+      paperAskDone = done;
       yes.onclick = () => done(true); no.onclick = () => done(false);
       box.onclick = (e) => { if (e.target === box) done(false); };
       addEventListener("keydown", key, true);
@@ -9018,12 +9021,14 @@ const BannerArt = (() => {
     const remember = el('input',{type:'checkbox'}); remember.checked = cfg.remember;
     const result = el('div',{class:'small muted','aria-live':'polite'});
     provider.value = cfg.provider;
-    function persist() {
+    let persisting = null;
+    const persist = () => (persisting ??= persistNow().finally(() => { persisting = null; }));
+    async function persistNow() {
       try {
         const address = WebFeatures.endpoint(url.value);
         let previous = ''; try { previous = WebFeatures.endpoint(cfg.baseURL); } catch {}
         if (address !== previous) {
-          if (!confirm(`API 주소 변경: ${address}\n기존 키는 전달하지 않음. 새 주소용 키를 다시 입력해야 함. 변경?`)) { url.value = cfg.baseURL; return false; }
+          if (!(await paperAsk(`API 주소를 ${address} 로 바꿀까? 기존 키는 넘기지 않음. 새 주소용 키를 다시 넣어야 함.`))) { url.value = cfg.baseURL; return false; }
           key.value = ''; remember.checked = false;
           result.textContent = '주소 변경됨. 새 주소용 API 키 재입력 필요.';
         }
@@ -9040,7 +9045,7 @@ const BannerArt = (() => {
     });
     for (const input of [url,key,model,remember]) input.addEventListener('change',persist);
     const test = el('button',{class:'btn small',type:'button',on:{click:async()=>{
-      if(!persist()) return;
+      if(!(await persist())) return;
       test.disabled=true; result.textContent='연결 테스트 중…';
       try { const t=await AI.call(loadAI(),[{role:'user',content:"한국어로 '준비 완료'라고만 답해."}],{maxTokens:400,timeout:60000}); result.textContent=`연결 성공: ${t.trim().slice(0,60)}`; }
       catch(e){result.textContent=`실패: ${e.message}`;} finally {test.disabled=false; fillModels();}
@@ -11744,11 +11749,12 @@ const BannerArt = (() => {
   function closeEndCard() { $("#endBox .end-detail")?.remove(); }
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#endBox .end-detail")) { e.stopPropagation(); closeEndCard(); } }, true);
   // 날인 [끝내기]: "기록 보관"에 체크돼 있으면 저장하고, 아니면 확인 뒤 저장 없이 끝냄
-  $("#endSave").addEventListener("click", () => {
+  $("#endSave").addEventListener("click", async () => {
     const s = app.snap, r = s?.result, btn = $("#endSave");
     if (!r || btn.classList.contains("stamped")) return;
     const keep = $("#endKeep").checked;
-    if (!keep && !confirm("기록을 저장하지 않고 끝냄. 진행?")) return;
+    if (!keep && !(await paperAsk("기록을 저장하지 않고 끝낼까?"))) return;
+    if (btn.classList.contains("stamped")) return;
     // 날인 연출: 네모 칸에 관인이 쾅 → 잠시 뒤 저장 · 나가기
     const br = btn.getBoundingClientRect();
     const seal = el("div", { class: "end-seal", "aria-hidden": "true", style: `left:${br.left + br.width / 2}px;top:${br.top + br.height / 2}px` }, readySeal(new Date(), "", "종결", "CASE CLOSED"));
@@ -11766,7 +11772,7 @@ const BannerArt = (() => {
     setTimeout(leaveTable, 700);
   }
   $("#endClose").addEventListener("click", () => { app.endHidden = app.snap?.result?.at ?? null; render(); });
-  $("#endResume").addEventListener("click", () => { if (confirm("결말을 취소하고 이야기를 계속함(모두의 결과 화면이 닫힘). 진행?")) send({ t: "unfinish" }); });
+  $("#endResume").addEventListener("click", () => { paperAsk("결말을 취소하고 이야기를 계속할까? 모두의 결과 화면이 닫힘.").then((y) => y && send({ t: "unfinish" })); });
 
   function renderPlay(s) {
     const v = s.view;
@@ -11797,7 +11803,7 @@ const BannerArt = (() => {
       if (s.result) parts.push(el("div", { class: "pend-row end-row" }, el("span", {}, "이야기 끝 · ", el("b", {}, "결과 정리")),
         el("button", { class: "btn small primary", type: "button", on: { click: () => { app.endHidden = null; renderEnd(app.snap); } } }, "결과 보기")));
       else if (s.isHost && v.scene?.ending) parts.push(el("div", { class: "pend-row end-row" }, el("span", {}, "결말 장면 · ", el("b", {}, v.scene.title)),
-        el("button", { class: "btn small primary", type: "button", title: "모두에게 결과 정리 화면을 띄움", on: { click: () => confirm("이야기를 여기서 끝내고 결과 정리 화면을 띄움. 진행?") && send({ t: "finish" }) } }, "이야기 끝내기")));
+        el("button", { class: "btn small primary", type: "button", title: "모두에게 결과 정리 화면을 띄움", on: { click: async () => (await paperAsk("이야기를 여기서 끝내고 결과 정리 화면을 띄울까?")) && send({ t: "finish" }) } }, "이야기 끝내기")));
       for (const pc of pendingChecks) parts.push(el("div", { class: "pend-row" },
         el("span", {}, pc.improv ? (pc.san ? "이성 판정: " : "즉흥 판정: ") : "판정 요청: ", el("b", {}, pc.label), pc.skill && isMine(pc) ? ` (${tagOf(pc)})` : "", pc.whoName ? ` · ${pc.whoName}` : ""),
         isMine(pc) ? el("button", { class: "ic-btn memo-btn roll-box", type: "button", "aria-label": "굴리기", on: { click: () => send({ t: "check", checkId: pc.checkId }) } }, iconSvg("die_line"), el("span", { class: "ic-tip" }, "굴리기"))
@@ -11908,7 +11914,7 @@ const BannerArt = (() => {
         el("ul", { class: "gm-list" }, gm.allExits.length ? gm.allExits.map((x) => el("li", { class: x.open ? "" : "locked" },
           el("div", {}, `${x.open ? "[열림]" : "[잠김]"} ${x.label} `, el("span", { class: "small muted mono" }, x.when)),
           x.open ? el("button", { class: "btn tiny", on: { click: () => send({ t: "move", to: x.to }) } }, "이동") : null,
-          el("button", { class: "btn tiny ghost", on: { click: () => confirm("조건 무시하고 이동. 진행?") && send({ t: "forceScene", to: x.to }) } }, "강제 이동"))) : el("li", { class: "muted small" }, "없음")),
+          el("button", { class: "btn tiny ghost", on: { click: async () => (await paperAsk("조건을 무시하고 이동할까?")) && send({ t: "forceScene", to: x.to }) } }, "강제 이동"))) : el("li", { class: "muted small" }, "없음")),
         gm.hiddenTiles?.length ? el("h4", {}, "숨은 칸") : null,
         gm.hiddenTiles?.length ? el("ul", { class: "gm-list" }, gm.hiddenTiles.map((h) => el("li", { class: h.revealed ? "done" : "" },
           el("div", {}, `${h.name} `, el("span", { class: "small muted" }, `(${h.x},${h.y}) · 플레이어에겐 '${h.disguise}'로 보임`)),
@@ -11976,11 +11982,11 @@ const BannerArt = (() => {
         el("ul", { class: "small" }, gm.aiNotes.map((t) => el("li", {}, t)))) : null,
       el("div", { class: "gm-actions" },
         s.phase === "play" && gm.undoable ? el("button", { class: "btn small", type: "button", title: `최근 ${gm.undoable}번까지`,
-          on: { click: () => confirm("마지막 AI 서술 직전으로 되돌림. 그 뒤 들어온 행동 · 판정도 함께 사라짐. 진행?") && send({ t: "undoAI" }) } }, "마지막 AI 서술 되돌리기") : null,
+          on: { click: async () => (await paperAsk("마지막 AI 서술 직전으로 되돌릴까? 그 뒤 들어온 행동 · 판정도 함께 사라짐.")) && send({ t: "undoAI" }) } }, "마지막 AI 서술 되돌리기") : null,
         el("button", { class: "btn small", on: { click: () => send({ t: "setMode", mode: s.mode === "ai" ? "human" : "ai" }) } }, s.mode === "ai" ? "내가 GM으로 전환 (비상용)" : "AI GM으로 전환"),
 
-        s.phase === "play" && !s.result ? el("button", { class: "btn small", type: "button", title: "엔딩 전이라도 여기서 끝내고 결과 정리", on: { click: () => confirm("이야기를 여기서 끝내고 결과 정리 화면을 띄움. 진행?") && send({ t: "finish" }) } }, "이야기 끝내기 · 결과 정리") : null,
-        s.phase === "play" ? el("button", { class: "btn small ghost", on: { click: () => confirm("시나리오 처음부터 재시작. 캐릭터와 로그는 유지, 체력 · 이성 · 행운 · 소지품은 처음으로. 진행?") && send({ t: "reset" }) } }, "시나리오 처음부터") : null));
+        s.phase === "play" && !s.result ? el("button", { class: "btn small", type: "button", title: "엔딩 전이라도 여기서 끝내고 결과 정리", on: { click: async () => (await paperAsk("이야기를 여기서 끝내고 결과 정리 화면을 띄울까?")) && send({ t: "finish" }) } }, "이야기 끝내기 · 결과 정리") : null,
+        s.phase === "play" ? el("button", { class: "btn small ghost", on: { click: async () => (await paperAsk("시나리오를 처음부터 다시 할까? 캐릭터와 기록은 남고 체력 · 이성 · 행운 · 소지품은 처음으로.")) && send({ t: "reset" }) } }, "시나리오 처음부터") : null));
 
     // AI 설정은 접어 두고, 열려 있으면 다시 그리지 않는다 (입력 중 초기화 방지)
     let details = box.querySelector("details.ai-conn");
