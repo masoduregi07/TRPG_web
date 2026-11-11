@@ -7509,15 +7509,15 @@ void main() {
     [G.side, T.planks, M.trs(5.2, -1.7, -1)],
     [G.table, T.table, M.trs(0, -.26, -1.2)],
     // 큰 초 (오른쪽 뒤)
-    [G.dish, T.metal, M.trs(CANDLE[0][0], 0, CANDLE[0][1])],
-    [G.candle, T.wax, M.trs(CANDLE[0][0], .05, CANDLE[0][1]), .45],
+    [G.dish, T.metal, M.trs(CANDLE[0][0], 0, CANDLE[0][1]), 0, true],
+    [G.candle, T.wax, M.trs(CANDLE[0][0], .05, CANDLE[0][1]), .45, true],
     // 작은 초 (왼쪽 뒤)
     [G.dish, T.metal, M.trs(CANDLE[1][0], 0, CANDLE[1][1], 0, .8)],
     [G.candleS, T.wax, M.trs(CANDLE[1][0], .04, CANDLE[1][1]), .35],
-    // 책 더미 (왼쪽)
-    [G.book1, bookTex[0], M.trs(-2.45, 0, -1.0, .12)],
-    [G.book2, bookTex[1], M.trs(-2.4, .16, -1.03, -.18)],
-    [G.book3, bookTex[2], M.trs(-2.48, .3, -.97, .35)],
+    // 책 더미 (왼쪽)   ※ 다섯째 칸 true = 첫 화면에선 안 그림 (책 · 주머니 옆에 걸쳐 보여서)
+    [G.book1, bookTex[0], M.trs(-2.45, 0, -1.0, .12), 0, true],
+    [G.book2, bookTex[1], M.trs(-2.4, .16, -1.03, -.18), 0, true],
+    [G.book3, bookTex[2], M.trs(-2.48, .3, -.97, .35), 0, true],
     // 잉크병 + 카드 (오른쪽 앞)
     [G.bottle, T.glass, M.trs(2.1, 0, -.55, .3)],
     [G.neck, T.glass, M.trs(2.1, .26, -.55)],
@@ -7532,13 +7532,13 @@ void main() {
   // 첫 화면: 책 왼쪽 앞에 놓인 짧은 초 (책을 비추는 불빛. 오른쪽은 대출 카드 주머니 · 초대장 봉투 자리)
   const HOME_CANDLE = [-.62, -1.8];   // 책 위쪽(먼 쪽) 왼편. 펼친 왼쪽 쪽(z -1.53 ~ -0.17) 밖
   // 바로 위에서 내려다봐도 동그랗게 보이게 면을 늘린 가는 초 + 작은 어두운 받침 (가까운 불빛에 받침이 번쩍이지 않게)
-  const G_homeDish = cyl(.15, .025, 14), G_homeCandle = cyl(.075, .13, 14, 1);   // 낮은 초: 펼친 책을 바로 위에서 볼 때 화면 가장자리라 키 큰 초는 옆으로 누운 통처럼 늘어나 보임
+  const G_homeDish = cyl(.15, .025, 14), G_homeCandle = cyl(.075, .156, 14, 1);   // 낮은 초: 펼친 책을 바로 위에서 볼 때 화면 가장자리라 키 큰 초는 옆으로 누운 통처럼 늘어나 보임
   const T_homeDish = tex(16, (g, s) => noise(g, s, [46, 36, 28], .25));
   const homeObjs = [
     [G_homeDish, T_homeDish, M.trs(HOME_CANDLE[0], 0, HOME_CANDLE[1])],
     [G_homeCandle, T.wax, M.trs(HOME_CANDLE[0], .025, HOME_CANDLE[1]), .55],
   ];
-  const homeFlame = { mesh: G.flameS, x: HOME_CANDLE[0], y: .16, z: HOME_CANDLE[1], home: true };
+  const homeFlame = { mesh: G.flameS, x: HOME_CANDLE[0], y: .186, z: HOME_CANDLE[1], home: true };
 
   /* ---------------- 첫 화면 책 (붉은 가죽 장부, 오두막 안 물체) ----------------
    * 닫힌 모양 기준: 책등 x = -0.5, 쪽 x ∈ [-0.5, 0.5], 깊이 z = zc ± D/2, 높이 = 뒤표지 c + 쪽 B + 앞표지 c
@@ -7727,7 +7727,8 @@ void main() {
       g.font = "8px Galmuri7"; g.textAlign = "right"; g.textBaseline = "top"; g.fillStyle = "#5a4630"; g.fillText("초대장 재중", w - 6, h - 12);
     }),
   };
-  const deskModel = (k) => { const o = DK[k], lift = desk.hover === k ? .03 : 0; return chain(M.trs(o.x, lift, o.z, o.rot), M.T(-o.w / 2, 0, 0), M.S(o.w, o.th, o.d)); };
+  // 탁자 면에서 .004 띄움: 아랫면이 탁자와 같은 높이면 겹쳐 깜빡임(투명한 윗부분 너머로 무늬가 움직여 보임)
+  const deskModel = (k) => { const o = DK[k], lift = (desk.hover === k ? .03 : 0) + .004; return chain(M.trs(o.x, lift, o.z, o.rot), M.T(-o.w / 2, 0, 0), M.S(o.w, o.th, o.d)); };
   function drawDesk() {
     gl.uniform1f(U.u_alphaTest, .5);
     for (const k of ["pocket", "env"]) drawSlab(deskModel(k), DT[k].t, T_kraft, T_kraft, .3);
@@ -7951,7 +7952,8 @@ void main() {
     gl.uniform1f(U.u_ghost, 0);
     gl.uniform3f(U.u_tint, 1, 1, 1);
     gl.uniform1f(U.u_q, bk.on ? 64 : 20);
-    objs.forEach(([m, tx, model, glow = 0]) => {
+    objs.forEach(([m, tx, model, glow = 0, roomOnly]) => {
+      if (roomOnly && bk.on) return;
       gl.uniform1f(U.u_emissive, glow * (glow ? flick[0] : 0));   // 밀랍은 불빛에 은은하게 빛남
       gl.bindTexture(gl.TEXTURE_2D, tx);
       gl.uniformMatrix4fv(U.u_model, false, model);
@@ -7977,7 +7979,8 @@ void main() {
     gl.uniform1f(U.u_alphaTest, .5);
     gl.uniform1f(U.u_ghost, 0);
     gl.uniform3f(U.u_tint, 1, 1, 1);
-    (bk.on ? [...flames, homeFlame] : flames).forEach((f, i) => {
+    (bk.on ? [null, flames[1], homeFlame] : flames).forEach((f, i) => {   // 첫 화면: 오른쪽 뒤 큰 초는 안 그림 (빛은 그대로)
+      if (!f) return;
       const yaw = Math.atan2(eye[0] - f.x, eye[2] - f.z);
       const mo = reduceMotion ? 0 : 1;
       // 일렁임: 높이·폭이 숨 쉬듯, 끝이 좌우로 흔들림 (아래는 고정, 위로 갈수록 기울어짐)
