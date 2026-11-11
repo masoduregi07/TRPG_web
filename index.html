@@ -2350,6 +2350,8 @@ html.has-3d .topbar { box-shadow: none; }
 #home.flat .bk-flat { position: absolute; left: 50%; top: 50%; width: min(52vh, 70vw); aspect-ratio: .74; translate: -60% -50%; display: grid; align-content: center; justify-items: center; gap: 10px;
   background: #6e1f16; box-shadow: inset 0 0 0 10px #5a170e, inset 0 0 0 12px #b08a3e, 0 18px 40px rgba(0, 0, 0, .5); color: #c9a04a; text-align: center; }
 #home.flat .bk-flat h1 { margin: 0; font-family: "Galmuri14", var(--font); font-weight: 400; font-size: 34px; }
+#home.flat .bk-flat hr { width: 70%; margin: 0; border: 0; border-top: 1px solid #c9a04a; }
+#home.flat .bk-flat div { font-size: 13px; }
 #home.flat.open .bk-flat { display: none; }
 #home.flat .bk-pg { background: #e2cf9e; box-shadow: 0 12px 30px rgba(0, 0, 0, .45); }
 #home.flat .bk-tabs { inset: auto; left: calc(50% + min(52vh, 70vw) * .4 + 4px); top: 22%; display: grid; gap: 8px; pointer-events: auto; }
@@ -2460,7 +2462,7 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-wrap { position: relative; width: 86%; height: 300px; margin: 0 auto; }
 .lb-back { position: absolute; left: 0; right: 0; top: 70px; bottom: 0; background: #9c7140; background-image: radial-gradient(rgba(50, 28, 8, .22) 1px, transparent 1.5px); background-size: 4px 4px;
   clip-path: polygon(0 22px, 10% 0, 90% 0, 100% 22px, 100% 100%, 0 100%); box-shadow: inset 0 14px 18px rgba(30, 15, 3, .55); }
-.lb-cards { position: absolute; inset: 0 0 20px; z-index: 1; margin: 0; padding: 0; list-style: none; }
+.lb-cards { position: absolute; inset: 0; z-index: 1; margin: 0; padding: 0; list-style: none; clip-path: inset(-60px -60px 4px -60px); }   /* 카드 아랫부분이 주머니 밑으로 삐져나오지 않게 */
 .lb-card { position: absolute; left: 9%; right: 9%; height: 220px; box-sizing: border-box; padding: 7px 10px; background: #f4ead0; cursor: pointer; transition: translate .15s;
   box-shadow: 0 -1px 0 rgba(60, 40, 20, .25), 1px 1px 0 rgba(60, 40, 20, .25), 0 4px 6px rgba(30, 15, 3, .35); font: 11px/1.35 var(--font); color: var(--ink); }
 .lb-card:hover, .lb-card:focus-within, .lb-card.hot { translate: 0 -12px; }
@@ -2487,7 +2489,6 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-pocket h4 { margin: 8px 0 6px; text-align: center; font: 12px/1.4 var(--font); letter-spacing: .4em; font-weight: 400; }
 .lb-pocket ol { margin: 0; padding-left: 16px; font: 10.5px/1.6 var(--font); }
 .lib-more { margin: 14px 7% 0; }
-.lib-more .bk-file { margin-top: 0; }
 .due { width: 88%; margin: 0 auto; padding: 12px 14px 16px; box-sizing: border-box; background: #f6efdc; box-shadow: 1px 2px 0 rgba(60, 40, 20, .3); }
 .due h4 { margin: 0 0 8px; text-align: center; font: 15px/1.4 "Galmuri11", var(--font); letter-spacing: .5em; font-weight: 400; }
 .due table { width: 100%; border-collapse: collapse; table-layout: fixed; font: 12px/26px var(--font); }
@@ -2531,6 +2532,20 @@ html.has-3d .topbar { box-shadow: none; }
 .bk-page.lib .bk-kick { font-size: 13px; }
 #home.narrow .bk-page.lib { height: auto; }
 #home.narrow .bk-page.lib > .lib-body { padding: 10px 0; }
+/* 기본 UI 버튼 = 종이 박스(크림 바탕 + 진갈색 1px 테 + 1px 그림자, 호버 진갈색 칠) */
+.pbtn, #bkPages .btn { display: inline-flex; align-items: center; justify-content: center; height: auto; padding: 4px 14px 3px; border: 0; cursor: pointer; background: #f2e6c6; color: #5a4128;
+  box-shadow: inset 0 0 0 1px #5a4128, 1px 1px 0 rgba(60, 40, 20, .3); font: 13px/1.4 var(--font); letter-spacing: .05em; }
+.pbtn:hover, .pbtn:focus-visible, #bkPages .btn:hover:not(:disabled), #bkPages .btn:focus-visible { background: #5a4128; color: #f3e6c4; outline: 0; transform: none; }
+.pbtn:active, #bkPages .btn:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: inset 0 0 0 1px #5a4128; }
+.lib-more .recover .pbtn { margin-top: 4px; }
+/* 확인 쪽지 (화면 가운데 미니 창) */
+.pask { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(10, 6, 3, .45); }
+.pask[hidden] { display: none; }
+.pask-box { min-width: 260px; max-width: min(420px, 86vw); padding: 18px 22px 16px; background: #f1e5c2; color: var(--ink); text-align: center;
+  background-image: radial-gradient(rgba(120, 80, 30, .08) 1px, transparent 1.5px); background-size: 5px 5px; box-shadow: inset 0 0 0 1px rgba(90, 65, 40, .5), 3px 4px 0 rgba(0, 0, 0, .35); rotate: -.6deg; }
+.pask-box p { margin: 0 0 14px; font: 15px/1.5 var(--font); word-break: keep-all; }
+.pask-row { display: flex; justify-content: center; gap: 10px; }
+.pask-row .pbtn { min-width: 72px; }
 /* 테이블 열기 = 날인란: 점선 칸 + 흐린 開 자국, 누르면 붉은 도장이 쾅 */
 .seal-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: transparent; box-shadow: none; cursor: pointer; }
 .seal-btn .cap { font: 13px/1.4 var(--font); color: #5a4128; letter-spacing: .1em; }
@@ -2611,7 +2626,7 @@ html.has-3d .topbar { box-shadow: none; }
 <!-- 첫 화면: 탁자 위 붉은 가죽 책. 오른쪽 색인 탭 = 메뉴, 누르면 그 장이 펼쳐짐 -->
 <main id="home" class="book-screen" hidden>
   <div class="bk-stage" id="bkStage"></div>
-  <div class="bk-flat" aria-hidden="true"><div>탐사자 협회 장서</div><h1>TRPG 테이블</h1></div>
+  <div class="bk-flat" aria-hidden="true"><h1>TRPG 테이블</h1><hr /><div>탐사자 협회 장서</div></div>
   <div class="bk-pages" id="bkPages"><div class="bk-pg l" id="bkPgL"></div><div class="bk-pg r" id="bkPgR"></div></div>
   <nav class="bk-tabs" id="bkTabs" aria-label="메뉴">
           <button class="bk-tab" type="button" data-ch="0" style="--c:#a5321e"><span class="lb">새 테이블</span><svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="1" height="2" fill="#ffd36a"/><rect x="2" y="2" width="3" height="5" fill="currentColor"/></svg></button>
@@ -2660,7 +2675,9 @@ html.has-3d .topbar { box-shadow: none; }
     </section>
     <section class="bk-page lib" data-spread="1" data-side="L">
       <div class="bk-kick">제 2 장</div>
-      <div class="bk-head"><h2>이어하기</h2></div>
+      <div class="bk-head ix-head"><h2>이어하기</h2>
+        <div class="ix-tabs"><label class="ix-tab" tabindex="0" role="button">▤ 파일 불러오기<input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label></div>
+      </div>
       <div class="lib-body">
         <!-- 열린 대출 카드 주머니: 테이블마다 카드 한 장 (뽑으면 들어감) -->
         <div class="lb-wrap">
@@ -2671,12 +2688,10 @@ html.has-3d .topbar { box-shadow: none; }
             <h4>주 의</h4><ol><li>카드를 뽑으면 그 테이블로 들어감.</li><li>카드 모서리 ✕ = 테이블 폐기 (되돌릴 수 없음).</li></ol></div>
         </div>
         <div class="lib-more">
-          <label class="bk-file">파일에서 불러오기 <small>.json 세이브</small><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
           <details class="recover">
             <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
-            <p class="muted small">같은 시나리오 파일 → 친구의 "내 사본" 파일 순서로 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
-            <div class="row"><label class="btn small file-btn">시나리오 파일<input id="recoverScInput" type="file" accept=".yaml,.yml,.json,.txt" hidden /></label><span id="recoverSc" class="small muted"></span></div>
-            <div class="row"><label class="btn small file-btn">사본 파일<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label></div>
+            <p class="muted small">새 테이블 장에 같은 시나리오를 넣고 → 친구의 "내 사본" 파일 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
+            <label class="pbtn" tabindex="0" role="button">사본 파일<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
             <p id="recoverError" class="error" role="alert"></p>
           </details>
         </div>
@@ -2716,6 +2731,7 @@ html.has-3d .topbar { box-shadow: none; }
     </section>
   </div>
 </main>
+<div id="paperAsk" class="pask" hidden role="dialog" aria-modal="true" aria-labelledby="paperAskText"><div class="pask-box"><p id="paperAskText"></p><div class="pask-row"><button id="paperAskYes" class="pbtn" type="button">예</button><button id="paperAskNo" class="pbtn" type="button">아니오</button></div></div></div>
 
 <!-- 참가 -->
 <main id="join" class="narrow" hidden>
@@ -7363,9 +7379,10 @@ void main() {
       for (const [x, y, sx, sy] of [[9, 9, 1, 1], [w - 10, 9, -1, 1], [9, h - 10, 1, -1], [w - 10, h - 10, -1, -1]]) for (let k = 0; k < 7; k++) { g.fillRect(x + sx * k, y + sy * 3, 1, 1); g.fillRect(x + sx * 3, y + sy * k, 1, 1); }
       // 글자: 눌러 찍은 금박 (아래 1px 어두운 홈)
       const txt = (s, font, y) => { g.font = font; g.textAlign = "center"; g.textBaseline = "top"; g.fillStyle = "#3a0f09"; g.fillText(s, w / 2 + 1, y + 1); g.fillStyle = "#d8b25a"; g.fillText(s, w / 2, y); };
-      txt("탐사자 협회 장서", "10px Galmuri9", 30);
-      txt("TRPG", "15px Galmuri14", 50);
-      txt("테이블", "15px Galmuri14", 68);
+      // 한 줄 제목: 쪽 폭(겹테 안쪽 ~96px)에 맞춰 글자 크기를 줄임
+      { let fs = 15; g.font = `${fs}px Galmuri14`; while (fs > 10 && g.measureText("TRPG 테이블").width > w - 36) { fs--; g.font = `${fs}px Galmuri14`; } txt("TRPG 테이블", `${fs}px Galmuri14`, 42); }
+      g.fillStyle = "#3a0f09"; g.fillRect(25, 62, w - 50, 1); g.fillStyle = FOIL; g.fillRect(24, 61, w - 48, 1);   // 가로줄
+      txt("탐사자 협회 장서", "8px Galmuri7", 68);
       // 등대 문장 (육각 테 + 탑 + 빛)
       const cx = w / 2, cy = 124;
       g.fillStyle = FOIL;
@@ -7394,7 +7411,7 @@ void main() {
     }))),
   };
   // 픽셀 글꼴이 늦게 오면 표지 · 탭 글자를 다시 그림
-  document.fonts?.load?.("10px Galmuri9").then(() => document.fonts.load("15px Galmuri14")).then(() => {
+  document.fonts?.load?.("8px Galmuri7").then(() => document.fonts.load("15px Galmuri14")).then(() => {
     if (!gl.isContextLost()) { BT.cover.paint(); BT.tabs.flat().forEach((x) => x.paint()); scheduleFrame(); }
   }, noop);
 
@@ -8819,11 +8836,26 @@ const BannerArt = (() => {
     const h = Math.round(m / 60); if (h < 24) return `${h}시간 전`;
     const d = Math.round(h / 24); return d === 1 ? "어제" : `${d}일 전`;
   }
+  /** 화면 가운데 종이 쪽지 확인 창 (예 / 아니오). Esc · 바깥 누르기 = 아니오 */
+  function paperAsk(text) {
+    return new Promise((resolve) => {
+      const box = $("#paperAsk");
+      $("#paperAskText").textContent = text;
+      box.hidden = false;
+      const yes = $("#paperAskYes"), no = $("#paperAskNo"), prev = document.activeElement;
+      const done = (v) => { box.hidden = true; yes.onclick = no.onclick = box.onclick = null; removeEventListener("keydown", key, true); prev?.focus?.({ preventScroll: true }); resolve(v); };
+      const key = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } };
+      yes.onclick = () => done(true); no.onclick = () => done(false);
+      box.onclick = (e) => { if (e.target === box) done(false); };
+      addEventListener("keydown", key, true);
+      yes.focus();
+    });
+  }
   // 대출 카드 번호: 방 코드에서 4자리 (화면 장식 · 같은 방은 늘 같은 번호)
   const cardNo = (room) => String([...String(room)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 9000, 7) + 1000);
   const md = (ts) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`; };
   async function deleteTable(t) {
-    if (!confirm(`「${t.title}」 테이블과 이 브라우저의 호스트 보관 기록 삭제. 되돌릴 수 없음.\n백업은 '세이브 받기'로.`)) return;
+    if (!(await paperAsk(`「${t.title}」 기록을 지울까?`))) return;
     try { await HistoryArchive.deleteHostRoom(t.room); }
     catch { return toast('보관 기록 삭제 실패. 테이블은 유지됨.'); }
     await DB.del(K.host(t.room));
@@ -8838,7 +8870,7 @@ const BannerArt = (() => {
     const step = shown.length > 1 ? Math.min(30, 96 / (shown.length - 1)) : 0;
     $("#tableCount").textContent = `${list.length}권`;
     $("#myTables").replaceChildren(...shown.map((t, i) => el("li", { class: "lb-card", "data-room": t.room, style: `top:${10 + i * step}px` },
-      el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: () => Book.leave(`room=${t.room}`) } },
+      el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: async () => { if (await paperAsk(`「${t.title}」 이 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); } } },
         el("div", { class: "top" }, el("b", {}, t.title), el("span", { class: "no" }, cardNo(t.room))),
         el("div", { class: "r" }, el("span", {}, "상 태"), el("span", {}, state(t))),
         el("div", { class: "r" }, el("span", {}, "대출일"), el("span", { class: "hw" }, `${new Date(t.savedAt).getFullYear()}·${md(t.savedAt)} · ${ago(t.savedAt)}`)),
@@ -8913,7 +8945,7 @@ const BannerArt = (() => {
   $("#loadSaveInput").addEventListener("change", async (e) => {
     try {
       const save = HostGame.checkSave(JSON.parse(await readFile(e.target)));
-      if (await DB.get(K.host(save.roomId)) && !confirm("같은 테이블이 이미 있음. 세이브로 덮어쓰기?")) return;
+      if (await DB.get(K.host(save.roomId)) && !(await paperAsk("같은 테이블이 이미 있음. 세이브로 덮어쓸까?"))) return;
       save.historyGeneration = randomId(16); // 복원된 세이브는 별도 기록 갈래
       if (!(await DB.set(K.host(save.roomId), save))) throw new Error("브라우저 저장 공간 부족.");
       Book.leave(`room=${save.roomId}`);
@@ -9022,7 +9054,8 @@ const BannerArt = (() => {
   }
   // 파일 불러오기 · 샘플 = 시나리오 머리 줄 색인 탭. 넣은 쪽 탭이 진한 색
   const markSource = (which) => { $("#fileOpenBtn").classList.toggle("on", which === "file"); $("#sampleBtn").classList.toggle("on", which === "sample"); };
-  $("#fileOpenBtn").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#scenarioFile").click(); } });
+  // 파일 고르기 라벨(색인 탭 · 종이 박스): Enter · Space로도 열림
+  for (const lb of document.querySelectorAll('#bkStore label[role="button"]')) lb.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); lb.querySelector("input[type=file]")?.click(); } });
   $("#sampleBtn").addEventListener("click", () => { $("#yamlInput").value = SAMPLE_COC_YAML; scSealed = true; markSource("sample"); Sfx.play(validate() ? "stamp" : "deny"); });
   $("#scenarioFile").addEventListener("change", async (e) => {
     try { $("#yamlInput").value = await readFile(e.target); scSealed = true; markSource("file"); Sfx.play(validate() ? "stamp" : "deny"); }
@@ -9107,28 +9140,17 @@ const BannerArt = (() => {
     Book.leave(`room=${room}`);
   });
 
-  // 복구 (이어하기 장): 같은 시나리오 파일 → 친구의 사본 파일
-  let recoverSc = null;
-  $("#recoverScInput").addEventListener("change", async (e) => {
-    $("#recoverError").textContent = ""; recoverSc = null; $("#recoverSc").textContent = "";
-    try {
-      const c = checkScenario(await readFile(e.target));
-      if (c.fatal) throw new Error(c.fatal);
-      if (c.errors.length) throw new Error(`시나리오 오류 ${c.errors.length}개: ${c.errors[0]}`);
-      recoverSc = c.sc; $("#recoverSc").textContent = `✓ 「${c.sc.title}」`;
-    } catch (err) { $("#recoverError").textContent = err.message; }
-    e.target.value = "";
-  });
+  // 복구 (이어하기 장): 새 테이블 장에 넣은 시나리오 + 친구의 사본 파일
   $("#recoverInput").addEventListener("change", async (e) => {
     try {
       $("#recoverError").textContent = "";
-      const sc = recoverSc;
-      if (!sc) throw new Error("시나리오 파일 먼저 선택.");
+      const sc = validScenario ?? validate();
+      if (!sc) throw new Error("새 테이블 장에 같은 시나리오를 넣고 검사 통과 먼저.");
       const copy = JSON.parse(await readFile(e.target));
       if (copy?.snap?.scenario?.title && copy.snap.scenario.title !== sc.title &&
-          !confirm(`사본은 「${copy.snap.scenario.title}」, 고른 시나리오는 「${sc.title}」. 계속 진행?`)) return;
+          !(await paperAsk(`사본은 「${copy.snap.scenario.title}」, 넣은 시나리오는 「${sc.title}」. 계속할까?`))) return;
       const data = HostGame.fromPlayerCopy(copy, sc, randomId(24));
-      if (await DB.get(K.host(data.roomId)) && !confirm("같은 테이블이 이미 있음. 덮어쓰기?")) return;
+      if (await DB.get(K.host(data.roomId)) && !(await paperAsk("같은 테이블이 이미 있음. 덮어쓸까?"))) return;
       if (!(await DB.set(K.host(data.roomId), data))) throw new Error("브라우저 저장 공간 부족.");
       Book.leave(`room=${data.roomId}`);
     } catch (err) {
