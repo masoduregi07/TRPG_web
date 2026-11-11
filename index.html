@@ -1963,7 +1963,10 @@ html.has-3d .topbar { box-shadow: none; }
 #log .entry.handout-line { margin: 0; padding-left: 10px; box-shadow: inset 2px 0 0 #6f5230; }
 #log .entry.handout-line .ho { padding: 4px 8px; rotate: 0deg; box-shadow: 0 0 0 1px rgba(90, 60, 30, .35); max-width: min(420px, 100%); }
 #log .entry.handout-line .ho::before, #log .entry.handout-line .ho::after { display: none; }
-#log .entry.handout-line .ho-body { max-height: 20px; line-height: 20px; white-space: nowrap; text-overflow: ellipsis; column-width: auto; }
+/* 긴 한 줄 글이 칸을 넓혀 카드 밖으로 튀어나오지 않게: 칸 폭은 카드 안쪽까지, 넘치면 말줄임 */
+#log .entry.handout-line .ho { grid-template-columns: minmax(0, 1fr); }
+#log .entry.handout-line .ho-cap { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#log .entry.handout-line .ho-body { max-width: 100%; max-height: 20px; line-height: 20px; white-space: nowrap; text-overflow: ellipsis; column-width: auto; }
 #log .entry.item-line { padding-left: 10px; }
 /* 사건이 바뀌는 곳: 가는 갈색 구분선 */
 #log .scene-entry { margin: 6px 0 2px; padding-top: 18px; gap: 15px; border-top: 2px solid rgba(90, 60, 30, .45); }
