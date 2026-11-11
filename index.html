@@ -2401,19 +2401,22 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-back { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--pocket-h, 238px) + 62px); background: #9c7140; background-image: radial-gradient(rgba(50, 28, 8, .22) 1px, transparent 1.5px); background-size: 4px 4px;
   clip-path: polygon(0 22px, 10% 0, 90% 0, 100% 22px, 100% 100%, 0 100%); box-shadow: inset 0 14px 18px rgba(30, 15, 3, .55); }
 .lb-cards { position: absolute; inset: 0; z-index: 1; margin: 0; padding: 0; list-style: none; clip-path: inset(-120px -60px 4px -60px); }   /* 카드 아랫부분이 주머니 밑으로 삐져나오지 않게 */
-.lb-card { position: absolute; left: 9%; right: 9%; height: 290px; box-sizing: border-box; padding: 7px 10px; background: #f4ead0; cursor: pointer; transition: translate .15s;
+.lb-card { position: absolute; left: 9%; right: 9%; height: 290px; box-sizing: border-box; padding: 0; background: #f6eedb; cursor: pointer; transition: translate .15s;
+  background-image: repeating-linear-gradient(transparent 0 27px, rgba(70, 110, 170, .28) 27px 28px); background-position: 0 34px;
   box-shadow: 0 -1px 0 rgba(60, 40, 20, .25), 1px 1px 0 rgba(60, 40, 20, .25), 0 4px 6px rgba(30, 15, 3, .35); font: 11px/1.35 var(--font); color: var(--ink); }
 /* 호버 = 카드끼리 밀린 간격(--step)만큼 그 자리에서 위로 → 제목 · 상태 · 대출일 · 플레이어가 다 보임 */
 .lb-card:hover, .lb-card:focus-within, .lb-card.hot, .lb-card.asking { translate: 0 calc(-1 * var(--step, 12px)); }
-.lb-open { all: unset; display: block; width: 100%; cursor: pointer; }
+.lb-open { all: unset; display: grid; grid-template-columns: 44px 1fr; width: 100%; height: 100%; cursor: pointer; }
 .lb-open:focus-visible { outline: 2px dotted #2b1a0c; outline-offset: 2px; }
-.lb-card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 18px 2px 0; margin-bottom: 2px; border-bottom: 2px solid #a8251a; }
-.lb-card .top b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 14px/1.3 "Galmuri14", var(--font); font-weight: 400; }
-.lb-card .no { flex: none; font: 14px/1 "Galmuri9", var(--font); letter-spacing: .05em; }
-.lb-card .r { display: grid; grid-template-columns: 42px 1fr; border-bottom: 1px solid rgba(60, 40, 20, .55); }
-.lb-card .r > span:first-child { padding: 3px 0; border-right: 1px solid rgba(60, 40, 20, .55); font-size: 9.5px; color: #5a4630; }
-.lb-card .r > span + span { padding: 2px 6px; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-card .hw { font: 12px/1.3 "Galmuri9", var(--font); color: #2a3a8a; }
+/* E1 목록 카드: 왼쪽 여백 칸(상태 동그라미 · 세로 번호) │ 붉은 여백선 │ 제목 · 챕터·대출일 · 플레이어 (괘선 28px) */
+.lb-card .lb-side { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 6px; border-right: 2px solid rgba(168, 37, 26, .6); background: #f6eedb; }
+.lb-card .lb-st { width: 26px; height: 26px; border-radius: 50%; box-sizing: border-box; font: 11px/26px "Galmuri9", var(--font); text-align: center; color: #f6eedb; background: #a8251a; }
+.lb-card .lb-st.prep { background: none; color: #7a6a50; border: 1px dashed #7a6a50; line-height: 24px; }
+.lb-card .no { writing-mode: vertical-rl; font: 12px/1 "Galmuri9", var(--font); letter-spacing: .05em; color: #7a5a3a; }
+.lb-card .lb-main { min-width: 0; padding: 5px 26px 0 12px; }
+.lb-card .lb-main b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 16px/24px "Galmuri14", var(--font); font-weight: 400; }
+.lb-card .lb-main p { margin: 0; font-size: 12.5px; line-height: 28px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-card .hw { font-family: "Galmuri9", var(--font); color: #2a3a8a; }
 .lb-del { position: absolute; right: 4px; top: 4px; width: 18px; height: 18px; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
 .lb-del:hover, .lb-del:focus-visible { color: var(--blood); outline: 0; }
 /* 카드 확인 쪽지: 고른 카드 바로 위, 한 줄짜리 종이 띠 "「제목」 시나리오를 읽을까? [예 / 아니오]". 카드 뒤에서 위로 슥 (0.22초) */
@@ -9240,7 +9243,6 @@ const BannerArt = (() => {
   /** 이어하기: 주머니에 테이블마다 대출 카드(오래된 것이 뒤, 최근이 맨 앞) + 오른쪽 대출기간표 */
   function renderTables() {
     const list = app.tables;   // 최근 저장 순
-    const state = (t) => (t.phase === "play" ? "진행 중" : "준비 중");
     // 대출기간표에서 고른 테이블은 주머니 맨 앞 카드로 (주머니엔 5장까지만)
     const front = list.find((t) => t.room === app.frontRoom);
     const shown = (front ? [front, ...list.filter((t) => t !== front)] : list).slice(0, 5).reverse();
@@ -9254,10 +9256,10 @@ const BannerArt = (() => {
     $("#tableCount").textContent = `${list.length}권`;
     $("#myTables").replaceChildren(...shown.map((t, i) => el("li", { class: "lb-card", "data-room": t.room, style: `top:${10 + i * step}px` },
       el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: async (e) => { if (await cardAsk(e.currentTarget.closest(".lb-card"), `「${t.title}」 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); } } },
-        el("div", { class: "top" }, el("b", {}, t.title), el("span", { class: "no" }, cardNo(t.room))),
-        el("div", { class: "r" }, el("span", {}, "상 태"), el("span", {}, state(t))),
-        el("div", { class: "r" }, el("span", {}, "대출일"), el("span", { class: "hw" }, `${new Date(t.savedAt).getFullYear()}·${md(t.savedAt)} · ${ago(t.savedAt)}`)),
-        el("div", { class: "r" }, el("span", {}, "플레이어"), el("span", { class: "hw" }, (t.players ?? []).join(", ") || "-"))),
+        el("div", { class: "lb-side" }, el("span", { class: t.phase === "play" ? "lb-st" : "lb-st prep" }, t.phase === "play" ? "진행" : "준비"), el("span", { class: "no" }, `No.${cardNo(t.room)}`)),
+        el("div", { class: "lb-main" }, el("b", {}, t.title),
+          el("p", {}, `${t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.phase === "play" ? "진행 중" : "아직 시작 전"} · `, el("span", { class: "hw" }, `${md(t.savedAt)} (${ago(t.savedAt)})`)),
+          el("p", {}, el("span", { class: "hw" }, (t.players ?? []).join(", ") || "-")))),
       el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: (e) => deleteTable(t, e.currentTarget.closest(".lb-card")) } }, "✕"))));
     const rows = list.map((t) => el("tr", { "data-room": t.room, class: t === front ? "front" : null, on: { click: () => { app.frontRoom = t.room; renderTables(); } } }, el("td", {}, el("span", { class: "st" }, md(t.savedAt))), el("td", { class: "n", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title }, t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.title), el("td", {}, t.phase === "play" ? "진행" : "준비")));
     while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
