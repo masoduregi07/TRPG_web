@@ -240,7 +240,7 @@ test("KPC는 사건이 바뀌어도 따라오고, kpcAway면 따라 넣은 사�
   assert.ok(!Object.values(sc.scenes).some((s) => (s.npcs ?? []).includes("kpc")));
 });
 
-test("NPC 설정 카드: YAML 칸이 먼저, 빈 칸은 AI 카드 · 맥락에 들어감 · 비밀 겹치는 줄은 뺌", () => {
+test("NPC 설정 카드: YAML에 AI 카드를 겹침 · 이야기 중 바뀜 · 맥락에 들어감 · 비밀 겹치는 줄은 뺌", () => {
   const m = load();
   const sc = sample(m);
   m.Engine.validateScenario(sc);
@@ -248,11 +248,22 @@ test("NPC 설정 카드: YAML 칸이 먼저, 빈 칸은 AI 카드 · 맥락에 �
   const id = m.Engine.sceneOf(sc, st).npcs[0];
   sc.npcs[id].lines = ["이 바다는 사람을 가려 받수."];
   assert.ok(m.Engine.npcCardTodo(sc, st).includes(id), "빈 칸이 있으면 만들 대상");
-  st.npcCards = { [id]: { knows: ["삼십 년째 이 항구에서 그물을 손질함"], wants: "딸 소식을 듣고 싶음", relations: [], lines: ["AI 대사"] } };
-  assert.ok(!m.Engine.npcCardTodo(sc, st).includes(id), "카드가 있으면 다시 안 만듦");
+  st.npcCards = { [id]: { knows: ["삼십 년째 이 항구에서 그물을 손질함"], wants: "딸 소식을 듣고 싶음", relations: [], lines: ["AI 대사"], gen: true } };
+  assert.ok(!m.Engine.npcCardTodo(sc, st).includes(id), "AI가 만들었으면 다시 안 만듦");
   const c = m.Engine.npcCard(sc, st, id);
-  assert.deepEqual([...c.lines], ["이 바다는 사람을 가려 받수."], "YAML이 먼저");
+  assert.deepEqual([...c.lines], ["이 바다는 사람을 가려 받수.", "AI 대사"], "예시 대사는 YAML이 먼저");
   assert.equal(c.knows.length, 1);
+  // 이야기 중 바뀜: YAML 바람 · 관계도 덮어씀
+  sc.npcs[id].wants = "조용히 늙는 것"; sc.npcs[id].relations = ["그레고르 — 경멸함"];
+  m.Engine.npcCardUpdate(st, id, { knows: ["한서가 등대 열쇠 이야기를 꺼냄"], wants: "등대에 다시 불을 켜고 싶음", relations: ["그레고르 — 같이 배를 탈 뻔했던 사이"] });
+  const c2 = m.Engine.npcCard(sc, st, id);
+  assert.equal(c2.wants, "등대에 다시 불을 켜고 싶음");
+  assert.deepEqual([...c2.relations], ["그레고르 — 같이 배를 탈 뻔했던 사이"]);
+  assert.equal(c2.knows.at(-1), "한서가 등대 열쇠 이야기를 꺼냄");
+  delete sc.npcs[id].wants; delete sc.npcs[id].relations;
+  const ax = m.HostGame.cardAxes(() => 0);
+  assert.ok(ax.말빠르기 && ax.말수 && ax.관심사 && ax.버릇);
+  st.npcCards[id].wants = "딸 소식을 듣고 싶음";
   const npc = m.Engine.aiContext(sc, st, []).등장NPC.find((n) => n.id === id);
   assert.equal(npc.바라는것, "딸 소식을 듣고 싶음");
   assert.ok(npc.아는것 && npc.예시대사);

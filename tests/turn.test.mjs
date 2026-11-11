@@ -235,6 +235,13 @@ test("판정과 맞는 행동인데 판정 없이 서술하면 다시 물음", (
   assert.ok(run({ narration: "벽의 글씨를 살핌.", reveal_clue: "graffiti_note" }, gated).issues.some((i) => i.hard && /가능한판정/.test(i.msg)), "판정 보상 단서");
 });
 
+test("npc_card: 이 사건 NPC만 받음", () => {
+  const info = base({ npcIds: [{ id: "fisherman", name: "바르톨" }], npcNames: ["바르톨"] });
+  const r = run({ narration: "바르톨이 고개를 끄덕임.", npc_card: [{ who: "바르톨", knows: ["열쇠 이야기를 들음"] }, { who: "없는사람", wants: "x" }] }, info);
+  assert.equal(r.plan.npcCards.length, 1);
+  assert.equal(r.plan.npcCards[0].id, "fisherman");
+});
+
 test("kpc_away: 이름이 정해진 KPC가 있을 때만 받음", () => {
   assert.equal(run({ narration: "한은우가 어둠 속으로 끌려감.", kpc_away: true }, base({ kpcName: "한은우" })).plan.kpcAway, true);
   assert.equal(run({ narration: "바람이 붊.", kpc_away: true }, base()).plan.kpcAway, null);
