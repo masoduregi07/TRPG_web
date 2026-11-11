@@ -2530,6 +2530,10 @@ html.has-3d .topbar { box-shadow: none; }
 .due td { height: 26px; border-left: 1px solid #6b5338; border-right: 1px solid #6b5338; border-bottom: 1px solid rgba(107, 83, 56, .4); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .due tr:last-child td { border-bottom: 1px solid #6b5338; }
 .due td.n { text-align: left; padding-left: 6px; font-size: 11.5px; }
+.due-scroll { max-height: calc(24px + 9 * 26px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #a08660 transparent; }   /* 9줄 넘으면 표 안에서 스크롤 */
+.due thead th { position: sticky; top: 0; background: #f6efdc; }
+.due tr[data-room] { cursor: pointer; }
+.due tr.front td.n { font-weight: 700; }
 .due tr.hot td { background: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
 .due .st { display: inline-block; padding: 0 5px; border: 1.5px solid #2a3a8a; color: #2a3a8a; font: 11px/16px "Galmuri9", var(--font); rotate: -3deg; }
 /* 참가: 그 방의 대출 카드(이미 앉은 플레이어 · 캐릭터) + 참가 신청 서식 */
@@ -2717,7 +2721,7 @@ html.has-3d .topbar { box-shadow: none; }
       </div>
       <div class="lib-body">
         <div class="due"><h4>대출기간표</h4>
-          <table><thead><tr><th class="c-d">반납일</th><th>사건</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
+          <div class="due-scroll"><table><thead><tr><th class="c-d">반납일</th><th>사건</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div></div>
       </div>
       <div class="bk-folio">3</div>
     </section>
@@ -8619,7 +8623,7 @@ const BannerArt = (() => {
   const app = {
     sceneImgs: {},
     role: null, room: null, game: null, net: null, snap: null, log: [],
-    draft: null, builderFor: null, suggesting: false, status: null, wakeLock: null,
+    draft: null, builderFor: null, frontRoom: null, suggesting: false, status: null, wakeLock: null,
     tables: [], typers: new Map(),   // 현재 입력 중인 참가자 (서버 저장 안 함)
   };
 
@@ -8873,10 +8877,23 @@ const BannerArt = (() => {
     };
   })();
 
-  /** 테이블 목록(localStorage) 중 실제 세이브(IndexedDB)가 남아 있는 것만 → app.tables */
+  /** 이어하기 목록 한 줄 (저장 목록 trpg:hostIndex) */
+  function tableEntry(d) {
+    const ids = Object.keys(d.scenario?.scenes ?? {}), cur = d.game?.currentScene;
+    return { room: d.roomId, title: d.scenario?.title ?? "제목 없음", savedAt: d.savedAt ?? 0, phase: d.phase, players: Object.values(d.players ?? {}).map((p) => p.name).slice(0, MAX_PEOPLE),
+      chapter: cur && ids.includes(cur) ? { n: ids.indexOf(cur) + 1, title: String(d.scenario.scenes[cur].title ?? cur) } : null };
+  }
+  /** 테이블 목록 = 실제 세이브(IndexedDB)가 있는 것만 → app.tables. 세이브는 있는데 목록에서 빠진 것(예전 20개 제한)은 세이브를 읽어 되살림 */
   async function loadTables() {
-    const have = new Set(await DB.keys());
-    app.tables = (LS.get(K.hostIndex) ?? []).filter((t) => have.has(K.host(t.room))).sort((a, b) => b.savedAt - a.savedAt);
+    const keys = await DB.keys(), have = new Set(keys);
+    const idx = (LS.get(K.hostIndex) ?? []).filter((t) => have.has(K.host(t.room)));
+    const listed = new Set(idx.map((t) => K.host(t.room)));
+    for (const k of keys) {
+      if (!/^trpg:host:[a-z0-9]{10}$/.test(k) || listed.has(k)) continue;
+      try { const d = await DB.get(k); if (d?.roomId && `trpg:host:${d.roomId}` === k) idx.push(tableEntry(d)); } catch {}
+    }
+    LS.set(K.hostIndex, idx);
+    app.tables = [...idx].sort((a, b) => b.savedAt - a.savedAt);
   }
   function ago(ts) {
     const m = Math.round((Date.now() - ts) / 60000);
@@ -8914,7 +8931,9 @@ const BannerArt = (() => {
   function renderTables() {
     const list = app.tables;   // 최근 저장 순
     const state = (t) => (t.phase === "play" ? "진행 중" : "준비 중");
-    const shown = list.slice(0, 5).reverse();
+    // 대출기간표에서 고른 테이블은 주머니 맨 앞 카드로 (주머니엔 5장까지만)
+    const front = list.find((t) => t.room === app.frontRoom);
+    const shown = (front ? [front, ...list.filter((t) => t !== front)] : list).slice(0, 5).reverse();
     const step = shown.length > 1 ? Math.min(30, 96 / (shown.length - 1)) : 0;
     $("#tableCount").textContent = `${list.length}권`;
     $("#myTables").replaceChildren(...shown.map((t, i) => el("li", { class: "lb-card", "data-room": t.room, style: `top:${10 + i * step}px` },
@@ -8924,7 +8943,7 @@ const BannerArt = (() => {
         el("div", { class: "r" }, el("span", {}, "대출일"), el("span", { class: "hw" }, `${new Date(t.savedAt).getFullYear()}·${md(t.savedAt)} · ${ago(t.savedAt)}`)),
         el("div", { class: "r" }, el("span", {}, "플레이어"), el("span", { class: "hw" }, (t.players ?? []).join(", ") || "-"))),
       el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: () => deleteTable(t) } }, "✕"))));
-    const rows = list.slice(0, 9).map((t) => el("tr", { "data-room": t.room }, el("td", {}, el("span", { class: "st" }, md(t.savedAt))), el("td", { class: "n", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title }, t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.title), el("td", {}, t.phase === "play" ? "진행" : "준비")));
+    const rows = list.map((t) => el("tr", { "data-room": t.room, class: t === front ? "front" : null, on: { click: () => { app.frontRoom = t.room; renderTables(); } } }, el("td", {}, el("span", { class: "st" }, md(t.savedAt))), el("td", { class: "n", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title }, t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.title), el("td", {}, t.phase === "play" ? "진행" : "준비")));
     while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
     $("#dueRows").replaceChildren(...rows);
   }
@@ -9248,9 +9267,8 @@ const BannerArt = (() => {
     if (!d) return;
     d.archivePending = HistoryArchive.pending(archiveScope());
     const idx = (LS.get(K.hostIndex) ?? []).filter((t) => t.room !== d.roomId);
-    idx.push({ room: d.roomId, title: d.scenario.title, savedAt: d.savedAt, phase: d.phase, players: Object.values(d.players).map((p) => p.name).slice(0, MAX_PEOPLE),
-      chapter: (() => { const ids = Object.keys(d.scenario.scenes ?? {}), cur = d.game?.currentScene; return cur && ids.includes(cur) ? { n: ids.indexOf(cur) + 1, title: String(d.scenario.scenes[cur].title ?? cur) } : null; })() });
-    LS.set(K.hostIndex, idx.slice(-20));
+    idx.push(tableEntry(d));
+    LS.set(K.hostIndex, idx);   // 개수 제한 없음 (세이브가 없어진 줄은 loadTables가 정리)
     if (saving) { saveAgain = true; return saving; }
     saving = (async () => {
       if (!(await DB.set(K.host(d.roomId), d))) {
