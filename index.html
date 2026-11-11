@@ -1918,9 +1918,9 @@ html.has-3d .topbar { box-shadow: none; }
 .dos-loc { display: inline-flex; align-items: center; gap: 3px; padding-left: 7px; font: 11px var(--font); color: #553a23; white-space: nowrap; box-shadow: inset 1px 0 0 rgba(85, 58, 35, .55); }
 .dos-loc .ic-svg { width: 12px; height: 12px; }
 .ho-float.top { z-index: 96; }
-.ho-float { position: fixed; z-index: 95; left: 40px; top: 80px; min-width: 120px; min-height: 80px; max-width: 92vw; max-height: 88vh; resize: both; overflow: hidden; cursor: move;
+.ho-float { position: fixed; z-index: 95; left: 40px; top: 80px; min-width: 120px; min-height: 80px; max-width: 92vw; max-height: 88vh; overflow: hidden; cursor: move;
   background: #1c120c; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #e9dcb7, 5px 6px 0 4px rgba(0, 0, 0, .45); touch-action: none; -webkit-user-select: none; user-select: none; }
-.ho-float.pinned { resize: none; cursor: default; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #c9a040, 5px 6px 0 4px rgba(0, 0, 0, .45); }
+.ho-float.pinned { cursor: default; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #c9a040, 5px 6px 0 4px rgba(0, 0, 0, .45); }
 .ho-float-map { width: 100%; height: 100%; background: #f1e8cf; }
 .ho-float-card { width: 100%; height: 100%; overflow: auto; background: #efe3c2; }
 .ho-float-card .ho.big { display: block; box-sizing: border-box; width: 100%; max-width: none; max-height: none; overflow: visible; margin: 0; padding: 12px 14px 14px; box-shadow: none; rotate: 0deg; }
@@ -1933,6 +1933,17 @@ html.has-3d .topbar { box-shadow: none; }
 .ho-float img { display: block; width: 100%; height: 100%; object-fit: contain; filter: sepia(.25); pointer-events: none; user-select: none; }
 .ho-float-x { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; padding: 0; border: 0; cursor: pointer; font: 14px/18px var(--font); color: #f4ecd8; background: rgba(28, 18, 12, .75); }
 .ho-float-x:hover { background: var(--blood); }
+/* 크기 조절 손잡이: 오른쪽 아래 18px 칸 (마우스 · 터치 모두), 고정 중엔 숨김 */
+.ho-float-grip { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; touch-action: none;
+  background: linear-gradient(135deg, transparent 0 50%, rgba(28, 18, 12, .75) 50%); }
+.ho-float-grip::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, transparent 0 58%, #e9dcb7 58% 64%, transparent 64% 74%, #e9dcb7 74% 80%, transparent 80%); }
+.ho-float-grip:hover { background: linear-gradient(135deg, transparent 0 50%, #553a23 50%); }
+.ho-float.pinned .ho-float-grip { display: none; }
+/* 그림만 있는 핸드아웃 창: 그림이 창 크기를 따라 늘고 줄어듦 */
+.ho-float.pic .ho-float-card { overflow: hidden; }
+.ho-float.pic .ho-float-card .ho.big { display: flex; flex-direction: column; height: 100%; }
+.ho-float.pic .ho-float-card .ho-img { flex: 1; min-height: 0; }
+.ho-float.pic .ho-float-card .ho-img img { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; }
 .ho-map-card .ho-map, .ho-th-map .ho-map { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .ho .ho-img img, .ho-th img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
 /* 소지품 얻음·잃음 꼬리표 */
@@ -9920,7 +9931,8 @@ const BannerArt = (() => {
       const pin = el("button", { class: "ho-float-pin", type: "button", "aria-pressed": "false", title: "고정", "aria-label": "창 고정",
         on: { click: () => { const on = !win.classList.contains("pinned"); win.classList.toggle("pinned", on); pin.setAttribute("aria-pressed", String(on)); pin.title = on ? "고정 풀기" : "고정"; } } }, iconSvg("pin"));
       win = el("div", { class: "ho-float", "data-key": key, style: `width:${w0}px;height:${h0}px` }, content, pin,
-        el("button", { class: "ho-float-x", type: "button", "aria-label": "닫기", on: { click: () => win.remove() } }, "×"));
+        el("button", { class: "ho-float-x", type: "button", "aria-label": "닫기", on: { click: () => win.remove() } }, "×"),
+        el("span", { class: "ho-float-grip", title: "크기 조절", "aria-hidden": "true" }));
       document.body.append(win);
     }
     document.querySelectorAll(".ho-float").forEach((w) => w.classList.toggle("top", w === win));
@@ -9929,8 +9941,10 @@ const BannerArt = (() => {
   function floatFrom(src) {
     if (src.tagName === "IMG") {
       const w0 = Math.min(src.naturalWidth || 280, 320), h0 = Math.round(w0 * ((src.naturalHeight || 3) / (src.naturalWidth || 4)));
-      return floatWin(`img:${src.dataset.ref || src.currentSrc || src.src}`,
+      const win = floatWin(`img:${src.dataset.ref || src.currentSrc || src.src}`,
         el("img", { src: src.currentSrc || src.src, alt: src.alt || "", draggable: "false", "data-ref": src.dataset.ref || null }), w0, h0);
+      win.dataset.ar = h0 / w0;   // 크기 조절해도 그림 비율 그대로
+      return win;
     }
     const hid = (src.closest("[data-hid]") ?? src.querySelector?.("[data-hid]"))?.dataset.hid, h = app.snap?.view?.handouts?.find((x) => x.id === hid);
     if (!h) return null;
@@ -9945,9 +9959,11 @@ const BannerArt = (() => {
     const hid = h.id;
     if (h.kind !== "map") {
       const win = floatWin(`card:${hid}`, el("div", { class: "ho-float-card" }, handoutCard(h, { big: true })), 320, 200);
+      win.classList.toggle("pic", !!h.image && !h.text);
       if (!win.dataset.fit) {
         win.dataset.fit = "1";
-        const fit = () => { const c = win.querySelector(".ho.big"); if (c) win.style.height = `${Math.min(innerHeight * .7, c.offsetHeight)}px`; };
+        // 그림만 있는 창(.pic)은 카드가 창 높이를 따르므로 잠깐 풀고 원래 높이를 잼
+        const fit = () => { const c = win.querySelector(".ho.big"), pic = win.classList.contains("pic"); if (!c) return; win.classList.remove("pic"); win.style.height = `${Math.min(innerHeight * .7, c.offsetHeight)}px`; win.classList.toggle("pic", pic); };
         requestAnimationFrame(fit);
         win.querySelector(".ho-float-card img")?.addEventListener("load", fit, { once: true });
       }
@@ -9957,6 +9973,7 @@ const BannerArt = (() => {
     // 지도 창 기본 크기: 화면 폭 45%(최대 720px) · 높이 70% 안에서 지도 비율대로 (말 · 방 이름이 읽히게)
     const ar = vb.height / vb.width, w0 = Math.round(Math.min(innerWidth - 32, Math.max(360, Math.min(720, innerWidth * .45, innerHeight * .7 / ar))));
     const win = floatWin(`map:${hid}`, el("div", { class: "ho-float-map", "data-hid": hid }, svgEl), w0, Math.round(w0 * ar));
+    win.dataset.ar = ar;   // 크기 조절해도 지도 비율 그대로 (빈 여백 없이)
     return win;
   }
   // 자석: 화면 가장자리와 다른 창의 가장자리(맞닿기 · 줄 맞추기)에 SNAP px 안이면 붙음
@@ -9978,7 +9995,9 @@ const BannerArt = (() => {
     for (const box of document.querySelectorAll(".ho-float-map")) {
       if (box.querySelector(".hm-tok.drag")) continue;
       const h = (v.handouts ?? []).find((x) => x.id === box.dataset.hid);
-      if (h) box.replaceChildren(mapSvg(h, { live: true })); else box.closest(".ho-float")?.remove();
+      if (!h) { box.closest(".ho-float")?.remove(); continue; }
+      const m = mapSvg(h, { live: true }), vb = m.viewBox.baseVal;
+      box.replaceChildren(m); box.closest(".ho-float").dataset.ar = vb.height / vb.width;   // 대기 칸이 없어지면 비율도 바뀜
     }
   }
   {
@@ -10014,13 +10033,26 @@ const BannerArt = (() => {
       document.querySelectorAll(".ho-float").forEach((w) => w.classList.toggle("top", w === win));
       if (e.target.closest("button, .hm-tok.mine") || win.classList.contains("pinned")) return;
       const r = win.getBoundingClientRect();
-      if (e.clientX > r.right - 16 && e.clientY > r.bottom - 16) return;   // 크기 조절
+      if (e.target.closest(".ho-float-grip")) { e.preventDefault(); resizeWin(win, e, r); return; }
       e.preventDefault();
       const dx = e.clientX - r.left, dy = e.clientY - r.top;
       const mv = (ev) => placeWin(win, ev.clientX - dx, ev.clientY - dy);
       const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); };
       addEventListener("pointermove", mv); addEventListener("pointerup", up);
     });
+  }
+  /* 오른쪽 아래 손잡이로 크기 조절: 지도 · 그림 창은 비율 유지(data-ar), 글 창은 자유. 화면 안(폭 92vw · 높이 88vh)까지 */
+  function resizeWin(win, e, r) {
+    const ar = Number(win.dataset.ar) || 0, sx = e.clientX, sy = e.clientY;
+    const mv = (ev) => {
+      const maxW = Math.min(innerWidth * .92, innerWidth - r.left - 4), maxH = Math.min(innerHeight * .88, innerHeight - r.top - 4);
+      let w = r.width + ev.clientX - sx, h = r.height + ev.clientY - sy;
+      if (ar) { w = (w + h / ar) / 2; w = Math.max(120, 80 / ar, Math.min(w, maxW, maxH / ar)); h = w * ar; }
+      else { w = Math.max(120, Math.min(w, maxW)); h = Math.max(80, Math.min(h, maxH)); }
+      win.style.width = `${Math.round(w)}px`; win.style.height = `${Math.round(h)}px`;
+    };
+    const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); removeEventListener("pointercancel", up); };
+    addEventListener("pointermove", mv); addEventListener("pointerup", up); addEventListener("pointercancel", up);
   }
   function openHandout(h) {
     h = app.snap?.view?.handouts?.find((x) => x.id === h.id) ?? h;   // 도면은 최신 말 위치로
