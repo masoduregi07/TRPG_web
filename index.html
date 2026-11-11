@@ -1918,14 +1918,12 @@ html.has-3d .topbar { box-shadow: none; }
 .dos-loc { display: inline-flex; align-items: center; gap: 3px; padding-left: 7px; font: 11px var(--font); color: #553a23; white-space: nowrap; box-shadow: inset 1px 0 0 rgba(85, 58, 35, .55); }
 .dos-loc .ic-svg { width: 12px; height: 12px; }
 /* 판정 알림(D2): 크림 말풍선 + 남색 2px 테 + 입력칸을 가리키는 꼬리. 다른 사람 차례 = 갈색, 실패 후 선택 = 붉은색 */
-/* 기록 위에 떠 있음(자리 차지 안 함): 입력칸 바로 위 한 줄, 손잡이로 좌우로 비켜 둠 */
-.ck-tips { position: absolute; z-index: 6; left: calc(var(--cover) + 48px); right: calc(var(--cover) + 44px); bottom: var(--ck-b, 96px);
-  display: flex; flex-wrap: wrap-reverse; align-items: flex-end; gap: 16px 12px; pointer-events: none; transform: translateX(var(--ck-x, 0px)); }
+/* 기록 칸 위쪽에 떠 있음(자리 차지 안 함, 최근 기록이 있는 아래쪽은 안 가림): 한 줄, 손잡이로 좌우로 비켜 둠 */
+.ck-tips { position: absolute; z-index: 6; left: calc(var(--cover) + 48px); right: calc(var(--cover) + 44px); top: calc(var(--cover) + 12px);
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 12px; pointer-events: none; transform: translateX(var(--ck-x, 0px)); }
 .ck-tips[hidden] { display: none; }
 .ck-tip { --c: #2a3550; position: relative; display: flex; align-items: center; gap: 9px; max-width: 100%; pointer-events: auto; padding: 6px 6px 6px 8px;
   font-family: var(--font); color: #2a2018; background: #f4ecd8; box-shadow: 0 0 0 2px var(--c), 3px 4px 0 2px rgba(0, 0, 0, .28); animation: ck-in .22s ease-out; }
-.ck-tip::before { content: ""; position: absolute; left: 20px; bottom: -12px; border: 10px solid transparent; border-bottom: 0; border-top-color: var(--c); }
-.ck-tip::after { content: ""; position: absolute; left: 23px; bottom: -7px; border: 7px solid transparent; border-bottom: 0; border-top-color: #f4ecd8; }
 .ck-tip.wait { --c: #7a6548; }
 .ck-tip.fail { --c: #a5321e; }
 .ck-grip { flex: none; align-self: stretch; width: 4px; margin: 2px 0; cursor: ew-resize; touch-action: none; opacity: .55; color: var(--c);
@@ -11722,7 +11720,6 @@ const BannerArt = (() => {
   function placeCkTips() {
     const box = $("#ckTips");
     if (box.hidden) return;
-    box.style.setProperty("--ck-b", `${$("#chatForm").offsetHeight + 14}px`);   // 입력칸 바로 위
     const used = box.lastElementChild ? Math.max(...[...box.children].map((t) => t.offsetLeft + t.offsetWidth)) : 0;
     box.style.setProperty("--ck-x", `${Math.round(Math.max(0, Math.min(box.clientWidth - used, Number(LS.get("trpg:ckX")) || 0)))}px`);
   }
