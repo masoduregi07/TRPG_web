@@ -2375,37 +2375,38 @@ html.has-3d .topbar { box-shadow: none; }
 .ix-tab { padding: 4px 12px 3px; border: 0; cursor: pointer; font: 12px/1.4 var(--font); color: #4a3826; background: rgba(150, 105, 50, .22); clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 100%, 0 100%); }
 .ix-tab:hover, .ix-tab:focus-visible { background: rgba(150, 105, 50, .36); outline: 0; }
 .ix-tab.on { padding-bottom: 5px; color: #f4ecd8; background: #675137; }
-/* 서류 봉투 (크라프트지 · V자 덮개 · 종이 단추 두 개 + 붉은 끈) */
-.ev { position: relative; height: 300px; margin: 4px 4px 0; background: #c99b5c;
-  background-image: radial-gradient(rgba(90, 55, 20, .16) 1px, transparent 1.5px), radial-gradient(rgba(255, 240, 200, .12) 1px, transparent 1.5px), linear-gradient(#cfa264, #c3934f);
-  background-size: 4px 4px, 7px 7px, 100% 100%; background-position: 0 0, 2px 3px, 0 0; box-shadow: 2px 4px 0 rgba(50, 30, 10, .35), inset 0 0 0 1px rgba(80, 50, 20, .5); }
-.ev-flap, .ev-flapsh { position: absolute; left: 0; right: 0; top: 0; height: 100px; clip-path: polygon(0 0, 100% 0, 100% 48%, 50% 100%, 0 48%); }
-.ev-flap { background: linear-gradient(#ddb87c, #d0a768); }
-.ev-flapsh { top: 3px; background: rgba(60, 35, 10, .4); }
-.ev-btn { position: absolute; left: calc(50% - 12px); width: 24px; height: 24px; border-radius: 50%; z-index: 3; background: radial-gradient(circle at 40% 35%, #a87d47, #7d5a2e); box-shadow: inset 0 0 0 2px rgba(60, 35, 10, .5), 0 1px 0 rgba(0, 0, 0, .35); }
-.ev-btn.b1 { top: 76px; } .ev-btn.b2 { top: 118px; }
-.ev-str { position: absolute; left: calc(50% - 1px); top: 88px; width: 2px; height: 42px; background: #8a1f14; z-index: 2; }
-.ev-str2 { position: absolute; left: calc(50% - 16px); top: 118px; width: 32px; height: 24px; border: 2px solid #8a1f14; border-top-color: transparent; border-radius: 50%; z-index: 2; }
-.ev-ret { position: absolute; left: 14px; top: 112px; padding: 3px 7px; border: 1px solid rgba(90, 55, 20, .55); background: rgba(255, 240, 210, .18); font: 10px/1.5 var(--font); color: #5a3a18; }
-.ev-ret b { display: block; font-weight: 400; letter-spacing: .2em; }
-.ev-label { position: absolute; left: 14px; right: 14px; bottom: 14px; padding: 9px 13px 10px; background: #f2e6c6; box-shadow: 1px 1px 0 rgba(60, 40, 20, .35); }
+/* 접힌 공문서 (아래 1/3을 위로 접고 윗변에 봉인 테이프 "스포일러 주의") */
+.ev { position: relative; height: 300px; margin: 4px 4px 0; perspective: 900px; }
+.ev-paper { position: absolute; inset: 6px 6% 0; padding: 16px 20px; overflow: hidden; background: #efe3c3; box-shadow: 2px 4px 0 rgba(50, 30, 10, .3); }
+.ev-hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #3b2a1a; font: 11px/1.4 var(--font); color: #5a4630; }
+.ev-hd b { font: 400 13px/1.4 "Galmuri11", var(--font); color: #2a1a10; letter-spacing: .3em; }
+.ev-fold { position: absolute; left: 6%; right: 6%; bottom: 0; height: 34%; z-index: 2; transform-origin: 50% 0; background: linear-gradient(rgba(255, 255, 255, .18), transparent 30%), #e4d5ad; border-top: 1px solid rgba(90, 60, 30, .4); box-shadow: 0 -3px 6px rgba(40, 25, 10, .3); }
+.ev-tape { position: absolute; left: 3%; right: 3%; bottom: calc(34% - 13px); z-index: 4; height: 26px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; rotate: -1deg; transform-origin: 0 50%;
+  background: rgba(222, 200, 150, .94); box-shadow: 0 1px 2px rgba(40, 25, 10, .35); font: 10px/1 var(--font); color: #8a2216; letter-spacing: .25em;
+  -webkit-mask: linear-gradient(90deg, transparent 0 2px, #000 2px calc(100% - 2px), transparent calc(100% - 2px)), repeating-linear-gradient(#000 0 3px, transparent 3px 4px); mask: linear-gradient(90deg, transparent 0 2px, #000 2px calc(100% - 2px), transparent calc(100% - 2px)), repeating-linear-gradient(#000 0 3px, transparent 3px 4px); }
+.ev-tape::after { content: ""; position: absolute; left: 8px; right: 8px; top: 50%; border-top: 1px dashed rgba(138, 34, 22, .6); }
+.ev-tape b { position: relative; z-index: 1; padding: 0 4px; font-weight: 400; background: rgba(222, 200, 150, .94); }
 .ev-k { font: 10.5px/1.4 var(--font); color: #8a3a22; letter-spacing: .2em; }
 .ev-t { margin: 1px 0 4px; font: 20px/1.3 "Galmuri14", var(--font); }
 .ev-syn { font: 12px/1.5 var(--font); color: #3b2a1a; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .ev-meta { display: flex; gap: 4px; margin-top: 6px; }
 .ev-meta span { padding: 0 6px; border: 1px solid #8a6f4c; font: 10.5px/1.5 var(--font); color: #4a3826; white-space: nowrap; }
 .ev-doc { display: none; }
-.ev[data-state="empty"] .ev-label { background: rgba(242, 230, 198, .7); }
-.ev[data-state="empty"] .ev-btn, .ev[data-state="empty"] .ev-str, .ev[data-state="empty"] .ev-str2 { opacity: .35; }
-/* 봉인 풂: 덮개가 위로 열리고 원문 종이가 나옴 */
-.ev[data-state="open"] { display: flow-root; height: auto; margin-top: 92px; padding-bottom: 14px; }
-.ev[data-state="open"] .ev-flap, .ev[data-state="open"] .ev-flapsh { top: -84px; height: 86px; clip-path: polygon(0 100%, 100% 100%, 100% 45%, 50% 0, 0 45%); }
-.ev[data-state="open"] .ev-flap { background: linear-gradient(#bf9050, #d1a568); }
-.ev[data-state="open"] .ev-flapsh { display: none; }
-.ev[data-state="open"] .ev-btn.b1 { top: -18px; z-index: 1; }
-.ev[data-state="open"] :is(.ev-btn.b2, .ev-str, .ev-str2, .ev-ret, .ev-label) { display: none; }
-.ev[data-state="open"] .ev-doc { display: block; position: relative; z-index: 2; margin: -60px 16px 0; padding: 10px 12px; background: #f6ecd0; box-shadow: 0 2px 4px rgba(60, 40, 20, .35); }
-.ev-doc textarea { display: block; width: 100%; height: calc(var(--ph, 700px) - 380px); min-height: 160px; box-sizing: border-box; resize: none; font-size: 11.5px; background: transparent; }
+.ev[data-state="empty"] :is(.ev-fold, .ev-tape) { opacity: .4; }
+/* 봉인 풀기: 테이프가 뜯겨 날아가고 접힌 면이 아래로 펼쳐짐 */
+.ev.tearing .ev-tape { animation: evTear .3s ease-in forwards; }
+.ev.tearing .ev-fold { animation: evUnfold .32s .16s ease-in forwards; }
+.ev.sealing .ev-fold { animation: evUnfold .3s ease-out reverse both; }
+.ev.sealing .ev-tape { animation: evTear .26s .26s ease-out reverse both; }
+@keyframes evTear { to { translate: 40px -18px; rotate: 8deg; opacity: 0; } }
+@keyframes evUnfold { to { transform: rotateX(-178deg); opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .ev.tearing *, .ev.sealing * { animation: none !important; } }
+/* 봉인 풂: 펼친 공문서 안에 원문 */
+.ev[data-state="open"] { display: flow-root; height: auto; padding-bottom: 4px; }
+.ev[data-state="open"] .ev-paper { position: relative; inset: auto; margin: 6px 6% 0; }
+.ev[data-state="open"] :is(.ev-fold, .ev-tape, #scLabel) { display: none; }
+.ev[data-state="open"] .ev-doc { display: block; }
+.ev-doc textarea { display: block; width: 100%; height: calc(var(--ph, 700px) - 400px); padding: 6px 4px; border: 0; border-top: 1px dashed rgba(90, 60, 30, .45); outline: 0; margin: 0; box-shadow: none; min-height: 160px; box-sizing: border-box; resize: none; font-size: 11.5px; background: transparent; }
 .ev-st { display: flex; align-items: center; gap: 8px; margin: 12px 4px 0; min-height: 28px; font: 13px/1.4 var(--font); }
 .ev-st .ok { color: #2f6a2a; } .ev-st .wn { color: #8a5a12; } .ev-st .bad { color: var(--blood); }
 .ev-seal { margin-left: auto; padding: 5px 12px; border: 1px dashed #7a3020; background: transparent; cursor: pointer; font: 12px/1.4 var(--font); color: #7a3020; }
@@ -2583,7 +2584,6 @@ html.has-3d .topbar { box-shadow: none; }
 #home.narrow .ix-head { flex-wrap: wrap; }
 #home.narrow .ix-tabs { margin-left: auto; }
 #home.narrow .lg-row { flex-wrap: wrap; gap: 6px 10px; padding: 4px 0; }
-#home.narrow .ev-ret { display: none; }
 /* 낮은 화면(쪽 높이 ~560px 이하): 간격만 줄여 쪽 안에 들어가게 */
 @media (max-height: 820px) {
   .bk-page { padding-bottom: 40px; }
@@ -2593,7 +2593,6 @@ html.has-3d .topbar { box-shadow: none; }
   .bk-head h2 { font-size: 24px; }
   .ev { height: 262px; }
   .lb-wrap { height: 300px; } .lb-pocket, .lb-shadow { height: 180px; } .lb-card { height: 230px; }
-  .ev-ret { top: 104px; }
   .ev-syn { -webkit-line-clamp: 2; }
   .ev-meta { display: none; }
   .lg-row { min-height: 33px; }
@@ -2659,13 +2658,15 @@ html.has-3d .topbar { box-shadow: none; }
           <button id="sampleBtn" class="ix-tab" type="button">✦ 샘플</button>
         </div>
       </div>
-      <!-- 서류 봉투: 봉인 = 제목 · 소개만, 봉인 풀면 원문 -->
+      <!-- 접힌 공문서: 봉인 = 제목 · 소개만, 봉인 풀면 원문 -->
       <div id="scEnv" class="ev" data-state="empty">
-        <div class="ev-flapsh"></div><div class="ev-flap"></div>
-        <span class="ev-btn b1"></span><span class="ev-str"></span><span class="ev-btn b2"></span><span class="ev-str2"></span>
-        <div class="ev-ret"><b>탐사자 협회</b>사건 기록 No. <span id="scNo">----</span></div>
-        <div id="scLabel" class="ev-label"></div>
-        <div class="ev-doc"><textarea id="yamlInput" class="code" spellcheck="false" aria-label="시나리오 원문"></textarea></div>
+        <div class="ev-paper">
+          <div class="ev-hd"><span>탐사자 협회</span><b>사건 기록</b><span>No. <span id="scNo">----</span></span></div>
+          <div id="scLabel"></div>
+          <div class="ev-doc"><textarea id="yamlInput" class="code" spellcheck="false" aria-label="시나리오 원문"></textarea></div>
+        </div>
+        <div class="ev-fold"></div>
+        <div class="ev-tape"><b>✂ 스포일러 주의</b><b>No. <span id="scNo2">----</span></b></div>
       </div>
       <div class="ev-st"><span id="scStatus" aria-live="polite"></span><button id="sealBtn" class="ev-seal" type="button" hidden>봉인 풀기 (스포일러)</button></div>
       <div id="validateResult" class="ev-warns"></div>
@@ -9094,7 +9095,18 @@ const BannerArt = (() => {
   // 봉인 푼 상태에서 원문을 고치면 잠시 뒤 다시 검사
   let revalidate = 0;
   $("#yamlInput").addEventListener("input", () => { validScenario = null; $("#openTableBtn").disabled = true; clearTimeout(revalidate); revalidate = setTimeout(validate, 700); });
-  $("#sealBtn").addEventListener("click", () => { scSealed = !scSealed; drawEnvelope(); });
+  $("#sealBtn").addEventListener("click", () => {
+    const env = $("#scEnv");
+    if (env.classList.contains("tearing")) return;
+    const fin = () => { env.classList.remove("tearing", "sealing"); };
+    if (scSealed && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      env.classList.add("tearing");
+      setTimeout(() => { fin(); scSealed = false; drawEnvelope(); }, 500);
+      return;
+    }
+    scSealed = !scSealed; drawEnvelope();
+    if (scSealed) { fin(); env.classList.add("sealing"); setTimeout(fin, 560); }
+  });
 
   /** 시나리오 글 → { sc, errors, warnings } (해석 실패면 fatal) */
   function checkScenario(text) {
@@ -9108,7 +9120,7 @@ const BannerArt = (() => {
     }
   }
   let lastCheck = null;
-  /** 서류 봉투: 비었음 / 봉인(제목 · 소개만, 스포 없음) / 봉인 풂(원문) */
+  /** 접힌 공문서: 비었음 / 봉인(제목 · 소개만, 스포 없음) / 봉인 풂(원문) */
   function drawEnvelope() {
     const env = $("#scEnv"), has = !!$("#yamlInput").value.trim(), c = lastCheck;
     const state = !has ? "empty" : scSealed ? "sealed" : "open";
@@ -9117,7 +9129,7 @@ const BannerArt = (() => {
     $("#sealBtn").textContent = scSealed ? "봉인 풀기 (스포일러)" : "다시 봉인";
     const sc = c?.sc && typeof c.sc === "object" ? c.sc : null;
     const title = typeof sc?.title === "string" ? sc.title : "";
-    $("#scNo").textContent = title ? String([...title].reduce((h, ch) => (h * 31 + ch.codePointAt(0)) % 9000, 7) + 1000) : "----";
+    $("#scNo").textContent = $("#scNo2").textContent = title ? String([...title].reduce((h, ch) => (h * 31 + ch.codePointAt(0)) % 9000, 7) + 1000) : "----";
     const intro = typeof sc?.synopsis === "string" && sc.synopsis.trim() ? sc.synopsis : typeof sc?.summary === "string" ? sc.summary : "";
     const jobs = (() => { try { return validScenario ? Engine.charRules(validScenario).backgrounds.length : 0; } catch { return 0; } })();
     $("#scLabel").replaceChildren(...(!has
