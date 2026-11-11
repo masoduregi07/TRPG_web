@@ -1156,8 +1156,6 @@ body > .item-note { display: grid; }
 
 /* 플레이어 접속 확인: 자리 4칸 */
 
-.seat-x { border: 0; padding: 0 3px; cursor: pointer; font: inherit; font-size: 14px; line-height: 1; color: #9a8a70; background: none; }
-.seat-x:hover { color: var(--blood); }
 
 /* ================================================================
  * 시작 전 로비: 위에서 내려다본 세션 테이블 (로우폴리 나무 테이블 캔버스 위에 물건들)
@@ -1177,7 +1175,6 @@ body > .item-note { display: grid; }
 .t-plate.ok .st { color: var(--moss); }
 .t-plate.off { opacity: .6; }
 .t-plate.empty { opacity: .6; } .t-plate.empty .dot { background: transparent; }
-.t-plate .seat-x { margin-left: 3px; }
 /* GM 스크린 (왼쪽 위, 작게) + 호출벨 */
 .lr-gm { position: absolute; left: calc(var(--tl) + 27px); top: calc(var(--tt) + 27px); z-index: 3; display: grid; justify-items: start; gap: 6px; }
 .lr-gm .btn.tiny { margin: 0; }
@@ -5210,7 +5207,7 @@ class HostGame {
       mode: mode === "ai" ? "ai" : "human", hostPlays: !!hostPlays,
       scenario, game: Engine.newState(scenario), phase: "lobby",
       hostPid, players: { [hostPid]: { key: hostKey, name: Engine.clip(hostName, 16) || "호스트", isHost: true, character: null, ready: false } },
-      banned: [], log: [],
+      log: [],
       aiStyle: HostGame.cleanStyle(aiStyle),             // AI GM 성향 (호스트가 정함)
     };
   }
@@ -5230,8 +5227,7 @@ class HostGame {
     if (v !== 1) throw new Error(`지원하지 않는 세이브 버전: ${String(v).slice(0, 20)}. 원본 파일은 변경되지 않음.`);
     obj.v = 1;
     obj.log ??= [];
-    obj.banned ??= [];
-    delete obj.bannedNames;   // 잠깐 있던 닉네임 추방 목록 (없앰)
+    delete obj.banned; delete obj.bannedNames;   // 없앤 추방 기능의 목록
     const g = obj.game;
     if (g && typeof g === "object") {
       // 이전에 만든 테이블도 현재 엔진의 진행 상태 형식을 사용한다.
@@ -5275,7 +5271,6 @@ class HostGame {
     if (obj.phase !== "lobby" && obj.phase !== "play") throw new Error("세이브의 진행 단계가 잘못됨.");
     if (obj.log != null && (!Array.isArray(obj.log) || obj.log.length > LOG_LIMIT ||
         obj.log.some((e) => !e || typeof e !== "object" || typeof e.kind !== "string"))) throw new Error("세이브의 기록 목록이 손상됨.");
-    if (obj.banned != null && !Array.isArray(obj.banned)) throw new Error("세이브의 추방 목록이 손상됨.");
     const { errors } = Engine.validateScenario(obj.scenario);
     if (errors.length) throw new Error("세이브 속 시나리오 손상됨.");
     if (!obj.scenario.scenes[obj.game.currentScene]) throw new Error("세이브의 현재 장면이 시나리오에 없음.");
@@ -5341,7 +5336,7 @@ class HostGame {
       kind: "trpg-host-save", v: 1, roomId: snap.roomId, createdAt: Date.now(), savedAt: Date.now(),
       mode: snap.mode ?? "human", hostPlays: !!snap.hostPlays, scenario, game,
       phase: snap.phase === "play" ? "play" : "lobby", hostPid: snap.hostPid, players,
-      banned: [], log: history.slice(-LOG_LIMIT), history, historyCuts, logSeq, historyGeneration: randomId(16), portraits,
+      log: history.slice(-LOG_LIMIT), history, historyCuts, logSeq, historyGeneration: randomId(16), portraits,
     };
   }
 
@@ -5850,7 +5845,6 @@ class HostGame {
     const key = String(meta?.key ?? "");
     const name = Engine.clip(meta?.name, 16);
     if (!/^[a-z0-9]{16,64}$/.test(key)) return { ok: false, reason: "잘못된 접속 정보." };
-    if (d.banned.includes(key)) return { ok: false, reason: "이 테이블에서 추방됨." };
 
     let isNew = false;
     let pid = Object.keys(d.players).find((id) => d.players[id].key === key && !this.isHost(id));
@@ -6221,30 +6215,6 @@ class HostGame {
         this.addLog({ kind: "system", text: "GM: 마지막 AI 서술을 되돌림." });
         this.broadcast({ t: "gather", ms: 0 });
         this.broadcast({ t: "board", rows: [] });
-        return this.pushAll();
-      }
-      case "kick": {
-        const target = String(msg.pid);
-        const q = d.players[target];
-        if (!q || this.isHost(target)) return;
-        if (q.key) d.banned.push(q.key);
-        const connId = this.conns.get(target);
-        if (connId != null) { this.transport.send(connId, { t: "kicked", reason: "호스트에 의해 추방됨." }); this.transport.close(connId); this.connPid.delete(connId); }
-        this.conns.delete(target);
-        delete d.players[target];
-        // 남은 흔적 정리: 초상 · 지도 말 · 위치 · 장면 말 · 대기 판정 · 재굴림 기회
-        const g = d.game;
-        delete d.portraits?.[target];
-        for (const pos of Object.values(g.mapPos ?? {})) delete pos[target];
-        delete g.mapLoc?.[target];
-        for (const t of Object.values(g.tokens ?? {})) delete t[target];
-        const waiting = Engine.pendingList(g);
-        for (let i = waiting.length - 1; i >= 0; i--) if (waiting[i].who === target) waiting.splice(i, 1);
-        g.pendingCheck = waiting[0] ?? null;
-        if (g.retry?.pid === target) g.retry = null;
-        for (const m of [this.imgSent, this.snapSent, this.suggestAt, this.suggestHistory]) m?.delete(target);
-        this.broadcast({ t: "typing", pid: target, on: false });
-        this.addLog({ kind: "system", text: `${q.name} 퇴장.` });
         return this.pushAll();
       }
     }
@@ -6972,7 +6942,7 @@ const Net = (() => {
               try { c.send({ t: "ping", seq: Date.now() }); } catch { lostConnection(c); }
             }, 8000);
           }
-          if (msg?.t === "rejected" || msg?.t === "kicked") { stopped = true; ready = false; stopHeartbeat(); }
+          if (msg?.t === "rejected") { stopped = true; ready = false; stopHeartbeat(); }
           onMessage(msg);
         });
         c.on("close", () => {
@@ -9527,10 +9497,6 @@ const BannerArt = (() => {
       case "rejected":
         app.net?.stop();
         return showMessage("참가 불가", msg.reason ?? "", { retry: /이름|자리/.test(msg.reason ?? "") });
-      case "kicked":
-        app.net?.stop();
-        LS.del(K.me(app.room));
-        return showMessage("테이블에서 나옴", msg.reason ?? "");
     }
   }
 
@@ -10723,8 +10689,7 @@ const BannerArt = (() => {
   function seatPlate(s, p) {
     const [k, txt] = seatState(s, p);
     return el("div", { class: `t-plate ${k}`, style: `--c:${spineOf(p.pid)}` }, el("span", { class: "dot" }), p.name,
-      p.isHost ? el("span", { class: "crown", title: "호스트" }, "★") : null, k === "ok" ? el("span", { class: "plate-stamp" }, txt) : el("span", { class: "st" }, txt),
-      s.isHost && !p.isHost ? el("button", { class: "seat-x", type: "button", title: `${p.name} 내보내기`, "aria-label": `${p.name} 내보내기`, on: { click: () => confirm(`${p.name} 추방. 다시 입장 불가.`) && send({ t: "kick", pid: p.pid }) } }, "×") : null);
+      p.isHost ? el("span", { class: "crown", title: "호스트" }, "★") : null, k === "ok" ? el("span", { class: "plate-stamp" }, txt) : el("span", { class: "st" }, txt));
   }
   /* 작성 완료한 내 기록지: 반 접은 종이 위에 초상만 (누르면 다시 수정) */
   function foldedRecord(s, me) {

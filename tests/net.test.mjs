@@ -89,20 +89,17 @@ test("플레이어 peer의 open이 다시 와도(중개 서버 재연결) 연결
   p.stop(); h.stop();
 });
 
-test("추방: 같은 키 거절 · 흔적 정리", async () => {
+test("추방 기능 없음: 예전 세이브의 추방 목록은 지우고 같은 키도 다시 들어옴", () => {
   const m = load();
   const sc = sample(m); m.Engine.validateScenario(sc);
   const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "h".repeat(24), hostPlays: false, mode: "human", scenario: sc });
-  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {} });
-  const { pid } = g.onConnect("c1", { key: "a".repeat(16), name: "가 나", build: m.APP_BUILD });
-  data.portraits = { [pid]: { src: "data:image/png;base64,AA", at: 1 } };
-  data.game.mapPos = { harbor_plan: { [pid]: [1, 1] } }; data.game.mapLoc = { [pid]: { hid: "harbor_plan", room: "부두" } };
-  m.Engine.queuePending(data.game, { checkId: "x", who: pid });
-  g.hostAction({ t: "kick", pid });
-  assert.equal(data.portraits[pid], undefined);
-  assert.equal(data.game.mapPos.harbor_plan[pid], undefined);
-  assert.equal(data.game.pendingChecks.length, 0);
-  assert.equal(g.onConnect("c2", { key: "a".repeat(16), name: "가 나", build: m.APP_BUILD }).ok, false);   // 같은 키는 거절
+  data.banned = ["a".repeat(16)];
+  const save = m.HostGame.checkSave(JSON.parse(JSON.stringify(data)));
+  assert.equal("banned" in save, false);
+  const g = new m.HostGame(save, { transport: { send() {}, close() {} }, onLocal() {} });
+  assert.equal(g.onConnect("c1", { key: "a".repeat(16), name: "가 나", build: m.APP_BUILD }).ok, true);
+  g.hostAction({ t: "kick", pid: Object.keys(save.players).find((id) => id !== save.hostPid) });
+  assert.equal(Object.keys(save.players).length, 2);   // kick 메시지는 무시
 });
 
 test("보관함 페이지: 이미 정리된 목록은 그대로 사용", () => {
