@@ -149,3 +149,33 @@ test("단서 공개: 서술에 내용이 없으면 다시 요청, 마지막엔 �
 test("gmSystem: NPC가 묻지 않은 단서를 먼저 꺼내지 않음 규칙 포함", () => {
   assert.match(AI.gmSystem(), /먼저 꺼내거나/);
 });
+
+test("KPC 자리표시자: 새 인물을 kpc 표시 없이 올리면 한 번 다시 묻고, 마지막엔 그대로", () => {
+  const obj = { narration: "아치 앞에 동료 한진우가 서 있음.", new_npcs: [{ name: "한진우", job: "수도원 관계자", look: "코트 차림", personality: "차분함" }] };
+  const info = base({ kpcOpen: true });
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /KPC/.test(i.msg)));
+  assert.ok(!run(obj, info, true).issues.some((i) => i.hard));
+  const ok = { ...obj, new_npcs: [{ ...obj.new_npcs[0], id: "kpc" }] };
+  assert.ok(!run(ok, info).issues.some((i) => i.hard), "id kpc로 보내면 통과");
+  assert.ok(!run(obj, base()).issues.some((i) => i.hard && /KPC/.test(i.msg)), "자리표시자가 없으면 검사 안 함");
+});
+
+test("입력 없는 캐릭터를 주어로 행동을 정하면 다시 묻고, 마지막엔 그 문장만 삭제", () => {
+  const info = base({ actors: [], order: [], chars: [{ pid: "p1", name: "신서현", player: "가", items: [] }] });
+  const obj = { narration: "안개가 짙어짐. 신서현은 주머니 속 칼을 점검함. 한진우가 다가와 입을 엶. \"서현 씨, 들어가 보죠.\"" };
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /신서현/.test(i.msg)));
+  const b = run(obj, info, true);
+  assert.ok(!b.issues.some((i) => i.hard));
+  assert.equal(b.plan.narration, "안개가 짙어짐. 한진우가 다가와 입을 엶. \"서현 씨, 들어가 보죠.\"");
+  assert.ok(run({ narration: "서현은 숨을 고름." }, info).issues.some((i) => i.hard), "이름만(성 뺀)도 잡음");
+  assert.ok(!run({ narration: "한진우가 신서현을 바라봄." }, info).issues.some((i) => i.hard), "다른 인물이 주어면 통과");
+  const acted = base({ chars: [{ pid: "p1", name: "신서현", player: "가", items: [] }], actors: [{ pid: "p1", name: "신서현" }], order: ["p1"] });
+  assert.ok(!run({ narration: "신서현은 문을 밂. 문이 열림." }, acted).issues.some((i) => i.hard), "입력한 캐릭터는 주어로 써도 됨");
+});
+
+test("NPC가 직전 대사를 거의 그대로 되풀이하면 다시 물음", () => {
+  const info = base({ prevQuotes: ["\"서현 씨, 날씨가 이래서 찬바람이 거세군요. 조심해서 안으로 들어가 보죠.\""] });
+  assert.ok(run({ narration: "한서를 보며 말함. \"날씨가 이래서 찬바람이 거세군요. 조심해서 안으로 들어가 보죠.\"" }, info).issues.some((i) => i.hard && /되풀이/.test(i.msg)));
+  assert.ok(!run({ narration: "한진우가 웃음. \"안녕하세요. 오늘따라 목소리가 밝네요.\"" }, info).issues.some((i) => i.hard));
+  assert.ok(!run({ narration: "한서를 보며 말함. \"날씨가 이래서 찬바람이 거세군요. 조심해서 안으로 들어가 보죠.\"" }, info, true).issues.some((i) => i.hard), "마지막 시도는 통과");
+});

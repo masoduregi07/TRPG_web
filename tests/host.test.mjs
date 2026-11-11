@@ -180,3 +180,27 @@ test("참가자 id는 숫자로만 되지 않음 (명단 순서 = 들어온 순�
   g.onConnect("c1", { key: KEY, name: "루나", build: m.APP_BUILD });
   assert.deepEqual(Object.values(data.players).map((p) => p.name), ["호스트", "루나"]);
 });
+
+test("turnContext: 이름 미정 KPC · 직전 NPC 대사", () => {
+  const m = load();
+  const sc = sample(m);
+  sc.scenes[sc.start].description += " 동료 KPC가 함께 있음.";
+  m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "human", scenario: sc });
+  const g = new m.HostGame(data, { transport: { send: () => {}, close: () => {} } });
+  g.onConnect("c1", { key: KEY, name: "가", build: m.APP_BUILD });
+  g.onMessage("c1", { t: "rollChars" });
+  const bg = m.Engine.charRules(data.scenario).backgrounds[0]?.name ?? "";
+  g.onMessage("c1", { t: "char", character: { name: "한서", background: bg, alloc: {} }, ready: true });
+  g.handle(data.hostPid, { t: "start" }, true);
+  let { info, ctx } = g.turnContext();
+  assert.equal(info.kpcOpen, true);
+  assert.ok(ctx.등장NPC.some((n) => n.id === "kpc" && n.이름미정));
+  g.addLog({ kind: "ai", text: "남자가 다가옴. \"조심해서 안으로 들어가 보죠.\"" });
+  data.game.aiCursor = data.logSeq;
+  ({ info, ctx } = g.turnContext());
+  assert.equal(JSON.stringify(info.prevQuotes), JSON.stringify(["\"조심해서 안으로 들어가 보죠.\""]));
+  assert.equal(ctx.직전NPC대사, info.prevQuotes);
+  m.Engine.registerNpc(data.scenario, data.game.currentScene, { id: "kpc", name: "한진우", look: "코트", personality: "차분" });
+  assert.equal(g.turnContext().info.kpcOpen, false, "이름이 정해지면 끝");
+});
