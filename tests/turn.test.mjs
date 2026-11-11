@@ -246,3 +246,20 @@ test("kpc_away: 이름이 정해진 KPC가 있을 때만 받음", () => {
   assert.equal(run({ narration: "한은우가 어둠 속으로 끌려감.", kpc_away: true }, base({ kpcName: "한은우" })).plan.kpcAway, true);
   assert.equal(run({ narration: "바람이 붊.", kpc_away: true }, base()).plan.kpcAway, null);
 });
+
+test("판정 여러 개: 캐릭터마다 하나씩, 같은 캐릭터 두 번째는 버림", () => {
+  const two = base({ checks: ["k1", "k2"], chars: [{ pid: "p1", name: "한서", items: [] }, { pid: "p2", name: "민준", items: [] }], actors: [{ pid: "p1", name: "한서" }, { pid: "p2", name: "민준" }] });
+  const r = run({ narration: "한서와 민준이 각자 움직임.", request_check: [{ id: "k1", who: "한서" }, { id: "k2", who: "민준" }], improv_check: { skill: "관찰력", reason: "더 봄", who: "한서" } }, two, true);
+  assert.equal(JSON.stringify(r.plan.checks.map((c) => [c.type, c.whoName])), JSON.stringify([["scene", "한서"], ["scene", "민준"]]));
+  assert.equal(r.plan.check.id, "k1");
+  const one = run({ narration: "한서가 살핌.", request_check: { id: "k1", who: "한서" } });
+  assert.equal(one.plan.checks.length, 1);
+});
+
+test("회피 세 번째: 같은 NPC + 같은 질문자만 셈", () => {
+  const recent = { 한진우: [{ q: "\"저도 모르겠습니다.\"", by: ["민준"] }, { q: "\"글쎄요.\"", by: ["서연"] }] };
+  const say = { narration: "한진우는 고개를 저음. \"그건 알 수 없소.\"" };
+  assert.ok(!run(say, base({ npcNames: ["한진우"], npcRecentBy: recent, talkTo: { 한진우: ["한서"] } })).issues.some((i) => i.hard && /세 번째/.test(i.msg)), "다른 사람들에게 한 거절은 안 셈");
+  const same = { 한진우: [{ q: "\"저도 모르겠습니다.\"", by: ["한서"] }, { q: "\"글쎄요.\"", by: ["한서"] }] };
+  assert.ok(run(say, base({ npcNames: ["한진우"], npcRecentBy: same, talkTo: { 한진우: ["한서"] } })).issues.some((i) => i.hard && /세 번째/.test(i.msg)), "같은 사람에게 세 번째");
+});
