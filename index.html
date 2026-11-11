@@ -2392,6 +2392,9 @@ html.has-3d .topbar { box-shadow: none; }
 .ev-tape-in b.mid { position: absolute; left: 50%; translate: -50% 0; font-size: 11px; }
 .ev-ask { position: absolute; left: 50%; bottom: calc(34% - 82px); translate: -50% 0; z-index: 6; padding: 8px 12px 9px; text-align: center; background: #f1e5c2; box-shadow: inset 0 0 0 1px #5a4128, 2px 3px 0 rgba(40, 25, 10, .35); }
 .ev-ask[hidden] { display: none; }
+.ev-ask:not([hidden]) { animation: evAskIn .22s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes evAskIn { from { transform: translateY(-14px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ev-ask:not([hidden]) { animation: none; } }
 .ev-ask p { margin: 0 0 7px; font: 13px/1.4 var(--font); color: var(--ink); }
 .ev-ask div { display: flex; gap: 8px; justify-content: center; }
 .ev-k { font: 10.5px/1.4 var(--font); color: #8a3a22; letter-spacing: .2em; }
