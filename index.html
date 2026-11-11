@@ -4640,7 +4640,40 @@ const AI = (() => {
     const s = cleaned.indexOf("{");
     const e = cleaned.lastIndexOf("}");
     if (s < 0 || e <= s) throw new Error("JSON 없음");
-    return { obj: JSON.parse(cleaned.slice(s, e + 1)), cleaned };
+    const body = cleaned.slice(s, e + 1);
+    try { return { obj: JSON.parse(body), cleaned }; }
+    catch (err) { try { return { obj: JSON.parse(repairJSON(body)), cleaned }; } catch { throw err; } }
+  }
+  /** AI가 자주 틀리는 JSON 고치기: 문자열 속 따옴표를 그대로 씀("어부가 "뭐야?" 하고") · 문자열 속 줄바꿈 · 끝 쉼표 */
+  function repairJSON(src) {
+    let out = "", inStr = false;
+    const nextChar = (i) => /^\s*([\s\S])/.exec(src.slice(i))?.[1];
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (!inStr) {
+        if (ch === '"') inStr = true;
+        else if (ch === "," && "}]".includes(nextChar(i + 1) ?? "")) continue;
+        out += ch; continue;
+      }
+      if (ch === "\\") { out += ch + (src[i + 1] ?? ""); i++; continue; }
+      if (ch === "\n") { out += "\\n"; continue; }
+      if (ch === '"') {
+        const n = nextChar(i + 1);
+        if (n == null || ",:}]".includes(n)) { inStr = false; out += ch; } else out += '\\"';
+        continue;
+      }
+      out += ch;
+    }
+    return out;
+  }
+  /** 고칠 수 없는 JSON에서 narration 글만 건짐 (키 · id 같은 원문이 서술로 새지 않게) */
+  function salvageNarration(plain) {
+    const m = /"narration"\s*:\s*"/.exec(plain);
+    if (!m) return "";
+    let rest = plain.slice(m.index + m[0].length);
+    const end = rest.search(/"\s*(?:,\s*"[A-Za-z_]+"\s*:|\}\s*$)/);
+    rest = end >= 0 ? rest.slice(0, end) : rest.replace(/"?\s*\}?\s*$/, "");
+    return rest.replace(/\\n/g, "\n").replace(/\\"/g, '"').replace(/\\\\/g, "\\").trim();
   }
   const str = (v) => (typeof v === "string" && v.trim() ? v.trim() : null);
 
@@ -4765,8 +4798,10 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
       } };
     } catch (e) {
       const plain = String(text).replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/```(?:json)?/gi, "").trim();
+      // JSON처럼 생긴 글이면 narration만 건지고, 못 건지면 비움 (원문 JSON을 서술로 보여 주지 않음)
+      const narration = /^\{|"narration"\s*:|"[a-z_]+"\s*:\s*[\[{"]/.test(plain) ? salvageNarration(plain) : plain;
       return { ok: false, error: e instanceof SyntaxError ? "JSON 문법 오류" : e?.message || "형식 오류",
-        res: { narration: plain.slice(0, 3000), reveal_clue: null, request_check: null, move_to: null, arrival: null, improv_check: null, new_place: null, new_npcs: [], left_place: false, on_track: null, give_item: [], take_item: [], answers: [], show_handout: [], hurt: [], heal: [], fate: null } };
+        res: { narration: narration.slice(0, 3000), reveal_clue: null, request_check: null, move_to: null, arrival: null, improv_check: null, new_place: null, new_npcs: [], left_place: false, on_track: null, give_item: [], take_item: [], answers: [], show_handout: [], hurt: [], heal: [], fate: null } };
     }
   }
 
