@@ -203,14 +203,6 @@ textarea.code { font: 12px/1.6 var(--font); }
 .center-row { justify-content: center; }
 
 /* ---------------- 설정 ---------------- */
-.tabs { display: flex; gap: 9px; padding-bottom: 3px; }
-.tab { border: 0; border-radius: 0; cursor: pointer; padding: 7px 12px; font-family: var(--font); font-size: 12px; color: var(--ink-2); background: var(--paper-lo); box-shadow: var(--outline); }
-.tab.active { background: var(--note); color: var(--ink); box-shadow: inset calc(var(--p) * -1) calc(var(--p) * -1) 0 0 var(--note-lo), var(--outline); }
-.validate { font-size: 14px; }
-.validate .ok { color: var(--moss); }
-.validate .err { color: var(--blood); }
-.validate .warn { color: #7a5612; }
-.validate ul { margin: 4px 0; padding-left: 20px; }
 .ai-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
 .ai-grid .full { grid-column: 1 / -1; }
 
@@ -757,27 +749,6 @@ html.calm-item .dos-items .item.lost { display: none; }
 .portrait-acts .row { gap: 6px; flex-wrap: wrap; }
 .portrait-acts p { margin: 0; }
 
-/* 사건 흐름 검토 (설정 1번) */
-.review { display: grid; gap: 12px; }
-.review > p { margin: 0; }
-.rv-flow-wrap { overflow-x: auto; padding: 6px; background: #ebdfbf; box-shadow: var(--outline); }
-.rv-flow { display: block; }
-.rv-node { cursor: pointer; }
-.rv-node rect { fill: #f4ecd8; stroke: #1a120d; stroke-width: 2; }
-.rv-node.start rect { fill: #e2d58c; }
-.rv-node.ending rect { fill: #e9c9b8; stroke: #8a1c14; }
-.rv-node:hover rect { fill: #fff6dc; }
-.rv-node text { font-family: var(--font); font-size: 12px; text-anchor: middle; fill: #1a120d; }
-.rv-edge { fill: none; stroke: #5a4936; stroke-width: 2; marker-end: url(#rvArrow); }
-.rv-edge.cond { stroke-dasharray: 5 4; }
-.rv-cards { display: grid; gap: 12px; }
-.rv-card { display: grid; gap: 6px; padding: 12px; background: #efe6c8; box-shadow: var(--outline); scroll-margin-top: 12px; }
-.rv-card.ending { box-shadow: var(--outline), inset 0 0 0 2px rgba(138, 28, 20, .45); }
-.rv-head { display: flex; align-items: center; gap: 6px; }
-.rv-id { font-size: 11px; color: var(--ink-2); }
-.rv-card textarea.rv-in { min-height: 60px; resize: vertical; }
-.rv-facts { display: grid; gap: 2px; color: var(--ink-2); }
-.rv-facts b { font-weight: 400; color: var(--blood); }
 /* 장면 그림 목록 (설정 4번 · GM 노트) */
 .art-btns { display: flex; gap: 6px; }
 .gm-art { margin-top: 6px; }
@@ -2085,20 +2056,6 @@ html.has-3d .topbar { box-shadow: none; }
 #log .entry.system:not(.item-line):not(.place-line)::before { font-size: 12px; }
 #log .turn-res .tr-name { line-height: 21px; }
 
-/* ===== 시나리오 넣기: 탭 줄 오른쪽 아이콘 칸 (파일 열기 · 검사) ===== */
-.tabs { align-items: center; }
-.tab-tools { display: flex; gap: 9px; margin-left: auto; }
-.tab-tools[hidden] { display: none; }
-.tab-tools .ic-btn.box-ic { width: 39px; height: 39px; background: var(--note); box-shadow: inset calc(var(--p) * -1) calc(var(--p) * -1) 0 0 var(--note-lo), var(--outline); }
-.tab-tools .ic-btn.box-ic .ic-svg { filter: none; }
-.tab-tools .ic-btn.box-ic:hover, .tab-tools .ic-btn.box-ic:focus-visible { background: #ecdf9c; }
-.tab-tools .ic-btn.box-ic:hover .ic-svg, .tab-tools .ic-btn.box-ic:focus-visible .ic-svg { filter: none; }
-.tab-tools .ic-btn input[type="file"] { display: none; }
-.tab-tools .ic-tip { right: 0; }
-#tab-yaml { display: grid; gap: 9px; }
-#tab-yaml[hidden] { display: none; }
-.sample-link { justify-self: start; padding: 3px 3px; border: 0; background: none; cursor: pointer; font-family: var(--font); font-size: 13px; color: var(--ink); }
-.sample-link:hover, .sample-link:focus-visible { text-decoration: underline dashed var(--blood); text-underline-offset: 4px; outline: 0; }
 
 /* ===== 메모 버튼: 종이 칸 + 잉크 테두리 + 왼쪽 붉은 띠 (굴리기 · 지금 판정 · 밀어붙이기 등) ===== */
 .pending .btn, .pending .btn.primary, .memo-btn {
@@ -2387,8 +2344,12 @@ html.has-3d .topbar { box-shadow: none; }
 #home.narrow .bk-page + .bk-page { border-top: 2px dashed rgba(42, 26, 16, .35); min-height: 0; }
 /* 색인 탭 = 3D 탭 위 투명 단추 (글자는 읽기 프로그램용) */
 .bk-tabs { position: absolute; inset: 0; pointer-events: none; }
-.bk-tab { position: absolute; left: 0; top: 0; width: 0; height: 0; padding: 0; border: 0; background: transparent; color: transparent; font-size: 0; cursor: pointer; pointer-events: auto; }
+.bk-tab { position: absolute; left: 0; top: 0; width: 0; height: 0; box-sizing: border-box; padding: 0; border: 0; display: flex; align-items: center; justify-content: center; white-space: nowrap;
+  background: transparent; color: #f8efd8; font-size: 0; cursor: pointer; pointer-events: auto; }
 .bk-tab .bk-ic { display: none; }
+/* 글자: Galmuri9 원래 크기(10px)를 3D 도트 한 칸 크기(--px)만큼 키움 → 탭 종이·아이콘과 같은 도트 */
+.bk-tab .lb { display: inline-block; font-family: "Galmuri9", var(--font); font-size: 10px; line-height: 1; text-shadow: 1px 1px 0 rgba(0, 0, 0, .45); transform: scale(var(--px, 2.6)); }
+.bk-tab.fly .lb { visibility: hidden; }
 .bk-tab:focus-visible { outline: 2px dashed #e3c26a; outline-offset: 2px; }
 #home.busy .bk-tab { pointer-events: none; }
 /* WebGL 없을 때: 평면 표지 + 탭 목록 */
@@ -2402,17 +2363,137 @@ html.has-3d .topbar { box-shadow: none; }
 #home.flat.open .bk-tabs { left: auto; right: 12px; }
 #home.flat .bk-tab { position: static; width: 150px; height: 42px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; background: var(--c); color: #f8efd8; font-family: "Galmuri11", var(--font); font-size: 15px; }
 #home.flat .bk-tab .bk-ic { display: block; width: 16px; height: 16px; }
+#home.flat .bk-tab .lb { transform: none; font-family: "Galmuri11", var(--font); font-size: 15px; text-shadow: none; }
 #home.flat.leaving .bk-pages { transform: scale(1.3); transition: transform .6s cubic-bezier(.5, 0, .8, .4); }
 /* 쪽 안 */
+/* 오른쪽 쪽: 3D에서 더 위로 비친 만큼 내려 왼쪽 쪽과 줄 맞춤 */
+#bkPgR > .bk-page { padding-top: calc(30px + var(--dy, 0px)); }
+/* 머리 줄 오른쪽 끝 색인 탭 (파일 불러오기 · 샘플) */
+.ix-head { align-items: flex-end; }
+.ix-tabs { display: flex; gap: 3px; align-items: flex-end; margin-bottom: -8px; }
+.ix-tab { padding: 4px 12px 3px; border: 0; cursor: pointer; font: 12px/1.4 var(--font); color: #4a3826; background: rgba(150, 105, 50, .22); clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 100%, 0 100%); }
+.ix-tab:hover, .ix-tab:focus-visible { background: rgba(150, 105, 50, .36); outline: 0; }
+.ix-tab.on { padding-bottom: 5px; color: #f4ecd8; background: #675137; }
+/* 서류 봉투 (크라프트지 · V자 덮개 · 종이 단추 두 개 + 붉은 끈) */
+.ev { position: relative; height: 300px; margin: 4px 4px 0; background: #c99b5c;
+  background-image: radial-gradient(rgba(90, 55, 20, .16) 1px, transparent 1.5px), radial-gradient(rgba(255, 240, 200, .12) 1px, transparent 1.5px), linear-gradient(#cfa264, #c3934f);
+  background-size: 4px 4px, 7px 7px, 100% 100%; background-position: 0 0, 2px 3px, 0 0; box-shadow: 2px 4px 0 rgba(50, 30, 10, .35), inset 0 0 0 1px rgba(80, 50, 20, .5); }
+.ev-flap, .ev-flapsh { position: absolute; left: 0; right: 0; top: 0; height: 100px; clip-path: polygon(0 0, 100% 0, 100% 48%, 50% 100%, 0 48%); }
+.ev-flap { background: linear-gradient(#ddb87c, #d0a768); }
+.ev-flapsh { top: 3px; background: rgba(60, 35, 10, .4); }
+.ev-btn { position: absolute; left: calc(50% - 12px); width: 24px; height: 24px; border-radius: 50%; z-index: 3; background: radial-gradient(circle at 40% 35%, #a87d47, #7d5a2e); box-shadow: inset 0 0 0 2px rgba(60, 35, 10, .5), 0 1px 0 rgba(0, 0, 0, .35); }
+.ev-btn.b1 { top: 76px; } .ev-btn.b2 { top: 118px; }
+.ev-str { position: absolute; left: calc(50% - 1px); top: 88px; width: 2px; height: 42px; background: #8a1f14; z-index: 2; }
+.ev-str2 { position: absolute; left: calc(50% - 16px); top: 118px; width: 32px; height: 24px; border: 2px solid #8a1f14; border-top-color: transparent; border-radius: 50%; z-index: 2; }
+.ev-ret { position: absolute; left: 14px; top: 112px; padding: 3px 7px; border: 1px solid rgba(90, 55, 20, .55); background: rgba(255, 240, 210, .18); font: 10px/1.5 var(--font); color: #5a3a18; }
+.ev-ret b { display: block; font-weight: 400; letter-spacing: .2em; }
+.ev-label { position: absolute; left: 14px; right: 14px; bottom: 14px; padding: 9px 13px 10px; background: #f2e6c6; box-shadow: 1px 1px 0 rgba(60, 40, 20, .35); }
+.ev-k { font: 10.5px/1.4 var(--font); color: #8a3a22; letter-spacing: .2em; }
+.ev-t { margin: 1px 0 4px; font: 20px/1.3 "Galmuri14", var(--font); }
+.ev-syn { font: 12px/1.5 var(--font); color: #3b2a1a; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ev-meta { display: flex; gap: 4px; margin-top: 6px; }
+.ev-meta span { padding: 0 6px; border: 1px solid #8a6f4c; font: 10.5px/1.5 var(--font); color: #4a3826; white-space: nowrap; }
+.ev-doc { display: none; }
+.ev[data-state="empty"] .ev-label { background: rgba(242, 230, 198, .7); }
+.ev[data-state="empty"] .ev-btn, .ev[data-state="empty"] .ev-str, .ev[data-state="empty"] .ev-str2 { opacity: .35; }
+/* 봉인 풂: 덮개가 위로 열리고 원문 종이가 나옴 */
+.ev[data-state="open"] { display: flow-root; height: auto; margin-top: 92px; padding-bottom: 14px; }
+.ev[data-state="open"] .ev-flap, .ev[data-state="open"] .ev-flapsh { top: -84px; height: 86px; clip-path: polygon(0 100%, 100% 100%, 100% 45%, 50% 0, 0 45%); }
+.ev[data-state="open"] .ev-flap { background: linear-gradient(#bf9050, #d1a568); }
+.ev[data-state="open"] .ev-flapsh { display: none; }
+.ev[data-state="open"] .ev-btn.b1 { top: -18px; z-index: 1; }
+.ev[data-state="open"] :is(.ev-btn.b2, .ev-str, .ev-str2, .ev-ret, .ev-label) { display: none; }
+.ev[data-state="open"] .ev-doc { display: block; position: relative; z-index: 2; margin: -60px 16px 0; padding: 10px 12px; background: #f6ecd0; box-shadow: 0 2px 4px rgba(60, 40, 20, .35); }
+.ev-doc textarea { display: block; width: 100%; height: calc(var(--ph, 700px) - 380px); min-height: 160px; box-sizing: border-box; resize: none; font-size: 11.5px; background: transparent; }
+.ev-st { display: flex; align-items: center; gap: 8px; margin: 12px 4px 0; min-height: 28px; font: 13px/1.4 var(--font); }
+.ev-st .ok { color: #2f6a2a; } .ev-st .wn { color: #8a5a12; } .ev-st .bad { color: var(--blood); }
+.ev-seal { margin-left: auto; padding: 5px 12px; border: 1px dashed #7a3020; background: transparent; cursor: pointer; font: 12px/1.4 var(--font); color: #7a3020; }
+.ev-seal:hover, .ev-seal:focus-visible { background: rgba(138, 28, 20, .08); outline: 0; }
+.ev-warns { display: grid; gap: 6px; margin: 8px 4px 0; }
+.ev-warns p { margin: 0; padding: 4px 8px; font: 12px/1.5 var(--font); border-left: 2px solid #b07a20; background: rgba(176, 122, 32, .1); color: #4a3826; }
+.ev-warns p.err { border-color: var(--blood); background: rgba(138, 28, 20, .08); color: var(--blood); }
+/* 테이블 설정: 장부 줄 (왼쪽 꼬리표 라벨 · 오른쪽 값, 줄 사이 점선). 글자 12/13/14px · 행간 1.4 */
+.lg { display: grid; margin: 0 0 14px; font: 13px/1.4 var(--font); }
+.lg-row { display: flex; align-items: center; gap: 10px; min-height: 38px; border-bottom: 1px dashed rgba(60, 40, 20, .4); }
+.lg-k { flex: none; min-width: 52px; padding: 2px 7px 1px; background: #5a4128; color: #f3e6c4; font: 11.5px/1.4 var(--font); letter-spacing: .05em; text-align: center; }
+.lg-row input:not([type="checkbox"]):not([type="radio"]), .lg-row select { flex: 1; min-width: 0; height: 30px; padding: 0 2px; border: 0; box-shadow: none; background: transparent; font: 14px/1.4 var(--font); color: var(--ink); }
+.lg-row input::placeholder { color: #a8977a; }
+.lg-row input:focus, .lg-row select:focus { outline: 0; box-shadow: inset 0 -2px 0 #8a6a3a; }
+.lg-row .btn.small { flex: none; height: 26px; padding: 0 10px; font: 12px/1 var(--font); }
+.lg > .small.muted { padding: 4px 0; font: 11.5px/1.4 var(--font); }
+.lg > .small.muted:empty { display: none; }
+.lg-ck { position: relative; display: inline-flex; align-items: center; gap: 6px; margin-right: 14px; cursor: pointer; }
+.lg-ck input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.lg-ck i { display: inline-grid; place-items: center; width: 15px; height: 15px; border: 1.5px solid #3b2a1a; font-style: normal; font-size: 12px; line-height: 1; color: #2a3a8a; }
+.lg-ck input:checked + i::after { content: "✓"; }
+.lg-ck input:focus-visible + i { outline: 2px dotted #2b1a0c; outline-offset: 2px; }
+.lg-ck small { font-size: 11px; color: #7a6650; }
+.lg-row > .lg-k + .lg-ck { margin-left: 0; }
+.lg-row > input + .lg-k { margin-left: auto; }
+.lg-ck.tip { margin-right: 0; }
+.lg-ck.tip:hover::after, .lg-ck.tip:has(input:focus-visible)::after { content: attr(data-tip); position: absolute; right: -4px; top: calc(100% + 8px); z-index: 5; white-space: nowrap; padding: 5px 9px; background: #2b1d12; color: #f3e6c4; font: 12px/1.4 var(--font); box-shadow: 2px 2px 0 rgba(0, 0, 0, .3); }
+.lg-sec { display: flex; align-items: baseline; gap: 8px; margin: 4px 0 2px; padding-bottom: 3px; border-bottom: 1.5px solid #3b2a1a; font: 12px/1.4 var(--font); letter-spacing: .2em; color: #8a3a22; }
+.lg-sec small { letter-spacing: 0; color: #7a6650; font-size: 11px; }
+.lg-fold { border-bottom: 1px dashed rgba(60, 40, 20, .4); }
+.lg-fold > summary { display: flex; align-items: center; gap: 10px; min-height: 34px; cursor: pointer; list-style: none; font: 12.5px/1.4 var(--font); color: #5a4630; }
+.lg-fold > summary::-webkit-details-marker { display: none; }
+.lg-fold > summary .lg-k { background: transparent; color: #5a4128; box-shadow: inset 0 0 0 1px #5a4128; }
+.lg-fold > summary .lg-k::before { content: "▸ "; }
+.lg-fold[open] > summary .lg-k::before { content: "▾ "; }
+.lg-sum { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-sub { padding: 0 0 8px 14px; }
+.lg-sub .small { font: 11.5px/1.4 var(--font); }
+.lg-sub p { margin: 6px 0; }
+.lg-sub .ai-grid { grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.lg-sub .field { margin-top: 0; gap: 3px; }
+.lg-sub .field > span { font: 12px/1.4 var(--font); color: #6b5338; }
+.lg-sub .field select, .lg-sub .field input { height: 30px; font: 13px/1.4 var(--font); }
+/* 테이블 열기 = 날인란: 점선 칸 + 흐린 開 자국, 누르면 붉은 도장이 쾅 */
+.seal-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: transparent; box-shadow: none; cursor: pointer; }
+.seal-btn .cap { font: 13px/1.4 var(--font); color: #5a4128; letter-spacing: .1em; }
+.seal-btn .box { position: relative; width: 84px; height: 84px; border: 2px dashed #7a3020; background: rgba(168, 37, 26, .04); }
+.seal-btn .ghost, .seal-btn .ink { position: absolute; inset: 10px; display: grid; place-items: center; border: 3px double; font: 34px/1 "Galmuri14", var(--font); rotate: -6deg; }
+.seal-btn .ghost { border-color: rgba(168, 37, 26, .3); color: rgba(168, 37, 26, .3); }
+.seal-btn .ink { border-color: #a8251a; color: #a8251a; background: rgba(168, 37, 26, .06); opacity: 0; scale: 1.5; mix-blend-mode: multiply; }
+.seal-btn:hover:not(:disabled) .ghost, .seal-btn:focus-visible .ghost { border-color: rgba(168, 37, 26, .55); color: rgba(168, 37, 26, .55); }
+.seal-btn:focus-visible { outline: 0; }
+.seal-btn:focus-visible .box { outline: 2px dotted #2b1a0c; outline-offset: 3px; }
+.seal-btn:disabled { cursor: not-allowed; opacity: .45; }
+.seal-btn.stamped { opacity: 1; }
+.seal-btn.stamped .ink { animation: seal-stamp .22s cubic-bezier(.3, 0, .6, 1) forwards; }
+@keyframes seal-stamp { to { opacity: 1; scale: 1; } }
+@media (prefers-reduced-motion: reduce) { .seal-btn.stamped .ink { animation: none; opacity: 1; scale: 1; } }
+#home.narrow #bkPgR > .bk-page { padding-top: 22px; }
+#home.narrow .bk-head h2 { font-size: 22px; }
+#home.narrow .ix-head { flex-wrap: wrap; }
+#home.narrow .ix-tabs { margin-left: auto; }
+#home.narrow .lg-row { flex-wrap: wrap; gap: 6px 10px; padding: 4px 0; }
+#home.narrow .ev-ret { display: none; }
+/* 낮은 화면(쪽 높이 ~560px 이하): 간격만 줄여 쪽 안에 들어가게 */
+@media (max-height: 820px) {
+  .bk-page { padding-bottom: 40px; }
+  #bkPgR > .bk-page { padding-top: calc(20px + var(--dy, 0px)); }
+  #bkPgL > .bk-page { padding-top: 20px; }
+  .bk-head { margin: 4px 0 10px; }
+  .bk-head h2 { font-size: 24px; }
+  .ev { height: 262px; }
+  .ev-ret { top: 104px; }
+  .ev-syn { -webkit-line-clamp: 2; }
+  .ev-meta { display: none; }
+  .lg-row { min-height: 33px; }
+  .lg-fold > summary { min-height: 30px; }
+  .lg { margin-bottom: 8px; }
+  .bk-nav { margin-top: 8px; }
+  .seal-btn { flex-direction: row; gap: 10px; }
+  .seal-btn .box { width: 64px; height: 64px; }
+  .seal-btn .ghost, .seal-btn .ink { inset: 7px; font-size: 26px; }
+  .bk-folio { bottom: 8px; }
+}
 .bk-kick { font-size: 12px; color: var(--blood); letter-spacing: .2em; }
 .bk-head { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 0 16px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); }
 .bk-head h2 { margin: 0; font-family: "Galmuri14", var(--font); font-weight: 400; font-size: 28px; }
 .bk-head h2 small { font-size: 12px; }
-.bk-sub { margin: 18px 0 8px; font-weight: 400; font-size: 14px; color: var(--blood); }
 .bk-page .field { display: grid; gap: 6px; margin-top: 14px; }
-.bk-page .tabs { flex-wrap: wrap; }
-.bk-page #yamlInput { min-height: calc(var(--ph) - 300px); }
-.bk-page #proseInput { min-height: calc(var(--ph) - 330px); }
 .bk-nav { display: flex; justify-content: flex-start; margin-top: 18px; }
 .bk-nav.end { justify-content: flex-end; }
 .bk-turn { border: 2px solid var(--ink); background: transparent; padding: 6px 12px; cursor: pointer; font-family: var(--font); font-size: 13px; color: var(--ink); }
@@ -2422,7 +2503,6 @@ html.has-3d .topbar { box-shadow: none; }
 .bk-page .recover summary { cursor: pointer; font-size: 12px; }
 .bk-page .recover p { margin: 6px 0; }
 .bk-folio { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-size: 11px; color: #8a7a5c; }
-.bk-page .review { overflow-x: auto; }
 .bk-chap { display: grid; justify-items: center; gap: 8px; padding-top: 12%; text-align: center; }
 .bk-roman { font-family: "Galmuri14", var(--font); font-size: 64px; line-height: 1; color: var(--blood); }
 .bk-chap-t { font-size: 16px; }
@@ -2456,89 +2536,72 @@ html.has-3d .topbar { box-shadow: none; }
   <div class="bk-flat" aria-hidden="true"><div>탐사자 기록국 장서</div><h1>TRPG 테이블</h1></div>
   <div class="bk-pages" id="bkPages"><div class="bk-pg l" id="bkPgL"></div><div class="bk-pg r" id="bkPgR"></div></div>
   <nav class="bk-tabs" id="bkTabs" aria-label="메뉴">
-          <button class="bk-tab" type="button" data-ch="0" style="--c:#a5321e">새 테이블<svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="1" height="2" fill="#ffd36a"/><rect x="2" y="2" width="3" height="5" fill="currentColor"/></svg></button>
-          <button class="bk-tab" type="button" data-ch="1" style="--c:#8a6a1e">이어하기<svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 0h5v7l-2.5-2-2.5 2z" fill="currentColor"/></svg></button>
-          <button class="bk-tab" type="button" data-ch="2" style="--c:#2c4a6a">참가하기<svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="1" width="3" height="3" fill="currentColor"/><rect x="1" y="2" width="1" height="1" fill="var(--c)"/><rect x="3" y="2" width="4" height="1" fill="currentColor"/><rect x="5" y="3" width="1" height="2" fill="currentColor"/></svg></button>
+          <button class="bk-tab" type="button" data-ch="0" style="--c:#a5321e"><span class="lb">새 테이블</span><svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="1" height="2" fill="#ffd36a"/><rect x="2" y="2" width="3" height="5" fill="currentColor"/></svg></button>
+          <button class="bk-tab" type="button" data-ch="1" style="--c:#8a6a1e"><span class="lb">이어하기</span><svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 0h5v7l-2.5-2-2.5 2z" fill="currentColor"/></svg></button>
+          <button class="bk-tab" type="button" data-ch="2" style="--c:#2c4a6a"><span class="lb">참가하기</span><svg class="bk-ic" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="1" width="3" height="3" fill="currentColor"/><rect x="1" y="2" width="1" height="1" fill="var(--c)"/><rect x="3" y="2" width="4" height="1" fill="currentColor"/><rect x="5" y="3" width="1" height="2" fill="currentColor"/></svg></button>
         </nav>
   <p id="homeError" class="error bk-error" role="alert"></p>
   <!-- 쪽 내용: 펼친 면마다 왼쪽 · 오른쪽 쪽. 보이는 면만 책 안으로 옮겨 넣음 -->
   <div id="bkStore" hidden>
     <section class="bk-page" data-spread="0" data-side="L">
       <div class="bk-kick">제 1 장 · 새 테이블</div>
-      <div class="bk-head"><h2>검사 결과</h2></div>
-      <div id="validateResult" class="validate"></div>
-      <h3 class="bk-sub">사건 흐름</h3>
-      <div id="tab-review"><div id="reviewBox" class="review"></div></div>
+      <div class="bk-head ix-head"><h2>시나리오</h2>
+        <div class="ix-tabs">
+          <label id="fileOpenBtn" class="ix-tab" tabindex="0" role="button">▤ 파일 불러오기<input id="scenarioFile" type="file" accept=".yaml,.yml,.json,.txt" hidden /></label>
+          <button id="sampleBtn" class="ix-tab" type="button">✦ 샘플</button>
+        </div>
+      </div>
+      <!-- 서류 봉투: 봉인 = 제목 · 소개만, 봉인 풀면 원문 -->
+      <div id="scEnv" class="ev" data-state="empty">
+        <div class="ev-flapsh"></div><div class="ev-flap"></div>
+        <span class="ev-btn b1"></span><span class="ev-str"></span><span class="ev-btn b2"></span><span class="ev-str2"></span>
+        <div class="ev-ret"><b>탐사자 기록국</b>사건 기록 No. <span id="scNo">----</span></div>
+        <div id="scLabel" class="ev-label"></div>
+        <div class="ev-doc"><textarea id="yamlInput" class="code" spellcheck="false" aria-label="시나리오 원문"></textarea></div>
+      </div>
+      <div class="ev-st"><span id="scStatus" aria-live="polite"></span><button id="sealBtn" class="ev-seal" type="button" hidden>봉인 풀기 (스포일러)</button></div>
+      <div id="validateResult" class="ev-warns"></div>
       <div class="bk-folio">1</div>
     </section>
     <section class="bk-page" data-spread="0" data-side="R">
-      <div class="bk-head"><h2>시나리오 넣기</h2></div>
-      <div class="tabs">
-        <button class="tab active" data-tab="yaml">시나리오 데이터 (YAML)</button>
-        <button class="tab" data-tab="prose">줄글을 AI로 변환</button>
-        <div id="yamlTools" class="tab-tools">
-        <label id="fileOpenBtn" class="ic-btn box-ic file-btn" data-icon="folder" tabindex="0" role="button" aria-label="파일 열기"><span class="ic-tip">파일 열기</span><input id="scenarioFile" type="file" accept=".yaml,.yml,.json,.txt" hidden /></label>
-        <button id="validateBtn" class="ic-btn box-ic" type="button" data-icon="clipcheck" aria-label="검사"><span class="ic-tip">검사</span></button>
+      <div class="bk-kick" aria-hidden="true">&nbsp;</div>
+      <div class="bk-head"><h2>테이블 설정</h2></div>
+      <div class="lg">
+        <div class="lg-row"><span class="lg-k">닉네임</span><input id="hostNameInput" maxlength="16" placeholder="예: 민수" />
+          <span class="lg-k">참여</span><label class="lg-ck tip" data-tip="나도 캐릭터를 만들어 플레이"><input id="hostPlaysInput" type="checkbox" checked aria-label="나도 캐릭터를 만들어 플레이" /><i></i></label></div>
+        <div class="lg-row"><span class="lg-k">진행</span>
+          <label class="lg-ck"><input type="radio" name="mode" value="ai" checked /><i></i>AI GM</label>
+          <label class="lg-ck"><input type="radio" name="mode" value="human" /><i></i>내가 GM <small>(비상용)</small></label></div>
       </div>
-      </div>
-      <div id="tab-yaml">
-      <button id="sampleBtn" class="sample-link" type="button">샘플 「낡은 등대의 비밀」</button>
-      <textarea id="yamlInput" class="code" spellcheck="false" rows="16"></textarea>
-    </div>
-    <div id="tab-prose" hidden>
-      <p class="muted small">줄글을 붙여넣으면 AI가 사건·단서·판정·캐릭터 규칙으로 나눔. 길이 제한 없음: 긴 글은 뼈대를 먼저 잡고 사건별로 나눠 변환 (사건 수만큼 AI 호출, 시간이 더 걸림). 결과는 사건 흐름 검토 탭으로. 검토 필수. (3번 AI 설정 필요)</p>
-      <textarea id="proseInput" rows="12" placeholder="시나리오 줄글 붙여넣기"></textarea>
-      <div class="row"><button id="convertBtn" class="btn">AI로 변환</button><span id="convertStatus" class="small muted" aria-live="polite"></span></div>
-    </div>
-    
-      <div class="bk-nav"><button class="bk-turn next" type="button" data-to="1">다음 쪽 ▸</button></div>
+      <div class="lg-sec">AI 연결 <small>(AI GM일 때)</small></div>
+      <div id="setupAi"></div>
+      <details class="lg-fold"><summary><span class="lg-k">성향</span><span id="styleSum" class="lg-sum"></span></summary><div id="setupStyle" class="lg-sub"></div></details>
+      <p id="setupError" class="error" role="alert"></p>
+      <div class="bk-nav end"><button id="openTableBtn" class="seal-btn" type="button" disabled><span class="cap">테이블 열기</span><span class="box"><span class="ghost">開</span><span class="ink">開</span></span></button></div>
       <div class="bk-folio">2</div>
     </section>
-    <section class="bk-page" data-spread="1" data-side="L">
-      <div class="bk-kick">제 1 장 · 새 테이블</div>
-      <div class="bk-head"><h2>테이블 설정</h2></div>
-    <label class="field"><span>내 닉네임</span><input id="hostNameInput" maxlength="16" placeholder="예: 민수" /></label>
-    <fieldset class="field"><span>진행 방식 (게임 중 변경 가능)</span>
-      <div class="seg">
-        <label><input type="radio" name="mode" value="ai" checked /> AI GM</label>
-        <label><input type="radio" name="mode" value="human" /> 내가 GM <small class="muted">(비상용)</small></label>
-      </div>
-    </fieldset>
-    <label class="check"><input id="hostPlaysInput" type="checkbox" checked /> 나도 캐릭터를 만들어 플레이 <span class="muted small">(AI GM일 때 추천)</span></label>
-    <p class="muted small">최대 4명. 호스트 포함.</p>
-      <details class="recover">
-      <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
-      <p class="muted small">시나리오 넣기 쪽(2쪽)에 같은 시나리오를 넣고 검사 통과 → 친구의 "내 사본" 파일 선택. 장면·단서·캐릭터·로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
-      <label class="btn small file-btn">사본 파일 선택<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
-    </details>
-  
-      <div class="bk-nav"><button class="bk-turn prev" type="button" data-to="0">◂ 이전 쪽</button></div>
-      <div class="bk-folio">3</div>
-    </section>
+    <section class="bk-page" data-spread="1" data-side="L"><div class="bk-chap"><div class="bk-kick">제 2 장</div><div class="bk-roman">Ⅱ</div><div class="bk-chap-t">이어하기</div><div class="bk-plate" aria-hidden="true"></div></div><div class="bk-folio">3</div></section>
     <section class="bk-page" data-spread="1" data-side="R">
-      <div class="bk-head"><h2>AI 설정 <small class="muted">(선택)</small></h2></div>
-      <div id="setupAi"></div>
-<h3 class="sub-title">AI GM 성향</h3>
-<div id="setupStyle"></div>
-      <p id="setupError" class="error" role="alert"></p>
-      <div class="bk-nav end"><button id="openTableBtn" class="btn primary big" disabled>테이블 열기</button></div>
-      <div class="bk-folio">4</div>
-    </section>
-    <section class="bk-page" data-spread="2" data-side="L"><div class="bk-chap"><div class="bk-kick">제 2 장</div><div class="bk-roman">Ⅱ</div><div class="bk-chap-t">이어하기</div><div class="bk-plate" aria-hidden="true"></div></div><div class="bk-folio">27</div></section>
-    <section class="bk-page" data-spread="2" data-side="R">
       <div class="bk-head"><h2>이어하기</h2></div>
       <ul id="myTables" class="bk-tables"></ul>
       <p id="noTables" class="small muted" hidden>이 브라우저에 저장된 테이블 없음.</p>
       <label class="bk-file">파일에서 불러오기 <small>.json 세이브</small><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
-      <div class="bk-folio">28</div>
+      <details class="recover">
+        <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
+        <p class="muted small">같은 시나리오 파일 → 친구의 "내 사본" 파일 순서로 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
+        <div class="row"><label class="btn small file-btn">시나리오 파일<input id="recoverScInput" type="file" accept=".yaml,.yml,.json,.txt" hidden /></label><span id="recoverSc" class="small muted"></span></div>
+        <div class="row"><label class="btn small file-btn">사본 파일<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label></div>
+        <p id="recoverError" class="error" role="alert"></p>
+      </details>
+      <div class="bk-folio">4</div>
     </section>
-    <section class="bk-page" data-spread="3" data-side="L"><div class="bk-chap"><div class="bk-kick">제 3 장</div><div class="bk-roman">Ⅲ</div><div class="bk-chap-t">참가하기</div><div class="bk-plate" aria-hidden="true"></div></div><div class="bk-folio">53</div></section>
-    <section class="bk-page" data-spread="3" data-side="R">
+    <section class="bk-page" data-spread="2" data-side="L"><div class="bk-chap"><div class="bk-kick">제 3 장</div><div class="bk-roman">Ⅲ</div><div class="bk-chap-t">참가하기</div><div class="bk-plate" aria-hidden="true"></div></div><div class="bk-folio">5</div></section>
+    <section class="bk-page" data-spread="2" data-side="R">
       <div class="bk-head"><h2>참가하기</h2></div>
       <label class="field"><span>초대 링크 또는 방 코드</span><input id="joinLinkInput" placeholder="받은 초대 링크나 코드 붙여넣기" /></label>
       <label class="field"><span>닉네임 (플레이어 이름)</span><input id="bkJoinName" maxlength="16" placeholder="예: 루나" autocomplete="nickname" /></label>
       <div class="bk-nav end"><button id="joinLinkBtn" class="btn primary" type="button">자리에 앉기</button></div>
-      <div class="bk-folio">54</div>
+      <div class="bk-folio">6</div>
     </section>
   </div>
 </main>
@@ -2771,7 +2834,7 @@ html.has-3d .topbar { box-shadow: none; }
 /* 기본 제공 샘플 시나리오: SAMPLE_COC_YAML = CoC 7판 (룰은 CoC 하나) */
 /* CoC 7판 샘플 (기본) */
 const SAMPLE_COC_YAML = `# 샘플 시나리오: 낡은 등대의 비밀 (CoC 7판 룰)
-# 고쳐서 나만의 시나리오로 사용. '검사' 버튼으로 오류 확인.
+# 고쳐서 나만의 시나리오로 사용. 불러오면 바로 검사됨.
 
 id: old-lighthouse
 system: coc7      # 룰: coc7 (크툴루의 부름 7판)
@@ -4113,7 +4176,7 @@ const Maps = (() => {
 /* ==================================================================
  * AI 모듈 (호스트 브라우저에서만 실행)
  * - OpenAI 호환 API 호출 (Gemini / OpenAI / Ollama / 직접 입력)
- * - AI GM 서술, 캐릭터 제안, 줄글 시나리오 → 구조 변환
+ * - AI GM 서술, 캐릭터 제안
  * - AI는 "요청"만 하고, 적용 여부는 엔진이 검증한다.
  * ================================================================== */
 
@@ -4578,171 +4641,7 @@ ${JSON.stringify(info)}` },
     };
   }
 
-  /* ---------------- 줄글 시나리오 → 구조 ---------------- */
-  const CONVERT_SYSTEM = `너는 스토리 진행형 TRPG 시나리오를 게임 엔진용 데이터로 변환한다. 원문에 있는 내용만 사용하고, 빠진 부분은 최소한으로 보충한다.
-시나리오는 "사건 흐름"으로 나눈다: 사건 = 이야기의 한 마디(도입 → 조사 → 대면 → 결말 같은). 장소는 사건 안의 places로 둔다.
-아래 구조의 JSON 하나만 출력한다. 모든 id는 영문 소문자와 _ 만 사용한다.
-{
- "title": "제목", "summary": "한 줄 소개", "objective": "이 이야기에서 플레이어가 자발적으로 달성할 수 있는 주요 목표 (GM만 확인, 플레이어 행동을 강제하지 않음)", "synopsis": "시작 전 플레이어에게 보여 줄 소개 2~3문장 (첫 사건 도입까지만, 이후 전개 · 반전 · 결말 · 비밀은 절대 쓰지 않음)", "start": "첫사건id",
- "canon": ["진행 중 절대 바뀌면 안 되는 핵심 사실 (진상, 인물의 정체, 세계 규칙)"],
- "flags": {"플래그이름": false},
- "character": {"intro": "탐사자 만들기 안내", "skills": ["관찰력","도서관 이용","설득","듣기","은밀행동","심리학"], "mp": false,
-   "occupations": [{"name": "직업", "description": "설명", "hook": "시나리오 연결고리", "skills": ["이 직업의 기능 4~6개 (skills 안에서)"]}]},
- "events": {
-  "사건id": {"title": "사건 제목", "goal": "이 사건에서 일어나야 할 일 (GM용, 한 문장)",
-   "intro": "사건 시작 때 플레이어에게 보이는 도입 묘사 (2~4문장, 명사형 종결: ~함/~됨/~음)",
-   "places": ["사건 안에서 갈 수 있는 장소"], "gm_only": "GM만 아는 내용",
-   "hints": ["막혔을 때 약한 힌트", "중간 힌트", "강한 힌트"],
-   "npcs": ["npc_id"],
-   "clues": [{"id": "clue_id", "text": "단서 내용", "reveal": "공개 조건 설명"}],
-   "checks": [{"id": "check_id", "label": "행동 이름", "skill": "기능 또는 특성치", "difficulty": "보통",
-     "success": {"text": "결과", "reveal": "clue_id(선택, 이 사건의 단서)", "setFlag": "플래그(선택)", "give": "얻는 물건(선택)"},
-     "fail": {"text": "결과"}},
-     {"id": "san_id", "label": "무엇을 보았나", "san": "0/1d6", "success": {"text": "버팀"}, "fail": {"text": "공포에 질림"}}],
-   "next": [{"to": "다음사건id", "label": "짧은 설명", "when": "always 또는 clue(단서id) 또는 check(판정id) 또는 flag(이름), 여러 개는 & 로"}],
-   "ending": false}
- },
- "npcs": {"npc_id": {"name": "부르는 이름만 (예: 바르톨. 직업·수식어 제외, 이름이 없으면 원문 호칭)", "job": "직업·신분·수식어 (예: 늙은 어부. 원문에 없으면 생략)", "look": "외모", "personality": "성격", "secret": "비밀"}},
- "deviation": {"hooks": ["이야기로 돌아오게 하는 문구"]}
-}
-규칙: 판정의 skill은 character.skills 안의 기능(관찰력, 도서관 이용, 듣기, 설득, 말재주, 위협, 매혹, 심리학, 은밀행동, 회피, 근접전(격투), 사격(권총), 응급처치, 의료, 오컬트, 역사, 고고학, 자연, 추적, 오르기, 수영, 도약, 기계수리, 전기수리, 자물쇠 따기, 손놀림, 운전(자동차), 법률, 회계, 감정, 변장, 항법, 생존술, 정신분석, 크툴루 신화 등) 또는 특성치(근력 · 건강 · 크기 · 민첩 · 외모 · 지능 · 정신력 · 교육) 또는 행운. difficulty는 보통 / 어려움 / 극단 (대부분 보통). 끔찍한 것을 보는 순간은 san 판정(성공 손실/실패 손실: 가벼운 공포 0/1d3, 시체 0/1d6, 괴물 1/1d10 정도). dc는 쓰지 않는다. 결말 사건은 "ending": true. 모든 사건은 첫 사건에서 도달 가능해야 한다. 다음 사건으로 넘어가는 조건은 그 사건의 핵심 단서나 판정으로 건다.`;
-
-  function convertMessages(prose) {
-    return [
-      { role: "system", content: CONVERT_SYSTEM },
-      { role: "user", content: `[원문 시나리오]\n${String(prose).slice(0, 30000)}` },
-    ];
-  }
-  function parseScenario(text) {
-    return extractJSON(text).obj;
-  }
-
-  /* ---------------- 긴 줄글: 나눠서 변환 ----------------
-   * 1) 문단 번호 붙이기 → (너무 길면 문단 묶음별 요약) → 뼈대: 사건 목록·순서·원문 범위, 고정 사실, NPC, 캐릭터 규칙
-   * 2) 사건마다 원문 범위만 떼어 자세히 변환 → 3) 합치고 어긋난 참조 정리 */
-  const SHORT_LIMIT = 8000, OUTLINE_LIMIT = 24000, GROUP = 12000, PARA_MAX = 1500;
-  function paragraphs(prose) {
-    const out = [];
-    for (let p of String(prose).replace(/\r/g, "").split(/\n\s*\n/)) {
-      p = p.trim();
-      while (p.length > PARA_MAX) {   // 빈 줄 없는 긴 글은 문장 경계에서 자름
-        let cut = Math.max(p.lastIndexOf(". ", PARA_MAX), p.lastIndexOf("\n", PARA_MAX), p.lastIndexOf("다. ", PARA_MAX), p.lastIndexOf("음. ", PARA_MAX));
-        if (cut < PARA_MAX * .4) cut = PARA_MAX;
-        out.push(p.slice(0, cut + 1).trim()); p = p.slice(cut + 1).trim();
-      }
-      if (p) out.push(p);
-    }
-    return out;
-  }
-  const numbered = (paras, from = 0, to = paras.length - 1) => paras.slice(from, to + 1).map((t, i) => `[P${from + i + 1}] ${t}`).join("\n\n");
-
-  const DIGEST_SYSTEM = "너는 긴 TRPG 시나리오 원문의 일부를 읽고, 문단 번호를 유지한 채 무슨 일이 일어나는지 요약한다. 연속된 문단은 묶어도 된다. 형식: 한 줄에 하나씩 \"[P3-P5] 요약\". 장소, 등장인물, 사건, 단서, 반전, 장면 전환을 빠뜨리지 않는다. 요약만 출력.";
-  const OUTLINE_SYSTEM = `너는 스토리 진행형 TRPG 시나리오의 뼈대를 만든다. 원문(또는 문단 번호가 붙은 요약)을 읽고 "사건 흐름"으로 나눈다: 사건 = 이야기의 한 마디(도입 → 조사 → 대면 → 결말 같은). 장소는 사건이 아니다.
-아래 JSON 하나만 출력한다. id는 영문 소문자와 _ 만.
-{
- "title": "제목", "summary": "한 줄 소개", "objective": "GM용 이야기 주목표 (진행 방향만 제시, 플레이어 행동 강제 금지)", "synopsis": "시작 전 플레이어에게 보여 줄 소개 2~3문장 (첫 사건 도입까지만, 이후 전개 · 반전 · 결말 · 비밀은 절대 쓰지 않음)", "start": "첫사건id",
- "canon": ["진행 중 절대 바뀌면 안 되는 핵심 사실 (진상, 인물의 정체, 세계 규칙)"],
- "flags": {"플래그이름": false},
- "character": {"intro": "탐사자 만들기 안내", "skills": ["관찰력","도서관 이용","설득","듣기","은밀행동","심리학"], "mp": false,
-   "occupations": [{"name": "직업", "description": "설명", "hook": "시나리오 연결고리", "skills": ["이 직업의 기능 4~6개 (skills 안에서)"]}]},
- "npcs": {"npc_id": {"name": "부르는 이름만 (예: 바르톨. 직업·수식어 제외, 이름이 없으면 원문 호칭)", "job": "직업·신분·수식어 (예: 늙은 어부. 원문에 없으면 생략)", "look": "외모", "personality": "성격", "secret": "비밀"}},
- "deviation": {"hooks": ["이야기로 돌아오게 하는 문구"]},
- "events": [{"id": "사건id", "title": "사건 제목", "from": 시작문단번호, "to": 끝문단번호, "next": ["다음사건id"], "ending": false}]
-}
-규칙: events는 이야기 순서대로, 문단 범위가 원문 전체를 덮게 한다. 모든 사건은 첫 사건에서 도달 가능해야 한다. 결말 사건은 ending true. 사건은 보통 4~12개.`;
-  const EVENT_SYSTEM = `너는 스토리 진행형 TRPG 시나리오의 사건 하나를 게임 엔진용 데이터로 변환한다. [이 사건의 원문]에 있는 내용만 쓰고, 빠진 부분은 최소한으로 보충한다. 아래 JSON 하나만 출력한다.
-{"title": "사건 제목", "goal": "이 사건에서 일어나야 할 일 (GM용, 한 문장)",
- "intro": "사건 시작 때 플레이어에게 보이는 도입 묘사 (2~4문장, 명사형 종결: ~함/~됨/~음)",
- "places": ["사건 안에서 갈 수 있는 장소"], "gm_only": "GM만 아는 내용",
- "hints": ["막혔을 때 약한 힌트", "중간 힌트", "강한 힌트"], "npcs": ["npc_id"],
- "clues": [{"id": "사건id_단서", "text": "단서 내용", "reveal": "공개 조건 설명"}],
- "checks": [{"id": "사건id_판정", "label": "행동 이름", "skill": "기능 또는 특성치", "difficulty": "보통",
-     "success": {"text": "결과", "reveal": "clue_id(선택, 이 사건의 단서)", "setFlag": "플래그(선택)", "give": "얻는 물건(선택)"},
-     "fail": {"text": "결과"}},
-     {"id": "san_id", "label": "무엇을 보았나", "san": "0/1d6", "success": {"text": "버팀"}, "fail": {"text": "공포에 질림"}}],
- "next": [{"to": "다음사건id", "label": "짧은 설명", "when": "always 또는 clue(단서id) 또는 check(판정id) 또는 flag(이름), 여러 개는 & 로"}],
- "ending": false}
-규칙: 단서와 판정 id는 "사건id_"로 시작한다. skill은 [뼈대]의 기능 목록 · 특성치 · 행운에서만 (san 판정은 skill 없이). npcs는 [뼈대]의 npc id만. next.to는 [뼈대]의 사건 id만. 넘어가는 조건은 이 사건의 핵심 단서나 판정으로 건다. difficulty는 보통 / 어려움 / 극단. 끔찍한 순간은 san 판정. dc는 쓰지 않는다.`;
-
-  /** 긴 줄글 변환. ask(messages, opts) → text. onProgress(글) */
-  async function convertLong(prose, ask, onProgress = () => {}) {
-    const paras = paragraphs(prose);
-    // 1) 뼈대 (너무 길면 문단 묶음 요약부터)
-    let source = numbered(paras);
-    if (source.length > OUTLINE_LIMIT) {
-      const groups = [];
-      for (let i = 0, cur = []; i < paras.length; i++) {
-        cur.push(i);
-        const len = cur.reduce((a, k) => a + paras[k].length, 0);
-        if (len >= GROUP || i === paras.length - 1) { groups.push([cur[0], cur[cur.length - 1]]); cur = []; }
-      }
-      const digests = [];
-      for (const [gi, [a, b]] of groups.entries()) {
-        onProgress(`원문 훑는 중 ${gi + 1}/${groups.length}`);
-        digests.push((await ask([{ role: "system", content: DIGEST_SYSTEM }, { role: "user", content: numbered(paras, a, b) }], { maxTokens: 1500, timeout: 180000 })).replace(/<think>[\s\S]*?<\/think>/gi, "").trim());
-      }
-      source = `(문단 번호가 붙은 요약. 원문 문단은 P1~P${paras.length})\n${digests.join("\n")}`;
-    }
-    onProgress("뼈대 만드는 중");
-    const outline = extractJSON(await ask([{ role: "system", content: OUTLINE_SYSTEM }, { role: "user", content: source }], { maxTokens: 4000, timeout: 180000 })).obj;
-    const list = (Array.isArray(outline.events) ? outline.events : []).filter((e) => e && /^[a-z0-9_]+$/.test(String(e.id)));
-    if (!list.length) throw new Error("사건을 나누지 못함.");
-    const ids = list.map((e) => String(e.id));
-    const stats = (Array.isArray(outline.character?.skills) ? outline.character.skills : Array.isArray(outline.character?.stats) ? outline.character.stats : []).map(String);
-    const skeleton = {
-      사건목록: list.map((e) => ({ id: e.id, 제목: e.title, 다음: e.next ?? [], 결말: !!e.ending })),
-      기능목록: stats, npc: Object.fromEntries(Object.entries(outline.npcs ?? {}).map(([k, v]) => [k, v?.name ?? k])),
-      고정사실: outline.canon ?? [], 플래그: Object.keys(outline.flags ?? {}),
-    };
-    // 2) 사건별 상세
-    const events = {};
-    for (const [i, e] of list.entries()) {
-      onProgress(`사건 ${i + 1}/${list.length} · ${e.title ?? e.id}`);
-      const a = Math.max(1, Math.min(paras.length, Number(e.from) || 1)) - 1, b = Math.max(a, Math.min(paras.length, Number(e.to) || a + 1) - 1);
-      const msgs = [{ role: "system", content: EVENT_SYSTEM }, { role: "user", content: `[뼈대]\n${JSON.stringify(skeleton, null, 1)}\n\n[이 사건] id: ${e.id} · 제목: ${e.title ?? ""} · 다음 후보: ${(e.next ?? []).join(", ") || "없음"}${e.ending ? " · 결말" : ""}\n\n[이 사건의 원문]\n${numbered(paras, a, b).slice(0, 20000)}` }];
-      let ev = null;
-      for (let tries = 0; tries < 2 && !ev; tries++) {
-        try { ev = extractJSON(await ask(msgs, { maxTokens: 3000, timeout: 180000 })).obj; } catch { /* 한 번 더 */ }
-      }
-      events[e.id] = ev && typeof ev === "object"
-        ? { ...ev, title: ev.title ?? e.title, ending: ev.ending ?? !!e.ending }
-        : { title: e.title ?? e.id, intro: paras.slice(a, b + 1).join(" ").slice(0, 400), gm_only: "(자동 변환 실패: 원문 확인 후 직접 보완 필요)", next: (e.next ?? []).map((to) => ({ to })), ending: !!e.ending };
-      if (!events[e.id].next?.length && !events[e.id].ending && e.next?.length) events[e.id].next = e.next.map((to) => ({ to }));
-    }
-    // 3) 합치고 어긋난 참조 정리
-    const sc = { title: outline.title, summary: outline.summary, ...(outline.objective ? { objective: outline.objective } : {}), ...(outline.synopsis ? { synopsis: outline.synopsis } : {}), start: ids.includes(outline.start) ? outline.start : ids[0], canon: outline.canon ?? [], flags: outline.flags ?? {}, character: outline.character ?? {}, events, npcs: outline.npcs ?? {}, deviation: outline.deviation ?? {} };
-    const seenClue = new Set(), seenCheck = new Set();
-    for (const [id, ev] of Object.entries(events)) {
-      ev.clues = (Array.isArray(ev.clues) ? ev.clues : []).filter((c) => c?.id && c?.text).map((c) => { let cid = String(c.id); while (seenClue.has(cid)) cid += "_2"; seenClue.add(cid); return { ...c, id: cid }; });
-      const myClues = new Set(ev.clues.map((c) => c.id));
-      ev.checks = (Array.isArray(ev.checks) ? ev.checks : []).filter((c) => c?.id && (c?.skill || c?.san)).map((c) => {
-        let cid = String(c.id); while (seenCheck.has(cid)) cid += "_2"; seenCheck.add(cid);
-        if (c.skill && !stats.includes(String(c.skill)) && !(Rules.charKey(c.skill) || Rules.isLuck(c.skill))) stats.push(String(c.skill));
-        for (const o of [c.success, c.fail]) if (o && o.reveal && !myClues.has(o.reveal)) delete o.reveal;
-        for (const o of [c.success, c.fail]) if (o && o.go) delete o.go;
-        const { dc, ...rest } = c; return { ...rest, id: cid, ...(c.difficulty ? { difficulty: Rules.normDiff(c.difficulty) ?? "보통" } : {}) };
-      });
-      ev.npcs = (Array.isArray(ev.npcs) ? ev.npcs : []).filter((n) => sc.npcs[n]);
-      ev.next = (Array.isArray(ev.next) ? ev.next : []).map((n) => (typeof n === "string" ? { to: n } : n)).filter((n) => n && ids.includes(n.to) && n.to !== id);
-      for (const n of ev.next) if (!n.when) n.when = "always";
-      if (!ev.intro) ev.intro = ev.description ?? ev.title ?? id;
-    }
-    // 조건 속 단서·판정 id가 없으면 always로
-    const allC = new Set([...seenClue]), allK = new Set([...seenCheck]);
-    for (const ev of Object.values(events)) for (const n of ev.next) {
-      const parts = String(Array.isArray(n.when) ? n.when.join("&") : n.when).split("&").map((x) => x.trim()).filter((x) => {
-        const m = /^(clue|check)\((.*)\)$/.exec(x);
-        return !m || (m[1] === "clue" ? allC : allK).has(m[2]);
-      });
-      n.when = parts.length ? parts.join(" & ") : "always";
-    }
-    if (stats.length) { sc.character.skills = stats; delete sc.character.stats; }
-    sc.system = "coc7";
-    return sc;
-  }
-  const isLongProse = (prose) => String(prose).length > SHORT_LIMIT;
-
-  return { PRESETS, ready, call, callRetry, listModels, gmSystem, gmMessages, META_RE, summaryMessages, synopsisMessages, logLine, parseGM, charMessages, parseChar, convertMessages, parseScenario, convertLong, isLongProse, paragraphs };
+  return { PRESETS, ready, call, callRetry, listModels, gmSystem, gmMessages, META_RE, summaryMessages, synopsisMessages, logLine, parseGM, charMessages, parseChar };
 })();
 
 
@@ -7197,15 +7096,22 @@ void main() {
     { mesh: G.flame, x: CANDLE[0][0], y: .58, z: CANDLE[0][1] },
     { mesh: G.flameS, x: CANDLE[1][0], y: .35, z: CANDLE[1][1] },
   ];
+  // 첫 화면: 책 오른쪽 앞에 놓인 짧은 초 (책을 비추는 불빛, 펼친 화면에서도 보이게 탭 아래쪽)
+  const HOME_CANDLE = [.86, -.5];
+  const homeObjs = [
+    [G.dish, T.metal, M.trs(HOME_CANDLE[0], 0, HOME_CANDLE[1], 0, .7)],
+    [G.candleS, T.wax, M.trs(HOME_CANDLE[0], .035, HOME_CANDLE[1]), .75],
+  ];
+  const homeFlame = { mesh: G.flameS, x: HOME_CANDLE[0], y: .35, z: HOME_CANDLE[1], home: true };
 
   /* ---------------- 첫 화면 책 (붉은 가죽 장부, 오두막 안 물체) ----------------
    * 닫힌 모양 기준: 책등 x = -0.5, 쪽 x ∈ [-0.5, 0.5], 깊이 z = zc ± D/2, 높이 = 뒤표지 c + 쪽 B + 앞표지 c
    * 앞표지 + 왼쪽 쪽 묶음 + 지나온 장의 탭은 한 덩어리로 책등 축(x = -0.5, y = T/2)을 돌아 왼쪽 탁자 위로 넘어감
    * 펼치면 카메라가 바로 위에서 내려다봄 → 화면에 비친 쪽 자리에 DOM 쪽 내용을 겹침 */
-  const BK = { zc: -.85, D: 1.36, c: .024, B: .14, step: .03, tabL: .46, tabD: .15, tabZ: [-.48, -.29, -.1], hL0: .006 };
+  const BK = { zc: -.85, D: 1.36, c: .024, B: .17, step: .03, tabL: .46, tabD: .15, tabZ: [-.48, -.29, -.1], hL0: .006 };
   BK.T = BK.B + BK.c * 2;
-  const CH_START = [0, 2, 3], chOf = (sp) => (sp >= 3 ? 2 : sp >= 2 ? 1 : 0);
-  const hLof = (s) => .012 + s * BK.step;
+  const CH_START = [0, 1, 2], chOf = (sp) => sp;
+  const hLof = (s) => .04 + s * BK.step;   // 펼치면 왼쪽도 앞쪽 몇 장이 있어 양쪽 골이 비슷하게 내려앉음
   /** 단위 판 (x 0~1 · y 0~1 · z -0.5~0.5). 윗면 uv = 캔버스 그대로(위 = 먼 쪽), 아랫면은 좌우 뒤집음(넘어가 뒤집히면 바로 읽힘). 윗면·아랫면은 잘게 나눠 원근 없는 텍스처가 덜 일그러지게 */
   function slab(n = 6) {
     const face = (y, ny, flip) => {
@@ -7229,6 +7135,47 @@ void main() {
     return { top: face(1, 1, false), bot: face(0, -1, true), side: mesh(pos, nrm, uv, idx) };
   }
   const SL = slab();
+  /** 펼친 쪽 묶음: 책등 쪽(x = 0)으로 갈수록 종이가 완만하게 내려앉음(실제 책의 골). 높이 h(세계 단위)마다 따로 만들어 둠
+   * up = 종이 면이 위(오른쪽 묶음), 아니면 아래(왼쪽 묶음은 표지와 함께 뒤집혀 아랫면이 위로 옴) */
+  const blockCache = new Map();
+  function pageBlock(h, up) {
+    const key = `${up ? 1 : 0}:${h.toFixed(4)}`;
+    let m = blockCache.get(key);
+    if (m) return m;
+    const nx = 14, nz = 6, w0 = .3, g = Math.min(.05, h * .8), D = BK.D;
+    const dip = (x) => (x < w0 ? g * (1 - x / w0) ** 2 : 0), slope = (x) => (x < w0 ? 2 * g / w0 * (1 - x / w0) : 0);
+    const xs = Array.from({ length: nx + 1 }, (_, i) => (i / nx) ** 1.6);   // 책등 쪽을 촘촘히
+    const topY = (x) => (up ? h - dip(x) : h), botY = (x) => (up ? 0 : dip(x));
+    // 종이 면
+    const pos = [], nrm = [], uv = [], idx = [];
+    for (let j = 0; j <= nz; j++) for (const x of xs) {
+      const z = j / nz - .5, sl = slope(x), l = Math.hypot(sl, 1);
+      if (up) { pos.push(x, topY(x), z * D); nrm.push(-sl / l, 1 / l, 0); uv.push(x, j / nz); }
+      else { pos.push(x, botY(x), z * D); nrm.push(-sl / l, -1 / l, 0); uv.push(1 - x, j / nz); }
+    }
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const a = j * (nx + 1) + i; idx.push(a, a + 1, a + nx + 2, a, a + nx + 2, a + nx + 1); }
+    const paper = mesh(pos, nrm, uv, idx);
+    // 나머지 면: 앞·뒤(곡선 따라) + 바깥 · 책등 쪽 + 반대 면(평평)
+    const P = [], N = [], U = [], I = [];
+    const quad = (v, n) => { const b = P.length / 3; v.forEach((q) => { P.push(...q); N.push(...n); }); U.push(0, 0, 4, 0, 4, 1, 0, 1); I.push(b, b + 1, b + 2, b, b + 2, b + 3); };
+    for (let i = 0; i < nx; i++) {
+      const a = xs[i], b = xs[i + 1];
+      quad([[a, botY(a), D / 2], [b, botY(b), D / 2], [b, topY(b), D / 2], [a, topY(a), D / 2]], [0, 0, 1]);
+      quad([[b, botY(b), -D / 2], [a, botY(a), -D / 2], [a, topY(a), -D / 2], [b, topY(b), -D / 2]], [0, 0, -1]);
+    }
+    quad([[1, 0, D / 2], [1, 0, -D / 2], [1, h, -D / 2], [1, h, D / 2]], [1, 0, 0]);
+    quad([[0, botY(0), -D / 2], [0, botY(0), D / 2], [0, topY(0), D / 2], [0, topY(0), -D / 2]], [-1, 0, 0]);
+    const fy = up ? 0 : h;
+    quad([[0, fy, -D / 2], [1, fy, -D / 2], [1, fy, D / 2], [0, fy, D / 2]], [0, up ? -1 : 1, 0]);
+    m = { paper, rest: mesh(P, N, U, I) };
+    blockCache.set(key, m);
+    if (blockCache.size > 48) {   // 오래된 것 정리 (GPU 버퍼)
+      const [k0, old] = blockCache.entries().next().value;
+      blockCache.delete(k0);
+      for (const o of [old.paper, old.rest]) for (const b of [o.p, o.n, o.u, o.i]) gl.deleteBuffer(b);
+    }
+    return m;
+  }
   /** 크기 자유 캔버스 텍스처 (반복 없음). 글꼴이 늦게 오면 repaint로 다시 그림 */
   function ctex(w, h, draw) {
     const c = document.createElement("canvas"); c.width = w; c.height = h;
@@ -7286,11 +7233,11 @@ void main() {
     }),
     // 쪽 윗면: 누런 종이 + 결 + 잔 얼룩, 책등 쪽(안쪽)은 그늘
     paper: [1, 0].map((gutterLeft) => ctex(96, 128, (g, w, h) => {
-      grain(g, w, h, [226, 208, 164], .07, 3, (x) => { const e = gutterLeft ? x : w - 1 - x; return e < 14 ? -(14 - e) / 14 * .28 : 0; });
+      grain(g, w, h, [239, 224, 180], .05, 2, (x) => { const e = gutterLeft ? x : w - 1 - x; return e < 16 ? -(((16 - e) / 16) ** 2) * .22 : 0; });
       g.fillStyle = "rgba(120,80,30,.08)";
       for (let i = 0; i < 6; i++) { const x = rnd() * w | 0, y = rnd() * h | 0, r = 2 + rnd() * 4 | 0; g.fillRect(x - r, y, r * 2, 1); g.fillRect(x - r + 1, y - 1, r * 2 - 2, 3); }
     })),
-    // 색인 탭: 장 색 종이 + 결 + 크림 글자 + 바깥 끝 도트 아이콘. [오른쪽(아이콘 오른쪽), 왼쪽(넘어간 뒤, 아이콘 왼쪽)]
+    // 색인 탭: 장 색 종이 + 결 + 바깥 끝 도트 아이콘 (글자는 화면 글자로 겹침 — 도트 크기만큼 키운 Galmuri9). [오른쪽(아이콘 오른쪽), 왼쪽(넘어간 뒤, 아이콘 왼쪽)]
     tabs: [["새 테이블", [165, 50, 30], "candle"], ["이어하기", [138, 106, 30], "mark"], ["참가하기", [44, 74, 106], "key"]].map(([label, rgb, icon]) => [0, 1].map((left) => ctex(72, 24, (g, w, h) => {
       const base = rgb.map((v, i) => v * .8 + [239, 226, 184][i] * .2);
       grain(g, w, h, base, .12, 0, (x, y) => Math.sin(x * .9 + y * .2) * .04 + (y % 7 === 0 ? .04 : 0));
@@ -7299,10 +7246,6 @@ void main() {
       if (icon === "candle") { P(3, 0, 1, 2, "#ffd36a"); P(2, 2, 3, 5); }
       else if (icon === "mark") { P(1, 0, 5, 5); P(1, 5, 2, 1); P(4, 5, 2, 1); P(1, 6, 1, 1); P(5, 6, 1, 1); }
       else { P(0, 1, 3, 3); P(1, 2, 1, 1, `rgb(${base.join(",")})`); P(3, 2, 4, 1); P(5, 3, 1, 2); }
-      g.font = "10px Galmuri9"; g.textBaseline = "middle"; g.textAlign = "center";
-      const tx = left ? (w + 18) / 2 : (w - 18) / 2;
-      g.fillStyle = "rgba(0,0,0,.45)"; g.fillText(label, tx + 1, h / 2 + 1);
-      g.fillStyle = "#f8efd8"; g.fillText(label, tx, h / 2);
     }))),
   };
   // 픽셀 글꼴이 늦게 오면 표지 · 탭 글자를 다시 그림
@@ -7366,7 +7309,7 @@ void main() {
     const dc = Math.max(1.36 / .7, 1.8 / (.9 * asp)) / (2 * tn);
     const closed = { eye: [tc[0] + Math.sin(t * .23) * .05 * sway, tc[1] + dc * Math.sin(el) + Math.sin(t * .41) * .02 * sway, tc[2] + dc * Math.cos(el)], target: tc, up: [0, 1, 0] };
     const to = [narrow ? 0 : -.5, BK.T * .5, BK.zc];
-    const d = Math.max(BK.D / .76, (narrow ? 1.46 / .94 : 2.86 / .96) / asp) / (2 * tn);
+    const d = Math.max(BK.D / .76, (narrow ? 1.46 / .94 : 3.2 / .96) / asp) / (2 * tn);
     const open = { eye: [to[0], to[1] + d, to[2] + 1e-4], target: to, up: [0, 0, -1] };
     const e = easeIO(p), mix = (a, b) => a.map((v, i) => lerp(v, b[i], e));
     const pose = { eye: mix(closed.eye, open.eye), target: mix(closed.target, open.target), up: mix(closed.up, open.up), fov };
@@ -7379,8 +7322,8 @@ void main() {
     const { c, B, D, zc } = BK, cp = pivot(bk.a, ys0), hR = B - bk.hL;
     return {
       back: chain(M.T(-.515, 0, zc), M.S(1.035, c, D + .04)),
-      right: chain(M.T(-.5, c, zc), M.S(1, hR, D)),
-      left: chain(cp, M.T(-.5, c + B - bk.hL, zc), M.S(1, bk.hL, D)),
+      right: chain(M.T(-.5, c, zc)),
+      left: chain(cp, M.T(-.5, c + B - bk.hL, zc)),
       front: chain(cp, M.T(-.515, c + B, zc), M.S(1.035, c, D + .04)),
       spine: chain(M.T(-.535, 0, zc), M.S(.035, lerp(BK.T, c, bk.a / Math.PI), D + .04)),
     };
@@ -7402,11 +7345,16 @@ void main() {
     gl.bindTexture(gl.TEXTURE_2D, side); drawMesh(SL.side);
   }
   function drawBook() {
-    const P = bookParts(), pe = .34 + .3 * bk.p;   // 펼치면 종이가 조금 더 밝게 (글 읽기)
+    const P = bookParts(), pe = .28 + .34 * bk.p;   // 펼치면 종이가 조금 더 밝게 (글 읽기)
     drawSlab(P.back, BT.leather, BT.leather, BT.leather, .08);
     drawSlab(P.spine, BT.leather, BT.leather, BT.leather, .08);
-    drawSlab(P.right, BT.paper[0].t, BT.edge, BT.edge, pe);
-    drawSlab(P.left, BT.edge, BT.paper[1].t, BT.edge, pe);
+    for (const [model, h, up, tx] of [[P.right, BK.B - bk.hL, true, BT.paper[0].t], [P.left, bk.hL, false, BT.paper[1].t]]) {
+      const m = pageBlock(h, up);
+      gl.uniformMatrix4fv(U.u_model, false, model);
+      gl.uniform1f(U.u_emissive, pe);
+      gl.bindTexture(gl.TEXTURE_2D, tx); drawMesh(m.paper);
+      gl.bindTexture(gl.TEXTURE_2D, BT.edge); drawMesh(m.rest);
+    }
     drawSlab(P.front, BT.cover.t, BT.leather, BT.leather, .14);
     for (const s of bk.sheets) {
       const m = chain(pivot(s.th, (s.yR + s.yL) / 2), M.T(-.5, s.yR, BK.zc), M.S(1, .002, BK.D));
@@ -7461,7 +7409,7 @@ void main() {
   };
 
   // 촛불 깜빡임: 일정하지 않은 간격으로 단계적으로 바뀜
-  const flick = [1, .7];
+  const flick = [1, .7, .9];
   let nextFlick = 0;
   let last = 0, lastT = 0;
   let active = true, frameId = null, idle = false;
@@ -7486,13 +7434,16 @@ void main() {
     if (now > nextFlick) {
       flick[0] = .82 + rnd() * .22;
       flick[1] = .55 + rnd() * .25;
+      flick[2] = .84 + rnd() * .2;
       nextFlick = now + (reduceMotion ? 900 : 70 + rnd() * 140);
     }
     const sway = reduceMotion ? 0 : 1;
     const f0 = flames[0], f1 = flames[1];
     const lightsRoom = { l0p: [f0.x, f0.y + .15, f0.z], l0c: [2.6, 1.55, .75], l1p: [f1.x, f1.y + .1, f1.z], l1c: [1.3, .75, .35], att: [.32, .45] };
+    // 첫 화면: 책 옆 초가 주 조명(0번), 오른쪽 뒤 큰 초가 보조(1번)
+    const lightsHome = { l0p: [homeFlame.x, homeFlame.y + .22, homeFlame.z], l0c: [2.3, 1.42, .7], l1p: [f0.x, f0.y + .15, f0.z], l1c: [1.5, .9, .44], att: [.36, .32] };
     tickAnims(now);
-    const want = bk.on ? { ...homePose(bk.p, t, sway * (1 - bk.p)), fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom }
+    const want = bk.on ? { ...homePose(bk.p, t, sway * (1 - bk.p)), fog: ROOM.fog, amb: [.2, .15, .12], dirc: ROOM.dirc, snap: 3.2, ...lightsHome }
       : { eye: [Math.sin(t * .23) * .06 * sway, 2.45 + Math.sin(t * .41) * .025 * sway, 3.05], target: [0, -.15, -1.25], up: [0, 1, 0], fov: ROOM.fov, fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom };
     if (!cam || reduceMotion || bk.on) cam = JSON.parse(JSON.stringify(want));   // 첫 화면: 카메라는 책 움직임에 맞춰 바로 따라감
     else {
@@ -7510,7 +7461,7 @@ void main() {
     gl.uniform3fv(U.u_dirc, cam.dirc);
     gl.uniform2fv(U.u_att, cam.att);
     gl.uniform3fv(U.u_l0pos, cam.l0p);
-    gl.uniform3fv(U.u_l0col, cam.l0c.map((v) => v * flick[0]));
+    gl.uniform3fv(U.u_l0col, cam.l0c.map((v) => v * flick[bk.on ? 2 : 0]));
     gl.uniform3fv(U.u_l1pos, cam.l1p);
     gl.uniform3fv(U.u_l1col, cam.l1c.map((v) => v * flick[1]));
 
@@ -7526,11 +7477,17 @@ void main() {
       drawMesh(m);
     });
     if (bk.on) {
+      homeObjs.forEach(([m, tx, model, glow = 0]) => {
+        gl.uniform1f(U.u_emissive, glow * flick[2]);
+        gl.bindTexture(gl.TEXTURE_2D, tx);
+        gl.uniformMatrix4fv(U.u_model, false, model);
+        drawMesh(m);
+      });
       gl.uniform1f(U.u_alphaTest, 0); gl.uniform1f(U.u_ghost, 0); gl.uniform3f(U.u_tint, 1, 1, 1);
       drawBook();
       if (bk.cb) {
         const vp = M.mul(proj, view);
-        bk.cb({ tabs: [0, 1, 2].map((i) => screenRect(vp, tabModel(i))), zoom: bookZoom(eye, cam.target) });
+        bk.cb({ tabs: [0, 1, 2].map((i) => ({ ...screenRect(vp, tabModel(i)), fly: !!bk.ride[i], left: bk.side[i] === "L" })), zoom: bookZoom(eye, cam.target), px: innerWidth / W });
       }
     }
 
@@ -7539,7 +7496,7 @@ void main() {
     gl.uniform1f(U.u_alphaTest, .5);
     gl.uniform1f(U.u_ghost, 0);
     gl.uniform3f(U.u_tint, 1, 1, 1);
-    flames.forEach((f, i) => {
+    (bk.on ? [...flames, homeFlame] : flames).forEach((f, i) => {
       const yaw = Math.atan2(eye[0] - f.x, eye[2] - f.z);
       const mo = reduceMotion ? 0 : 1;
       // 일렁임: 높이·폭이 숨 쉬듯, 끝이 좌우로 흔들림 (아래는 고정, 위로 갈수록 기울어짐)
@@ -7547,7 +7504,8 @@ void main() {
       const wid = 1 + Math.sin(t * 5.1 + i * 2) * .07 * mo;
       const lean = (Math.sin(t * 2.3 + i) * .18 + Math.sin(t * 6.7 + i * 3) * .07) * mo;
       const shear = [1, 0, 0, 0, lean, hgt, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-      const base = M.trs(f.x, f.y, f.z, yaw);
+      // 책 옆 초는 화면을 향한 판(바로 위에서 내려다봐도 불꽃이 위로 섬), 나머지는 세로 축으로만 돔
+      const base = f.home ? [view[0], view[4], view[8], 0, view[1], view[5], view[9], 0, view[2], view[6], view[10], 0, f.x, f.y, f.z, 1] : M.trs(f.x, f.y, f.z, yaw);
       // 빛무리 먼저 (불꽃 뒤)
       gl.uniform1f(U.u_alphaTest, .45);
       gl.uniform1f(U.u_ghost, .86);
@@ -8583,9 +8541,9 @@ const BannerArt = (() => {
     },
   };
   const Book = (() => {
-    const CH_START = [0, 2, 3];                      // 장 → 첫 면
-    const chOf = (sp) => (sp >= 3 ? 2 : sp >= 2 ? 1 : 0);
-    const N = 4;
+    const CH_START = [0, 1, 2];                      // 장 → 첫 면 (장마다 한 면)
+    const chOf = (sp) => sp;
+    const N = 3;
     const home = $("#home"), stage = $("#bkStage"), pages = $("#bkPages"), pgL = $("#bkPgL"), pgR = $("#bkPgR");
     const tabEls = [...document.querySelectorAll("#bkTabs .bk-tab")];
     const pageOf = (sp, side) => $(`#bkStore .bk-page[data-spread="${sp}"][data-side="${side}"]`) ?? document.querySelector(`.bk-page[data-spread="${sp}"][data-side="${side}"]`);
@@ -8608,6 +8566,8 @@ const BannerArt = (() => {
       const ins = 5;   // 3D 종이 가장자리(도트로 끊긴 선) 안쪽
       const put = (node, q) => Object.assign(node.style, { left: `${q.x + ins}px`, top: `${q.y + ins}px`, width: `${q.w - ins * 2}px`, height: `${q.h - ins * 2}px` });
       put(pgL, r.L); put(pgR, r.R); pgL.hidden = narrow;
+      // 3D에서 오른쪽 쪽 묶음이 더 두꺼우면 화면에서 조금 위로 비침 → 오른쪽 내용을 그만큼 내려 두 쪽 줄을 맞춤
+      pgR.style.setProperty("--dy", `${narrow ? 0 : Math.max(0, Math.round(r.L.y - r.R.y))}px`);
       home.style.setProperty("--ph", `${Math.round(r.R.h)}px`);
     }
     /** 보이는 면 채우기 */
@@ -8626,13 +8586,17 @@ const BannerArt = (() => {
       tabEls.forEach((t, c) => t.setAttribute("aria-current", spread >= 0 && chOf(spread) === c ? "page" : "false"));
     }
     // 3D 탭이 화면에 비친 자리에 투명 단추를 맞춤 (매 프레임, 바뀐 것만) + 방으로 들어갈 때 쪽 내용도 같이 커짐
-    Scene3D.onBook(({ tabs, zoom }) => {
+    Scene3D.onBook(({ tabs, zoom, px }) => {
       tabs.forEach((r, i) => {
-        const t = tabEls[i], k = `${r.x | 0},${r.y | 0},${r.w | 0},${r.h | 0}`;
+        const t = tabEls[i], k = `${r.x | 0},${r.y | 0},${r.w | 0},${r.h | 0},${r.fly},${r.left}`;
         if (t._k === k) return;
         t._k = k;
-        Object.assign(t.style, { transform: `translate(${r.x | 0}px, ${r.y | 0}px)`, width: `${r.w | 0}px`, height: `${r.h | 0}px` });
+        // 글자는 아이콘 반대쪽 70%에 가운데 (넘어간 장의 탭은 아이콘이 왼쪽)
+        const pad = `${r.w * .3 | 0}px`;
+        Object.assign(t.style, { transform: `translate(${r.x | 0}px, ${r.y | 0}px)`, width: `${r.w | 0}px`, height: `${r.h | 0}px`, padding: r.left ? `0 0 0 ${pad}` : `0 ${pad} 0 0` });
+        t.classList.toggle("fly", r.fly);
       });
+      if (home._px !== px) { home._px = px; home.style.setProperty("--px", px.toFixed(3)); }
       if (pages._z !== zoom) { pages._z = zoom; pages.style.transform = zoom === 1 ? "" : `scale(${zoom.toFixed(4)})`; }
     });
     async function go(to) {
@@ -8727,15 +8691,15 @@ const BannerArt = (() => {
     Book.show();
     renderTables();
     loadTables().then(renderTables);
-    // 새 테이블 장(시나리오 검사 · 흐름도 · AI 설정 칸)은 한가할 때 미리 준비 → 탭 누르는 순간 멈추지 않게
+    // 새 테이블 장(AI 설정 칸 등)은 한가할 때 미리 준비 → 탭 누르는 순간 멈추지 않게
     const pre = () => { if (!setupReady) { setupReady = true; initSetup(); } };
     if (window.requestIdleCallback) requestIdleCallback(pre, { timeout: 1500 }); else setTimeout(pre, 300);
   }
   // 장을 펼칠 때 필요한 준비: 새 테이블 = 설정 칸 채우기(처음 한 번), 참가하기 = 닉네임 기억
   let setupReady = false;
   Book.onOpen((sp) => {
-    if (sp <= 1 && !setupReady) { setupReady = true; initSetup(); }
-    if (sp === 3) $("#bkJoinName").value ||= LS.get(K.name) ?? "";
+    if (sp === 0 && !setupReady) { setupReady = true; initSetup(); }
+    if (sp === 2) $("#bkJoinName").value ||= LS.get(K.name) ?? "";
   });
 
   $("#joinLinkInput").addEventListener("keydown", (e) => e.key === "Enter" && $("#joinLinkBtn").click());
@@ -8766,7 +8730,7 @@ const BannerArt = (() => {
     AICredentials.migrate(AI.PRESETS);
     return AICredentials.load(null, AI.PRESETS);
   }
-  function aiForm(onChange, { compact = false } = {}) {
+  function aiForm(onChange, { compact = false, ledger = false } = {}) {
     let cfg = loadAI();
     const provider = el('select', {}, ...Object.entries(AI.PRESETS).map(([k,p])=>el('option',{value:k},p.label)));
     const url = el('input',{value:cfg.baseURL,placeholder:'https://…/v1'});
@@ -8804,6 +8768,18 @@ const BannerArt = (() => {
       try { const t=await AI.call(loadAI(),[{role:'user',content:"한국어로 '준비 완료'라고만 답해."}],{maxTokens:400,timeout:60000}); result.textContent=`연결 성공: ${t.trim().slice(0,60)}`; }
       catch(e){result.textContent=`실패: ${e.message}`;} finally {test.disabled=false; fillModels();}
     }}},'연결 테스트');
+    if (ledger) {
+      // 첫 화면 테이블 설정: 장부 줄(왼쪽 꼬리표 라벨 · 오른쪽 값), 주소 · 키 기억 · 사용량은 접힘
+      const row = (k, ...c) => el('label',{class:'lg-row'},el('span',{class:'lg-k'},k),...c);
+      return el('div',{class:'lg'},
+        row('공급자',provider), row('모델',model,models),
+        el('div',{class:'lg-row'},el('span',{class:'lg-k'},'API 키'),key,test), result,
+        el('details',{class:'lg-fold'},el('summary',{},el('span',{class:'lg-k'},'고급'),el('span',{class:'lg-sum'},'API 주소 · 키 기억 · 사용량')),
+          el('div',{class:'lg-sub'},row('API 주소',url),
+            el('label',{class:'lg-row'},el('span',{class:'lg-k'},'키 기억'),el('span',{class:'lg-ck'},remember,el('i')),el('span',{class:'small'},'이 브라우저에 키 기억 (선택)')),
+            el('p',{class:'small muted'},'기본: 이 탭을 닫을 때까지 사용. 기억을 선택하면 브라우저에 키를 저장함. 공급자·주소별로 분리하며 친구에게 전송하지 않음.'),
+            usagePanel())));
+    }
     return el('div',{class:'ai-grid'},
       el('label',{class:'field'},el('span',{},'공급자'),provider),el('label',{class:'field'},el('span',{},'모델'),model,models),
       el('label',{class:'field full'},el('span',{},'API 주소'),url),el('label',{class:'field full'},el('span',{},'API 키'),key),
@@ -8833,189 +8809,84 @@ const BannerArt = (() => {
   }
 
   /* ---------------- 호스트 설정 ---------------- */
-  let validScenario = null;
+  let validScenario = null, scSealed = true;
+  function styleSummary(v) {
+    const T = { tone: { nominal: "명사형", prose: "소설체" }, length: { normal: "보통", short: "짧게", long: "길게" }, mood: { default: "시나리오대로", horror: "공포", adventure: "모험", comic: "코믹" },
+      difficulty: { normal: "보통", easy: "쉬움", hard: "어려움" } };
+    return Object.entries(T).map(([k, m]) => m[v?.[k]] ?? Object.values(m)[0]).join(" · ") + " …";
+  }
   function initSetup() {
-    if (!$("#yamlInput").value) $("#yamlInput").value = SAMPLE_COC_YAML;
     $("#hostNameInput").value ||= LS.get(K.name) ?? "";
-    $("#setupAi").replaceChildren(aiForm());
-    $("#setupStyle").replaceChildren(styleForm({ ...(LS.get(K.aiStyle) ?? {}) }, (v) => LS.set(K.aiStyle, v)));
+    $("#setupAi").replaceChildren(aiForm(null, { ledger: true }));
+    const st = { ...(LS.get(K.aiStyle) ?? {}) };
+    $("#styleSum").textContent = styleSummary(st);
+    $("#setupStyle").replaceChildren(styleForm(st, (v) => { LS.set(K.aiStyle, v); $("#styleSum").textContent = styleSummary(v); }));
     validate();
   }
-  for (const tab of document.querySelectorAll(".tab")) {
-    tab.addEventListener("click", () => {
-      for (const t of document.querySelectorAll(".tab")) { t.classList.toggle("active", t === tab); $(`#tab-${t.dataset.tab}`).hidden = t !== tab; }
-      $("#yamlTools").hidden = tab.dataset.tab !== "yaml";   // 파일 열기 · 검사는 YAML 탭에서만
-    });
-  }
+  // 파일 불러오기 · 샘플 = 시나리오 머리 줄 색인 탭. 넣은 쪽 탭이 진한 색
+  const markSource = (which) => { $("#fileOpenBtn").classList.toggle("on", which === "file"); $("#sampleBtn").classList.toggle("on", which === "sample"); };
   $("#fileOpenBtn").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#scenarioFile").click(); } });
-  $("#sampleBtn").addEventListener("click", () => { $("#yamlInput").value = SAMPLE_COC_YAML; validate(); });
+  $("#sampleBtn").addEventListener("click", () => { $("#yamlInput").value = SAMPLE_COC_YAML; scSealed = true; markSource("sample"); Sfx.play(validate() ? "stamp" : "deny"); });
   $("#scenarioFile").addEventListener("change", async (e) => {
-    try { $("#yamlInput").value = await readFile(e.target); validate(); }
+    try { $("#yamlInput").value = await readFile(e.target); scSealed = true; markSource("file"); Sfx.play(validate() ? "stamp" : "deny"); }
     catch (err) { $("#setupError").textContent = err.message; }
+    e.target.value = "";
   });
-  $("#validateBtn").addEventListener("click", () => Sfx.play(validate() ? "stamp" : "deny"));
-  $("#yamlInput").addEventListener("input", () => { validScenario = null; $("#openTableBtn").disabled = true; });
+  // 봉인 푼 상태에서 원문을 고치면 잠시 뒤 다시 검사
+  let revalidate = 0;
+  $("#yamlInput").addEventListener("input", () => { validScenario = null; $("#openTableBtn").disabled = true; clearTimeout(revalidate); revalidate = setTimeout(validate, 700); });
+  $("#sealBtn").addEventListener("click", () => { scSealed = !scSealed; drawEnvelope(); });
 
+  /** 시나리오 글 → { sc, errors, warnings } (해석 실패면 fatal) */
+  function checkScenario(text) {
+    if (text.length > 3_000_000) return { fatal: "시나리오 입력이 너무 큼. 최대 300만 자까지 지원." };
+    try {
+      const sc = jsyaml.load(text);
+      if (sc && typeof sc === "object" && !Array.isArray(sc) && !sc.system) sc.system = "coc7";
+      return { sc, ...Engine.validateScenario(sc) };
+    } catch (err) {
+      return { fatal: `시나리오 해석·검사 오류: ${String(err.message).split("\n")[0]}` };
+    }
+  }
+  let lastCheck = null;
+  /** 서류 봉투: 비었음 / 봉인(제목 · 소개만, 스포 없음) / 봉인 풂(원문) */
+  function drawEnvelope() {
+    const env = $("#scEnv"), has = !!$("#yamlInput").value.trim(), c = lastCheck;
+    const state = !has ? "empty" : scSealed ? "sealed" : "open";
+    env.dataset.state = state;
+    $("#sealBtn").hidden = !has;
+    $("#sealBtn").textContent = scSealed ? "봉인 풀기 (스포일러)" : "다시 봉인";
+    const sc = c?.sc && typeof c.sc === "object" ? c.sc : null;
+    const title = typeof sc?.title === "string" ? sc.title : "";
+    $("#scNo").textContent = title ? String([...title].reduce((h, ch) => (h * 31 + ch.codePointAt(0)) % 9000, 7) + 1000) : "----";
+    const intro = typeof sc?.synopsis === "string" && sc.synopsis.trim() ? sc.synopsis : typeof sc?.summary === "string" ? sc.summary : "";
+    const jobs = (() => { try { return validScenario ? Engine.charRules(validScenario).backgrounds.length : 0; } catch { return 0; } })();
+    $("#scLabel").replaceChildren(...(!has
+      ? [el("div", { class: "ev-k" }, "비어 있음"), el("div", { class: "ev-syn" }, "파일을 불러오거나 샘플을 고름.")]
+      : [el("div", { class: "ev-k" }, "CoC 7판 · 사건 기록"), el("div", { class: "ev-t" }, title || "(제목 없음)"),
+        intro ? el("div", { class: "ev-syn" }, intro) : null,
+        el("div", { class: "ev-meta" }, el("span", {}, `최대 ${MAX_PEOPLE}명`), jobs ? el("span", {}, `직업 ${jobs}`) : null)]));
+  }
   function validate() {
-    const box = $("#validateResult");
+    const box = $("#validateResult"), status = $("#scStatus");
     validScenario = null;
     $("#openTableBtn").disabled = true;
-    const yamlText = $("#yamlInput").value;
-    if (yamlText.length > 3_000_000) {
-      box.replaceChildren(el("p", { class: "err" }, "시나리오 입력이 너무 큼. 최대 300만 자까지 지원."));
-      return null;
+    const text = $("#yamlInput").value;
+    if (!text.trim()) { lastCheck = null; status.replaceChildren(); box.replaceChildren(); drawEnvelope(); return null; }
+    const c = lastCheck = checkScenario(text);
+    if (c.fatal) {
+      status.replaceChildren(el("span", { class: "bad" }, "열 수 없음"));
+      box.replaceChildren(el("p", { class: "err" }, c.fatal));
+    } else {
+      // 경고 · 오류 내용은 봉인과 상관없이 보임
+      status.replaceChildren(c.errors.length ? el("span", { class: "bad" }, `오류 ${c.errors.length} · 수정해야 열림`) : el("span", { class: "ok" }, "✓ 열 수 있음"),
+        c.warnings.length ? el("span", { class: "wn" }, ` · 경고 ${c.warnings.length}`) : null);
+      box.replaceChildren(...c.errors.map((e) => el("p", { class: "err" }, e)), ...c.warnings.map((w) => el("p", { class: "warn" }, w)));
+      if (!c.errors.length) { validScenario = c.sc; $("#openTableBtn").disabled = false; }
     }
-    let sc, errors, warnings;
-    try {
-      sc = jsyaml.load(yamlText);
-      if (sc && typeof sc === "object" && !Array.isArray(sc) && !sc.system) sc.system = "coc7";
-      ({ errors, warnings } = Engine.validateScenario(sc));
-    } catch (err) {
-      box.replaceChildren(el("p", { class: "err" }, `시나리오 해석·검사 오류: ${String(err.message).split("\n")[0]}`));
-      return null;
-    }
-    const parts = [];
-    if (errors.length) parts.push(el("div", { class: "err" }, `오류 ${errors.length}개. 수정해야 열림.`, el("ul", {}, errors.map((e) => el("li", {}, e)))));
-    if (warnings.length) parts.push(el("div", { class: "warn" }, `경고 ${warnings.length}개`, el("ul", {}, warnings.map((w) => el("li", {}, w)))));
-    if (!errors.length) {
-      const r = Engine.charRules(sc);
-      parts.unshift(el("p", { class: "ok" },
-        `✔ 「${sc.title}」 — CoC 7판 · 사건 ${Object.keys(sc.scenes).length}개${sc.canon?.length ? ` · 고정 사실 ${sc.canon.length}개` : ""} · `
-        + `기능 ${r.skills.join(", ")} · 직업 ${r.backgrounds.length}개${r.mp ? " · MP 사용" : ""}`));
-      validScenario = sc;
-      $("#openTableBtn").disabled = false;
-    }
-    box.replaceChildren(...parts);
-    renderReview();
+    drawEnvelope();
     return validScenario;
   }
-
-  /* ---------------- 사건 흐름 검토: 흐름도 + 사건 카드, 글 칸을 고치면 YAML에 반영 ---------------- */
-  /** 안쪽 형식(scenes·description·exits) → 사건 형식(events·intro·next) YAML */
-  function toEventsYAML(sc) {
-    const order = ["title", "system", "summary", "objective", "start", "bgm", "canon", "character", "flags", "events", "npcs", "deviation"];
-    const ev = {};
-    for (const [id, s] of Object.entries(sc.scenes)) {
-      const { description, exits, ...rest } = s;
-      const e = { title: rest.title, goal: rest.goal, intro: description, places: rest.places, hints: rest.hints };
-      for (const [k, v] of Object.entries(rest)) if (!(k in e)) e[k] = v;
-      if (exits?.length) e.next = exits.map((x) => ({ to: x.to, ...(x.label ? { label: x.label } : {}), when: x.when ?? "always" }));
-      for (const k of Object.keys(e)) if (e[k] == null || (Array.isArray(e[k]) && !e[k].length) || e[k] === "") delete e[k];
-      ev[id] = e;
-    }
-    const out = {};
-    const src = { ...sc, events: ev };
-    delete src.scenes;
-    for (const k of order) if (src[k] != null) out[k] = src[k];
-    for (const [k, v] of Object.entries(src)) if (!(k in out) && v != null) out[k] = v;
-    return "# 사건 흐름 시나리오 (검토 화면에서 고친 내용 반영됨)\n" + jsyaml.dump(out, { lineWidth: 100, noRefs: true });
-  }
-  function applyReviewEdit() {
-    $("#yamlInput").value = toEventsYAML(validScenario);
-    validate();
-  }
-  function renderReview() {
-    const box = $("#reviewBox");
-    const sc = validScenario;
-    if (!sc) { box.replaceChildren(el("p", { class: "muted small" }, "시나리오 검사를 통과하면 사건 흐름이 표시됨. 오류는 아래 검사 결과 참고.")); return; }
-    // 흐름도: 첫 사건에서의 거리로 칸을 나눠 왼쪽 → 오른쪽
-    const depth = { [sc.start]: 0 }, q = [sc.start];
-    while (q.length) { const id = q.shift(); for (const x of sc.scenes[id]?.exits ?? []) if (sc.scenes[x.to] && !(x.to in depth)) { depth[x.to] = depth[id] + 1; q.push(x.to); } }
-    let maxD = Math.max(0, ...Object.values(depth));
-    for (const id of Object.keys(sc.scenes)) if (!(id in depth)) depth[id] = ++maxD;
-    const cols = {};
-    for (const id of Object.keys(sc.scenes)) (cols[depth[id]] ??= []).push(id);
-    const NW = 126, NH = 36, CG = 168, RG = 51, PAD = 9;
-    const rowsN = Math.max(...Object.values(cols).map((c) => c.length));
-    const pos = {};
-    for (const [c, ids] of Object.entries(cols)) ids.forEach((id, i) => { pos[id] = { x: PAD + c * CG, y: PAD + (i + (rowsN - ids.length) / 2) * RG }; });
-    const W = PAD * 2 + maxD * CG + NW, H = PAD * 2 + (rowsN - 1) * RG + NH;
-    const short = (t, n) => ([...t].length > n ? [...t].slice(0, n - 1).join("") + "…" : t);
-    const edges = [];
-    for (const [id, s] of Object.entries(sc.scenes)) for (const x of s.exits ?? []) {
-      const a = pos[id], b = pos[x.to];
-      if (!a || !b) continue;
-      const x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x, y2 = b.y + NH / 2;
-      const back = x2 <= x1;
-      const d = back ? `M${a.x + NW / 2},${a.y + NH} C${a.x + NW / 2},${a.y + NH + 30} ${b.x + NW / 2},${b.y + NH + 30} ${b.x + NW / 2},${b.y + NH}` : `M${x1},${y1} C${x1 + 40},${y1} ${x2 - 40},${y2} ${x2 - 6},${y2}`;
-      const cond = Engine.condText(x.when);
-      edges.push(svg("path", { d, class: `rv-edge${cond === "always" ? "" : " cond"}` }, svg("title", {}, `${s.title ?? id} → ${sc.scenes[x.to].title ?? x.to}${cond === "always" ? "" : ` · 조건: ${cond}`}`)));
-    }
-    const nodes = Object.entries(sc.scenes).map(([id, s]) => svg("g", { class: `rv-node${id === sc.start ? " start" : ""}${s.ending ? " ending" : ""}`, "data-id": id },
-      svg("title", {}, `${s.title ?? id}${s.goal ? ` · 목표: ${s.goal}` : ""}`),
-      svg("rect", { x: pos[id].x, y: pos[id].y, width: NW, height: NH }),
-      svg("text", { x: pos[id].x + NW / 2, y: pos[id].y + NH / 2 + 4 }, short(s.title ?? id, 9))));
-    const flow = svg("svg", { viewBox: `0 0 ${W} ${H + 30}`, width: W, height: H + 30, class: "rv-flow", role: "img", "aria-label": "사건 흐름도" },
-      svg("defs", {}, svg("marker", { id: "rvArrow", viewBox: "0 0 6 6", refX: 5, refY: 3, markerWidth: 6, markerHeight: 6, orient: "auto" }, svg("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#5a4936" }))),
-      edges, nodes);
-    flow.addEventListener("click", (e) => { const g = e.target.closest(".rv-node"); if (g) box.querySelector(`.rv-card[data-id="${g.dataset.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" }); });
-    // 글 칸: 고치면 바로 YAML에 반영
-    const edit = (obj, key, { multi = false, list = false, ph = "" } = {}) => {
-      const val = list ? (obj[key] ?? []).join(multi ? "\n" : ", ") : (obj[key] ?? "");
-      const n = el(multi ? "textarea" : "input", { value: val, placeholder: ph, rows: multi ? 3 : null, class: "rv-in" });
-      if (multi) n.value = val;
-      n.addEventListener("change", () => {
-        const v = n.value.trim();
-        if (list) { const arr = v.split(multi ? /\n+/ : /\s*,\s*/).map((x) => x.trim()).filter(Boolean); if (arr.length) obj[key] = arr; else delete obj[key]; }
-        else if (v) obj[key] = v; else delete obj[key];
-        applyReviewEdit();
-      });
-      return n;
-    };
-    const npcName = (nid) => sc.npcs?.[nid]?.name ?? nid;
-    const cards = Object.entries(sc.scenes).sort((a, b) => depth[a[0]] - depth[b[0]]).map(([id, s]) => el("section", { class: `rv-card${s.ending ? " ending" : ""}`, "data-id": id },
-      el("div", { class: "rv-head" }, el("span", { class: "rv-id mono" }, id), id === sc.start ? el("span", { class: "tag" }, "첫 사건") : null, s.ending ? el("span", { class: "tag" }, "결말") : null),
-      el("label", { class: "field" }, el("span", {}, "제목"), edit(s, "title")),
-      el("label", { class: "field" }, el("span", {}, "사건 목표 (GM용)"), edit(s, "goal", { ph: "이 사건에서 일어나야 할 일" })),
-      el("label", { class: "field" }, el("span", {}, "도입 (플레이어에게 보임)"), edit(s, "description", { multi: true })),
-      el("label", { class: "field" }, el("span", {}, "사건 안 장소 (쉼표로)"), edit(s, "places", { list: true, ph: "예: 부두, 어부의 오두막" })),
-      el("label", { class: "field" }, el("span", {}, "막혔을 때 힌트 (한 줄에 하나, 약 → 강)"), edit(s, "hints", { list: true, multi: true })),
-      el("div", { class: "rv-facts small" },
-        s.npcs?.length ? el("div", {}, el("b", {}, "NPC "), s.npcs.map(npcName).join(" · ")) : null,
-        s.clues?.length ? el("div", {}, el("b", {}, "단서 "), s.clues.map((c) => c.id).join(" · ")) : null,
-        s.checks?.length ? el("div", {}, el("b", {}, "판정 "), s.checks.map((c) => `${c.label ?? c.id}(${c.san ? `이성 ${c.san}` : `${c.skill} ${Rules.normDiff(c.difficulty) ?? "보통"}`})`).join(" · ")) : null,
-        s.exits?.length ? el("div", {}, el("b", {}, "다음 "), s.exits.map((x) => `${sc.scenes[x.to]?.title ?? x.to}${Engine.condText(x.when) === "always" ? "" : ` [${Engine.condText(x.when)}]`}`).join(" · ")) : null,
-        s.map ? el("div", {}, el("b", {}, "지도 "), "있음") : null)));
-    box.replaceChildren(
-      el("p", { class: "muted small" }, "흐름도의 사건을 누르면 그 카드로 이동. 글 칸을 고치면 YAML에 바로 반영 (YAML 주석은 사라짐). 단서 · 판정 · 조건 같은 구조는 YAML 탭에서."),
-      el("div", { class: "rv-flow-wrap" }, flow),
-      el("label", { class: "field" }, el("span", {}, "고정 사실 (한 줄에 하나 · 진행 중 절대 안 바뀜)"), edit(sc, "canon", { list: true, multi: true, ph: "예: 미라는 이미 죽은 유령임" })),
-      el("div", { class: "rv-cards" }, cards));
-  }
-
-  $("#convertBtn").addEventListener("click", async () => {
-    const prose = $("#proseInput").value.trim();
-    if (prose.length < 50) return ($("#setupError").textContent = "줄글이 너무 짧음.");
-    if (!AI.ready(loadAI())) return ($("#setupError").textContent = "AI 설정 먼저 (4쪽).");
-    const btn = $("#convertBtn");
-    btn.disabled = true;
-    $("#setupError").textContent = "";
-    const status = $("#convertStatus");
-    try {
-      let sc;
-      if (AI.isLongProse(prose)) {
-        // 긴 글: 뼈대 → 사건별로 나눠 변환
-        let step = "";
-        const wait = (sec, n, all) => { status.textContent = `${step} · AI 서버 붐빔 → ${sec}초 뒤 다시 (${n}/${all})`; };
-        sc = await AI.convertLong(prose, (msgs, opts) => AI.callRetry(loadAI(), msgs, opts, { onWait: wait }), (t) => { step = t; btn.textContent = `변환 중… ${t}`; status.textContent = t; });
-      } else {
-        btn.textContent = "변환 중… (최대 2분)";
-        sc = AI.parseScenario(await AI.callRetry(loadAI(), AI.convertMessages(prose), { maxTokens: 6000, timeout: 180000 }, { onWait: (sec, n, all) => { status.textContent = `AI 서버 붐빔 → ${sec}초 뒤 다시 (${n}/${all})`; } }));
-        sc.system = "coc7";
-      }
-      Engine.normalize(sc);
-      $("#yamlInput").value = toEventsYAML(sc).replace(/^# .*\n/, "# AI 변환본. 검토 필수.\n");
-      validate();
-      document.querySelector('.tab[data-tab="review"]').click();   // 결과는 사건 흐름 검토로 바로
-      status.textContent = "";
-      toast("변환 완료. 사건 흐름 검토 · 검사 결과 확인 필요.");
-    } catch (err) {
-      $("#setupError").textContent = `변환 실패: ${err.message}`;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "AI로 변환";
-    }
-  });
 
   function hostOptions() {
     const name = $("#hostNameInput").value.trim();
@@ -9032,23 +8903,40 @@ const BannerArt = (() => {
     const room = randomId(10);
     const data = HostGame.create({ roomId: room, hostName: o.name, hostKey: randomId(24), hostPlays: o.hostPlays, mode: o.mode, scenario: sc, aiStyle: o.aiStyle });
     if (!(await DB.set(K.host(room), data))) return ($("#setupError").textContent = "브라우저 저장 공간 부족.");
+    // 날인란에 도장이 쾅 → 방으로
+    const btn = $("#openTableBtn");
+    btn.classList.add("stamped"); btn.disabled = true; Sfx.play("stamp");
+    await new Promise((r) => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 380));
     Book.leave(`room=${room}`);
   });
 
+  // 복구 (이어하기 장): 같은 시나리오 파일 → 친구의 사본 파일
+  let recoverSc = null;
+  $("#recoverScInput").addEventListener("change", async (e) => {
+    $("#recoverError").textContent = ""; recoverSc = null; $("#recoverSc").textContent = "";
+    try {
+      const c = checkScenario(await readFile(e.target));
+      if (c.fatal) throw new Error(c.fatal);
+      if (c.errors.length) throw new Error(`시나리오 오류 ${c.errors.length}개: ${c.errors[0]}`);
+      recoverSc = c.sc; $("#recoverSc").textContent = `✓ 「${c.sc.title}」`;
+    } catch (err) { $("#recoverError").textContent = err.message; }
+    e.target.value = "";
+  });
   $("#recoverInput").addEventListener("change", async (e) => {
     try {
-      const sc = validScenario ?? validate();
-      if (!sc) throw new Error("시나리오 넣기 쪽에 같은 시나리오를 넣고 검사 통과 먼저.");
+      $("#recoverError").textContent = "";
+      const sc = recoverSc;
+      if (!sc) throw new Error("시나리오 파일 먼저 선택.");
       const copy = JSON.parse(await readFile(e.target));
       if (copy?.snap?.scenario?.title && copy.snap.scenario.title !== sc.title &&
-          !confirm(`사본은 「${copy.snap.scenario.title}」, 지금 것은 「${sc.title}」. 계속 진행?`)) return;
+          !confirm(`사본은 「${copy.snap.scenario.title}」, 고른 시나리오는 「${sc.title}」. 계속 진행?`)) return;
       const data = HostGame.fromPlayerCopy(copy, sc, randomId(24));
       if (await DB.get(K.host(data.roomId)) && !confirm("같은 테이블이 이미 있음. 덮어쓰기?")) return;
       if (!(await DB.set(K.host(data.roomId), data))) throw new Error("브라우저 저장 공간 부족.");
       Book.leave(`room=${data.roomId}`);
     } catch (err) {
-      $("#setupError").textContent = `복구 실패: ${err.message}`;
-    }
+      $("#recoverError").textContent = `복구 실패: ${err.message}`;
+    } finally { e.target.value = ""; }
   });
 
   /* ---------------- 호스트 시작 ---------------- */
@@ -12144,9 +12032,6 @@ const BannerArt = (() => {
     pin: ["....xxxx....", "...xxxxxx...", "..xxxxxxxx..", "..xxx..xxx..", "..xxx..xxx..", "..xxxxxxxx..", "...xxxxxx...", "...xxxxxx...", "....xxxx....", "....xxxx....", ".....xx.....", "............"],
     // 판정 굴리기 = 선으로 그린 육면체 주사위 (단색, 글자색)
     die_line: ["......xxxx......", "....xx....xx....", "..xx........xx..", "xx.....xx.....xx", "xx............xx", "x.xx........xx.x", "x...xx....xx...x", "x.....xxxx.....x", "x......xx...xx.x", "x..xx..xx...xx.x", "x..xx..xx......x", "x......xx.xx...x", "xx.....xx.xx..xx", "..xx...xx...xx..", "....xx.xx.xx....", "......xxxx......"],
-    // 시나리오 넣기: 파일 열기 = 금빛 서류철 · 검사 = 체크 표시 클립보드
-    folder: ["................", "................", ".kkkkkk.........", "kGGGGGGk........", "kGggggggkkkkkkk.", "kGgggggggggggggk", "kGgkkkkkkkkkkkkk", "kGkGGGGGGGGGGGGk", "kgkGgggggggggggk", "kgkGgggggggggggk", "kgkGgggggggggggk", "kgkGggggggggggok", "kgkooooooooooook", "kkkkkkkkkkkkkkkk", "................", "................"],
-    clipcheck: [".....kkkkkk.....", ".kkkkSSSSSSkkkk.", ".kbbkSkkkkSkbbk.", ".kbbbkkkkkkbbbk.", ".kbWWWWWWWWWWbk.", ".kbWWWWWWWWWWbk.", ".kbWWWWWWWWWmbk.", ".kbWWWWWWWWmmbk.", ".kbWmWWWWWmmWbk.", ".kbWmmWWWmmWWbk.", ".kbWWmmWmmWWWbk.", ".kbWWWmmmWWWWbk.", ".kbWWWWmWWWWWbk.", ".kbWWWWWWWWWWbk.", ".kbbbbbbbbbbbbk.", ".kkkkkkkkkkkkkk."],
     // 도움말 = 귀퉁이 접힌 메모지에 물음표
     help: ["................", ".kkkkkkkkkkkkk..", ".kWWWWWWWWWWWdk.", ".kWWWkkkkkWWWdk.", ".kWWkkWWWkkWWdk.", ".kWWkkWWWkkWWdk.", ".kWWWWWWkkWWWdk.", ".kWWWWWkkWWWWdk.", ".kWWWWkkWWWWWdk.", ".kWWWWkkWWWWWdk.", ".kWWWWWWWWWWWdk.", ".kWWWWkkWWWWdkk.", ".kWWWWkkWWWdPk..", ".kddddddddkPk...", ".kkkkkkkkkkk....", "................"],
     gear: ["......kkkk......", "..kk.kLLLLk.kk..", ".kLLkkLMMDkkLDk.", ".kLMLLMMMMLLMDk.", "..kLMMMMMMMMDk..", ".kkLMMDDDDMMDkk.", "kLLMMDDkkLLMMLDk", "kLMMMDk..kLMMMDk", "kLMMMDk..kLMMMDk", "kLDMMDLkkLLMMDDk", ".kkLMMLLLLMMDkk.", "..kLMMMMMMMMDk..", ".kLMDDMMMMDDMDk.", ".kDDkkLMMDkkDDk.", "..kk.kDDDDk.kk..", "......kkkk......"],
