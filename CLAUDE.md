@@ -31,7 +31,7 @@
 - 접속: 플레이어가 연결되면 `join`(키 · 닉네임 · APP_BUILD) → 호스트 `hello`. APP_BUILD 10 (10 = 참가 전 명단 미리 보기 `peek` 추가, 8은 잠깐 쓴 서명 방식, 섞이면 버전 다름 안내). 참가 화면은 코드만으로 `Net.peekRoom` → 호스트가 `join` 대신 `peek`{key}를 받으면 `rosterPreview(key)`(이름 · 캐릭터 이름 · GM · 작성 중 · 접속, 물어본 사람 자리 제외, 키·비밀 없음)를 `roster`로 답하고 0.6초 뒤 끊음. 호스트가 없거나 9초 넘으면 빈 카드
 - 전송: 플레이어가 `serialization: "binary"`로 접속(호스트는 따라감) → 16KB 넘는 메시지(최근 기록 300개 · 보관함 쪽 · 그림)를 PeerJS가 조각으로 나눠 보냄. json은 16,300바이트 넘으면 못 보내고 error → 예전엔 호스트가 그 플레이어를 끊음. 보낼 때 `wire()`(JSON 왕복)로 undefined 칸 제거·Infinity→null. `message-too-big`·`not-open-yet` 오류는 끊김으로 안 봄. 보관함 요청(`history`)은 입력 횟수 제한과 따로 셈(5초 30회)
 - 재연결: 중개 서버만 끊기면 peer 유지 + `reconnect()` 백오프(2→30초), 플레이어 peer는 `once("open")`, P2P 살아 있으면 peer 오류 무시. ICE = 설정의 내 TURN(`trpg:ice`) + PeerJS 기본(공용 STUN·TURN)
-- 추방: 키 기억, 초상·지도 말·위치·대기 판정·재굴림 정리
+- 추방 기능 없음(친구끼리라 삭제). 예전 세이브의 `banned`는 불러올 때 지움
 - 자동 저장 0.4초 묶음(창 닫기·탭 숨김은 즉시). 호스트 탭 잠금 = Web Locks(없으면 localStorage 심장박동). 보관함 병합 결과는 `logSeq`가 같으면 재사용
 - 저장: IndexedDB(호스트 세이브·플레이어 사본), localStorage(설정, 단서 `trpg:clueKind/clueOrder/clueSeen:<room>`, 작성 중 기록지 `trpg:draft:<room>` = {scenario, draft}, 서식 보관 `trpg:character-profiles:v1`, 최근 NPC `trpg:recentNpc:<room>`)
 
