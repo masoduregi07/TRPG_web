@@ -272,3 +272,27 @@ test("NPC 설정 카드: YAML에 AI 카드를 겹침 · 이야기 중 바뀜 · 
   assert.deepEqual([...safe.knows], ["밤바다엔 노랫소리가 들린다는 소문"]);
   assert.deepEqual([...safe.relations], ["x"]);
 });
+
+test("NPC 카드: 한 번 요청으로 여러 명 · GM이 바쁘면 안 만듦 · 못 만든 NPC는 다시 안 함", async () => {
+  const m = load();
+  const out = m.AI.parseNpcCards(JSON.stringify({ cards: [{ id: "a", knows: ["x"], lines: ["y"] }, { id: "b", wants: "z" }, { id: "zz", wants: "?" }] }), ["a", "b"]);
+  assert.deepEqual(Object.keys(out).sort(), ["a", "b"]);
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const s0 = sc.scenes[sc.start]; sc.npcs.o1 = { name: "오스카", look: "x", personality: "y" }; s0.npcs.push("o1");
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  const asked = [];
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {}, aiCall: async (msgs) => {
+    asked.push(msgs[1].content);
+    return JSON.stringify({ cards: [{ id: s0.npcs[0], knows: ["삼십 년째 고기잡이"], lines: ["허허."] }] });
+  } });
+  data.phase = "play"; data.game = m.Engine.newState(sc); g.aiReady = () => true;
+  g.ai.busy = true;
+  assert.equal(g.ensureNpcCards(), null, "GM 차례 중엔 안 만듦");
+  g.ai.busy = false;
+  await g.ensureNpcCards();
+  assert.equal(asked.length, 1, "한 번 요청");
+  assert.match(asked[0], /오스카/);
+  assert.ok(data.game.npcCards[s0.npcs[0]].gen);
+  assert.deepEqual([...data.game.npcCardFail], ["o1"], "응답에 없던 NPC는 실패로");
+  assert.equal(g.ensureNpcCards(), null, "다시 안 함");
+});
