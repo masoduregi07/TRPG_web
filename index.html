@@ -2427,8 +2427,8 @@ html.has-3d .topbar { box-shadow: none; }
 .lg > .small.muted:empty { display: none; }
 .lg-ck { position: relative; display: inline-flex; align-items: center; gap: 6px; margin-right: 14px; cursor: pointer; }
 .lg-ck input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.lg-ck i { display: inline-grid; place-items: center; width: 16px; height: 16px; border: 1.5px solid #3b2a1a; font-style: normal; font-size: 16px; font-weight: 700; line-height: 1; color: #120a05; text-shadow: .6px 0 0 #120a05, 0 .6px 0 #120a05; }
-.lg-ck input:checked + i::after { content: "✓"; }
+.lg-ck i { position: relative; display: inline-block; width: 15px; height: 15px; border: 1.5px solid #3b2a1a; font-style: normal; }
+.lg-ck input:checked + i::after { content: "✓"; position: absolute; left: -1px; bottom: -2px; font: 700 30px/1 var(--font); color: #120a05; text-shadow: .8px 0 0 #120a05, 0 .8px 0 #120a05; rotate: -6deg; pointer-events: none; }   /* 칸 밖으로 삐져나오는 잉크 체크 */
 .lg-ck input:focus-visible + i { outline: 2px dotted #2b1a0c; outline-offset: 2px; }
 .lg-ck small { font-size: 11px; color: #7a6650; }
 .lg-row > .lg-k + .lg-ck { margin-left: 0; }
@@ -2446,6 +2446,9 @@ html.has-3d .topbar { box-shadow: none; }
 .lg-sum { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lg-sub { padding: 0 0 8px 14px; }
 .lg-sub .lg { margin-bottom: 4px; }
+.lg.lg-2 { grid-template-columns: 1fr 1fr; column-gap: 14px; }
+.lg.lg-2 > .lg-row:nth-last-child(2), .lg.lg-2 > .lg-note { grid-column: 1 / -1; }
+.lg.lg-2 .lg-row select { min-width: 0; }
 .lg-sub .lg-k { min-width: 64px; }
 .lg-note { margin: 6px 0 0; font: 11.5px/1.5 var(--font); color: #6b5338 !important; }
 .lg-sub .small { font: 11.5px/1.4 var(--font); }
@@ -9042,12 +9045,13 @@ const BannerArt = (() => {
     };
     const avoid = el("input", { value: cur.avoid ?? "", maxlength: 200, placeholder: "예: 잔혹한 묘사, 거미 · 비우면 없음" });
     avoid.addEventListener("change", () => { cur.avoid = avoid.value.trim(); onChange({ ...cur }); });
-    if (ledger) return el("div", { class: "lg" },
-      sel("tone", "문체", [["nominal", "명사형 (~함, ~됨)"], ["prose", "소설체 (~했다)"]]),
+    // 두 칸씩 나란히: 문체 | 난이도 · 서술 분량 | 즉흥 판정 · 분위기 | NPC 연기
+    if (ledger) return el("div", { class: "lg lg-2" },
+      sel("tone", "문체", [["nominal", "명사형"], ["prose", "소설체"]]),
+      sel("difficulty", "난이도", [["normal", "보통"], ["easy", "쉬움"], ["hard", "어려움"]]),
       sel("length", "서술 분량", [["normal", "보통"], ["short", "짧게"], ["long", "길게"]]),
-      sel("mood", "분위기", [["default", "시나리오대로"], ["horror", "공포"], ["adventure", "모험"], ["comic", "코믹"]]),
-      sel("difficulty", "난이도", [["normal", "보통"], ["easy", "쉬움 (보너스 주사위)"], ["hard", "어려움 (페널티 주사위)"]]),
       sel("improv", "즉흥 판정", [["normal", "보통"], ["low", "적게"], ["high", "자주"]]),
+      sel("mood", "분위기", [["default", "시나리오대로"], ["horror", "공포"], ["adventure", "모험"], ["comic", "코믹"]]),
       sel("npcVoice", "NPC 연기", [["plain", "담백하게"], ["vivid", "생생하게"]]),
       el("label", { class: "lg-row" }, el("span", { class: "lg-k" }, "피할 소재"), avoid),
       el("p", { class: "small muted lg-note" }, "서술 분량은 평소 기준. 사건 전환 · 단서 공개 · 대성공/대실패 · 결말은 자동으로 더 길게. 게임 중 GM 노트에서 바꿀 수 있음."));
