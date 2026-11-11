@@ -2405,10 +2405,6 @@ html.has-3d .topbar { box-shadow: none; }
   box-shadow: 0 -1px 0 rgba(60, 40, 20, .25), 1px 1px 0 rgba(60, 40, 20, .25), 0 4px 6px rgba(30, 15, 3, .35); font: 11px/1.35 var(--font); color: var(--ink); }
 /* 호버 = 카드끼리 밀린 간격(--step)만큼 그 자리에서 위로 → 제목 · 상태 · 대출일 · 플레이어가 다 보임 */
 .lb-card:hover, .lb-card:focus-within, .lb-card.hot, .lb-card.asking { translate: 0 calc(-1 * var(--step, 12px)); }
-.lb-card:nth-child(4n+1) { rotate: -3deg; left: 6%; right: 12%; }
-.lb-card:nth-child(4n+2) { rotate: 2deg; left: 12%; right: 6%; }
-.lb-card:nth-child(4n+3) { rotate: -.6deg; }
-.lb-card:nth-child(4n+4) { rotate: 1deg; left: 8%; right: 10%; }
 .lb-open { all: unset; display: block; width: 100%; cursor: pointer; }
 .lb-open:focus-visible { outline: 2px dotted #2b1a0c; outline-offset: 2px; }
 .lb-card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 18px 2px 0; margin-bottom: 2px; border-bottom: 2px solid #a8251a; }
