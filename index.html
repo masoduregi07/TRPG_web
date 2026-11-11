@@ -3619,23 +3619,28 @@ const Engine = (() => {
   function npcCardTodo(sc, st) {
     return (sceneOf(sc, st).npcs ?? []).filter((id) => {
       const n = sc.npcs?.[id];
-      if (!n || /^KPC$/i.test(String(n.name ?? "").trim()) || st.npcCards?.[id]?.gen) return false;
+      if (!n || /^KPC$/i.test(String(n.name ?? "").trim()) || st.npcCards?.[id]?.gen || st.npcCardFail?.includes(id)) return false;
       const c = npcCard(sc, {}, id);
       return !(c.knows.length && c.wants && c.relations.length && c.lines.length);
     });
   }
-  /** 카드 만들기에 주는 정보: 공개 소개 · 세계관(고정사실) · 그 장면 · 그 인물 · 이미 정한 칸 · 다른 인물의 말투(겹치지 않게) */
-  function npcCardInfo(sc, st, id, axes = null) {
-    const n = sc.npcs[id], s = sceneOf(sc, st), y = npcCard(sc, {}, id);
-    const others = Object.entries(st.npcCards ?? {}).filter(([k]) => k !== id && sc.npcs?.[k]).slice(-6)
+  /** 카드 만들기에 주는 정보(한 번에 여러 명): 공개 소개 · 세계관(고정사실) · 그 장면 · 인물들 · 이미 정한 칸 · 성격 축 · 이미 카드가 있는 다른 인물의 말투(겹치지 않게) */
+  function npcCardInfo(sc, st, ids, axes = {}) {
+    const s = sceneOf(sc, st);
+    const others = Object.entries(st.npcCards ?? {}).filter(([k, c]) => !ids.includes(k) && c?.gen && sc.npcs?.[k]).slice(-6)
       .map(([k, c]) => ({ 이름: npcName(sc, k), 말투: sc.npcs[k].voice ?? "", 예시대사: cardList(c.lines, 1, 100) }));
     return {
       시나리오: sc.title, 소개: clip(sc.synopsis ?? sc.summary ?? "", 600), 세계관: (sc.canon ?? []).map((x) => clip(x, 200)).slice(0, 12),
       장면: { 제목: s.title ?? st.currentScene, 묘사: clip(s.description, 600) },
-      인물: { 이름: npcName(sc, id), ...(n.job ? { 직업: n.job } : {}), 외모: n.look ?? "", 성격: n.personality ?? "", ...(n.voice ? { 말투: n.voice } : {}), ...(id.toLowerCase() === "kpc" ? { 역할: "일행과 함께 다니는 동료(KPC)" } : {}) },
-      이미정한것: Object.fromEntries(Object.entries(y).filter(([, v]) => (Array.isArray(v) ? v.length : v))),
-      숨길것: n.secret ?? "",
-      ...(axes ? { 성격축: axes } : {}),
+      인물들: ids.map((id) => {
+        const n = sc.npcs[id], y = npcCard(sc, {}, id);
+        return {
+          id, 이름: npcName(sc, id), ...(n.job ? { 직업: n.job } : {}), 외모: n.look ?? "", 성격: n.personality ?? "", ...(n.voice ? { 말투: n.voice } : {}),
+          ...(id.toLowerCase() === "kpc" ? { 역할: "일행과 함께 다니는 동료(KPC)" } : {}),
+          이미정한것: Object.fromEntries(Object.entries(y).filter(([, v]) => (Array.isArray(v) ? v.length : v))),
+          숨길것: n.secret ?? "", ...(axes[id] ? { 성격축: axes[id] } : {}),
+        };
+      }),
       다른인물: others,
     };
   }
@@ -4840,23 +4845,29 @@ ${JSON.stringify(info)}` },
   /* ---------------- NPC 설정 카드 ---------------- */
   function npcCardMessages(info) {
     return [
-      { role: "system", content: `너는 TRPG 시나리오의 NPC 한 명에게 대화용 설정 카드를 만든다. [정보]의 소개 · 세계관 · 장면에 맞춰, 이 시대 · 장소 · 직업에서 나올 법한 구체적인 내용으로 쓴다.
+      { role: "system", content: `너는 TRPG 시나리오의 NPC들에게 대화용 설정 카드를 만든다. [정보]의 "인물들" 한 명마다 카드 하나씩, 소개 · 세계관 · 장면에 맞춰 이 시대 · 장소 · 직업에서 나올 법한 구체적인 내용으로 쓴다.
 - knows: 이 인물이 알고 있어 물으면 말해 줄 수 있는 것 3~5개 (자기 과거 · 일 · 동네 사정 · 떠도는 소문). 소문은 "~라는 소문"처럼 불확실하게. 각 40자 안팎.
 - wants: 이 인물이 바라거나 두려워하는 것 한 줄.
 - relations: 다른 인물 · 장소 · 집단과의 관계 0~3개 (예: "바르톨 — 같은 배를 탔던 사이, '영감'이라 부름").
 - lines: 이 인물다운 예시 대사 2~3개. 말투 · 말버릇이 드러나게, 상황에 묶이지 않는 평범한 말로. 각 40자 안팎.
-지킬 것: "숨길것"과 세계관 속 사건의 진상 · 범인 · 정체 · 결말은 카드에 쓰지 않는다 (이 인물이 그걸 안다는 암시도 하지 않는다). 시나리오에 없는 새 사건 · 단서 · 물건을 만들지 않는다. "이미정한것"에 있는 칸은 그대로 두고 빈 칸만 채운다. "성격축"(말 빠르기 · 말수 · 관심사 · 버릇 종류)이 있으면 그 조합을 따르되, 이미 정해진 성격 · 말투와 어긋나는 축은 그쪽에 맞춘다.
-"신중하지만 친절함", "안경을 고쳐 씀", "말끝을 흐림" 같은 흔한 틀을 피하고, "다른인물"과 말투 · 관심사가 겹치지 않게 한다.
-아래 JSON 하나만 출력한다.
-{"knows": ["..."], "wants": "...", "relations": ["..."], "lines": ["..."]}` },
+지킬 것: 각 인물의 "숨길것"과 세계관 속 사건의 진상 · 범인 · 정체 · 결말은 카드에 쓰지 않는다 (그 인물이 그걸 안다는 암시도 하지 않는다). 시나리오에 없는 새 사건 · 단서 · 물건을 만들지 않는다. "이미정한것"에 있는 칸은 그대로 두고 빈 칸만 채운다. "성격축"(말 빠르기 · 말수 · 관심사 · 버릇 종류)이 있으면 그 조합을 따르되, 이미 정해진 성격 · 말투와 어긋나는 축은 그쪽에 맞춘다.
+"신중하지만 친절함", "안경을 고쳐 씀", "말끝을 흐림" 같은 흔한 틀을 피하고, 인물들끼리 그리고 "다른인물"과 말투 · 관심사가 겹치지 않게 한다.
+아래 JSON 하나만 출력한다 (id는 [정보]의 id 그대로).
+{"cards": [{"id": "...", "knows": ["..."], "wants": "...", "relations": ["..."], "lines": ["..."]}]}` },
       { role: "user", content: `[정보]\n${JSON.stringify(info)}` },
     ];
   }
-  function parseNpcCard(text) {
+  /** 카드 묶음 읽기 → { id: card }. 한 명짜리 옛 형식({knows, ...})도 받음 */
+  function parseNpcCards(text, ids = []) {
     const { obj } = extractJSON(text);
     const list = (v, n) => (Array.isArray(v) ? v : str(v) ? [v] : []).map((x) => (str(x) ?? "").slice(0, 100)).filter(Boolean).slice(0, n);
-    return { knows: list(obj?.knows, 5), wants: (str(obj?.wants) ?? "").slice(0, 100), relations: list(obj?.relations, 3), lines: list(obj?.lines, 3) };
+    const one = (o) => ({ knows: list(o?.knows, 5), wants: (str(o?.wants) ?? "").slice(0, 100), relations: list(o?.relations, 3), lines: list(o?.lines, 3) });
+    const arr = Array.isArray(obj?.cards) ? obj.cards : Array.isArray(obj) ? obj : obj && ids.length === 1 ? [{ id: ids[0], ...obj }] : [];
+    const out = {};
+    for (const c of arr) if (c && typeof c === "object" && ids.includes(str(c.id))) out[str(c.id)] = one(c);
+    return out;
   }
+  const parseNpcCard = (text) => parseNpcCards(text, ["_"])._ ?? { knows: [], wants: "", relations: [], lines: [] };
 
   /* ---------------- 캐릭터 제안 ---------------- */
   function charMessages(sc, rules, concept, identity) {
@@ -4877,7 +4888,7 @@ ${JSON.stringify(info)}` },
     };
   }
 
-  return { PRESETS, ready, call, callRetry, listModels, gmSystem, gmMessages, META_RE, summaryMessages, synopsisMessages, logLine, parseGM, charMessages, parseChar, npcCardMessages, parseNpcCard };
+  return { PRESETS, ready, call, callRetry, listModels, gmSystem, gmMessages, META_RE, summaryMessages, synopsisMessages, logLine, parseGM, charMessages, parseChar, npcCardMessages, parseNpcCard, parseNpcCards };
 })();
 
 
@@ -4932,7 +4943,7 @@ const Turn = (() => {
   }
   // 회피형 대답 ("모르겠다 · 당황스럽다 · 글쎄")
   // 회피형 대답: 모른다 · 당황 + 결론 없이 '짐작뿐' · '더 조사해 보자'로 미룸
-  const EVADE_RE = /모르겠|모릅니다|몰라요|모르는 일|잘 모르|당황|글쎄|짐작도 안|짐작뿐|짐작일 뿐|알 수가 없|알 수 없|알 길이 없|알 도리|확신할 수 없|단정할 수 없|조사해\s*보|둘러보면|둘러보는 게|살펴보면|더 찾아보|순서 아닐/;
+  const EVADE_RE = /모르겠|모릅니다|몰라요|모르는 일|잘 모르|당황|글쎄|짐작도 안|짐작뿐|짐작일 뿐|알 수가 없|알 수 없|알 길이 없|알 도리|확신할 수 없|단정할 수 없|조사해\s*보는 게|순서 아닐/;
   /* 문체 검사: 따옴표 속 대사는 빼고, 문장 끝이 정한 문체와 다른 문장 수를 셈.
    * 명사형이면 "~다 · ~요 · ~까"로 끝난 문장, 소설체면 받침 ㅁ(~함 · ~됨 · ~음)으로 끝난 문장이 어긋난 것 */
   const QUOTE_RE = /"[^"]*"|“[^”]*”|「[^」]*」|『[^』]*』|'[^'\n]*'|‘[^’]*’/g;
@@ -5973,37 +5984,41 @@ class HostGame {
     const parts = intro.split(/(?<=[.!?。…])\s+/).slice(0, 2).join(" ");
     return parts.slice(0, 220) || "";
   }
-  /** 지금 사건 NPC의 설정 카드를 AI로 미리 만듦 (AI GM일 때만, 한 번에 한 작업 · 실패한 NPC는 5분 뒤 다시). 실패해도 진행엔 영향 없음 */
+  /** 지금 사건 NPC의 설정 카드를 AI로 미리 만듦: GM이 쉴 때만(차례 진행 · 모음 중엔 안 함), 한 번 요청으로 최대 4명.
+   *  GM 차례가 시작되면 만들던 요청은 취소(다음에 쉴 때 다시). 못 만든 NPC는 이 판에서 다시 시도하지 않음. GM 응답은 카드를 기다리지 않음 */
   ensureNpcCards() {
     const d = this.data, g = d.game;
-    if (d.mode !== "ai" || d.phase !== "play" || !g || g.result || !this.aiCall || !this.aiReady() || this.npcCardJob) return null;
-    this.npcCardTried ??= {};
-    const ids = Engine.npcCardTodo(this.sc, g).filter((id) => Date.now() - (this.npcCardTried[id] ?? 0) > 300000).slice(0, 4);
+    if (d.mode !== "ai" || d.phase !== "play" || !g || g.result || !this.aiCall || !this.aiReady() || this.npcCardJob || this.ai.busy || this.ai.timer) return null;
+    const ids = Engine.npcCardTodo(this.sc, g).slice(0, 4);
     if (!ids.length) return null;
-    const epoch = this.ai.epoch;
+    const ctrl = new AbortController(); this.npcCardCtrl = ctrl;
+    const axes = Object.fromEntries(ids.map((id) => [id, HostGame.cardAxes()]));
     this.npcCardJob = (async () => {
-      for (const id of ids) {
-        this.npcCardTried[id] = Date.now();
-        try {
-          const axes = HostGame.cardAxes();
-          const text = (await this.aiCall(AI.npcCardMessages(Engine.npcCardInfo(this.sc, g, id, axes)), { maxTokens: 700 })).replace(/<think>[\s\S]*?<\/think>/gi, "");
-          if (this.ai.epoch !== epoch || this.data.game !== g || !this.sc.npcs?.[id]) return;
-          const card = HostGame.safeCard(AI.parseNpcCard(text), this.cardSecrets(id));
-          if (!card.knows.length && !card.lines.length && !card.wants) continue;
-          // YAML이 채운 칸은 AI가 다시 쓰지 않음 (이야기 중 바뀐 것은 npc_card로). 이미 쌓인 변경은 뒤에 이어 붙임
-          const y = this.sc.npcs[id], has = (k) => (Array.isArray(y[k]) ? y[k].length : !!y[k]);
-          const prev = g.npcCards?.[id] ?? {};
-          (g.npcCards ??= {})[id] = {
-            knows: has("knows") ? (prev.knows ?? []) : [...card.knows, ...(prev.knows ?? [])].slice(-8),
-            wants: prev.wants || (has("wants") ? "" : card.wants),
-            relations: has("relations") ? (prev.relations ?? []) : [...card.relations, ...(prev.relations ?? [])].slice(-4),
-            lines: has("lines") ? [] : card.lines,
-            axes, gen: true, at: Date.now(),
-          };
-          this.save();
-        } catch { /* 카드 실패는 무시 (5분 뒤 다시) */ }
+      let cards = {};
+      try {
+        const text = (await this.aiCall(AI.npcCardMessages(Engine.npcCardInfo(this.sc, g, ids, axes)), { maxTokens: 450 + 350 * ids.length, signal: ctrl.signal })).replace(/<think>[\s\S]*?<\/think>/gi, "");
+        cards = AI.parseNpcCards(text, ids);
+      } catch (e) {
+        if (e?.cancelled || e?.name === "AbortError" || ctrl.signal.aborted) return;   // GM 차례에 양보 → 다음에 다시
       }
-    })().finally(() => { this.npcCardJob = null; });
+      if (this.data.game !== g || ctrl.signal.aborted) return;
+      for (const id of ids) {
+        if (!this.sc.npcs?.[id]) continue;
+        const card = cards[id] ? HostGame.safeCard(cards[id], this.cardSecrets(id)) : null;
+        if (!card || (!card.knows.length && !card.lines.length && !card.wants)) { (g.npcCardFail ??= []).push(id); continue; }
+        // YAML이 채운 칸은 AI가 다시 쓰지 않음 (이야기 중 바뀐 것은 npc_card로). 이미 쌓인 변경은 뒤에 이어 붙임
+        const y = this.sc.npcs[id], has = (k) => (Array.isArray(y[k]) ? y[k].length : !!y[k]);
+        const prev = g.npcCards?.[id] ?? {};
+        (g.npcCards ??= {})[id] = {
+          knows: has("knows") ? (prev.knows ?? []) : [...card.knows, ...(prev.knows ?? [])].slice(-8),
+          wants: prev.wants || (has("wants") ? "" : card.wants),
+          relations: has("relations") ? (prev.relations ?? []) : [...card.relations, ...(prev.relations ?? [])].slice(-4),
+          lines: has("lines") ? [] : card.lines,
+          axes: axes[id], gen: true, at: Date.now(),
+        };
+      }
+      this.save();
+    })().finally(() => { this.npcCardJob = null; if (this.npcCardCtrl === ctrl) this.npcCardCtrl = null; });
     return this.npcCardJob;
   }
   /** 카드에 들어가면 안 되는 글: 그 NPC 비밀 · 아직 공개 안 된 모든 단서 · GM 메모 · 고정사실(진상이 섞임) */
@@ -6048,7 +6063,7 @@ class HostGame {
     if (this.data.phase === "play") Engine.kpcFollow(this.sc, this.data.game);   // 동료 KPC는 사건이 바뀌어도 따라옴
     if (this.data.phase === "lobby" && !this.sc.synopsis && !this.data.synopsis) this.makeSynopsis();
     if (this.data.phase === "play" && this.syncTokens()) this.save();
-    if (this.data.phase === "play") this.ensureNpcCards();
+    if (this.data.phase === "play") queueMicrotask(() => this.ensureNpcCards());   // 같은 틱에 GM 차례가 잡히면 양보
     for (const pid of Object.keys(this.data.players)) if (this.online(pid)) { this.sendImage(pid); this.sendSnap(pid); }
   }
   /** 사람마다 마지막으로 보낸 스냅샷과 같으면 다시 보내지 않음 (force = 처음 연결) */
@@ -6926,10 +6941,7 @@ class HostGame {
       this.data.phase !== "play" || this.data.mode !== "ai";
     this.broadcast({ t: "thinking", on: true });
     try {
-      // 이 사건 NPC 카드를 만드는 중이면 잠깐(최대 6초) 기다렸다가 맥락에 넣음
-      const cards = this.ensureNpcCards() ?? this.npcCardJob;
-      if (cards) await Promise.race([cards, new Promise((r) => setTimeout(r, 6000))]);
-      if (stale()) return;
+      this.npcCardCtrl?.abort();   // 카드 만들기는 GM 차례에 양보 (기다리지 않음, 다음에 쉴 때 다시)
       context = this.turnContext();
       batchEndSeq = this.data.logSeq;
       const plan = await this.askGM(context, controller.signal);
@@ -6961,6 +6973,7 @@ class HostGame {
     } finally {
       if (this.ai.controller === controller) this.ai.controller = null;
       this.ai.busy = false;
+      queueMicrotask(() => this.ensureNpcCards());   // GM이 쉬는 동안 카드 미리 만들기
       this.broadcast({ t: "thinking", on: false });
       this.pushAll();
       if (this.ai.again) { this.ai.again = false; this.queueAI(); }
