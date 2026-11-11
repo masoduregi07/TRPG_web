@@ -211,3 +211,22 @@ test("turnContext: 이름 미정 KPC · 직전 NPC 대사", () => {
   m.Engine.registerNpc(data.scenario, data.game.currentScene, { id: "kpc", name: "한진우", look: "코트", personality: "차분" });
   assert.equal(g.turnContext().info.kpcOpen, false, "이름이 정해지면 끝");
 });
+
+test("KPC는 사건이 바뀌어도 따라오고, kpcAway면 어디에도 없음", () => {
+  const m = load();
+  const sc = sample(m);
+  sc.npcs.kpc = { name: "한은우", look: "코트", personality: "신중" };
+  sc.scenes[sc.start].npcs = [...(sc.scenes[sc.start].npcs ?? []), "kpc"];
+  m.Engine.validateScenario(sc);
+  const st = m.Engine.newState(sc);
+  const other = Object.keys(sc.scenes).find((id) => id !== sc.start && !sc.scenes[id].ending);
+  st.currentScene = other;
+  m.Engine.kpcFollow(sc, st);
+  assert.ok(sc.scenes[other].npcs.includes("kpc"));
+  sc.scenes[other].npcs = sc.scenes[other].npcs.filter((x) => x !== "kpc"); sc.scenes[other].kpc = false;
+  m.Engine.kpcFollow(sc, st);
+  assert.ok(!sc.scenes[other].npcs.includes("kpc"), "kpc: false인 사건엔 안 들어감");
+  st.kpcAway = true;
+  m.Engine.kpcFollow(sc, st);
+  assert.ok(!Object.values(sc.scenes).some((s) => (s.npcs ?? []).includes("kpc")));
+});

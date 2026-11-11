@@ -208,3 +208,25 @@ test("npcLines: 대사 앞의 가장 가까운 NPC 이름이 주인", () => {
   const r = Turn.npcLines("바르톨이 웃음. \"어서 와.\" 한진우는 고개를 끄덕임. \"들어가죠.\"", ["바르톨", "한진우"]);
   assert.equal(JSON.stringify(r.map((x) => x.who)), JSON.stringify(["바르톨", "한진우"]));
 });
+
+test("플레이어 입력을 되풀이만 한 서술이면 다시 물음", () => {
+  const info = base({ chars: [{ pid: "p1", name: "박지우", player: "가", items: [] }], actors: [{ pid: "p1", name: "박지우" }], order: ["p1"], inputs: ["따라가지 않고 버틴다"] });
+  assert.ok(run({ narration: "따라가지 않고 아치형 입구 앞에서 버틴다." }, info).issues.some((i) => i.hard && /되풀이만/.test(i.msg)));
+  assert.ok(run({ narration: "음... 아무도 신경 안쓰나" }, base({ ...info, inputs: ["음... 아무도 신경 안쓰나"] })).issues.some((i) => i.hard && /되풀이만/.test(i.msg)));
+  assert.ok(!run({ narration: "박지우가 버티자 한은우가 멈춰 섬. \"같이 가요, 혼자 두긴 싫어요.\" 바람에 덩굴이 흔들림." }, info).issues.some((i) => i.hard && /되풀이만/.test(i.msg)), "결과가 덧붙으면 통과");
+  assert.ok(!run({ narration: "따라가지 않고 버팀." }, info, true).issues.some((i) => i.hard), "마지막은 통과");
+});
+
+test("판정과 맞는 행동인데 판정 없이 서술하면 다시 물음", () => {
+  const info = base({ actTexts: ["계단 벽의 글씨를 살펴봄"], sceneTitle: "1층과 2층 사이 — 낡은 계단",
+    openChecks: [{ id: "stair_listen", label: "계단의 이중 소리 듣기" }, { id: "stair_graffiti_spot", label: "벽글씨 원문 살피기" }] });
+  const a = run({ narration: "벽의 비뚤어진 글씨를 유심히 살핌." }, info);
+  assert.ok(a.issues.some((i) => i.hard && /stair_graffiti_spot/.test(i.msg) && !/stair_listen/.test(i.msg)), "사건 제목 낱말(계단)만 겹친 판정은 빼고");
+  assert.ok(!run({ narration: "벽 쪽으로 다가감.", request_check: { id: "k1", who: "한서" } }, base({ ...info, checks: ["k1"] })).issues.some((i) => i.hard && /가능한판정/.test(i.msg)), "판정을 걸면 통과");
+  assert.ok(!run({ narration: "계단을 천천히 오름." }, base({ ...info, actTexts: ["계단을 오른다"] })).issues.some((i) => i.hard && /가능한판정/.test(i.msg)));
+});
+
+test("kpc_away: 이름이 정해진 KPC가 있을 때만 받음", () => {
+  assert.equal(run({ narration: "한은우가 어둠 속으로 끌려감.", kpc_away: true }, base({ kpcName: "한은우" })).plan.kpcAway, true);
+  assert.equal(run({ narration: "바람이 붊.", kpc_away: true }, base()).plan.kpcAway, null);
+});

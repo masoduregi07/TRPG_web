@@ -3557,6 +3557,22 @@ const Engine = (() => {
     }
     return !existed;
   }
+  /** KPC(일행의 동료)는 일행을 따라 사건마다 함께 있음. 사건에 kpc: false면 그 사건엔 없음.
+   *  st.kpcAway(시나리오상 퇴장 · 헤어짐)면 어느 사건에도 없음. 사건 NPC 목록을 직접 맞춰 둠 (되돌리기는 sceneNpcs로 함께 복원) */
+  const kpcIdOf = (sc) => Object.keys(sc?.npcs ?? {}).find((id) => id.toLowerCase() === "kpc")
+    ?? Object.entries(sc?.npcs ?? {}).find(([, n]) => /^KPC\b/i.test(n?.name ?? ""))?.[0] ?? null;
+  function kpcFollow(sc, st) {
+    const id = kpcIdOf(sc);
+    if (!id || !sc?.scenes || !st) return false;
+    let changed = false;
+    if (st.kpcAway) {
+      for (const s of Object.values(sc.scenes)) { const i = s?.npcs?.indexOf(id) ?? -1; if (i >= 0) { s.npcs.splice(i, 1); changed = true; } }
+      return changed;
+    }
+    const cur = sc.scenes[st.currentScene];
+    if (cur && cur.kpc !== false) { cur.npcs ??= []; if (!cur.npcs.includes(id)) { cur.npcs.push(id); changed = true; } }
+    return changed;
+  }
   /** 받침에 맞는 조사: 은/는 · 이/가 · 을/를 · 과/와 · 으로/로 (한글이 아닌 끝 글자는 받침 없음으로) */
   function josa(word, p) {
     const c = String(word ?? "").charCodeAt(String(word ?? "").length - 1) - 0xac00;
@@ -4050,7 +4066,7 @@ const Engine = (() => {
   return {
     condOk, condText, normalize, charRules, validateCharacter, validateScenario, newState, pendingList, queuePending, takePending, clearPending, recordProgress, sceneOf,
     availableExits, move, revealClue, findClueAnywhere, HANDOUT_KINDS, mapSizeOf, mapRoomsOf, roomAt, findCheck, applyCheck, canTryCheck, rollDice, randInt,
-    registerNpc, ensureKpc, nameExplorers, emergencyEdit,
+    registerNpc, ensureKpc, kpcFollow, kpcIdOf, nameExplorers, emergencyEdit,
     publicView, gmView, aiContext, charState, npcFight, clip, isImageURL, isAudioURL, bgmOf,
   };
 })();
@@ -4589,6 +4605,7 @@ const AI = (() => {
     const npc = style.npcVoice === "vivid" ? "NPC는 말투와 버릇을 뚜렷하게 연기한다." : "NPC 대사는 짧고 담백하게.";
     const avoid = style.avoid ? `다음 소재는 묘사하지 않거나 화면 밖에서 처리한다: ${String(style.avoid).slice(0, 200)}` : "";
     return `너는 한국어 TRPG의 게임 마스터(GM)다. 친구 4명 이하가 함께 플레이한다. 이 시나리오는 "사건 흐름"으로 진행된다.
+너는 관찰자이자 진행자다. 시나리오를 바탕으로 캐릭터의 행동에 알맞은 자유를 주되, 이야기를 결말까지 이끌 책임이 있다. 매 응답은 캐릭터 행동의 결과(주변의 변화 · NPC의 반응 · 새로 알게 된 것 · 판정 요청) 중 하나 이상을 담아 이야기를 한 걸음 나아가게 한다. 플레이어가 쓴 행동을 되풀이하는 것으로 응답을 채우지 않는다.
 
 [반드시 지킬 규칙]
 1. [게임 상황]에 있는 사실만 서술한다. 시나리오에 없는 중요한 사실(새 단서, 새 사건, 범인 등)을 지어내지 않는다. 분위기 묘사와 NPC 말투는 자유롭게 해도 된다.
@@ -4625,12 +4642,14 @@ const AI = (() => {
 27. 지금 사건에서 새 이름과 외모·성격 묘사를 가진 인물을 실제로 등장시켰다면 new_npcs 목록에 {"name": "부르는 이름만 (예: 바르톨. 직업·나이·수식어 제외)", "job": "직업·신분 (예: 늙은 어부. 분명할 때만, 아니면 \"\")", "look": "외모", "personality": "성격", "voice": "말투·말버릇 한 줄 (예: 사투리, 말끝을 흐림, 농담으로 넘김)"}를 넣는다. 이미 등장한 인물은 중복 추가하지 않는다. 원문·고정사실에 반하는 중요한 새 인물은 만들지 않는다.
 28. 'KPC'라는 자리표시자가 등장하면 시나리오 분위기·관계에 어울리는 실제 NPC 이름, 외모와 성격을 정해 등장시키고 new_npcs에 {"id":"kpc","name":"실제 이름","look":"외모","personality":"성격","voice":"말투·말버릇"}를 보낸다. 이 인물의 원래 비밀과 역할은 변경하지 않는다.
 28-1. KPC("역할"이 일행의 동료인 NPC)는 안내 방송이 아니라 일행의 한 사람으로 연기한다. 자기 생각 · 추측 · 감정 · 기억(배경과 이 장소에 얽힌 일) · 제안을 말하고, 질문을 받으면 "모르겠다"로 끝내지 않고 짐작이나 의견, 느낀 점을 덧붙인다. 놀림 · 핀잔에는 성격대로 받아친다. "말투"가 있으면 그대로 따른다. 비밀과 아직공개안된단서는 3번 규칙대로 지키고, 캐릭터의 행동은 정하지 않는다.
+28-3. KPC는 일행과 함께 움직이므로 사건이 바뀌어도 "등장NPC"에 있다. 시나리오의 흐름이나 서술에서 KPC가 분명히 일행과 떨어지면(죽음 · 끌려감 · 홀로 남음 · 다른 길로 감 등) kpc_away를 true로, 다시 합류하면 false로 한다. 그 밖에는 null. 떨어져 있는 동안("KPC상태")은 KPC를 그 자리에 있는 것처럼 서술하지 않는다.
+28-4. 캐릭터의 행동이 "가능한판정"의 어느 판정과 맞으면(그 대상을 조사 · 관찰 · 시도) 결과를 바로 서술하지 말고 그 판정을 request_check로 건다. 판정 없이 단서나 숨은 정보를 주지 않는다.
 28-2. 같은 NPC가 "최근NPC대사"에서 이미 쓴 틀(몸짓 + "저도 모르겠다 / 당황스럽다 / 다른 곳을 보자")을 반복하지 않는다. 대답마다 새로운 정보 · 감정 · 의견 · 행동 중 하나를 더한다.
 29. 한 캐릭터가 판정에 실패하더라도 그 행동을 독립적으로 시도하는 다른 캐릭터에게 같은 판정을 요청할 수 있다. 이미 실패한 사람의 판정은 밀어붙이기 규칙과 구별한다. 판정 실패 뒤에는 성공 보상 단서나 소지품을 미리 공개하지 않는다.
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
 [출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 narration은 ""로 두고 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 행동표가 없으면 results는 [].
-{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격","voice":"말투"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격","voice":"말투"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
+{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격","voice":"말투"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격","voice":"말투"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}, "kpc_away": null 또는 true 또는 false}`;
   }
 
   function logLine(e) {
@@ -4699,6 +4718,7 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
           .filter((h) => h && typeof h === "object" && str(h.id)).slice(0, 3)
           .map((h) => ({ id: str(h.id), to: h.to === "all" ? "all" : (Array.isArray(h.to) ? h.to : [h.to]).map(str).filter(Boolean).slice(0, 8) })),
         hurt: dmgList(obj.hurt), heal: dmgList(obj.heal), fate: fateOf(obj.fate),
+        kpc_away: obj.kpc_away === true ? true : obj.kpc_away === false ? false : null,
       } };
     } catch (e) {
       const plain = String(text).replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/```(?:json)?/gi, "").trim();
@@ -5087,6 +5107,26 @@ const Turn = (() => {
       const now = quotes([plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).join("\n"));
       const again = now.some((q) => norm(q).length >= 8 && (info.prevQuotes ?? []).some((p) => shows(q, p) >= 0.6));
       if (again) (final ? soft : hard)("NPC가 직전에 한 대사(직전NPC대사)를 거의 그대로 되풀이함. 캐릭터가 건넨 말에 먼저 반응하고 새 말 · 행동으로 이음");
+    }
+    // ---- KPC 동행 (28-3): 이름이 정해진 KPC가 있을 때만 ----
+    plan.kpcAway = info.kpcName && typeof r.kpc_away === "boolean" ? r.kpc_away : null;
+    // ---- 플레이어 입력을 되풀이만 한 서술 (진행자 원칙): 따옴표 밖 문장이 전부 이번 입력 원문을 거의 담고 있으면 ----
+    {
+      const pairs = (x) => { const t = String(x ?? "").replace(/[^가-힣a-zA-Z0-9]/g, ""), o = new Set(); for (let i = 0; i + 2 <= t.length; i++) o.add(t.slice(i, i + 2)); return o; };
+      const ins = (info.inputs ?? []).map(pairs).filter((x) => x.size >= 2);
+      const covers = (sent) => { const t = pairs(sent); return ins.some((p) => { let h = 0; for (const g of p) if (t.has(g)) h++; return h / p.size >= 0.75; }); };
+      const sents = String([plan.narration, plan.arrival].filter(Boolean).join("\n")).replace(QUOTE_RE, " ").split(SENT_RE).map((x) => x.trim()).filter((x) => /[가-힣]{2}/.test(x));
+      if (ins.length && sents.length && !plan.check && sents.every(covers))
+        (final ? soft : hard)("플레이어가 쓴 행동 · 말을 거의 그대로 되풀이만 함. 그 행동의 결과(주변의 변화 · NPC의 반응 · 새로 알게 된 것)를 서술하거나, 판정이 필요하면 request_check");
+    }
+    // ---- 판정이 걸려야 할 행동인데 판정 없이 넘어감 (28-4) ----
+    if (!info.askOnly && !info.rollOnly && !plan.check && !plan.move && (info.actTexts ?? []).length && !(info.pending ?? []).length) {
+      const pairs = (x) => { const t = String(x ?? "").replace(/[^가-힣a-zA-Z0-9]/g, " ").trim(), o = new Set(); for (const w of t.split(/\s+/)) for (let i = 0; i + 2 <= w.length; i++) o.add(w.slice(i, i + 2)); return o; };
+      // 판정 이름의 마지막 동사 낱말(살피기 · 듣기 등)은 빼고 대상 낱말로만 견줌
+      const target = (label) => String(label).replace(/\s*\S+(기|하기)$/, "").replace(/(의|을|를|에서|에)(?=\s|$)/g, "");
+      const act = pairs(info.actTexts.join(" ")), place = pairs(info.sceneTitle ?? "");   // 사건 제목의 낱말(예: 계단)은 누구나 쓰므로 뺌
+      const hit = (info.openChecks ?? []).filter((c) => { const p = new Set([...pairs(target(c.label))].filter((g) => !place.has(g))); if (!p.size) return false; let h = 0; for (const g of p) if (act.has(g)) h++; return h / p.size >= 0.3; });
+      if (hit.length) (final ? soft : hard)(`이번 행동이 가능한판정(${hit.map((c) => `${c.id}: ${c.label}`).join(" / ")})과 맞아 보임. 맞으면 결과를 서술하지 말고 request_check로 그 판정을 검 (맞지 않으면 그대로)`);
     }
     // ---- 같은 NPC가 회피형 대답을 세 번 잇달아 함 (규칙 28-1 · 28-2) ----
     {
@@ -5825,6 +5865,7 @@ class HostGame {
     finally { this.synBusy = false; }
   }
   pushAll() {
+    if (this.data.phase === "play") Engine.kpcFollow(this.sc, this.data.game);   // 동료 KPC는 사건이 바뀌어도 따라옴
     if (this.data.phase === "lobby" && !this.sc.synopsis && !this.data.synopsis) this.makeSynopsis();
     if (this.data.phase === "play" && this.syncTokens()) this.save();
     for (const pid of Object.keys(this.data.players)) if (this.online(pid)) { this.sendImage(pid); this.sendSnap(pid); }
@@ -6398,6 +6439,7 @@ class HostGame {
   /** AI에게 넘길 상황 · 검증에 쓸 정보 (상태를 바꾸지 않음) */
   turnContext() {
     const d = this.data, g = d.game;
+    Engine.kpcFollow(this.sc, g);
     const chars = Object.values(d.players).filter((p) => p.ready && p.character).map((p) => ({ ...p.character, player: p.name }));
     const ctx = Engine.aiContext(this.sc, g, chars);
     const hoName = (pid) => d.players[pid]?.character?.name ?? "";
@@ -6467,6 +6509,13 @@ class HostGame {
       checkReveals: (s.checks ?? []).filter((c) => c.success?.reveal && !(g.passedChecks ?? []).includes(c.id)).map((c) => ({ check: c.id, clue: c.success.reveal })),
       handouts: Object.keys(g.handouts ?? {}),
       npcNames: (s.npcs ?? []).map((id) => this.sc.npcs?.[id]?.name ?? id),
+      // 이번 차례 캐릭터 입력 원문 (서술이 되풀이만 하는지)
+      inputs: since.filter((e) => e.kind === "say" && e.byId && d.players[e.byId]?.character).map((e) => String(e.toNpc ? String(e.text).replace(/^@\S+\s*/, "") : e.text ?? "").replace(/^[*＊?？]\s*/, "")).filter(Boolean),
+      // 이번 차례 행동 원문 (판정이 걸려야 할 행동인지)
+      actTexts: since.filter((e) => e.kind === "say" && e.style === "act" && e.byId).map((e) => String(e.text ?? "")),
+      sceneTitle: String(s.title ?? ""),
+      openChecks: (s.checks ?? []).filter((c) => c.skill && !(g.passedChecks ?? []).includes(c.id)).map((c) => ({ id: c.id, label: String(c.label ?? c.skill) })),
+      kpcName: (() => { const id = Engine.kpcIdOf(this.sc); const n = id && this.sc.npcs[id]?.name; return n && !/^KPC$/i.test(n) ? n : null; })(),
       // 이름이 아직 'KPC'인 자리표시자가 이 사건에 있음 (AI가 새 인물을 kpc로 안 보내면 다시 물음)
       kpcOpen: (s.npcs ?? []).some((id) => /^KPC$/i.test(String(this.sc.npcs?.[id]?.name ?? "").trim())),
       // NPC마다 최근 대사 3개 (지난 GM 서술 6개에서)
@@ -6496,6 +6545,7 @@ class HostGame {
     };
     if (info.prevQuotes.length) ctx.직전NPC대사 = info.prevQuotes;
     if (Object.keys(info.npcRecent).length) ctx.최근NPC대사 = info.npcRecent;
+    if (g.kpcAway && info.kpcName) ctx.KPC상태 = `${info.kpcName}: 일행과 떨어져 있음 (다시 합류하면 kpc_away: false)`;
     const recent = d.log.filter((e) => !e.secret && e.kind !== "ooc").slice(-25);
     return { ctx, info, recent };
   }
@@ -6555,6 +6605,7 @@ class HostGame {
   /** 검증된 계획을 상태에 반영 (예외가 나면 transaction이 되돌림) */
   applyPlan(plan) {
     const d = this.data;
+    if (typeof plan.kpcAway === "boolean" && Engine.kpcIdOf(this.sc)) { d.game.kpcAway = plan.kpcAway; Engine.kpcFollow(this.sc, d.game); }
     // AI가 실제로 소개한 이름과 외모를 영속 NPC로 기록해 추후 대화·GM 노트에서 재사용.
     for (const npc of plan.newNpcs ?? []) {
       const targetScene = plan.move && this.sc.scenes[plan.move] ? plan.move : d.game.currentScene;

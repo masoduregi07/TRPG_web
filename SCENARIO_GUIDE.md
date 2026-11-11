@@ -35,7 +35,7 @@
    "intro": "사건 시작 때 플레이어에게 보이는 도입 묘사 (2~4문장, 명사형 종결: ~함/~됨/~음)",
    "places": ["사건 안에서 갈 수 있는 장소"], "gm_only": "GM만 아는 내용",
    "hints": ["막혔을 때 약한 힌트", "중간 힌트", "강한 힌트"],
-   "npcs": ["npc_id"],
+   "npcs": ["npc_id"], "kpc": false,   // kpc: 선택. 일행의 동료 KPC(npcs의 kpc)는 모든 사건에 따라옴. 이 사건에 없어야 하면 false
    "clues": [{"id": "clue_id", "text": "단서 내용", "reveal": "공개 조건 설명"}],
    "checks": [{"id": "check_id", "label": "행동 이름", "skill": "기능 또는 특성치", "difficulty": "보통",
      "success": {"text": "결과", "reveal": "clue_id(선택, 이 사건의 단서)", "setFlag": "플래그(선택)", "give": "얻는 물건(선택)"},
