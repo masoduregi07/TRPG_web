@@ -5160,7 +5160,9 @@ const Turn = (() => {
         (final ? soft : hard)("플레이어가 쓴 행동 · 말을 거의 그대로 되풀이만 함. 그 행동의 결과(주변의 변화 · NPC의 반응 · 새로 알게 된 것)를 서술하거나, 판정이 필요하면 request_check");
     }
     // ---- 판정이 걸려야 할 행동인데 판정 없이 넘어감 (규칙 12) ----
-    if (!info.askOnly && !info.rollOnly && !plan.check && !plan.move && (info.actTexts ?? []).length && !(info.pending ?? []).length) {
+    // 공개조건을 채워 판정 보상이 아닌 단서를 공개했으면 그 행동은 판정 없이 풀린 것 (규칙 17)
+    const freeClue = plan.clue && !(info.checkReveals ?? []).some((x) => x.clue === plan.clue);
+    if (!info.askOnly && !info.rollOnly && !plan.check && !plan.move && !freeClue && (info.actTexts ?? []).length && !(info.pending ?? []).length) {
       const pairs = (x) => { const t = String(x ?? "").replace(/[^가-힣a-zA-Z0-9]/g, " ").trim(), o = new Set(); for (const w of t.split(/\s+/)) for (let i = 0; i + 2 <= w.length; i++) o.add(w.slice(i, i + 2)); return o; };
       // 판정 이름의 마지막 동사 낱말(살피기 · 듣기 등)은 빼고 대상 낱말로만 견줌
       const target = (label) => String(label).replace(/\s*\S+(기|하기)$/, "").replace(/(의|을|를|에서|에)(?=\s|$)/g, "");

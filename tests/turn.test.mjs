@@ -224,6 +224,11 @@ test("판정과 맞는 행동인데 판정 없이 서술하면 다시 물음", (
   assert.ok(a.issues.some((i) => i.hard && /stair_graffiti_spot/.test(i.msg) && !/stair_listen/.test(i.msg)), "사건 제목 낱말(계단)만 겹친 판정은 빼고");
   assert.ok(!run({ narration: "벽 쪽으로 다가감.", request_check: { id: "k1", who: "한서" } }, base({ ...info, checks: ["k1"] })).issues.some((i) => i.hard && /가능한판정/.test(i.msg)), "판정을 걸면 통과");
   assert.ok(!run({ narration: "계단을 천천히 오름." }, base({ ...info, actTexts: ["계단을 오른다"] })).issues.some((i) => i.hard && /가능한판정/.test(i.msg)));
+  // 공개조건을 채운(판정 보상이 아닌) 단서를 공개하면 통과, 판정 보상 단서면 그대로 다시 물음
+  const free = base({ ...info, clues: ["wall_text"], checkReveals: [{ check: "stair_graffiti_spot", clue: "graffiti_note" }] });
+  assert.ok(!run({ narration: "벽의 글씨를 살피니 '물러가라'는 글귀가 보임.", reveal_clue: "wall_text" }, free).issues.some((i) => i.hard && /가능한판정/.test(i.msg)), "판정 보상 아닌 단서");
+  const gated = base({ ...info, clues: ["graffiti_note"], checkReveals: [{ check: "stair_graffiti_spot", clue: "graffiti_note" }] });
+  assert.ok(run({ narration: "벽의 글씨를 살핌.", reveal_clue: "graffiti_note" }, gated).issues.some((i) => i.hard && /가능한판정/.test(i.msg)), "판정 보상 단서");
 });
 
 test("kpc_away: 이름이 정해진 KPC가 있을 때만 받음", () => {
