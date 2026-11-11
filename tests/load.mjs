@@ -27,7 +27,7 @@ export function load(extra = {}) {
   };
   ctx.globalThis = ctx;
   vm.createContext(ctx);
-  return vm.runInContext(`${head}\n;({ Rules, Engine, Maps, WebFeatures, AI, Turn, HostGame, Net, APP_BUILD, SAMPLE_COC_YAML })`, ctx, { filename: "index.html#script" });
+  return vm.runInContext(`${head}\n;({ Rules, Engine, Maps, WebFeatures, AI, Turn, HostGame, Net, APP_BUILD, SAMPLE_COC_YAML, randomPid })`, ctx, { filename: "index.html#script" });
 }
 
 /** 샘플 시나리오 (매번 새 객체) */

@@ -5188,6 +5188,8 @@ const PORTRAIT_MAX = 80_000;   // 초상 하나 최대
 const APP_BUILD = 10;
 const clipStr = (v, n) => String(v ?? "").slice(0, n);          // 호스트·플레이어 코드가 섞이면 조용히 진행하지 않음
 
+/** 참가자 id: 첫 글자는 영문 (숫자로만 된 id는 객체 키 순서가 앞으로 당겨져 자리 · 명단 순서가 바뀜) */
+function randomPid() { return "abcdefghijkmnpqrstuvwxyz"[crypto.getRandomValues(new Uint8Array(1))[0] % 24] + randomId(7); }
 function randomId(len = 10) {
   const abc = "abcdefghijkmnpqrstuvwxyz23456789";
   const buf = new Uint8Array(len);
@@ -5240,7 +5242,7 @@ class HostGame {
 
   /* ---------------- 생성 / 불러오기 ---------------- */
   static create({ roomId, hostName, hostKey, hostPlays, mode, scenario, aiStyle }) {
-    const hostPid = randomId(8);
+    const hostPid = randomPid();
     return {
       kind: "trpg-host-save", v: 1, roomId, createdAt: Date.now(), savedAt: Date.now(),
       mode: mode === "ai" ? "ai" : "human", hostPlays: !!hostPlays,
@@ -5900,7 +5902,7 @@ class HostGame {
       if (Object.keys(d.players).length >= MAX_PEOPLE) return { ok: false, reason: `자리 없음. (최대 ${MAX_PEOPLE}명)` };
       let unique = name;
       for (let i = 2; Object.values(d.players).some((p) => p.name === unique); i++) unique = `${name.slice(0, 14)}${i}`;
-      pid = randomId(8);
+      pid = randomPid();
       d.players[pid] = { key, name: unique, isHost: false, character: null, ready: false };
       isNew = true;
     }
