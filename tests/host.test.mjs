@@ -239,3 +239,25 @@ test("KPC는 사건이 바뀌어도 따라오고, kpcAway면 따라 넣은 사�
   m.Engine.kpcFollow(sc, st);
   assert.ok(!Object.values(sc.scenes).some((s) => (s.npcs ?? []).includes("kpc")));
 });
+
+test("NPC 설정 카드: YAML 칸이 먼저, 빈 칸은 AI 카드 · 맥락에 들어감 · 비밀 겹치는 줄은 뺌", () => {
+  const m = load();
+  const sc = sample(m);
+  m.Engine.validateScenario(sc);
+  const st = m.Engine.newState(sc);
+  const id = m.Engine.sceneOf(sc, st).npcs[0];
+  sc.npcs[id].lines = ["이 바다는 사람을 가려 받수."];
+  assert.ok(m.Engine.npcCardTodo(sc, st).includes(id), "빈 칸이 있으면 만들 대상");
+  st.npcCards = { [id]: { knows: ["삼십 년째 이 항구에서 그물을 손질함"], wants: "딸 소식을 듣고 싶음", relations: [], lines: ["AI 대사"] } };
+  assert.ok(!m.Engine.npcCardTodo(sc, st).includes(id), "카드가 있으면 다시 안 만듦");
+  const c = m.Engine.npcCard(sc, st, id);
+  assert.deepEqual([...c.lines], ["이 바다는 사람을 가려 받수."], "YAML이 먼저");
+  assert.equal(c.knows.length, 1);
+  const npc = m.Engine.aiContext(sc, st, []).등장NPC.find((n) => n.id === id);
+  assert.equal(npc.바라는것, "딸 소식을 듣고 싶음");
+  assert.ok(npc.아는것 && npc.예시대사);
+  const card = m.AI.parseNpcCard(JSON.stringify({ knows: ["등대지기가 맡겨 둔 등대 열쇠를 갖고 있음", "밤바다엔 노랫소리가 들린다는 소문"], wants: "조용히 늙는 것", relations: "x", lines: ["허허."] }));
+  const safe = m.HostGame.safeCard(card, ["등대지기가 맡겨 둔 등대 열쇠를 갖고 있지만 먼저 말하지 않음"]);
+  assert.deepEqual([...safe.knows], ["밤바다엔 노랫소리가 들린다는 소문"]);
+  assert.deepEqual([...safe.relations], ["x"]);
+});
