@@ -989,13 +989,6 @@ textarea { resize: vertical; margin-top: 8px; }
 .exit-pop .row { margin-top: 8px; gap: 8px; }
 
 /* 이어하기 목록: 줄 간격 줄이고, 삭제는 마우스 올린 줄에만 휴지통 */
-.tt-open { padding: 4px 8px 4px 18px; gap: 0; line-height: 1.4; }
-.tt-open:hover::before, .tt-open:focus-visible::before { content: ""; position: absolute; border-left: 6px solid var(--blood); border-top: 5px solid transparent; border-bottom: 5px solid transparent; left: 6px; top: 9px; }
-.tt-del { display: grid; place-items: center; width: 28px; padding: 0; opacity: 0; }
-.tt-del .ic-svg { width: 16px; height: 16px; }
-.bk-tables li:hover .tt-del, .tt-del:focus-visible { opacity: .55; }
-.bk-tables li .tt-del:hover, .tt-del:focus-visible { opacity: 1; }
-.bk-tables li:hover .tt-open { background: rgba(138, 28, 20, .1); }
 
 .say-box:not([data-mode="talk"]) > input:focus { outline-color: var(--say); }
 
@@ -2450,6 +2443,94 @@ html.has-3d .topbar { box-shadow: none; }
 .lg-sub .field { margin-top: 0; gap: 3px; }
 .lg-sub .field > span { font: 12px/1.4 var(--font); color: #6b5338; }
 .lg-sub .field select, .lg-sub .field input { height: 30px; font: 13px/1.4 var(--font); }
+/* 시나리오 쪽: 경고 목록만 남은 높이 안에서 따로 스크롤 */
+.bk-page[data-spread="0"][data-side="L"] { display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; }
+.bk-page[data-spread="0"][data-side="L"] > * { flex: none; }
+.bk-page[data-spread="0"][data-side="L"] > .ev-warns { flex: 1 1 0; min-height: 64px; overflow-y: auto; align-content: start; padding-right: 4px; scrollbar-width: thin; scrollbar-color: #9c8455 transparent; }
+#home.narrow .bk-page[data-spread="0"][data-side="L"] { height: auto; }
+#home.narrow .bk-page[data-spread="0"][data-side="L"] > .ev-warns { flex: none; max-height: 220px; }
+/* 참가하기: 장부 줄 + 라벨지 버튼 */
+.lg-go { padding: 7px 16px 6px; border: 0; cursor: pointer; background: #5a4128; color: #f3e6c4; font: 14px/1.4 var(--font); letter-spacing: .05em; box-shadow: 2px 2px 0 rgba(60, 40, 20, .35); }
+.lg-go:hover, .lg-go:focus-visible { background: #7a1d12; outline: 0; }
+.lg-go:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(60, 40, 20, .35); }
+/* ===== 이어하기 · 참가하기 = 탐사자 기록국 도서실 (대출 카드 · 대출기간표 · 참가 신청) ===== */
+.bk-page.lib { display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; }
+.bk-page.lib > .lib-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 24px; }
+.kraft, .lb-pocket { background: #c79a5b; background-image: radial-gradient(rgba(90, 55, 20, .18) 1px, transparent 1.5px), radial-gradient(rgba(255, 240, 200, .12) 1px, transparent 1.5px); background-size: 4px 4px, 7px 7px; background-position: 0 0, 2px 3px; }
+.lb-wrap { position: relative; width: 86%; height: 300px; margin: 0 auto; }
+.lb-back { position: absolute; left: 0; right: 0; top: 70px; bottom: 0; background: #9c7140; background-image: radial-gradient(rgba(50, 28, 8, .22) 1px, transparent 1.5px); background-size: 4px 4px;
+  clip-path: polygon(0 22px, 10% 0, 90% 0, 100% 22px, 100% 100%, 0 100%); box-shadow: inset 0 14px 18px rgba(30, 15, 3, .55); }
+.lb-cards { position: absolute; inset: 0 0 20px; z-index: 1; margin: 0; padding: 0; list-style: none; }
+.lb-card { position: absolute; left: 9%; right: 9%; height: 220px; box-sizing: border-box; padding: 7px 10px; background: #f4ead0; cursor: pointer; transition: translate .15s;
+  box-shadow: 0 -1px 0 rgba(60, 40, 20, .25), 1px 1px 0 rgba(60, 40, 20, .25), 0 4px 6px rgba(30, 15, 3, .35); font: 11px/1.35 var(--font); color: var(--ink); }
+.lb-card:hover, .lb-card:focus-within, .lb-card.hot { translate: 0 -12px; }
+.lb-card:nth-child(4n+1) { rotate: -3deg; left: 6%; right: 12%; }
+.lb-card:nth-child(4n+2) { rotate: 2deg; left: 12%; right: 6%; }
+.lb-card:nth-child(4n+3) { rotate: -.6deg; }
+.lb-card:nth-child(4n+4) { rotate: 1deg; left: 8%; right: 10%; }
+.lb-open { all: unset; display: block; width: 100%; cursor: pointer; }
+.lb-open:focus-visible { outline: 2px dotted #2b1a0c; outline-offset: 2px; }
+.lb-card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 18px 2px 0; margin-bottom: 2px; border-bottom: 2px solid #a8251a; }
+.lb-card .top b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 14px/1.3 "Galmuri14", var(--font); font-weight: 400; }
+.lb-card .no { flex: none; font: 14px/1 "Galmuri9", var(--font); letter-spacing: .05em; }
+.lb-card .r { display: grid; grid-template-columns: 42px 1fr; border-bottom: 1px solid rgba(60, 40, 20, .55); }
+.lb-card .r > span:first-child { padding: 3px 0; border-right: 1px solid rgba(60, 40, 20, .55); font-size: 9.5px; color: #5a4630; }
+.lb-card .r > span + span { padding: 2px 6px; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-card .hw { font: 12px/1.3 "Galmuri9", var(--font); color: #2a3a8a; }
+.lb-del { position: absolute; right: 4px; top: 4px; width: 18px; height: 18px; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
+.lb-del:hover, .lb-del:focus-visible { color: var(--blood); outline: 0; }
+.lb-pocket { position: absolute; left: 0; right: 0; bottom: 0; height: 168px; z-index: 3; box-sizing: border-box; padding: 34px 16px 14px; color: #3a2410;
+  clip-path: polygon(0 0, 40% 0, 43% 4px, 46% 16px, 50% 20px, 54% 16px, 57% 4px, 60% 0, 100% 0, 100% 100%, 0 100%); pointer-events: none; }
+.lb-shadow { position: absolute; left: 0; right: 0; bottom: 0; height: 168px; z-index: 2; box-shadow: 0 -6px 10px rgba(30, 15, 3, .45); pointer-events: none; }
+.lb-pocket .hd { display: flex; justify-content: space-between; font: 10px/1.4 var(--font); }
+.lb-pocket .hd b { font: 16px/1 "Galmuri9", var(--font); font-weight: 400; }
+.lb-pocket h4 { margin: 8px 0 6px; text-align: center; font: 12px/1.4 var(--font); letter-spacing: .4em; font-weight: 400; }
+.lb-pocket ol { margin: 0; padding-left: 16px; font: 10.5px/1.6 var(--font); }
+.lib-more { margin: 14px 7% 0; }
+.lib-more .bk-file { margin-top: 0; }
+.due { width: 88%; margin: 0 auto; padding: 12px 14px 16px; box-sizing: border-box; background: #f6efdc; box-shadow: 1px 2px 0 rgba(60, 40, 20, .3); }
+.due h4 { margin: 0 0 8px; text-align: center; font: 15px/1.4 "Galmuri11", var(--font); letter-spacing: .5em; font-weight: 400; }
+.due table { width: 100%; border-collapse: collapse; table-layout: fixed; font: 12px/26px var(--font); }
+.due th { border: 1px solid #6b5338; font: 10.5px/22px var(--font); color: #5a4630; font-weight: 400; }
+.due .c-d { width: 30%; } .due .c-n { width: 22%; }
+.due td { height: 26px; border-left: 1px solid #6b5338; border-right: 1px solid #6b5338; border-bottom: 1px solid rgba(107, 83, 56, .4); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.due tr:last-child td { border-bottom: 1px solid #6b5338; }
+.due td.n { text-align: left; padding-left: 6px; font-size: 11.5px; }
+.due tr.hot td { background: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
+.due .st { display: inline-block; padding: 0 5px; border: 1.5px solid #2a3a8a; color: #2a3a8a; font: 11px/16px "Galmuri9", var(--font); rotate: -3deg; }
+/* 참가: 그 방의 대출 카드(이미 앉은 플레이어 · 캐릭터) + 참가 신청 서식 */
+.lend { position: relative; width: 78%; margin: 0 auto; padding: 9px 12px 12px; box-sizing: border-box; background: #f4ead0; box-shadow: 1px 2px 0 rgba(60, 40, 20, .3); rotate: -1deg; }
+.lend .hd { display: flex; justify-content: space-between; align-items: baseline; min-height: 18px; margin-bottom: 4px; font: 10px/1.4 var(--font); color: #5a4630; }
+.lend .hd b { font: 14px/1 "Galmuri9", var(--font); font-weight: 400; color: var(--ink); }
+.lend .r { display: grid; grid-template-columns: 44px 1fr 1fr; border-bottom: 1px solid rgba(60, 40, 20, .5); font: 11.5px/26px var(--font); }
+.lend .r > span { padding-left: 5px; border-right: 1px solid rgba(60, 40, 20, .5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lend .r > span:last-child { border-right: 0; }
+.lend .r.h { color: #5a4630; }
+.lend .pl { font: 12px/26px "Galmuri9", var(--font); color: #2a3a8a; }
+.lend .ch { font: 12px/26px "Galmuri9", var(--font); color: #8a2216; }
+.lend .ch small, .lend .pl small { font: 10.5px/26px var(--font); color: #8a6a1e; }
+.lend .r.in > span:not(:first-child) { clip-path: inset(0 100% 0 0); animation: lend-write .5s steps(8) var(--d, 0s) forwards; }
+@keyframes lend-write { to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .lend .r.in > span:not(:first-child) { animation: none; clip-path: none; } }
+.lend[data-state="wait"] .hd b::after { content: " …"; }
+.slip { width: 92%; margin: 0 auto; padding: 12px 14px; box-sizing: border-box; background: #f4ead0; box-shadow: 1px 2px 0 rgba(60, 40, 20, .3); border-top: 3px solid #2c4a6a; }
+.slip h4 { display: flex; justify-content: space-between; margin: 0 0 6px; font: 15px/1.4 "Galmuri11", var(--font); font-weight: 400; letter-spacing: .3em; }
+.slip h4 small { font: 10px/2 var(--font); letter-spacing: .1em; color: #5a4630; }
+.slip .r { display: grid; grid-template-columns: 62px 1fr; align-items: center; min-height: 38px; border-bottom: 1px solid rgba(60, 40, 20, .5); cursor: text; }
+.slip .r > span { font: 11px/1.4 var(--font); color: #5a4630; }
+.slip .r input { height: 30px; padding: 0 2px; border: 0; box-shadow: none; background: transparent; font: 15px/1.4 "Galmuri9", var(--font); color: #2a3a8a; }
+.slip .r input::placeholder { color: #b3a07e; }
+.slip .r input:focus { outline: 0; box-shadow: inset 0 -2px 0 #2c4a6a; }
+.slip .go { display: flex; justify-content: flex-end; margin-top: 14px; }
+.seal-btn.blue { flex-direction: column-reverse; }
+.seal-btn.blue .box { width: 74px; height: 74px; border-color: #2c4a6a; background: rgba(44, 74, 106, .04); }
+.seal-btn.blue .ghost { border-color: rgba(44, 74, 106, .3); color: rgba(44, 74, 106, .3); font-size: 28px; }
+.seal-btn.blue .ink { border-color: #23406a; color: #23406a; background: rgba(35, 64, 106, .08); font-size: 28px; }
+.seal-btn.blue .cap { color: #2c4a6a; }
+.bk-page.lib .bk-head h2 { font-size: 40px; line-height: 1.1; }
+.bk-page.lib .bk-kick { font-size: 13px; }
+#home.narrow .bk-page.lib { height: auto; }
+#home.narrow .bk-page.lib > .lib-body { padding: 10px 0; }
 /* 테이블 열기 = 날인란: 점선 칸 + 흐린 開 자국, 누르면 붉은 도장이 쾅 */
 .seal-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: transparent; box-shadow: none; cursor: pointer; }
 .seal-btn .cap { font: 13px/1.4 var(--font); color: #5a4128; letter-spacing: .1em; }
@@ -2513,14 +2594,6 @@ html.has-3d .topbar { box-shadow: none; }
 .bk-chap-t { font-size: 16px; }
 .bk-plate { width: 46%; aspect-ratio: .8; margin-top: 18px; border: 2px solid var(--ink); position: relative; background: repeating-linear-gradient(0deg, var(--ink) 0 1px, transparent 1px 4px); }
 .bk-plate::after { content: ""; position: absolute; left: 42%; top: 18%; width: 16%; height: 82%; background: #efe0b4; clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%); }
-.bk-tables { list-style: none; margin: 0; padding: 0; display: grid; }
-.bk-tables li { display: flex; align-items: stretch; border-bottom: 1px solid rgba(90, 60, 30, .3); }
-.tt-open { position: relative; flex: 1; display: grid; text-align: left; border: 0; background: transparent; cursor: pointer; font-family: var(--font); color: var(--ink); }
-.tt-open b { font-weight: 400; font-size: 15px; }
-.tt-open span { font-size: 11px; color: #6d6253; }
-.tt-open:hover, .tt-open:focus-visible { background: rgba(138, 28, 20, .1); outline: none; }
-.tt-del { border: 0; background: transparent; color: #8a7a62; cursor: pointer; font-size: 16px; }
-.tt-del:hover { color: var(--blood); }
 .bk-file { display: block; margin-top: 10px; padding: 8px 0 0 18px; border-top: 1px dashed rgba(90, 60, 30, .45); font-size: 13px; color: #5d4e3b; cursor: pointer; }
 .bk-file small { color: #8f7f66; margin-left: 4px; }
 .bk-file:hover { color: var(--blood); }
@@ -2585,27 +2658,60 @@ html.has-3d .topbar { box-shadow: none; }
       <div class="bk-nav end"><button id="openTableBtn" class="seal-btn" type="button" disabled><span class="cap">테이블 열기</span><span class="box"><span class="ghost">開</span><span class="ink">開</span></span></button></div>
       <div class="bk-folio">2</div>
     </section>
-    <section class="bk-page" data-spread="1" data-side="L"><div class="bk-chap"><div class="bk-kick">제 2 장</div><div class="bk-roman">Ⅱ</div><div class="bk-chap-t">이어하기</div><div class="bk-plate" aria-hidden="true"></div></div><div class="bk-folio">3</div></section>
-    <section class="bk-page" data-spread="1" data-side="R">
+    <section class="bk-page lib" data-spread="1" data-side="L">
+      <div class="bk-kick">제 2 장</div>
       <div class="bk-head"><h2>이어하기</h2></div>
-      <ul id="myTables" class="bk-tables"></ul>
-      <p id="noTables" class="small muted" hidden>이 브라우저에 저장된 테이블 없음.</p>
-      <label class="bk-file">파일에서 불러오기 <small>.json 세이브</small><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
-      <details class="recover">
-        <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
-        <p class="muted small">같은 시나리오 파일 → 친구의 "내 사본" 파일 순서로 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
-        <div class="row"><label class="btn small file-btn">시나리오 파일<input id="recoverScInput" type="file" accept=".yaml,.yml,.json,.txt" hidden /></label><span id="recoverSc" class="small muted"></span></div>
-        <div class="row"><label class="btn small file-btn">사본 파일<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label></div>
-        <p id="recoverError" class="error" role="alert"></p>
-      </details>
+      <div class="lib-body">
+        <!-- 열린 대출 카드 주머니: 테이블마다 카드 한 장 (뽑으면 들어감) -->
+        <div class="lb-wrap">
+          <div class="lb-back"></div>
+          <ul id="myTables" class="lb-cards"></ul>
+          <div class="lb-shadow"></div>
+          <div class="lb-pocket"><div class="hd"><span>탐사자 기록국 도서실</span><b id="tableCount">0권</b></div>
+            <h4>주 의</h4><ol><li>카드를 뽑으면 그 테이블로 들어감.</li><li>카드 모서리 ✕ = 테이블 폐기 (되돌릴 수 없음).</li></ol></div>
+        </div>
+        <div class="lib-more">
+          <label class="bk-file">파일에서 불러오기 <small>.json 세이브</small><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
+          <details class="recover">
+            <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
+            <p class="muted small">같은 시나리오 파일 → 친구의 "내 사본" 파일 순서로 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
+            <div class="row"><label class="btn small file-btn">시나리오 파일<input id="recoverScInput" type="file" accept=".yaml,.yml,.json,.txt" hidden /></label><span id="recoverSc" class="small muted"></span></div>
+            <div class="row"><label class="btn small file-btn">사본 파일<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label></div>
+            <p id="recoverError" class="error" role="alert"></p>
+          </details>
+        </div>
+      </div>
+      <div class="bk-folio">3</div>
+    </section>
+    <section class="bk-page lib" data-spread="1" data-side="R">
+      <div class="lib-body">
+        <div class="due"><h4>대출기간표</h4>
+          <table><thead><tr><th class="c-d">반납일</th><th>사건</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
+      </div>
       <div class="bk-folio">4</div>
     </section>
-    <section class="bk-page" data-spread="2" data-side="L"><div class="bk-chap"><div class="bk-kick">제 3 장</div><div class="bk-roman">Ⅲ</div><div class="bk-chap-t">참가하기</div><div class="bk-plate" aria-hidden="true"></div></div><div class="bk-folio">5</div></section>
-    <section class="bk-page" data-spread="2" data-side="R">
+    <section class="bk-page lib" data-spread="2" data-side="L">
+      <div class="bk-kick">제 3 장</div>
       <div class="bk-head"><h2>참가하기</h2></div>
-      <label class="field"><span>초대 링크 또는 방 코드</span><input id="joinLinkInput" placeholder="받은 초대 링크나 코드 붙여넣기" /></label>
-      <label class="field"><span>닉네임 (플레이어 이름)</span><input id="bkJoinName" maxlength="16" placeholder="예: 루나" autocomplete="nickname" /></label>
-      <div class="bk-nav end"><button id="joinLinkBtn" class="btn primary" type="button">자리에 앉기</button></div>
+      <div class="lib-body">
+        <div id="joinCard" class="lend" data-state="empty">
+          <div class="hd"><span>초대 코드</span><b id="joinCardNo"></b></div>
+          <div class="r h"><span>No</span><span>플레이어</span><span>캐릭터</span></div>
+          <div id="joinRows"></div>
+        </div>
+      </div>
+      <div class="bk-folio">5</div>
+    </section>
+    <section class="bk-page lib" data-spread="2" data-side="R">
+      <div class="bk-kick" aria-hidden="true">&nbsp;</div>
+      <div class="bk-head"><h2>초대 코드 입력</h2></div>
+      <div class="lib-body">
+        <div class="slip"><h4>참가 신청 <small>탐사자 기록국 도서실</small></h4>
+          <label class="r"><span>초대 코드</span><input id="joinLinkInput" placeholder="초대 링크 · 방 코드" autocomplete="off" /></label>
+          <label class="r"><span>플레이어</span><input id="bkJoinName" maxlength="16" placeholder="닉네임" autocomplete="nickname" /></label>
+          <div class="go"><button id="joinLinkBtn" class="seal-btn blue" type="button"><span class="box"><span class="ghost">參</span><span class="ink">參</span></span><span class="cap">참가 날인</span></button></div>
+        </div>
+      </div>
       <div class="bk-folio">6</div>
     </section>
   </div>
@@ -4987,7 +5093,7 @@ const Turn = (() => {
 const MAX_PEOPLE = 4;
 const LOG_LIMIT = 2000;
 const PORTRAIT_MAX = 80_000;   // 초상 하나 최대
-const APP_BUILD = 9;
+const APP_BUILD = 10;
 const clipStr = (v, n) => String(v ?? "").slice(0, n);          // 호스트·플레이어 코드가 섞이면 조용히 진행하지 않음
 
 function randomId(len = 10) {
@@ -5674,6 +5780,14 @@ class HostGame {
   }
 
   /* ---------------- 연결 ---------------- */
+  /** 참가 전 미리 보기: 이미 앉은 플레이어 · 캐릭터 이름 (물어본 사람 자신의 자리는 빼고). 비밀·키·초상은 안 보냄 */
+  rosterPreview(key = "") {
+    const d = this.data;
+    return Object.entries(d.players).filter(([, p]) => !key || p.key !== key).map(([id, p]) => ({
+      name: String(p.name ?? ""), char: String(p.character?.name ?? ""), gm: this.isHost(id) && !d.hostPlays,
+      writing: !p.character && !(this.isHost(id) && !d.hostPlays), online: this.online(id),
+    })).slice(0, MAX_PEOPLE);
+  }
   onConnect(connId, meta) {
     const d = this.data;
     if (meta?.build !== APP_BUILD) return { ok: false, reason: "게임 버전이 다름. 최신 파일로 갱신 후 강력 새로고침해 다시 접속하세요." };
@@ -6666,6 +6780,13 @@ const Net = (() => {
           const game = getGame();
           if (!game) return;
           if (!joined) {
+            // 참가 화면의 명단 미리 보기: 답하고 바로 끊음 (자리에 앉지 않음)
+            if (msg?.t === "peek") {
+              clearTimeout(joinTimer);
+              try { conn.send({ t: "roster", build: APP_BUILD, players: game.rosterPreview(String(msg.key ?? "")) }); } catch {}
+              setTimeout(() => { try { conn.close(); } catch {} }, 600);
+              return;
+            }
             if (msg?.t !== "join") return;
             clearTimeout(joinTimer);
             conns.set(connId, conn);
@@ -6813,7 +6934,26 @@ const Net = (() => {
     };
   }
 
-  return { startHost, joinRoom, hostPeerId, iceConfig };
+  /** 방 명단만 묻기 (참가 전). 호스트가 없거나 늦으면 null */
+  function peekRoom(room, key, ms = 9000) {
+    return new Promise((resolve) => {
+      let peer = null, done = false;
+      const end = (v) => { if (done) return; done = true; clearTimeout(t); try { peer?.destroy(); } catch {} resolve(v); };
+      const t = setTimeout(() => end(null), ms);
+      try {
+        peer = new Peer({ debug: 0, config: iceConfig() });
+        peer.on("error", () => end(null));
+        peer.once("open", () => {
+          const c = peer.connect(hostPeerId(room), { reliable: true, serialization: "binary" });
+          c.on("open", () => { try { c.send({ t: "peek", key }); } catch { end(null); } });
+          c.on("data", (msg) => { if (msg?.t === "roster" && Array.isArray(msg.players)) end(msg.players.slice(0, MAX_PEOPLE)); });
+          c.on("error", () => end(null));
+        });
+      } catch { end(null); }
+    });
+  }
+
+  return { startHost, joinRoom, hostPeerId, iceConfig, peekRoom };
 })();
 
 
@@ -8679,21 +8819,39 @@ const BannerArt = (() => {
     const h = Math.round(m / 60); if (h < 24) return `${h}시간 전`;
     const d = Math.round(h / 24); return d === 1 ? "어제" : `${d}일 전`;
   }
+  // 대출 카드 번호: 방 코드에서 4자리 (화면 장식 · 같은 방은 늘 같은 번호)
+  const cardNo = (room) => String([...String(room)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 9000, 7) + 1000);
+  const md = (ts) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`; };
+  async function deleteTable(t) {
+    if (!confirm(`「${t.title}」 테이블과 이 브라우저의 호스트 보관 기록 삭제. 되돌릴 수 없음.\n백업은 '세이브 받기'로.`)) return;
+    try { await HistoryArchive.deleteHostRoom(t.room); }
+    catch { return toast('보관 기록 삭제 실패. 테이블은 유지됨.'); }
+    await DB.del(K.host(t.room));
+    LS.set(K.hostIndex, (LS.get(K.hostIndex) ?? []).filter((x) => x.room !== t.room));
+    await loadTables(); renderTables();
+  }
+  /** 이어하기: 주머니에 테이블마다 대출 카드(오래된 것이 뒤, 최근이 맨 앞) + 오른쪽 대출기간표 */
   function renderTables() {
-    const list = app.tables;
-    $("#noTables").hidden = !!list.length;
-    $("#myTables").replaceChildren(...list.map((t) =>
-      el("li", {},
-        el("button", { class: "tt-open", type: "button", on: { click: () => Book.leave(`room=${t.room}`) } },
-          el("b", {}, t.title), el("span", {}, `${t.phase === "play" ? "진행 중" : "캐릭터 준비 중"} · ${ago(t.savedAt)}`)),
-        el("button", { class: "tt-del", type: "button", title: "테이블 삭제", "aria-label": `${t.title} 삭제`, on: { click: async () => {
-          if (!confirm(`「${t.title}」 테이블과 이 브라우저의 호스트 보관 기록 삭제. 되돌릴 수 없음.\n백업은 '세이브 받기'로.`)) return;
-          try { await HistoryArchive.deleteHostRoom(t.room); }
-          catch { return toast('보관 기록 삭제 실패. 테이블은 유지됨.'); }
-          await DB.del(K.host(t.room));
-          LS.set(K.hostIndex, (LS.get(K.hostIndex) ?? []).filter((x) => x.room !== t.room));
-          await loadTables(); renderTables();
-        } } }, iconSvg("trash")))));
+    const list = app.tables;   // 최근 저장 순
+    const state = (t) => (t.phase === "play" ? "진행 중" : "준비 중");
+    const shown = list.slice(0, 5).reverse();
+    const step = shown.length > 1 ? Math.min(30, 96 / (shown.length - 1)) : 0;
+    $("#tableCount").textContent = `${list.length}권`;
+    $("#myTables").replaceChildren(...shown.map((t, i) => el("li", { class: "lb-card", "data-room": t.room, style: `top:${10 + i * step}px` },
+      el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: () => Book.leave(`room=${t.room}`) } },
+        el("div", { class: "top" }, el("b", {}, t.title), el("span", { class: "no" }, cardNo(t.room))),
+        el("div", { class: "r" }, el("span", {}, "상 태"), el("span", {}, state(t))),
+        el("div", { class: "r" }, el("span", {}, "대출일"), el("span", { class: "hw" }, `${new Date(t.savedAt).getFullYear()}·${md(t.savedAt)} · ${ago(t.savedAt)}`)),
+        el("div", { class: "r" }, el("span", {}, "플레이어"), el("span", { class: "hw" }, (t.players ?? []).join(", ") || "-"))),
+      el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: () => deleteTable(t) } }, "✕"))));
+    const rows = list.slice(0, 9).map((t) => el("tr", { "data-room": t.room }, el("td", {}, el("span", { class: "st" }, md(t.savedAt))), el("td", { class: "n" }, t.title), el("td", {}, t.phase === "play" ? "진행" : "준비")));
+    while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
+    $("#dueRows").replaceChildren(...rows);
+  }
+  // 카드에 마우스 올리면 대출기간표의 같은 줄에 형광펜 (반대도)
+  for (const [box, other] of [["#myTables", "#dueRows"], ["#dueRows", "#myTables"]]) {
+    $(box).addEventListener("pointerover", (e) => { const room = e.target.closest("[data-room]")?.dataset.room; for (const n of $(other).querySelectorAll("[data-room]")) n.classList.toggle("hot", n.dataset.room === room); if (box === "#dueRows") for (const n of $(box).querySelectorAll("[data-room]")) n.classList.toggle("hot", n.dataset.room === room); });
+    $(box).addEventListener("pointerleave", () => { for (const n of document.querySelectorAll("#myTables .hot, #dueRows .hot")) n.classList.remove("hot"); });
   }
   function showHome() {
     show("home");
@@ -8711,15 +8869,45 @@ const BannerArt = (() => {
     if (sp === 2) $("#bkJoinName").value ||= LS.get(K.name) ?? "";
   });
 
+  const roomCode = (v) => /#room=([a-z0-9]{10})/.exec(v)?.[1] ?? (/^[a-z0-9]{10}$/.test(v) ? v : null);
+  /** 참가 쪽 왼쪽 카드: 코드 전엔 빈 칸, 코드를 넣으면 그 방의 플레이어 · 캐릭터가 한 줄씩 적힘 (나는 빼고) */
+  function drawJoinCard(code, players, state) {
+    const card = $("#joinCard");
+    card.dataset.state = state;
+    $("#joinCardNo").textContent = code ? cardNo(code) : "";
+    const rows = (players ?? []).slice(0, MAX_PEOPLE).map((p, i) => el("div", { class: "r in", style: `--d:${(i * .35).toFixed(2)}s` }, el("span", {}, String(i + 1)),
+      el("span", { class: "pl" }, p.name, p.gm ? el("small", {}, " (GM)") : null),
+      el("span", { class: "ch" }, p.char || el("small", {}, p.gm ? "-" : p.writing ? "작성 중" : ""))));
+    for (let i = rows.length; i < MAX_PEOPLE; i++) rows.push(el("div", { class: "r" }, el("span", {}, String(i + 1)), el("span"), el("span")));
+    $("#joinRows").replaceChildren(...rows);
+  }
+  drawJoinCard(null, [], "empty");
+  let peekCode = null, peekTimer = 0;
+  $("#joinLinkInput").addEventListener("input", () => {
+    clearTimeout(peekTimer);
+    const code = roomCode($("#joinLinkInput").value.trim());
+    if (code === peekCode) return;
+    peekCode = code;
+    if (!code) return drawJoinCard(null, [], "empty");
+    drawJoinCard(code, [], "wait");
+    peekTimer = setTimeout(async () => {
+      const players = await Net.peekRoom(code, LS.get(K.me(code))?.key ?? "");
+      if (peekCode !== code) return;   // 그사이 코드가 바뀜
+      drawJoinCard(code, players ?? [], players ? "ok" : "none");
+    }, 400);
+  });
   $("#joinLinkInput").addEventListener("keydown", (e) => e.key === "Enter" && $("#joinLinkBtn").click());
   $("#bkJoinName").addEventListener("keydown", (e) => e.key === "Enter" && $("#joinLinkBtn").click());
-  $("#joinLinkBtn").addEventListener("click", () => {
-    const v = $("#joinLinkInput").value.trim();
-    const code = /#room=([a-z0-9]{10})/.exec(v)?.[1] ?? (/^[a-z0-9]{10}$/.test(v) ? v : null);
+  $("#joinLinkBtn").addEventListener("click", async () => {
+    const btn = $("#joinLinkBtn");
+    if (btn.classList.contains("stamped")) return;
+    const code = roomCode($("#joinLinkInput").value.trim());
     if (!code) return ($("#homeError").textContent = "잘못된 초대 링크.");
     const name = $("#bkJoinName").value.trim();
     // 닉네임을 적었으면 이름 입력 화면 없이 바로 자리에 앉음 (이미 앉았던 방이면 그 자리 그대로)
     if (name) { LS.set(K.name, name); if (!LS.get(K.me(code))) LS.set(K.me(code), { key: randomId(24), name }); }
+    btn.classList.add("stamped"); Sfx.play("stamp");
+    await new Promise((r) => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 380));
     Book.leave(`room=${code}`);
   });
   $("#loadSaveInput").addEventListener("change", async (e) => {
@@ -8956,7 +9144,7 @@ const BannerArt = (() => {
     if (!d) return;
     d.archivePending = HistoryArchive.pending(archiveScope());
     const idx = (LS.get(K.hostIndex) ?? []).filter((t) => t.room !== d.roomId);
-    idx.push({ room: d.roomId, title: d.scenario.title, savedAt: d.savedAt, phase: d.phase });
+    idx.push({ room: d.roomId, title: d.scenario.title, savedAt: d.savedAt, phase: d.phase, players: Object.values(d.players).map((p) => p.name).slice(0, MAX_PEOPLE) });
     LS.set(K.hostIndex, idx.slice(-20));
     if (saving) { saveAgain = true; return saving; }
     saving = (async () => {

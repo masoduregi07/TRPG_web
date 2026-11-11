@@ -162,3 +162,14 @@ test("결과 정리에 결말 장면 묘사(endingText)", () => {
   assert.equal(typeof r.endingText, "string");
   assert.equal(r.endingText, String(sc.scenes[data.game.currentScene]?.description ?? "").trim().slice(0, 600));
 });
+
+test("참가 전 명단 미리 보기: 이름·캐릭터만, 물어본 사람 자리는 빼고 GM 표시", () => {
+  const { m, g, data } = table();
+  const a = g.onConnect("c1", { key: KEY, name: "루나", build: m.APP_BUILD }).pid;
+  g.onConnect("c2", { key: KEY2, name: "서진", build: m.APP_BUILD });
+  data.players[a].character = { name: "엘리너" };
+  const all = JSON.parse(JSON.stringify(g.rosterPreview()));
+  assert.deepEqual(all.map((p) => [p.name, p.char, p.gm, p.writing]), [["호스트", "", true, false], ["루나", "엘리너", false, false], ["서진", "", false, true]]);
+  assert.ok(all.every((p) => !("key" in p) && !("secret" in p)));
+  assert.deepEqual(JSON.parse(JSON.stringify(g.rosterPreview(KEY2))).map((p) => p.name), ["호스트", "루나"]);
+});
