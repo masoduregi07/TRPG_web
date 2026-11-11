@@ -296,3 +296,16 @@ test("NPC 카드: 한 번 요청으로 여러 명 · GM이 바쁘면 안 만듦 
   assert.deepEqual([...data.game.npcCardFail], ["o1"], "응답에 없던 NPC는 실패로");
   assert.equal(g.ensureNpcCards(), null, "다시 안 함");
 });
+
+test("판정 여러 개 적용 · NPC 대사의 질문자 기록", async () => {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {}, aiCall: async () => "{}" });
+  data.phase = "play"; data.game = m.Engine.newState(sc);
+  data.players.p1 = { name: "가", ready: true, character: { name: "한서" } };
+  data.players.p2 = { name: "나", ready: true, character: { name: "민준" } };
+  g.applyPlan({ narration: "둘이 각자 살핌.", answers: [], give: [], take: [], hurt: [], heal: [], blocks: [], newNpcs: [], showHandouts: [],
+    checks: [{ type: "improv", spec: { skill: "관찰력", reason: "벽 살피기" }, who: "p1", whoName: "한서" }, { type: "improv", spec: { skill: "듣기", reason: "소리 듣기" }, who: "p2", whoName: "민준" }] });
+  assert.equal(data.game.pendingChecks.length, 2);
+});
