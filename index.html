@@ -2459,11 +2459,11 @@ html.has-3d .topbar { box-shadow: none; }
 .bk-page.lib { display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; }
 .bk-page.lib > .lib-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 24px; }
 .kraft, .lb-pocket { background: #c79a5b; background-image: radial-gradient(rgba(90, 55, 20, .18) 1px, transparent 1.5px), radial-gradient(rgba(255, 240, 200, .12) 1px, transparent 1.5px); background-size: 4px 4px, 7px 7px; background-position: 0 0, 2px 3px; }
-.lb-wrap { position: relative; width: 86%; height: 300px; margin: 0 auto; }
+.lb-wrap { position: relative; width: 86%; height: 370px; margin: 0 auto; }
 .lb-back { position: absolute; left: 0; right: 0; top: 70px; bottom: 0; background: #9c7140; background-image: radial-gradient(rgba(50, 28, 8, .22) 1px, transparent 1.5px); background-size: 4px 4px;
   clip-path: polygon(0 22px, 10% 0, 90% 0, 100% 22px, 100% 100%, 0 100%); box-shadow: inset 0 14px 18px rgba(30, 15, 3, .55); }
 .lb-cards { position: absolute; inset: 0; z-index: 1; margin: 0; padding: 0; list-style: none; clip-path: inset(-60px -60px 4px -60px); }   /* 카드 아랫부분이 주머니 밑으로 삐져나오지 않게 */
-.lb-card { position: absolute; left: 9%; right: 9%; height: 220px; box-sizing: border-box; padding: 7px 10px; background: #f4ead0; cursor: pointer; transition: translate .15s;
+.lb-card { position: absolute; left: 9%; right: 9%; height: 290px; box-sizing: border-box; padding: 7px 10px; background: #f4ead0; cursor: pointer; transition: translate .15s;
   box-shadow: 0 -1px 0 rgba(60, 40, 20, .25), 1px 1px 0 rgba(60, 40, 20, .25), 0 4px 6px rgba(30, 15, 3, .35); font: 11px/1.35 var(--font); color: var(--ink); }
 .lb-card:hover, .lb-card:focus-within, .lb-card.hot { translate: 0 -12px; }
 .lb-card:nth-child(4n+1) { rotate: -3deg; left: 6%; right: 12%; }
@@ -2481,9 +2481,9 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-card .hw { font: 12px/1.3 "Galmuri9", var(--font); color: #2a3a8a; }
 .lb-del { position: absolute; right: 4px; top: 4px; width: 18px; height: 18px; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
 .lb-del:hover, .lb-del:focus-visible { color: var(--blood); outline: 0; }
-.lb-pocket { position: absolute; left: 0; right: 0; bottom: 0; height: 168px; z-index: 3; box-sizing: border-box; padding: 34px 16px 14px; color: #3a2410;
+.lb-pocket { position: absolute; left: 0; right: 0; bottom: 0; height: 238px; z-index: 3; box-sizing: border-box; padding: 34px 16px 14px; color: #3a2410;
   clip-path: polygon(0 0, 40% 0, 43% 4px, 46% 16px, 50% 20px, 54% 16px, 57% 4px, 60% 0, 100% 0, 100% 100%, 0 100%); pointer-events: none; }
-.lb-shadow { position: absolute; left: 0; right: 0; bottom: 0; height: 168px; z-index: 2; box-shadow: 0 -6px 10px rgba(30, 15, 3, .45); pointer-events: none; }
+.lb-shadow { position: absolute; left: 0; right: 0; bottom: 0; height: 238px; z-index: 2; box-shadow: 0 -6px 10px rgba(30, 15, 3, .45); pointer-events: none; }
 .lb-pocket .hd { display: flex; justify-content: space-between; font: 10px/1.4 var(--font); }
 .lb-pocket .hd b { font: 16px/1 "Galmuri9", var(--font); font-weight: 400; }
 .lb-pocket h4 { margin: 8px 0 6px; text-align: center; font: 12px/1.4 var(--font); letter-spacing: .4em; font-weight: 400; }
@@ -2578,6 +2578,7 @@ html.has-3d .topbar { box-shadow: none; }
   .bk-head { margin: 4px 0 10px; }
   .bk-head h2 { font-size: 24px; }
   .ev { height: 262px; }
+  .lb-wrap { height: 300px; } .lb-pocket, .lb-shadow { height: 180px; } .lb-card { height: 230px; }
   .ev-ret { top: 104px; }
   .ev-syn { -webkit-line-clamp: 2; }
   .ev-meta { display: none; }
@@ -2679,6 +2680,13 @@ html.has-3d .topbar { box-shadow: none; }
         <div class="ix-tabs"><label class="ix-tab" tabindex="0" role="button">▤ 파일 불러오기<input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label></div>
       </div>
       <div class="lib-body">
+        <div class="due"><h4>대출기간표</h4>
+          <table><thead><tr><th class="c-d">반납일</th><th>사건</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
+      </div>
+      <div class="bk-folio">3</div>
+    </section>
+    <section class="bk-page lib" data-spread="1" data-side="R">
+      <div class="lib-body">
         <!-- 열린 대출 카드 주머니: 테이블마다 카드 한 장 (뽑으면 들어감) -->
         <div class="lb-wrap">
           <div class="lb-back"></div>
@@ -2695,13 +2703,6 @@ html.has-3d .topbar { box-shadow: none; }
             <p id="recoverError" class="error" role="alert"></p>
           </details>
         </div>
-      </div>
-      <div class="bk-folio">3</div>
-    </section>
-    <section class="bk-page lib" data-spread="1" data-side="R">
-      <div class="lib-body">
-        <div class="due"><h4>대출기간표</h4>
-          <table><thead><tr><th class="c-d">반납일</th><th>사건</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
       </div>
       <div class="bk-folio">4</div>
     </section>
@@ -8876,7 +8877,7 @@ const BannerArt = (() => {
         el("div", { class: "r" }, el("span", {}, "대출일"), el("span", { class: "hw" }, `${new Date(t.savedAt).getFullYear()}·${md(t.savedAt)} · ${ago(t.savedAt)}`)),
         el("div", { class: "r" }, el("span", {}, "플레이어"), el("span", { class: "hw" }, (t.players ?? []).join(", ") || "-"))),
       el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: () => deleteTable(t) } }, "✕"))));
-    const rows = list.slice(0, 9).map((t) => el("tr", { "data-room": t.room }, el("td", {}, el("span", { class: "st" }, md(t.savedAt))), el("td", { class: "n" }, t.title), el("td", {}, t.phase === "play" ? "진행" : "준비")));
+    const rows = list.slice(0, 9).map((t) => el("tr", { "data-room": t.room }, el("td", {}, el("span", { class: "st" }, md(t.savedAt))), el("td", { class: "n", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title }, t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.title), el("td", {}, t.phase === "play" ? "진행" : "준비")));
     while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
     $("#dueRows").replaceChildren(...rows);
   }
@@ -9166,7 +9167,8 @@ const BannerArt = (() => {
     if (!d) return;
     d.archivePending = HistoryArchive.pending(archiveScope());
     const idx = (LS.get(K.hostIndex) ?? []).filter((t) => t.room !== d.roomId);
-    idx.push({ room: d.roomId, title: d.scenario.title, savedAt: d.savedAt, phase: d.phase, players: Object.values(d.players).map((p) => p.name).slice(0, MAX_PEOPLE) });
+    idx.push({ room: d.roomId, title: d.scenario.title, savedAt: d.savedAt, phase: d.phase, players: Object.values(d.players).map((p) => p.name).slice(0, MAX_PEOPLE),
+      chapter: (() => { const ids = Object.keys(d.scenario.scenes ?? {}), cur = d.game?.currentScene; return cur && ids.includes(cur) ? { n: ids.indexOf(cur) + 1, title: String(d.scenario.scenes[cur].title ?? cur) } : null; })() });
     LS.set(K.hostIndex, idx.slice(-20));
     if (saving) { saveAgain = true; return saving; }
     saving = (async () => {
