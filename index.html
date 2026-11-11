@@ -1048,7 +1048,8 @@ textarea { resize: vertical; margin-top: 8px; }
 .dice-note .who { color: var(--c, var(--blood)); margin-right: 6px; }
 .dice-note b { font-weight: 400; font-size: 20px; vertical-align: -2px; color: var(--blood); margin-left: 3px; }
 .dice-note.secret { background: #d9dbe4; }
-.entry.awaiting { visibility: hidden; }
+/* 서술이 다 찍히기 전 · 주사위가 떨어지기 전에 기다리는 기록은 자리도 차지하지 않음 (빈 공간이 먼저 생기지 않게) */
+#log .entry.awaiting, #log .entry.queued { display: none !important; }
 
 /* 소리 설정 쪽지 */
 .sound-pop { width: 230px; display: grid; gap: 12px; }
@@ -10238,7 +10239,13 @@ const BannerArt = (() => {
     node.textContent = "";
     node.classList.add("typing");
     node.setAttribute("aria-label", text);   // 화면 낭독기는 전체 문장을 바로
-    typeQueue.push({ node, text });
+    const job = { node, text };
+    // 앞 서술이 찍히는 중이면 차례가 올 때까지 이 기록은 숨김 (빈 칸이 미리 생기지 않게). 기록 칸에 붙은 뒤에 판단
+    queueMicrotask(() => {
+      const host = node.closest?.(".entry");
+      if (!job.started && typing && typing !== job && host && !host.contains(typing.node)) host.classList.add("queued");
+    });
+    typeQueue.push(job);
     if (!typing) nextType();
   }
   /* 옛 타자기 느낌: 한 글자씩 "탁" 찍힘 (고르지 않은 간격, 문장부호에서 멈칫, 갓 찍힌 글자는 잉크가 진함) */
@@ -10246,6 +10253,8 @@ const BannerArt = (() => {
     const job = typeQueue.shift();
     typing = job ?? null;
     if (!job) return afterTyping();
+    job.started = true;
+    job.node.closest?.(".entry")?.classList.remove("queued");
     const chars = [...job.text];
     // 긴 AI 서술도 180번 안쪽의 타이핑 단계로 끝낸다. 한 글자씩 수천 번
     // 레이아웃을 강제로 갱신하면 화면·채팅 입력이 장시간 멈출 수 있다.
@@ -10285,7 +10294,7 @@ const BannerArt = (() => {
   function skipTyping() {
     if (!typing) return;
     const stick = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 80;
-    for (const j of [typing, ...typeQueue.splice(0)]) { j.done = true; clearTimeout(j.timer); setText(j.node, j.text); j.node.classList.remove("typing"); j.node.removeAttribute("aria-label"); markCut(j.node.closest?.(".tr-row")); }
+    for (const j of [typing, ...typeQueue.splice(0)]) { j.started = true; j.node.closest?.(".entry")?.classList.remove("queued"); j.done = true; clearTimeout(j.timer); setText(j.node, j.text); j.node.classList.remove("typing"); j.node.removeAttribute("aria-label"); markCut(j.node.closest?.(".tr-row")); }
     typing = null;
     if (stick) logBox.scrollTop = logBox.scrollHeight;
     afterTyping();
