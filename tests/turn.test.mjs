@@ -199,7 +199,7 @@ test("받은 물건이 서술에 없으면 다시 묻고, 마지막엔 주지 �
 
 test("NPC가 회피형 대답을 세 번 잇달아 하면 다시 물음", () => {
   const info = base({ npcNames: ["한진우"], npcRecent: { 한진우: ["\"무슨 소리인지 잘 모르겠군요.\"", "\"저도 당황스럽군요.\""] } });
-  assert.ok(run({ narration: "한진우는 고개를 저음. \"저도 모르겠습니다.\"" }, info).issues.some((i) => i.hard && /28-2/.test(i.msg)));
+  assert.ok(run({ narration: "한진우는 고개를 저음. \"저도 모르겠습니다.\"" }, info).issues.some((i) => i.hard && /규칙 28\)/.test(i.msg)));
   assert.ok(!run({ narration: "한진우는 쪽지를 뒤집어 봄. \"이 필체, 예전 기록실 담당자 것 같아요.\"" }, info).issues.some((i) => i.hard));
   assert.ok(!run({ narration: "한진우는 고개를 저음. \"저도 모르겠습니다.\"" }, base({ npcNames: ["한진우"], npcRecent: { 한진우: ["\"저도 당황스럽군요.\""] } })).issues.some((i) => i.hard), "두 번째까지는 통과");
 });
