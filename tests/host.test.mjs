@@ -212,7 +212,7 @@ test("turnContext: 이름 미정 KPC · 직전 NPC 대사", () => {
   assert.equal(g.turnContext().info.kpcOpen, false, "이름이 정해지면 끝");
 });
 
-test("KPC는 사건이 바뀌어도 따라오고, kpcAway면 어디에도 없음", () => {
+test("KPC는 사건이 바뀌어도 따라오고, kpcAway면 따라 넣은 사건에서만 빠짐", () => {
   const m = load();
   const sc = sample(m);
   sc.npcs.kpc = { name: "한은우", look: "코트", personality: "신중" };
@@ -226,7 +226,16 @@ test("KPC는 사건이 바뀌어도 따라오고, kpcAway면 어디에도 없음
   sc.scenes[other].npcs = sc.scenes[other].npcs.filter((x) => x !== "kpc"); sc.scenes[other].kpc = false;
   m.Engine.kpcFollow(sc, st);
   assert.ok(!sc.scenes[other].npcs.includes("kpc"), "kpc: false인 사건엔 안 들어감");
+  sc.scenes[other].kpc = true;
+  m.Engine.kpcFollow(sc, st);
+  assert.ok(sc.scenes[other].npcs.includes("kpc"));
   st.kpcAway = true;
+  m.Engine.kpcFollow(sc, st);
+  assert.ok(!sc.scenes[other].npcs.includes("kpc"), "따라 넣은 사건에선 빠짐");
+  assert.ok(sc.scenes[sc.start].npcs.includes("kpc"), "시나리오가 둔 사건엔 일반 NPC로 남음");
+  const ctx = m.Engine.aiContext(sc, { ...st, currentScene: sc.start }, []);
+  assert.match(ctx.등장NPC.find((n) => n.id === "kpc").역할, /일반 NPC/);
+  delete st.kpcFollowed;   // 예전 세이브: 모든 사건에서 뺌
   m.Engine.kpcFollow(sc, st);
   assert.ok(!Object.values(sc.scenes).some((s) => (s.npcs ?? []).includes("kpc")));
 });
