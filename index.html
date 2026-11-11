@@ -2381,11 +2381,19 @@ html.has-3d .topbar { box-shadow: none; }
 .ev-hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #3b2a1a; font: 11px/1.4 var(--font); color: #5a4630; }
 .ev-hd b { font: 400 13px/1.4 "Galmuri11", var(--font); color: #2a1a10; letter-spacing: .3em; }
 .ev-fold { position: absolute; left: 6%; right: 6%; bottom: 0; height: 34%; z-index: 2; transform-origin: 50% 0; background: linear-gradient(rgba(255, 255, 255, .18), transparent 30%), #e4d5ad; border-top: 1px solid rgba(90, 60, 30, .4); box-shadow: 0 -3px 6px rgba(40, 25, 10, .3); }
-.ev-tape { position: absolute; left: 3%; right: 3%; bottom: calc(34% - 13px); z-index: 4; height: 26px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; rotate: -1deg; transform-origin: 0 50%;
+.ev-tape { position: absolute; left: 3%; right: 3%; bottom: calc(34% - 13px); z-index: 4; height: 26px; padding: 0; border: 0; background: none; cursor: pointer; rotate: -1deg; transform-origin: 0 50%; outline: 1px solid transparent; outline-offset: 3px; transition: outline-color .15s; }
+.ev-tape:hover, .ev-tape:focus-visible, .ev-tape.asking { outline: 1px dashed #8a2216; }
+.ev-tape:disabled { cursor: default; outline: 0; }
+.ev-tape-in { position: absolute; inset: 0; padding: 0 14px; display: flex; align-items: center; justify-content: space-between;
   background: rgba(222, 200, 150, .94); box-shadow: 0 1px 2px rgba(40, 25, 10, .35); font: 10px/1 var(--font); color: #8a2216; letter-spacing: .25em;
   -webkit-mask: linear-gradient(90deg, transparent 0 2px, #000 2px calc(100% - 2px), transparent calc(100% - 2px)), repeating-linear-gradient(#000 0 3px, transparent 3px 4px); mask: linear-gradient(90deg, transparent 0 2px, #000 2px calc(100% - 2px), transparent calc(100% - 2px)), repeating-linear-gradient(#000 0 3px, transparent 3px 4px); }
-.ev-tape::after { content: ""; position: absolute; left: 8px; right: 8px; top: 50%; border-top: 1px dashed rgba(138, 34, 22, .6); }
-.ev-tape b { position: relative; z-index: 1; padding: 0 4px; font-weight: 400; background: rgba(222, 200, 150, .94); }
+.ev-tape-in::after { content: ""; position: absolute; left: 8px; right: 8px; top: 50%; border-top: 1px dashed rgba(138, 34, 22, .6); }
+.ev-tape-in b { position: relative; z-index: 1; padding: 0 4px; font-weight: 400; background: rgba(222, 200, 150, .94); }
+.ev-tape-in b.mid { position: absolute; left: 50%; translate: -50% 0; font-size: 11px; }
+.ev-ask { position: absolute; left: 50%; bottom: calc(34% - 82px); translate: -50% 0; z-index: 6; padding: 8px 12px 9px; text-align: center; background: #f1e5c2; box-shadow: inset 0 0 0 1px #5a4128, 2px 3px 0 rgba(40, 25, 10, .35); }
+.ev-ask[hidden] { display: none; }
+.ev-ask p { margin: 0 0 7px; font: 13px/1.4 var(--font); color: var(--ink); }
+.ev-ask div { display: flex; gap: 8px; justify-content: center; }
 .ev-k { font: 10.5px/1.4 var(--font); color: #8a3a22; letter-spacing: .2em; }
 .ev-t { margin: 1px 0 4px; font: 20px/1.3 "Galmuri14", var(--font); }
 .ev-syn { font: 12px/1.5 var(--font); color: #3b2a1a; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -2666,9 +2674,10 @@ html.has-3d .topbar { box-shadow: none; }
           <div class="ev-doc"><textarea id="yamlInput" class="code" spellcheck="false" aria-label="시나리오 원문"></textarea></div>
         </div>
         <div class="ev-fold"></div>
-        <div class="ev-tape"><b>✂ 스포일러 주의</b><b>No. <span id="scNo2">----</span></b></div>
+        <button class="ev-tape" type="button" aria-label="봉인 테이프 뜯기"><span class="ev-tape-in"><b>✂</b><b class="mid">스포일러 주의</b><b>No. <span id="scNo2">----</span></b></span></button>
+        <div class="ev-ask" hidden><p>뜯을까?</p><div><button class="pbtn" type="button" data-a="y">예</button><button class="pbtn" type="button" data-a="n">아니오</button></div></div>
       </div>
-      <div class="ev-st"><span id="scStatus" aria-live="polite"></span><button id="sealBtn" class="ev-seal" type="button" hidden>봉인 풀기 (스포일러)</button></div>
+      <div class="ev-st"><span id="scStatus" aria-live="polite"></span><button id="sealBtn" class="ev-seal" type="button" hidden>다시 봉인</button></div>
       <div id="validateResult" class="ev-warns"></div>
       <div class="bk-folio">1</div>
     </section>
@@ -9095,17 +9104,28 @@ const BannerArt = (() => {
   // 봉인 푼 상태에서 원문을 고치면 잠시 뒤 다시 검사
   let revalidate = 0;
   $("#yamlInput").addEventListener("input", () => { validScenario = null; $("#openTableBtn").disabled = true; clearTimeout(revalidate); revalidate = setTimeout(validate, 700); });
+  // 봉인 테이프 누르기 → 바로 아래 쪽지 [뜯을까? 예/아니오] → 예면 뜯고 펼침
+  const evAsk = (open) => {
+    const env = $("#scEnv"), ask = env.querySelector(".ev-ask");
+    ask.hidden = !open; env.querySelector(".ev-tape").classList.toggle("asking", open);
+    if (open) ask.querySelector("[data-a=y]").focus({ preventScroll: true });
+  };
+  const tearTape = () => {
+    const env = $("#scEnv");
+    evAsk(false);
+    if (env.classList.contains("tearing") || !scSealed) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { scSealed = false; drawEnvelope(); return; }
+    env.classList.add("tearing");
+    setTimeout(() => { env.classList.remove("tearing"); scSealed = false; drawEnvelope(); }, 500);
+  };
+  $("#scEnv .ev-tape").addEventListener("click", (e) => { e.stopPropagation(); if (scSealed && $("#scEnv").dataset.state === "sealed") evAsk($("#scEnv .ev-ask").hidden); });
+  $("#scEnv .ev-ask").addEventListener("click", (e) => { e.stopPropagation(); const a = e.target.closest("[data-a]")?.dataset.a; if (a === "y") tearTape(); else if (a === "n") evAsk(false); });
+  $("#scEnv .ev-ask").addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); evAsk(false); } });
+  document.addEventListener("click", () => { if (!$("#scEnv .ev-ask").hidden) evAsk(false); });
   $("#sealBtn").addEventListener("click", () => {
     const env = $("#scEnv");
-    if (env.classList.contains("tearing")) return;
-    const fin = () => { env.classList.remove("tearing", "sealing"); };
-    if (scSealed && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      env.classList.add("tearing");
-      setTimeout(() => { fin(); scSealed = false; drawEnvelope(); }, 500);
-      return;
-    }
-    scSealed = !scSealed; drawEnvelope();
-    if (scSealed) { fin(); env.classList.add("sealing"); setTimeout(fin, 560); }
+    scSealed = true; drawEnvelope();
+    env.classList.add("sealing"); setTimeout(() => env.classList.remove("sealing"), 560);
   });
 
   /** 시나리오 글 → { sc, errors, warnings } (해석 실패면 fatal) */
@@ -9125,8 +9145,9 @@ const BannerArt = (() => {
     const env = $("#scEnv"), has = !!$("#yamlInput").value.trim(), c = lastCheck;
     const state = !has ? "empty" : scSealed ? "sealed" : "open";
     env.dataset.state = state;
-    $("#sealBtn").hidden = !has;
-    $("#sealBtn").textContent = scSealed ? "봉인 풀기 (스포일러)" : "다시 봉인";
+    $("#sealBtn").hidden = state !== "open";
+    env.querySelector(".ev-tape").disabled = state !== "sealed";
+    if (state !== "sealed") evAsk(false);
     const sc = c?.sc && typeof c.sc === "object" ? c.sc : null;
     const title = typeof sc?.title === "string" ? sc.title : "";
     $("#scNo").textContent = $("#scNo2").textContent = title ? String([...title].reduce((h, ch) => (h * 31 + ch.codePointAt(0)) % 9000, 7) + 1000) : "----";
