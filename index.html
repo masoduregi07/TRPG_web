@@ -1918,16 +1918,14 @@ html.has-3d .topbar { box-shadow: none; }
 .dos-loc { display: inline-flex; align-items: center; gap: 3px; padding-left: 7px; font: 11px var(--font); color: #553a23; white-space: nowrap; box-shadow: inset 1px 0 0 rgba(85, 58, 35, .55); }
 .dos-loc .ic-svg { width: 12px; height: 12px; }
 /* 판정 알림(D2): 크림 말풍선 + 남색 2px 테 + 입력칸을 가리키는 꼬리. 다른 사람 차례 = 갈색, 실패 후 선택 = 붉은색 */
-/* 기록 칸 위쪽에 떠 있음(자리 차지 안 함, 최근 기록이 있는 아래쪽은 안 가림): 한 줄, 손잡이로 좌우로 비켜 둠 */
+/* 기록 칸 위쪽에 떠 있음(자리 차지 안 함, 최근 기록이 있는 아래쪽은 안 가림): 한 줄 */
 .ck-tips { position: absolute; z-index: 6; left: calc(var(--cover) + 48px); right: calc(var(--cover) + 44px); top: calc(var(--cover) + 12px);
-  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 12px; pointer-events: none; transform: translateX(var(--ck-x, 0px)); }
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 12px; pointer-events: none; }
 .ck-tips[hidden] { display: none; }
-.ck-tip { --c: #2a3550; position: relative; display: flex; align-items: center; gap: 9px; max-width: 100%; pointer-events: auto; padding: 6px 6px 6px 8px;
+.ck-tip { --c: #2a3550; position: relative; display: flex; align-items: center; gap: 9px; max-width: 100%; pointer-events: auto; padding: 6px 6px 6px 10px;
   font-family: var(--font); color: #2a2018; background: #f4ecd8; box-shadow: 0 0 0 2px var(--c), 3px 4px 0 2px rgba(0, 0, 0, .28); animation: ck-in .22s ease-out; }
 .ck-tip.wait { --c: #7a6548; }
 .ck-tip.fail { --c: #a5321e; }
-.ck-grip { flex: none; align-self: stretch; width: 4px; margin: 2px 0; cursor: ew-resize; touch-action: none; opacity: .55; color: var(--c);
-  background: radial-gradient(circle, currentColor 1px, transparent 1.3px) 0 0 / 4px 4px repeat-y; }
 .ck-k { flex: none; padding: 1px 6px 0; font-size: 11px; color: #f4ecd8; background: var(--c); }
 .ck-tip b { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 15px; font-weight: 400; }
 .ck-tip .ck-t { flex: none; font-size: 12px; color: #553a23; white-space: nowrap; }
@@ -11822,22 +11820,6 @@ const BannerArt = (() => {
   $("#endClose").addEventListener("click", () => { app.endHidden = app.snap?.result?.at ?? null; render(); });
   $("#endResume").addEventListener("click", () => { paperAsk("결말을 취소하고 이야기를 계속할까? 모두의 결과 화면이 닫힘.").then((y) => y && send({ t: "unfinish" })); });
 
-  /* 판정 알림 좌우 위치: 점선 손잡이로 끌어 옮김(말풍선 전부 같이), 이 기기에 기억. 칸을 넘지 않게 */
-  function placeCkTips() {
-    const box = $("#ckTips");
-    if (box.hidden) return;
-    const used = box.lastElementChild ? Math.max(...[...box.children].map((t) => t.offsetLeft + t.offsetWidth)) : 0;
-    box.style.setProperty("--ck-x", `${Math.round(Math.max(0, Math.min(box.clientWidth - used, Number(LS.get("trpg:ckX")) || 0)))}px`);
-  }
-  addEventListener("resize", () => requestAnimationFrame(placeCkTips));
-  $("#ckTips").addEventListener("pointerdown", (e) => {
-    if (!e.target.closest(".ck-grip")) return;
-    e.preventDefault();
-    const box = $("#ckTips"), x0 = parseFloat(getComputedStyle(box).getPropertyValue("--ck-x")) || 0, sx = e.clientX;
-    const mv = (ev) => { LS.set("trpg:ckX", Math.max(0, x0 + ev.clientX - sx)); placeCkTips(); };
-    const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); removeEventListener("pointercancel", up); };
-    addEventListener("pointermove", mv); addEventListener("pointerup", up); addEventListener("pointercancel", up);
-  });
   function renderPlay(s) {
     const v = s.view;
 
@@ -11871,19 +11853,19 @@ const BannerArt = (() => {
       pb.replaceChildren(...parts);
       // 판정 알림: 대기 판정 · 방금 실패한 판정(밀어붙이기 · 행운)을 입력칸 위 말풍선으로. 굴리거나 GM이 서술하면 사라짐
       const tips = [], fail = [];
-      if (s.retry) fail.push(el("div", { class: "ck-tip fail" }, el("span", { class: "ck-grip", title: "좌우로 옮기기" }), el("span", { class: "ck-k" }, "실패"), el("b", {}, s.retry.label),
+      if (s.retry) fail.push(el("div", { class: "ck-tip fail" }, el("span", { class: "ck-k" }, "실패"), el("b", {}, s.retry.label),
         s.retry.push ? el("button", { class: "pbtn", type: "button", title: "한 번 더 굴림. 또 실패하면 대가가 따름", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
         s.retry.cost > 0 ? el("button", { class: "pbtn", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null));
       // 한 줄로: 내 차례 → (실패) → 남의 차례
       for (const pc of [...pendingMe, ...pendingChecks.filter((x) => !isMine(x))]) {
         const mine = isMine(pc);
         tips.push(el("div", { class: `ck-tip${mine ? "" : " wait"}`, "data-label": pc.label },
-          el("span", { class: "ck-grip", title: "좌우로 옮기기" }), el("span", { class: "ck-k" }, pc.san ? "이성" : pc.improv ? "즉흥" : "판정"), el("b", {}, pc.label),
+          el("span", { class: "ck-k" }, pc.san ? "이성" : pc.improv ? "즉흥" : "판정"), el("b", {}, pc.label),
           mine ? el("span", { class: "ck-t" }, [pc.skill || pc.san ? tagOf(pc) : "", pc.whoName && pc.who !== s.me ? pc.whoName : ""].filter(Boolean).join(" · ")) : el("span", { class: "ck-t" }, `${pc.whoName} 차례`),
           mine ? el("button", { class: "pbtn navy", type: "button", on: { click: () => send({ t: "check", checkId: pc.checkId }) } }, iconSvg("die_line"), "굴리기") : null));
       }
       tips.splice(pendingMe.length, 0, ...fail);
-      const box = $("#ckTips"); box.hidden = !tips.length; box.replaceChildren(...tips); placeCkTips();
+      const box = $("#ckTips"); box.hidden = !tips.length; box.replaceChildren(...tips);
       if (s.retry) helpOnce(s.retry.push ? ["push", ...(s.retry.cost > 0 ? ["luck"] : [])] : ["luck"]);   // 처음 실패했을 때 밀어붙이기 · 행운 쪽지
     }
 
