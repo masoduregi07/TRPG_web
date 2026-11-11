@@ -2450,6 +2450,16 @@ html.has-3d .topbar { box-shadow: none; }
 .lg-sub .field { margin-top: 0; gap: 3px; }
 .lg-sub .field > span { font: 12px/1.4 var(--font); color: #6b5338; }
 .lg-sub .field select, .lg-sub .field input { height: 30px; font: 13px/1.4 var(--font); }
+/* 시나리오 쪽: 경고 목록만 남은 높이 안에서 따로 스크롤 */
+.bk-page[data-spread="0"][data-side="L"] { display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; }
+.bk-page[data-spread="0"][data-side="L"] > * { flex: none; }
+.bk-page[data-spread="0"][data-side="L"] > .ev-warns { flex: 1 1 0; min-height: 64px; overflow-y: auto; align-content: start; padding-right: 4px; scrollbar-width: thin; scrollbar-color: #9c8455 transparent; }
+#home.narrow .bk-page[data-spread="0"][data-side="L"] { height: auto; }
+#home.narrow .bk-page[data-spread="0"][data-side="L"] > .ev-warns { flex: none; max-height: 220px; }
+/* 참가하기: 장부 줄 + 라벨지 버튼 */
+.lg-go { padding: 7px 16px 6px; border: 0; cursor: pointer; background: #5a4128; color: #f3e6c4; font: 14px/1.4 var(--font); letter-spacing: .05em; box-shadow: 2px 2px 0 rgba(60, 40, 20, .35); }
+.lg-go:hover, .lg-go:focus-visible { background: #7a1d12; outline: 0; }
+.lg-go:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(60, 40, 20, .35); }
 /* 테이블 열기 = 날인란: 점선 칸 + 흐린 開 자국, 누르면 붉은 도장이 쾅 */
 .seal-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: transparent; box-shadow: none; cursor: pointer; }
 .seal-btn .cap { font: 13px/1.4 var(--font); color: #5a4128; letter-spacing: .1em; }
@@ -2603,9 +2613,11 @@ html.has-3d .topbar { box-shadow: none; }
     <section class="bk-page" data-spread="2" data-side="L"><div class="bk-chap"><div class="bk-kick">제 3 장</div><div class="bk-roman">Ⅲ</div><div class="bk-chap-t">참가하기</div><div class="bk-plate" aria-hidden="true"></div></div><div class="bk-folio">5</div></section>
     <section class="bk-page" data-spread="2" data-side="R">
       <div class="bk-head"><h2>참가하기</h2></div>
-      <label class="field"><span>초대 링크 또는 방 코드</span><input id="joinLinkInput" placeholder="받은 초대 링크나 코드 붙여넣기" /></label>
-      <label class="field"><span>닉네임 (플레이어 이름)</span><input id="bkJoinName" maxlength="16" placeholder="예: 루나" autocomplete="nickname" /></label>
-      <div class="bk-nav end"><button id="joinLinkBtn" class="btn primary" type="button">자리에 앉기</button></div>
+      <div class="lg">
+        <label class="lg-row"><span class="lg-k">초대</span><input id="joinLinkInput" placeholder="받은 초대 링크나 방 코드 붙여넣기" /></label>
+        <label class="lg-row"><span class="lg-k">닉네임</span><input id="bkJoinName" maxlength="16" placeholder="예: 루나" autocomplete="nickname" /></label>
+      </div>
+      <div class="bk-nav end"><button id="joinLinkBtn" class="lg-go" type="button">자리에 앉기 ▸</button></div>
       <div class="bk-folio">6</div>
     </section>
   </div>
