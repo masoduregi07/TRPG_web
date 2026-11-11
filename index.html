@@ -2281,6 +2281,9 @@ html.has-3d .topbar { box-shadow: none; }
 /* 머리 줄 오른쪽 끝 색인 탭 (파일 불러오기 · 샘플) */
 .ix-head { align-items: flex-end; }
 .ix-tabs { display: flex; gap: 3px; align-items: flex-end; margin-bottom: -8px; }
+.ix-head h2, .ix-tab { white-space: nowrap; }   /* 쪽이 좁아도 제목 · 탭 글자가 두 줄로 꺾이지 않게 (넘치면 탭이 아래 줄로) */
+.ix-head { flex-wrap: wrap; column-gap: 8px; }
+.ix-tabs { margin-left: auto; }
 .ix-tab { padding: 4px 12px 3px; border: 0; cursor: pointer; font: 12px/1.4 var(--font); color: #4a3826; background: rgba(150, 105, 50, .22); clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 100%, 0 100%); }
 .ix-tab:hover, .ix-tab:focus-visible { background: rgba(150, 105, 50, .36); outline: 0; }
 .ix-tab.on { padding-bottom: 5px; color: #f4ecd8; background: #675137; }
@@ -7289,7 +7292,7 @@ void main() {
 }`;
   const FS = `
 precision mediump float;
-uniform sampler2D u_tex; uniform vec3 u_fogc, u_tint; uniform float u_alphaTest, u_ghost;
+uniform sampler2D u_tex; uniform vec3 u_fogc, u_tint; uniform float u_alphaTest, u_ghost, u_q;
 varying vec2 v_uvw; varying float v_w; varying vec3 v_col; varying float v_fog;
 float b2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
 float bayer4(vec2 a) { return b2(0.5 * a) * 0.25 + b2(a); }
@@ -7301,8 +7304,8 @@ void main() {
   vec3 c = t.rgb * u_tint * v_col;
   c = min(c, vec3(.82)) + max(c - .82, 0.0) * .3;          /* 밝은 부분 눌러 담기: 촛불 옆 종이 글씨가 하얗게 날아가지 않게 */
   c = mix(c, u_fogc, v_fog);
-  c += (bd - 0.5) / 20.0;                                   /* 디더링 */
-  c = floor(c * 20.0 + 0.5) / 20.0;                         /* 색 단계 감소 */
+  c += (bd - 0.5) / u_q;                                    /* 디더링 */
+  c = floor(c * u_q + 0.5) / u_q;                           /* 색 단계 감소 (첫 화면은 촘촘히) */
   gl_FragColor = vec4(c, 1.0);
 }`;
   function compile(type, src) {
@@ -7329,7 +7332,7 @@ void main() {
   const A = { pos: gl.getAttribLocation(prog, "a_pos"), nrm: gl.getAttribLocation(prog, "a_nrm"), uv: gl.getAttribLocation(prog, "a_uv") };
   const U = {};
   for (const n of ["u_model", "u_view", "u_proj", "u_snap", "u_fog", "u_l0pos", "u_l0col", "u_l1pos", "u_l1col", "u_amb", "u_dir", "u_dirc",
-    "u_emissive", "u_att", "u_tex", "u_fogc", "u_tint", "u_alphaTest", "u_ghost"]) U[n] = gl.getUniformLocation(prog, n);
+    "u_emissive", "u_att", "u_tex", "u_fogc", "u_tint", "u_alphaTest", "u_ghost", "u_q"]) U[n] = gl.getUniformLocation(prog, n);
 
   /* ---------------- 행렬 (열 우선) ---------------- */
   const M = {
@@ -7527,7 +7530,7 @@ void main() {
     { mesh: G.flameS, x: CANDLE[1][0], y: .35, z: CANDLE[1][1] },
   ];
   // 첫 화면: 책 왼쪽 앞에 놓인 짧은 초 (책을 비추는 불빛. 오른쪽은 대출 카드 주머니 · 초대장 봉투 자리)
-  const HOME_CANDLE = [-.78, -.06];   // 펼친 왼쪽 쪽(z -1.53 ~ -0.17) 밖 앞쪽
+  const HOME_CANDLE = [-.62, -1.8];   // 책 위쪽(먼 쪽) 왼편. 펼친 왼쪽 쪽(z -1.53 ~ -0.17) 밖
   // 바로 위에서 내려다봐도 동그랗게 보이게 면을 늘린 가는 초 + 작은 어두운 받침 (가까운 불빛에 받침이 번쩍이지 않게)
   const G_homeDish = cyl(.15, .025, 14), G_homeCandle = cyl(.075, .13, 14, 1);   // 낮은 초: 펼친 책을 바로 위에서 볼 때 화면 가장자리라 키 큰 초는 옆으로 누운 통처럼 늘어나 보임
   const T_homeDish = tex(16, (g, s) => noise(g, s, [46, 36, 28], .25));
@@ -7609,22 +7612,28 @@ void main() {
     }
     return m;
   }
-  /** 크기 자유 캔버스 텍스처 (반복 없음). 글꼴이 늦게 오면 repaint로 다시 그림 */
+  /** 크기 자유 캔버스 텍스처 (반복 없음, 첫 화면 물건용). 그리는 좌표는 w × h 그대로, 실제 캔버스는 CT배 → 글자 · 선이 선명 (부드럽게 걸러 씀). 글꼴이 늦게 오면 repaint로 다시 그림 */
+  const CT = 4;
   function ctex(w, h, draw) {
-    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const c = document.createElement("canvas"); c.width = w * CT; c.height = h * CT;
     const t = gl.createTexture();
     const paint = () => {
-      const g = c.getContext("2d"); g.clearRect(0, 0, w, h); g.imageSmoothingEnabled = false; draw(g, w, h);
+      const g = c.getContext("2d"); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.imageSmoothingEnabled = false; g.setTransform(CT, 0, 0, CT, 0, 0); draw(g, w, h);
       gl.bindTexture(gl.TEXTURE_2D, t);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
     };
     gl.bindTexture(gl.TEXTURE_2D, t);
-    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.NEAREST], [gl.TEXTURE_MAG_FILTER, gl.NEAREST], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
     paint();
     return { t, paint };
   }
   /** 화소마다 결 · 얼룩 · 닳은 가장자리 (ImageData 한 번에) */
   function grain(g, w, h, rgb, amp, wear = 0, fn = null) {
+    if (g.getTransform().a !== 1) {   // 확대해 그리는 캔버스: 결은 원래 크기로 만들어 늘림 (putImageData는 변환을 무시)
+      const tmp = document.createElement("canvas"); tmp.width = w; tmp.height = h;
+      grain(tmp.getContext("2d"), w, h, rgb, amp, wear, fn);
+      g.drawImage(tmp, 0, 0); return;
+    }
     const img = g.createImageData(w, h), d = img.data;
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const e = Math.min(x, y, w - 1 - x, h - 1 - y);
@@ -7674,8 +7683,8 @@ void main() {
   };
   /* 책 오른쪽 탁자 위: 대출 카드 주머니(이어하기, 위) + 초대장 봉투(참가하기, 아래). 납작한 판 + 캔버스 텍스처 (글자 포함)
    * 주머니 위로 최근 테이블 카드 3장의 제목줄이 빼꼼 → 목록이 바뀌면 다시 그림(desk) */
-  const desk = { titles: [], count: 0, hover: "" };
-  const DK = { pocket: { x: 1.03, z: -1.16, w: .62, d: .78, th: .006, rot: 0 }, env: { x: 1.05, z: -.46, w: .6, d: .36, th: .006, rot: .05 } };
+  const desk = { count: -1, hover: "" };
+  const DK = { pocket: { x: .9, z: -1.12, w: .62, d: .78, th: .006, rot: -.16 }, env: { x: .86, z: -.42, w: .6, d: .36, th: .006, rot: .12 } };   // 책 오른쪽에 바짝, 비스듬히
   const T_kraft = tex(16, (g, s) => noise(g, s, [176, 132, 76], .2));
   const KRAFT = [199, 154, 91];
   const DT = {
@@ -7683,17 +7692,18 @@ void main() {
       const top = 58;
       // 뒤판 (앞판 위로 조금 솟은 안쪽 그늘)
       g.fillStyle = "#6a4a26"; g.fillRect(4, top - 8, w - 8, 8);
-      // 카드: 오래된 것이 뒤(위), 최근이 맨 앞
-      const t = desk.titles.slice(0, 3).reverse();
-      t.forEach((title, i) => {
-        const y = top - 6 - (t.length - 1 - i) * 15 - 14;
-        g.fillStyle = "rgba(40,20,5,.45)"; g.fillRect(12, y - 1, w - 24, 1);
+      // 카드: 테이블 수만큼(최대 3장) 제목줄이 빼꼼. 글자 대신 물결 선(필기 흔적)
+      const n = Math.min(3, desk.count);
+      for (let i = 0; i < n; i++) {
+        const y = top - 6 - (n - 1 - i) * 15 - 14, len = 34 + ((i * 37 + desk.count * 11) % 30);
+        g.fillStyle = "rgba(40,20,5,.45)"; g.fillRect(12, y - .5, w - 24, .5);
         g.fillStyle = "#f4ead0"; g.fillRect(12, y, w - 24, top - y);
-        g.fillStyle = "#a8251a"; g.fillRect(12, y + 13, w - 24, 1);
-        g.font = "10px Galmuri9"; g.textBaseline = "top"; g.textAlign = "left"; g.fillStyle = "#2b1a0c";
-        let s = String(title); while (s.length > 1 && g.measureText(s).width > w - 34) s = s.slice(0, -1);
-        g.fillText(s === String(title) ? s : s.slice(0, -1) + "…", 15, y + 2);
-      });
+        g.fillStyle = "#a8251a"; g.fillRect(12, y + 13, w - 24, .6);
+        g.strokeStyle = "#3a2a1a"; g.lineWidth = .8; g.beginPath();
+        for (let x = 0; x <= len; x += .5) { const yy = y + 7 + Math.sin(x * .9 + i * 2) * 1.3; x ? g.lineTo(17 + x, yy) : g.moveTo(17, yy); }
+        g.stroke();
+        g.fillStyle = "#2a3a8a"; for (let x = 0; x < 16; x += 3) g.fillRect(w - 36 + x, y + 7, 1.5, .8);   // 점선 = 번호 자리
+      }
       // 앞판: 누런 종이 + 엄지 홈 + 글자
       const tmp = document.createElement("canvas"); tmp.width = w; tmp.height = h - top;
       grain(tmp.getContext("2d"), w, h - top, KRAFT, .14, 0);
@@ -7702,7 +7712,7 @@ void main() {
       g.fillStyle = "rgba(60,30,10,.35)"; g.fillRect(0, top, w * .4, 1); g.fillRect(w * .6, top, w * .4, 1);
       g.textBaseline = "top"; g.fillStyle = "#3a2410";
       g.font = "8px Galmuri7"; g.textAlign = "left"; g.fillText("탐사자 협회 도서실", 7, top + 12);
-      g.font = "10px Galmuri9"; g.textAlign = "right"; g.fillText(`${desk.count}권`, w - 7, top + 10);
+      g.font = "10px Galmuri9"; g.textAlign = "right"; g.fillText(`${Math.max(0, desk.count)}권`, w - 7, top + 10);
       g.font = "10px Galmuri9"; g.textAlign = "center"; g.fillText("대 출 카 드", w / 2, top + 36);
       g.fillStyle = "rgba(58,36,16,.5)"; g.fillRect(w / 2 - 26, top + 50, 52, 1);
     }),
@@ -7780,8 +7790,8 @@ void main() {
   function homePose(p, t, sway) {
     const asp = innerWidth / innerHeight, fov = 40, tn = Math.tan(fov * Math.PI / 360), narrow = narrowNow();
     const el = 58 * Math.PI / 180;
-    const tc = [.22, BK.T * .5, BK.zc + .04];
-    const dc = Math.max(1.36 / .7, 2.45 / (.9 * asp)) / (2 * tn);   // 책 + 오른쪽 주머니 · 봉투 + 왼쪽 초가 다 들어오게
+    const tc = [.2, BK.T * .5, BK.zc - .08];
+    const dc = Math.max(1.4 / .7, 2.3 / (.9 * asp)) / (2 * tn);   // 책 + 오른쪽 주머니 · 봉투 + 왼쪽 초가 다 들어오게
     const closed = { eye: [tc[0] + Math.sin(t * .23) * .05 * sway, tc[1] + dc * Math.sin(el) + Math.sin(t * .41) * .02 * sway, tc[2] + dc * Math.cos(el)], target: tc, up: [0, 1, 0] };
     const to = [narrow ? 0 : -.5, BK.T * .5, BK.zc];
     const d = Math.max(BK.D / .76, (narrow ? 1.46 / .94 : 3.2 / .96) / asp) / (2 * tn);
@@ -7843,8 +7853,8 @@ void main() {
 
   let W = 0, H = 0;
   function resize() {
-    // 내부 해상도: 화면의 약 1/3 (도트가 크게 보이도록). 첫 화면은 책 글자가 읽히게 조금 더 촘촘히
-    const w = Math.round(bk.on ? Math.max(300, Math.min(640, innerWidth / 2.6)) : Math.max(240, Math.min(480, innerWidth / 3)));
+    // 내부 해상도: 테이블 화면은 화면의 약 1/3 (도트가 크게). 첫 화면은 화면 폭/1.2 (로우폴리 그대로 선명하게)
+    const w = Math.round(bk.on ? Math.max(480, Math.min(1600, innerWidth / 1.2)) : Math.max(240, Math.min(480, innerWidth / 3)));   // 첫 화면: 로우폴리는 그대로, 글자 · 물건이 잘 보이게 촘촘히
     const h = Math.max(160, Math.round(w * innerHeight / innerWidth));
     if (w === W && h === H) return;
     W = w; H = h;
@@ -7910,10 +7920,10 @@ void main() {
     const f0 = flames[0], f1 = flames[1];
     const lightsRoom = { l0p: [f0.x, f0.y + .15, f0.z], l0c: [2.6, 1.55, .75], l1p: [f1.x, f1.y + .1, f1.z], l1c: [1.3, .75, .35], att: [.32, .45] };
     // 첫 화면: 책 옆 초가 주 조명(0번), 오른쪽 뒤 큰 초가 보조(1번)
-    const lightsHome = { l0p: [homeFlame.x, homeFlame.y + .3, homeFlame.z], l0c: [2.3, 1.42, .7], l1p: [f0.x, f0.y + .15, f0.z], l1c: [1.5, .9, .44], att: [.36, .32] };
+    const lightsHome = { l0p: [homeFlame.x, homeFlame.y + .3, homeFlame.z], l0c: [3.1, 1.95, .98], l1p: [f0.x, f0.y + .15, f0.z], l1c: [1.5, .9, .44], att: [.36, .32] };
     tickAnims(now);
     // 첫 화면: 흔들림을 줄이고 정점 맞춤 칸을 촘촘히 → 카메라가 움직여도 모서리가 덜 떨림
-    const want = bk.on ? { ...homePose(bk.p, t, sway * .4 * (1 - bk.p)), fog: ROOM.fog, amb: [.2, .15, .12], dirc: ROOM.dirc, snap: 1, ...lightsHome }
+    const want = bk.on ? { ...homePose(bk.p, t, sway * .4 * (1 - bk.p)), fog: ROOM.fog, amb: [.27, .2, .16], dirc: ROOM.dirc, snap: 1, ...lightsHome }
       : { eye: [Math.sin(t * .23) * .06 * sway, 2.45 + Math.sin(t * .41) * .025 * sway, 3.05], target: [0, -.15, -1.25], up: [0, 1, 0], fov: ROOM.fov, fog: ROOM.fog, amb: ROOM.amb, dirc: ROOM.dirc, snap: 3.2, ...lightsRoom };
     if (!cam || reduceMotion || bk.on) cam = JSON.parse(JSON.stringify(want));   // 첫 화면: 카메라는 책 움직임에 맞춰 바로 따라감
     else {
@@ -7940,6 +7950,7 @@ void main() {
     gl.uniform1f(U.u_alphaTest, 0);
     gl.uniform1f(U.u_ghost, 0);
     gl.uniform3f(U.u_tint, 1, 1, 1);
+    gl.uniform1f(U.u_q, bk.on ? 64 : 20);
     objs.forEach(([m, tx, model, glow = 0]) => {
       gl.uniform1f(U.u_emissive, glow * (glow ? flick[0] : 0));   // 밀랍은 불빛에 은은하게 빛남
       gl.bindTexture(gl.TEXTURE_2D, tx);
@@ -8012,8 +8023,8 @@ void main() {
     onBook(fn) { bk.cb = fn; },
     /** 탁자 위 물건에 마우스: 살짝 들림 ("pocket" · "env" · "") */
     deskHover(k) { if (desk.hover !== k) { desk.hover = k; scheduleFrame(); } },
-    /** 주머니 위로 빼꼼 보이는 카드 제목(최근 순 3개) · 권 수 */
-    desk({ titles, count }) { desk.titles = titles; desk.count = count; DT.pocket.paint(); scheduleFrame(); },
+    /** 주머니 위로 빼꼼 보이는 카드 수(최대 3) · 권 수 */
+    desk({ count }) { if (desk.count === count) return; desk.count = count; DT.pocket.paint(); scheduleFrame(); },
     /** 닫힌 책 → 카메라가 위로 다가옴 + 표지 + 여러 장 차라락 → spread 면 */
     bookOpen(to) {
       bk.sp = to; bk.cur = chOf(to);
@@ -9216,7 +9227,7 @@ const BannerArt = (() => {
   /** 이어하기: 주머니에서 쏟아진 대출 카드 목록 (최근 순, 전부) + 3D 주머니 위로 빼꼼 보이는 제목 3개 */
   function renderTables() {
     const list = app.tables ?? [];
-    Scene3D.desk({ titles: list.slice(0, 3).map((t) => t.title), count: list.length });
+    Scene3D.desk({ count: list.length });
     $("#tableCount").textContent = `${list.length}권`;
     $("#myTables").replaceChildren(...list.map((t, i) => el("li", { class: "lb-card", "data-room": t.room, style: `--i:${Math.min(i, 8)}` },
       el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: async (e) => { if (await cardAsk(e.currentTarget.closest(".lb-card"), `「${t.title}」 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); } } },
