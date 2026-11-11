@@ -2281,6 +2281,9 @@ html.has-3d .topbar { box-shadow: none; }
 /* 머리 줄 오른쪽 끝 색인 탭 (파일 불러오기 · 샘플) */
 .ix-head { align-items: flex-end; }
 .ix-tabs { display: flex; gap: 3px; align-items: flex-end; margin-bottom: -8px; }
+.ix-head h2, .ix-tab { white-space: nowrap; }   /* 쪽이 좁아도 제목 · 탭 글자가 두 줄로 꺾이지 않게 (넘치면 탭이 아래 줄로) */
+.ix-head { flex-wrap: wrap; column-gap: 8px; }
+.ix-tabs { margin-left: auto; }
 .ix-tab { padding: 4px 12px 3px; border: 0; cursor: pointer; font: 12px/1.4 var(--font); color: #4a3826; background: rgba(150, 105, 50, .22); clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 100%, 0 100%); }
 .ix-tab:hover, .ix-tab:focus-visible { background: rgba(150, 105, 50, .36); outline: 0; }
 .ix-tab.on { padding-bottom: 5px; color: #f4ecd8; background: #675137; }
