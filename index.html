@@ -1917,6 +1917,28 @@ html.has-3d .topbar { box-shadow: none; }
 .name-loc { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .dos-loc { display: inline-flex; align-items: center; gap: 3px; padding-left: 7px; font: 11px var(--font); color: #553a23; white-space: nowrap; box-shadow: inset 1px 0 0 rgba(85, 58, 35, .55); }
 .dos-loc .ic-svg { width: 12px; height: 12px; }
+/* 판정 알림(D2): 크림 말풍선 + 남색 2px 테 + 입력칸을 가리키는 꼬리. 다른 사람 차례 = 갈색, 실패 후 선택 = 붉은색 */
+/* 기록 칸 위쪽에 떠 있음(자리 차지 안 함, 최근 기록이 있는 아래쪽은 안 가림): 한 줄, 손잡이로 좌우로 비켜 둠 */
+.ck-tips { position: absolute; z-index: 6; left: calc(var(--cover) + 48px); right: calc(var(--cover) + 44px); top: calc(var(--cover) + 12px);
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 12px; pointer-events: none; transform: translateX(var(--ck-x, 0px)); }
+.ck-tips[hidden] { display: none; }
+.ck-tip { --c: #2a3550; position: relative; display: flex; align-items: center; gap: 9px; max-width: 100%; pointer-events: auto; padding: 6px 6px 6px 8px;
+  font-family: var(--font); color: #2a2018; background: #f4ecd8; box-shadow: 0 0 0 2px var(--c), 3px 4px 0 2px rgba(0, 0, 0, .28); animation: ck-in .22s ease-out; }
+.ck-tip.wait { --c: #7a6548; }
+.ck-tip.fail { --c: #a5321e; }
+.ck-grip { flex: none; align-self: stretch; width: 4px; margin: 2px 0; cursor: ew-resize; touch-action: none; opacity: .55; color: var(--c);
+  background: radial-gradient(circle, currentColor 1px, transparent 1.3px) 0 0 / 4px 4px repeat-y; }
+.ck-k { flex: none; padding: 1px 6px 0; font-size: 11px; color: #f4ecd8; background: var(--c); }
+.ck-tip b { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 15px; font-weight: 400; }
+.ck-tip .ck-t { flex: none; font-size: 12px; color: #553a23; white-space: nowrap; }
+.ck-tip .pbtn { flex: none; gap: 5px; padding: 3px 9px; }
+.ck-tip .pbtn .ic-svg { width: 16px; height: 16px; }
+.ck-tip .pbtn.navy { color: #f4ecd8; background: #2a3550; box-shadow: inset 0 0 0 1px #1a2238, 1px 1px 0 rgba(60, 40, 20, .3); }
+.ck-tip .pbtn.navy:hover, .ck-tip .pbtn.navy:focus-visible { background: #3a4a70; }
+.ck-tip.flash { animation: ck-flash .9s; }
+@keyframes ck-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes ck-flash { 30% { box-shadow: 0 0 0 4px var(--c), 3px 4px 0 2px rgba(0, 0, 0, .28); } }
+@media (prefers-reduced-motion: reduce) { .ck-tip, .ck-tip.flash { animation: none; } }
 .ho-float.top { z-index: 96; }
 .ho-float { position: fixed; z-index: 95; left: 40px; top: 80px; min-width: 120px; min-height: 80px; max-width: 92vw; max-height: 88vh; overflow: hidden; cursor: move;
   background: #1c120c; box-shadow: 0 0 0 2px #2b1a0c, 0 0 0 4px #e9dcb7, 5px 6px 0 4px rgba(0, 0, 0, .45); touch-action: none; -webkit-user-select: none; user-select: none; }
@@ -2005,7 +2027,7 @@ html.has-3d .topbar { box-shadow: none; }
   transition: translate .08s steps(2), box-shadow .08s steps(2);
 }
 .pending .btn.primary { color: var(--blood); }
-.pending .btn:hover:not(:disabled), .pending .btn.primary:hover:not(:disabled), .memo-btn:hover:not(:disabled), .memo-btn:focus-visible, #checkBox .chip.active.memo-btn:hover:not(:disabled) {
+.pending .btn:hover:not(:disabled), .pending .btn.primary:hover:not(:disabled), .memo-btn:hover:not(:disabled), .memo-btn:focus-visible {
   background: #fbf3d8; translate: -1px -1px; box-shadow: inset 4px 0 0 0 var(--blood), 0 0 0 2px #2b1a0c, 4px 4px 0 0 rgba(43, 26, 12, .35);
 }
 .pending .btn:active:not(:disabled), .pending .btn.primary:active:not(:disabled), .memo-btn:active:not(:disabled) {
@@ -2016,14 +2038,6 @@ html.has-3d .topbar { box-shadow: none; }
 .pending .ic-btn.roll-box .ic-svg, .pending .ic-btn.roll-box:hover .ic-svg { filter: none; color: var(--ink); transform: none; }
 .pending .ic-btn.roll-box .ic-tip { right: auto; left: -3px; }
 /* 판정 메모: 굴린 판정은 글줄, 점선 아래 지금 판정 버튼 */
-#checkBox.chips { display: grid; justify-items: start; gap: 6px; }
-#checkBox .chip.done { background: none; box-shadow: none; opacity: 1; padding: 3px 3px 3px 21px; font-size: 13px; }
-#checkBox .chip.done::before { left: 6px; }
-#checkBox .chip-sep { justify-self: stretch; height: 0; margin: 6px 0 3px; border-top: 2px dotted rgba(43, 26, 12, .45); }
-#checkBox .chip.active.memo-btn { --memo-bg: #f1e3a0; background: var(--memo-bg); display: inline-flex; align-items: center; gap: 12px; margin: 3px 0 3px 2px; padding: 5px 9px 5px 24px; font-size: 13px; }
-#checkBox .chip.active.memo-btn::before { left: 12px; }
-#checkBox .chip.active.memo-btn .ic-svg { width: 24px; height: 24px; flex: none; color: var(--ink); }
-#checkBox .chip.active.memo-btn:disabled { opacity: .5; }
 /* 사진 맞추기 */
 .pic-edit { padding: 16px 18px; border: 3px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 6px 8px 0 rgba(0, 0, 0, .5); }
 .pic-edit::backdrop { background: rgba(12, 8, 5, .6); }
@@ -2223,7 +2237,7 @@ html.has-3d .topbar { box-shadow: none; }
 
 /* 떼어 둔 메모: 종이 위로 튀어나온 클립 · 단서 플래그가 잘리지 않게 카드는 안 자르고, 목록만 스크롤 */
 .float-layer .block { overflow: visible; max-height: none; }
-.float-layer .block :is(#clueBox, #checkBox) { max-height: calc(80vh - 120px); overflow-y: auto; }
+.float-layer .block #clueBox { max-height: calc(80vh - 120px); overflow-y: auto; }
 /* 떼어 둔 메모는 클립을 뺌 (공책에 다시 꽂으면 클립이 돌아옴) */
 .float-layer .block::before { content: none; }
 
@@ -2805,6 +2819,8 @@ html.has-3d .topbar { box-shadow: none; }
       <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면입니다. 호스트와 연결되면 최신 상태로 바뀝니다.</div>
       <div id="turnStatus" class="turn-status" hidden><span id="thinking" hidden>GM이 숨을 고르는 중…</span><span id="typingPresence" hidden aria-live="polite"></span></div>
       <div id="npcPick" class="npc-pick" role="listbox" aria-label="말 걸 NPC" hidden></div>
+      <!-- 판정 알림: 입력칸을 가리키는 말풍선 (굴릴 때까지 유지, 점선 손잡이로 좌우 이동) -->
+      <div id="ckTips" class="ck-tips" hidden></div>
       <form id="chatForm" class="chat">
         <div class="say-tabs" role="toolbar" aria-label="입력 종류">
           <button type="button" class="say-tab on" data-m="talk">대사</button>
@@ -2835,7 +2851,6 @@ html.has-3d .topbar { box-shadow: none; }
         <div id="pendingBox" class="pending" hidden></div>
         <!-- 클립으로 꽂은 메모들: 제목(머리)을 끌어 순서 바꾸기, 브라우저에 기억 -->
         <div id="memoStack" class="memo-stack">
-          <section class="block" data-memo="checks"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><h3>판정 <span id="checkNote" class="muted small">— 능력치 자동 적용</span></h3><div id="checkBox" class="chips"></div></section>
           <section class="block nb-paper" data-memo="clues"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><div class="nb-head"><h3>단서 수첩 <span id="clueCount" class="nb-count">0</span></h3><nav id="clueBookmarks" class="clue-tabs" role="tablist" aria-label="단서 분류"><button type="button" id="clueAll" role="tab" data-group="all" aria-selected="true" aria-controls="clueBox">전체</button><button type="button" id="cluePerson" role="tab" data-group="person" aria-selected="false" aria-controls="clueBox" tabindex="-1">인물</button><button type="button" id="cluePlace" role="tab" data-group="place" aria-selected="false" aria-controls="clueBox" tabindex="-1">장소</button></nav></div><ul id="clueBox" class="clues clue-toc" role="tabpanel" aria-labelledby="clueAll"></ul><div id="clueView" class="clue-view" hidden></div></section>
           <section class="block nb-paper" data-memo="handouts" hidden><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><div class="nb-head"><h3>핸드아웃 <span id="hoCount" class="nb-count">0</span></h3></div><ul id="hoBox" class="ho-list"></ul></section>
         </div>
@@ -10321,10 +10336,13 @@ const BannerArt = (() => {
     for (const [pid, cls, text] of tagOf(e)) {
       const box = lastRes.querySelector(`.tr-row[data-pid="${CSS.escape(pid)}"] .tr-tags`);
       if (!box) continue;
-      // 판정 요청은 꼬리표로 붙으면 SYSTEM 줄을 숨기고, 꼬리표는 판정 메모를 가리킴
+      // 판정 요청은 꼬리표로 붙으면 SYSTEM 줄을 숨기고, 꼬리표는 판정 알림(굴리기 전) 또는 그 판정 결과 기록을 가리킴
       if (cls === "ck") node.hidden = true;
-      const target = () => cls === "ck" ? document.querySelector('[data-memo="checks"]') : node;
-      box.append(el("span", { class: `tr-tag t-${cls}`, role: "button", tabindex: "0", title: cls === "ck" ? "판정 메모로" : "그 기록으로",
+      const lb = e.reqLabel ?? "";
+      const target = () => cls !== "ck" ? node
+        : [...document.querySelectorAll("#ckTips .ck-tip")].find((t) => t.dataset.label === lb)
+          ?? [...logBox.querySelectorAll(".entry.roll")].find((r) => (node.compareDocumentPosition(r) & Node.DOCUMENT_POSITION_FOLLOWING) && r.querySelector(".roll-label")?.textContent.includes(lb));
+      box.append(el("span", { class: `tr-tag t-${cls}`, role: "button", tabindex: "0", title: cls === "ck" ? "판정으로" : "그 기록으로",
         on: { click: (ev) => { ev.stopPropagation(); const t = target(); if (!t?.isConnected || t.closest("[hidden]")) return; t.scrollIntoView({ block: "center", behavior: reduceMotionUI() ? "auto" : "smooth" }); t.classList.remove("flash"); void t.offsetWidth; t.classList.add("flash"); },
               keydown: (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.currentTarget.click(); } } } }, text));
     }
@@ -11698,6 +11716,22 @@ const BannerArt = (() => {
   $("#endClose").addEventListener("click", () => { app.endHidden = app.snap?.result?.at ?? null; render(); });
   $("#endResume").addEventListener("click", () => { paperAsk("결말을 취소하고 이야기를 계속할까? 모두의 결과 화면이 닫힘.").then((y) => y && send({ t: "unfinish" })); });
 
+  /* 판정 알림 좌우 위치: 점선 손잡이로 끌어 옮김(말풍선 전부 같이), 이 기기에 기억. 칸을 넘지 않게 */
+  function placeCkTips() {
+    const box = $("#ckTips");
+    if (box.hidden) return;
+    const used = box.lastElementChild ? Math.max(...[...box.children].map((t) => t.offsetLeft + t.offsetWidth)) : 0;
+    box.style.setProperty("--ck-x", `${Math.round(Math.max(0, Math.min(box.clientWidth - used, Number(LS.get("trpg:ckX")) || 0)))}px`);
+  }
+  addEventListener("resize", () => requestAnimationFrame(placeCkTips));
+  $("#ckTips").addEventListener("pointerdown", (e) => {
+    if (!e.target.closest(".ck-grip")) return;
+    e.preventDefault();
+    const box = $("#ckTips"), x0 = parseFloat(getComputedStyle(box).getPropertyValue("--ck-x")) || 0, sx = e.clientX;
+    const mv = (ev) => { LS.set("trpg:ckX", Math.max(0, x0 + ev.clientX - sx)); placeCkTips(); };
+    const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); removeEventListener("pointercancel", up); };
+    addEventListener("pointermove", mv); addEventListener("pointerup", up); addEventListener("pointercancel", up);
+  });
   function renderPlay(s) {
     const v = s.view;
 
@@ -11716,7 +11750,6 @@ const BannerArt = (() => {
     const isMine = (pc) => !pc.who || !s.players.find((x) => x.pid === pc.who)?.online || pc.who === s.me;
     const pendingMe = pendingChecks.filter(isMine);
     if (changed("checks", v.checks, pendingChecks, s.retry, s.system, gmOnly, myChar, pendingMe.length, v.scene?.ending, !!s.result, app.endHidden, s.isHost)) {
-      $("#checkNote").textContent = "— d100 ≤ 기능 수치";
       const pb = $("#pendingBox");
       const parts = [];
       // 내가 굴릴 새 판정이 오면 작은 손종
@@ -11728,28 +11761,24 @@ const BannerArt = (() => {
         el("button", { class: "btn small primary", type: "button", on: { click: () => { app.endHidden = null; renderEnd(app.snap); } } }, "결과 보기")));
       else if (s.isHost && v.scene?.ending) parts.push(el("div", { class: "pend-row end-row" }, el("span", {}, "결말 장면 · ", el("b", {}, v.scene.title)),
         el("button", { class: "btn small primary", type: "button", title: "모두에게 결과 정리 화면을 띄움", on: { click: async () => (await paperAsk("이야기를 여기서 끝내고 결과 정리 화면을 띄울까?")) && send({ t: "finish" }) } }, "이야기 끝내기")));
-      for (const pc of pendingChecks) parts.push(el("div", { class: "pend-row" },
-        el("span", {}, pc.improv ? (pc.san ? "이성 판정: " : "즉흥 판정: ") : "판정 요청: ", el("b", {}, pc.label), pc.skill && isMine(pc) ? ` (${tagOf(pc)})` : "", pc.whoName ? ` · ${pc.whoName}` : ""),
-        isMine(pc) ? el("button", { class: "ic-btn memo-btn roll-box", type: "button", "aria-label": "굴리기", on: { click: () => send({ t: "check", checkId: pc.checkId }) } }, iconSvg("die_line"), el("span", { class: "ic-tip" }, "굴리기"))
-          : el("span", { class: "muted small" }, `${pc.whoName} 차례`)));
-      // CoC: 방금 실패한 판정 → 밀어붙이기 · 행운 쓰기 (GM이 결과를 서술하기 전까지)
-      if (s.retry) parts.push(el("div", { class: "pend-row retry" },
-        el("span", {}, "실패: ", el("b", {}, s.retry.label)),
-        s.retry.push ? el("button", { class: "btn small", type: "button", title: "한 번 더 굴림. 또 실패하면 대가가 따름", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
-        s.retry.cost > 0 ? el("button", { class: "btn small", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null));
       pb.hidden = !parts.length;
       pb.replaceChildren(...parts);
+      // 판정 알림: 대기 판정 · 방금 실패한 판정(밀어붙이기 · 행운)을 입력칸 위 말풍선으로. 굴리거나 GM이 서술하면 사라짐
+      const tips = [], fail = [];
+      if (s.retry) fail.push(el("div", { class: "ck-tip fail" }, el("span", { class: "ck-grip", title: "좌우로 옮기기" }), el("span", { class: "ck-k" }, "실패"), el("b", {}, s.retry.label),
+        s.retry.push ? el("button", { class: "pbtn", type: "button", title: "한 번 더 굴림. 또 실패하면 대가가 따름", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
+        s.retry.cost > 0 ? el("button", { class: "pbtn", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null));
+      // 한 줄로: 내 차례 → (실패) → 남의 차례
+      for (const pc of [...pendingMe, ...pendingChecks.filter((x) => !isMine(x))]) {
+        const mine = isMine(pc);
+        tips.push(el("div", { class: `ck-tip${mine ? "" : " wait"}`, "data-label": pc.label },
+          el("span", { class: "ck-grip", title: "좌우로 옮기기" }), el("span", { class: "ck-k" }, pc.san ? "이성" : pc.improv ? "즉흥" : "판정"), el("b", {}, pc.label),
+          mine ? el("span", { class: "ck-t" }, [pc.skill || pc.san ? tagOf(pc) : "", pc.whoName && pc.who !== s.me ? pc.whoName : ""].filter(Boolean).join(" · ")) : el("span", { class: "ck-t" }, `${pc.whoName} 차례`),
+          mine ? el("button", { class: "pbtn navy", type: "button", on: { click: () => send({ t: "check", checkId: pc.checkId }) } }, iconSvg("die_line"), "굴리기") : null));
+      }
+      tips.splice(pendingMe.length, 0, ...fail);
+      const box = $("#ckTips"); box.hidden = !tips.length; box.replaceChildren(...tips); placeCkTips();
       if (s.retry) helpOnce(s.retry.push ? ["push", ...(s.retry.cost > 0 ? ["luck"] : [])] : ["luck"]);   // 처음 실패했을 때 밀어붙이기 · 행운 쪽지
-      // 처음엔 비어 있음: 행동을 선언하면 GM이 판정을 요청하고, 굴린 판정은 결과와 함께 남음 (시나리오 판정 목록은 안 보여 줌)
-      // 굴린 판정은 글줄로 위에, 지금 굴릴 판정은 점선 아래 버튼으로
-      const isNow = (c) => pendingChecks.some((pc) => pc.checkId === c.id);
-      const past = v.checks.filter((c) => !isNow(c)), now = v.checks.filter(isNow);
-      $("#checkBox").replaceChildren(...(v.checks.length
-        ? [...past.map((c) => el("span", { class: `chip done ${c.done === "성공" ? "ok" : "fail"}` }, `${c.label} · ${c.done}`)),
-          ...(past.length && now.length ? [el("span", { class: "chip-sep", "aria-hidden": "true" })] : []),
-          ...now.map((c) => el("button", { class: "chip active memo-btn", type: "button", disabled: !pendingChecks.some((pc) => pc.checkId === c.id && isMine(pc)), title: "대기 판정", on: { click: () => send({ t: "check", checkId: c.id }) } },
-            el("span", { class: "chip-txt" }, `${c.label} · ${tagOf(c)}`), iconSvg("die_line")))]
-        : [el("span", { class: "muted small" }, "아직 없음 · 행동을 선언하면 GM이 판정을 요청함")]));
     }
 
     if (changed("clues", v.clues, v.handouts)) renderNotebook(v);
@@ -12018,7 +12047,7 @@ const BannerArt = (() => {
   /* ---------------- 메모 · GM 노트: 떼어 옮기기 ----------------
    * 메모: 위쪽 타공 줄을 끌어 옮김. 공책(오른쪽 칸) 안에 놓으면 순서가 바뀌고, 밖에 놓으면 그 자리에 떼어 둠.
    * GM 노트: 머리줄을 끌어 어디든. 위치·크기는 각자 브라우저에 기억 */
-  const MEMO_DEFAULT = ["checks", "clues"];   // 판정 → 단서 (캐릭터는 왼쪽 칸)
+  const MEMO_DEFAULT = ["clues"];   // 단서 (판정은 입력칸 위 알림, 캐릭터는 왼쪽 칸)
   const floatPos = () => { const v = LS.get("trpg:floatPos"); return v && typeof v === "object" ? v : {}; };
   const saveFloat = (k, v) => { const all = floatPos(); if (v) all[k] = v; else delete all[k]; LS.set("trpg:floatPos", all); };
   let zTop = 1;
