@@ -173,3 +173,10 @@ test("참가 전 명단 미리 보기: 이름·캐릭터만, 물어본 사람 �
   assert.ok(all.every((p) => !("key" in p) && !("secret" in p)));
   assert.deepEqual(JSON.parse(JSON.stringify(g.rosterPreview(KEY2))).map((p) => p.name), ["호스트", "루나"]);
 });
+
+test("참가자 id는 숫자로만 되지 않음 (명단 순서 = 들어온 순서)", () => {
+  const { m, g, data } = table();
+  for (let i = 0; i < 300; i++) assert.match(m.randomPid(), /^[a-z][a-z0-9]{7}$/);
+  g.onConnect("c1", { key: KEY, name: "루나", build: m.APP_BUILD });
+  assert.deepEqual(Object.values(data.players).map((p) => p.name), ["호스트", "루나"]);
+});
