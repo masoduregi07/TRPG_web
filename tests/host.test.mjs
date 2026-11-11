@@ -201,6 +201,13 @@ test("turnContext: 이름 미정 KPC · 직전 NPC 대사", () => {
   ({ info, ctx } = g.turnContext());
   assert.equal(JSON.stringify(info.prevQuotes), JSON.stringify(["\"조심해서 안으로 들어가 보죠.\""]));
   assert.equal(ctx.직전NPC대사, info.prevQuotes);
+  m.Engine.registerNpc(data.scenario, data.game.currentScene, { name: "바르톨", look: "늙은 어부", personality: "무뚝뚝", voice: "말끝을 흐림" });
+  g.addLog({ kind: "ai", text: "바르톨이 그물을 내려놓음. \"모르겠수.\"" });
+  data.game.aiCursor = data.logSeq;
+  ({ info, ctx } = g.turnContext());
+  assert.equal(JSON.stringify(info.npcRecent.바르톨), JSON.stringify(["\"모르겠수.\""]));
+  assert.ok(ctx.등장NPC.some((n) => n.이름 === "바르톨" && n.말투 === "말끝을 흐림"));
+  assert.ok(ctx.등장NPC.some((n) => n.id === "kpc" && /동료/.test(n.역할)));
   m.Engine.registerNpc(data.scenario, data.game.currentScene, { id: "kpc", name: "한진우", look: "코트", personality: "차분" });
   assert.equal(g.turnContext().info.kpcOpen, false, "이름이 정해지면 끝");
 });
