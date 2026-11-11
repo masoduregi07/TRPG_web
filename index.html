@@ -2420,18 +2420,18 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-card .hw { font: 12px/1.3 "Galmuri9", var(--font); color: #2a3a8a; }
 .lb-del { position: absolute; right: 4px; top: 4px; width: 18px; height: 18px; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
 .lb-del:hover, .lb-del:focus-visible { color: var(--blood); outline: 0; }
-/* 대출 확인 쪽지: 대출 카드와 같은 모양 · 같은 폭 · 같은 기울기로, 고른 카드 바로 위에 카드 뒤에서 슥 올라옴 */
-.lb-ask { position: absolute; z-index: 4; box-sizing: border-box; padding: 7px 10px 9px; background: #f4ead0; color: var(--ink); font: 11px/1.35 var(--font);
-  box-shadow: 0 -1px 0 rgba(60, 40, 20, .25), 1px 1px 0 rgba(60, 40, 20, .25), 0 4px 8px rgba(30, 15, 3, .4); animation: lb-ask-in .22s ease-out; }
-.lb-ask .top { display: flex; justify-content: space-between; align-items: baseline; padding: 0 0 2px; margin-bottom: 2px; border-bottom: 2px solid #a8251a; }
-.lb-ask .top b { font: 14px/1.3 "Galmuri14", var(--font); font-weight: 400; }
-.lb-ask .no { font: 14px/1 "Galmuri9", var(--font); letter-spacing: .05em; }
-.lb-ask .r { display: grid; grid-template-columns: 42px 1fr; border-bottom: 1px solid rgba(60, 40, 20, .55); }
-.lb-ask .r > span:first-child { padding: 3px 0; border-right: 1px solid rgba(60, 40, 20, .55); font-size: 9.5px; color: #5a4630; }
-.lb-ask .r > span + span { padding: 2px 6px; font-size: 12.5px; word-break: keep-all; }
-.lb-ask .row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 7px; }
-.lb-ask .pbtn { padding: 2px 12px; }
-@keyframes lb-ask-in { from { translate: 0 22px; opacity: 0; } }
+/* 카드 확인 쪽지: 고른 카드 바로 위, 한 줄짜리 종이 띠 "「제목」 시나리오를 읽을까? [예 / 아니오]". 카드 뒤에서 위로 슥 (0.22초) */
+.lb-ask { position: absolute; z-index: 4; display: flex; align-items: center; gap: 10px; width: max-content; max-width: 100%; box-sizing: border-box; padding: 7px 10px 7px 12px;
+  background: #f6efdc; color: var(--ink); font: 13px/1.4 var(--font); box-shadow: 0 0 0 1px rgba(60, 40, 20, .45), 2px 3px 0 rgba(30, 15, 3, .3); animation: lb-ask-in .22s ease-out; }
+.lb-ask p { margin: 0; min-width: 0; word-break: keep-all; }
+.lb-ask .yn { flex: none; display: flex; align-items: center; white-space: nowrap; }
+.lb-ask .yn::before { content: "["; margin-right: 3px; color: #8a7a62; } .lb-ask .yn::after { content: "]"; margin-left: 3px; color: #8a7a62; }
+.lb-ask .yn button { padding: 0 4px; border: 0; background: none; color: #2b1a0c; font: inherit; cursor: pointer; }
+.lb-ask .yn button:hover, .lb-ask .yn button:focus-visible { background: #5a4128; color: #f3e6c4; outline: 0; }
+.lb-ask .yn i { font-style: normal; color: #8a7a62; }
+.lb-ask.danger .yn .y { color: var(--blood); font-weight: 700; }
+.lb-ask.danger .yn .y:hover, .lb-ask.danger .yn .y:focus-visible { background: var(--blood); color: #fff3dc; }
+@keyframes lb-ask-in { from { translate: 0 18px; opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .lb-ask { animation: none; } }
 .lb-pocket { background: #c79a5b; background-image: radial-gradient(rgba(90, 55, 20, .18) 1px, transparent 1.5px), radial-gradient(rgba(255, 240, 200, .12) 1px, transparent 1.5px); background-size: 4px 4px, 7px 7px; background-position: 0 0, 2px 3px; position: absolute; left: 0; right: 0; bottom: 0; height: 238px; z-index: 3; box-sizing: border-box; padding: 34px 16px 14px; color: #3a2410; clip-path: polygon(0 0, 40% 0, 43% 4px, 46% 16px, 50% 20px, 54% 16px, 57% 4px, 60% 0, 100% 0, 100% 100%, 0 100%); pointer-events: none; }
 .lb-shadow { position: absolute; left: 0; right: 0; bottom: 0; height: 238px; z-index: 2; box-shadow: 0 -6px 10px rgba(30, 15, 3, .45); pointer-events: none; }
@@ -8980,19 +8980,17 @@ const BannerArt = (() => {
   }
   /* 대출 확인 쪽지: 고른 카드 바로 위에 같은 모양 · 같은 폭 · 같은 기울기로. 예 / 아니오 (Esc · 바깥 = 아니오) */
   let cardAskDone = null;
-  function cardAsk(li, t) {
+  function cardAsk(li, text, { danger = false } = {}) {
     cardAskDone?.(false);
     return new Promise((resolve) => {
       const wrap = li.parentElement.parentElement, cs = getComputedStyle(li), prev = document.activeElement;
-      const yes = el("button", { class: "pbtn", type: "button" }, "예"), no = el("button", { class: "pbtn", type: "button" }, "아니오");
-      const box = el("div", { class: "lb-ask", role: "dialog", "aria-label": "대출 확인", style: `left:${cs.left};right:${cs.right};rotate:${cs.rotate}` },
-        el("div", { class: "top" }, el("b", {}, "대출 확인"), el("span", { class: "no" }, cardNo(t.room))),
-        el("div", { class: "r" }, el("span", {}, "확 인"), el("span", {}, `「${t.title}」 이 시나리오를 읽을까?`)),
-        el("div", { class: "row" }, yes, no));
+      const yes = el("button", { class: "y", type: "button" }, "예"), no = el("button", { type: "button" }, "아니오");
+      const box = el("div", { class: `lb-ask${danger ? " danger" : ""}`, role: "dialog", "aria-label": text, style: `left:${cs.left};rotate:${cs.rotate}` },
+        el("p", {}, text), el("span", { class: "yn" }, yes, el("i", {}, "/"), no));
       li.classList.add("asking");
       wrap.append(box);
       const step = parseFloat(getComputedStyle(wrap).getPropertyValue("--step")) || 0;
-      box.style.top = `${li.offsetTop - step - box.offsetHeight - 8}px`;
+      box.style.top = `${li.offsetTop - step - box.offsetHeight - 6}px`;
       const away = (e) => { if (!box.contains(e.target)) done(false); };
       const key = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } };
       const done = (v) => {
@@ -9005,14 +9003,15 @@ const BannerArt = (() => {
       yes.onclick = () => done(true); no.onclick = () => done(false);
       addEventListener("keydown", key, true);
       setTimeout(() => addEventListener("pointerdown", away, true));   // 지금 누른 클릭은 빼고
-      yes.focus({ preventScroll: true });
+      (danger ? no : yes).focus({ preventScroll: true });
     });
   }
   // 대출 카드 번호: 방 코드에서 4자리 (화면 장식 · 같은 방은 늘 같은 번호)
   const cardNo = (room) => String([...String(room)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 9000, 7) + 1000);
   const md = (ts) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`; };
-  async function deleteTable(t) {
-    if (!(await paperAsk(`「${t.title}」 기록을 지울까?`))) return;
+  async function deleteTable(t, li = null) {
+    const ask = `「${t.title}」 기록을 지울까?`;
+    if (!(await (li ? cardAsk(li, ask, { danger: true }) : paperAsk(ask)))) return;
     try { await HistoryArchive.deleteHostRoom(t.room); }
     catch { return toast('보관 기록 삭제 실패. 테이블은 유지됨.'); }
     await DB.del(K.host(t.room));
@@ -9035,12 +9034,12 @@ const BannerArt = (() => {
     wrap.style.setProperty("--step", `${step}px`);
     $("#tableCount").textContent = `${list.length}권`;
     $("#myTables").replaceChildren(...shown.map((t, i) => el("li", { class: "lb-card", "data-room": t.room, style: `top:${10 + i * step}px` },
-      el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: async (e) => { if (await cardAsk(e.currentTarget.closest(".lb-card"), t)) Book.leave(`room=${t.room}`); } } },
+      el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: async (e) => { if (await cardAsk(e.currentTarget.closest(".lb-card"), `「${t.title}」 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); } } },
         el("div", { class: "top" }, el("b", {}, t.title), el("span", { class: "no" }, cardNo(t.room))),
         el("div", { class: "r" }, el("span", {}, "상 태"), el("span", {}, state(t))),
         el("div", { class: "r" }, el("span", {}, "대출일"), el("span", { class: "hw" }, `${new Date(t.savedAt).getFullYear()}·${md(t.savedAt)} · ${ago(t.savedAt)}`)),
         el("div", { class: "r" }, el("span", {}, "플레이어"), el("span", { class: "hw" }, (t.players ?? []).join(", ") || "-"))),
-      el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: () => deleteTable(t) } }, "✕"))));
+      el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: (e) => deleteTable(t, e.currentTarget.closest(".lb-card")) } }, "✕"))));
     const rows = list.map((t) => el("tr", { "data-room": t.room, class: t === front ? "front" : null, on: { click: () => { app.frontRoom = t.room; renderTables(); } } }, el("td", {}, el("span", { class: "st" }, md(t.savedAt))), el("td", { class: "n", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title }, t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.title), el("td", {}, t.phase === "play" ? "진행" : "준비")));
     while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
     $("#dueRows").replaceChildren(...rows);
