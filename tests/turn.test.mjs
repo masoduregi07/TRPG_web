@@ -187,3 +187,24 @@ test("캐릭터가 NPC에게 한 말을 주어 없이 되풀이하면 다시 묻
   assert.equal(run(obj, info, true).plan.narration, "한진우는 사방을 둘러보며 낮게 말함. \"일단 제단 쪽을 더듬어보죠.\"");
   assert.ok(!run({ narration: "한진우에게서 낡은 성냥 냄새가 남." }, info).issues.some((i) => i.hard), "에게서는 통과");
 });
+
+test("받은 물건이 서술에 없으면 다시 묻고, 마지막엔 주지 않음", () => {
+  const info = base();
+  const obj = { narration: "한서가 어두운 제단 쪽을 더듬어 살핌.", give_item: [{ to: "한서", item: "오래된 쪽지" }] };
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /오래된 쪽지/.test(i.msg)));
+  assert.equal(run(obj, info, true).plan.give.length, 0);
+  const ok = { narration: "한서가 제단 옆에서 양피지 쪽지를 집어 듦.", give_item: [{ to: "한서", item: "오래된 쪽지" }] };
+  assert.equal(run(ok, info).plan.give.length, 1, "끝 낱말(쪽지)이 서술에 있으면 통과");
+});
+
+test("NPC가 회피형 대답을 세 번 잇달아 하면 다시 물음", () => {
+  const info = base({ npcNames: ["한진우"], npcRecent: { 한진우: ["\"무슨 소리인지 잘 모르겠군요.\"", "\"저도 당황스럽군요.\""] } });
+  assert.ok(run({ narration: "한진우는 고개를 저음. \"저도 모르겠습니다.\"" }, info).issues.some((i) => i.hard && /28-2/.test(i.msg)));
+  assert.ok(!run({ narration: "한진우는 쪽지를 뒤집어 봄. \"이 필체, 예전 기록실 담당자 것 같아요.\"" }, info).issues.some((i) => i.hard));
+  assert.ok(!run({ narration: "한진우는 고개를 저음. \"저도 모르겠습니다.\"" }, base({ npcNames: ["한진우"], npcRecent: { 한진우: ["\"저도 당황스럽군요.\""] } })).issues.some((i) => i.hard), "두 번째까지는 통과");
+});
+
+test("npcLines: 대사 앞의 가장 가까운 NPC 이름이 주인", () => {
+  const r = Turn.npcLines("바르톨이 웃음. \"어서 와.\" 한진우는 고개를 끄덕임. \"들어가죠.\"", ["바르톨", "한진우"]);
+  assert.equal(JSON.stringify(r.map((x) => x.who)), JSON.stringify(["바르톨", "한진우"]));
+});

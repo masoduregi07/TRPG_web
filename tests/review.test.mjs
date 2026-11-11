@@ -78,7 +78,7 @@ test("실패한 사람에게 가는 물건만 무시", () => {
   const { m } = table();
   const info = { skills: [], clues: [], checks: [], exits: [], pending: [], chars: [{ pid: "a", name: "가", items: [] }, { pid: "b", name: "나", items: [] }],
     actors: [], askers: [], askOnly: false, handouts: [], npcNames: [], gotThisTurn: [], onlyFailedRolls: false, failedPids: ["a"], recentText: "", secrets: [], known: "" };
-  const parsed = m.AI.parseGM(JSON.stringify({ narration: "가와 나가 움직임.", give_item: [{ to: "가", item: "열쇠" }, { to: "나", item: "등불" }] }));
+  const parsed = m.AI.parseGM(JSON.stringify({ narration: "가는 열쇠를, 나는 등불을 집어 듦.", give_item: [{ to: "가", item: "열쇠" }, { to: "나", item: "등불" }] }));
   const { plan } = m.Turn.validate(parsed, info, { final: true });
   assert.deepEqual(j(plan.give.map((x) => x.item)), ["등불"]);
 });

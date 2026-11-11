@@ -3520,7 +3520,7 @@ const Engine = (() => {
   /** 이름을 가진 새 인물이 실제 이야기 안에 등장하면 현재 사건의 NPC 목록에도 추가. */
   function registerNpc(sc, sceneId, raw) {
     if (!sc?.scenes?.[sceneId] || !raw || typeof raw !== "object") return null;
-    const name = clip(raw.name, 30), look = clip(raw.look, 300), personality = clip(raw.personality, 200), job = clip(raw.job, 20);
+    const name = clip(raw.name, 30), look = clip(raw.look, 300), personality = clip(raw.personality, 200), job = clip(raw.job, 20), voice = clip(raw.voice, 80);
     if (name.length < 2 || !(look || personality)) return null;
     sc.npcs ??= {};
     const exists = Object.entries(sc.npcs).find(([id, n]) =>
@@ -3538,7 +3538,7 @@ const Engine = (() => {
       }
     }
     const previous = sc.npcs[id] ?? {};
-    sc.npcs[id] = { ...previous, name, look: look || previous.look || "", personality: personality || previous.personality || "", secret: previous.secret ?? "", ...(job || previous.job ? { job: job || previous.job } : {}) };
+    sc.npcs[id] = { ...previous, name, look: look || previous.look || "", personality: personality || previous.personality || "", secret: previous.secret ?? "", ...(job || previous.job ? { job: job || previous.job } : {}), ...(voice || previous.voice ? { voice: voice || previous.voice } : {}) };
     const scene = sc.scenes[sceneId];
     scene.npcs ??= [];
     if (!scene.npcs.includes(id)) scene.npcs.push(id);
@@ -4036,7 +4036,7 @@ const Engine = (() => {
       })),
       등장NPC: (s.npcs ?? []).map((id) => {
         const n = npcFight(sc, st, id);
-        return { id, 이름: npcName(sc, id), ...(/^KPC$/i.test(String(sc.npcs[id].name ?? "").trim()) ? { 이름미정: "KPC 자리표시자. 이 인물을 처음 등장시킬 때 실제 이름을 정하고 new_npcs에 id \"kpc\"로 보낸다 (다른 id로 새 인물을 만들지 않는다)" } : {}), ...(sc.npcs[id].job ? { 직업: sc.npcs[id].job } : {}), 외모: sc.npcs[id].look ?? "", 성격: sc.npcs[id].personality ?? "", 비밀: sc.npcs[id].secret ?? "",
+        return { id, 이름: npcName(sc, id), ...(/^KPC$/i.test(String(sc.npcs[id].name ?? "").trim()) ? { 이름미정: "KPC 자리표시자. 이 인물을 처음 등장시킬 때 실제 이름을 정하고 new_npcs에 id \"kpc\"로 보낸다 (다른 id로 새 인물을 만들지 않는다)" } : {}), ...(sc.npcs[id].job ? { 직업: sc.npcs[id].job } : {}), ...(id.toLowerCase() === "kpc" ? { 역할: "일행의 동료(KPC) — 규칙 28-1" } : {}), 외모: sc.npcs[id].look ?? "", 성격: sc.npcs[id].personality ?? "", ...(typeof sc.npcs[id].voice === "string" && sc.npcs[id].voice ? { 말투: sc.npcs[id].voice.slice(0, 80) } : {}), 비밀: sc.npcs[id].secret ?? "",
           ...(n ? { 전투: { 체력: `${n.hp}/${n.hpMax}`, 상태: n.hp <= 0 ? "쓰러짐" : n.hp <= n.hpMax / 2 ? "중상" : "멀쩡", 기능: n.skills, 무기: n.weapons.map((w) => `${w.name} ${w.dmg}`), 피해보너스: n.db, 장갑: n.armor } } : {}) };
       }),
       이미공개된단서: st.revealedClues.map((c) => c.text),
@@ -4624,13 +4624,15 @@ const AI = (() => {
 24. 전투: 싸움은 판정으로 푼다. 캐릭터가 공격하면 improv_check로 근접전(격투) · 사격(권총) · 투척 판정, 공격받으면 회피(또는 근접전으로 반격) 판정을 건다. NPC의 공격 · 회피 성공 여부는 "등장NPC"의 "전투" 기능 수치를 보고 네가 정해 서술한다. 판정 결과가 [최근 진행]에 나온 뒤에만 피해를 준다: hurt에 {"to": "맞은 캐릭터 또는 NPC 이름", "dice": "피해 식", "by": "무기"}. 캐릭터의 근접 공격 피해는 무기 식 + DB (맨손 1d3+DB, 칼 1d4+DB, 몽둥이 1d6+DB; DB라고 쓰면 시스템이 그 캐릭터의 피해보너스로 바꿈), 총은 DB 없이 (권총 1d10). NPC의 공격 피해는 그 NPC "전투"의 무기 식을 그대로 쓴다. 극단적 성공한 공격이면 "max": true. 숫자(피해량 · 남은 체력)는 시스템이 굴려 기록하므로 서술에 직접 쓰지 않는다. 치료(응급처치 성공 1, 의료 성공 1d3)는 heal에 {"to": "캐릭터", "dice": "1"}.
 25. 캐릭터 "상태"가 "의식불명"이나 "빈사"이면, 그 캐릭터가 살아남는지 · 깨어나는지 · 죽는지는 시나리오의 분위기와 이야기 흐름에 맞게 네가 정한다. 정했으면 fate에 {"to": "캐릭터", "state": "사망" 또는 "의식불명" 또는 "회복"}. 일행이 응급처치를 하거나 시간이 지나 깨어나면 "회복". 이미 죽은 캐릭터는 행동할 수 없다.
 26. 실제 캐릭터 이름이 [게임 상황]에 있으면 대명사 '탐사자'를 남용하지 않고 각 캐릭터의 이름으로 서술한다. 누구의 행동인지 확실하지 않으면 임의로 특정하지 않는다.
-27. 지금 사건에서 새 이름과 외모·성격 묘사를 가진 인물을 실제로 등장시켰다면 new_npcs 목록에 {"name": "부르는 이름만 (예: 바르톨. 직업·나이·수식어 제외)", "job": "직업·신분 (예: 늙은 어부. 분명할 때만, 아니면 \"\")", "look": "외모", "personality": "성격"}를 넣는다. 이미 등장한 인물은 중복 추가하지 않는다. 원문·고정사실에 반하는 중요한 새 인물은 만들지 않는다.
-28. 'KPC'라는 자리표시자가 등장하면 시나리오 분위기·관계에 어울리는 실제 NPC 이름, 외모와 성격을 정해 등장시키고 new_npcs에 {"id":"kpc","name":"실제 이름","look":"외모","personality":"성격"}를 보낸다. 이 인물의 원래 비밀과 역할은 변경하지 않는다.
+27. 지금 사건에서 새 이름과 외모·성격 묘사를 가진 인물을 실제로 등장시켰다면 new_npcs 목록에 {"name": "부르는 이름만 (예: 바르톨. 직업·나이·수식어 제외)", "job": "직업·신분 (예: 늙은 어부. 분명할 때만, 아니면 \"\")", "look": "외모", "personality": "성격", "voice": "말투·말버릇 한 줄 (예: 사투리, 말끝을 흐림, 농담으로 넘김)"}를 넣는다. 이미 등장한 인물은 중복 추가하지 않는다. 원문·고정사실에 반하는 중요한 새 인물은 만들지 않는다.
+28. 'KPC'라는 자리표시자가 등장하면 시나리오 분위기·관계에 어울리는 실제 NPC 이름, 외모와 성격을 정해 등장시키고 new_npcs에 {"id":"kpc","name":"실제 이름","look":"외모","personality":"성격","voice":"말투·말버릇"}를 보낸다. 이 인물의 원래 비밀과 역할은 변경하지 않는다.
+28-1. KPC("역할"이 일행의 동료인 NPC)는 안내 방송이 아니라 일행의 한 사람으로 연기한다. 자기 생각 · 추측 · 감정 · 기억(배경과 이 장소에 얽힌 일) · 제안을 말하고, 질문을 받으면 "모르겠다"로 끝내지 않고 짐작이나 의견, 느낀 점을 덧붙인다. 놀림 · 핀잔에는 성격대로 받아친다. "말투"가 있으면 그대로 따른다. 비밀과 아직공개안된단서는 3번 규칙대로 지키고, 캐릭터의 행동은 정하지 않는다.
+28-2. 같은 NPC가 "최근NPC대사"에서 이미 쓴 틀(몸짓 + "저도 모르겠다 / 당황스럽다 / 다른 곳을 보자")을 반복하지 않는다. 대답마다 새로운 정보 · 감정 · 의견 · 행동 중 하나를 더한다.
 29. 한 캐릭터가 판정에 실패하더라도 그 행동을 독립적으로 시도하는 다른 캐릭터에게 같은 판정을 요청할 수 있다. 이미 실패한 사람의 판정은 밀어붙이기 규칙과 구별한다. 판정 실패 뒤에는 성공 보상 단서나 소지품을 미리 공개하지 않는다.
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
 [출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 narration은 ""로 두고 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 행동표가 없으면 results는 [].
-{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
+{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"}, "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"}, "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격","voice":"말투"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격","voice":"말투"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}}`;
   }
 
   function logLine(e) {
@@ -4682,7 +4684,7 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
       const newNpcs = (Array.isArray(obj.new_npcs) ? obj.new_npcs : []).filter((n) => n && typeof n === "object" &&
         str(n.name) && (str(n.look) || str(n.personality))).slice(0, 4).map((n) => ({
         ...(n.id === "kpc" ? { id: "kpc" } : {}), name: str(n.name).slice(0, 30),
-        look: (str(n.look) ?? "").slice(0, 300), personality: (str(n.personality) ?? "").slice(0, 200), job: (str(n.job) ?? "").slice(0, 20),
+        look: (str(n.look) ?? "").slice(0, 300), personality: (str(n.personality) ?? "").slice(0, 200), job: (str(n.job) ?? "").slice(0, 20), voice: (str(n.voice) ?? "").slice(0, 80),
       }));
       const io = obj.improv_check && typeof obj.improv_check === "object" ? obj.improv_check : null;
       const ic = io && (str(io.skill) || str(io.san))
@@ -4786,6 +4788,19 @@ const Turn = (() => {
     return hit / c.size;
   }
   const SENT_RE = /(?<=[.!?…。]["”」』’']?)\s+|\n+/;   // 따옴표 대사가 끝난 뒤에서도 나눔
+  /* 따옴표 대사의 주인: 대사 앞에서 가장 가까이 나온 NPC 이름 (없으면 모름 → 뺌) */
+  const LINE_RE = /"[^"]{2,}"|“[^”]{2,}”|「[^」]{2,}」/g;
+  function npcLines(text, names) {
+    const t = String(text ?? ""), out = [];
+    for (const m of t.matchAll(LINE_RE)) {
+      let who = null, at = -1;
+      for (const n of names ?? []) { const i = t.lastIndexOf(n, m.index); if (n && i > at) { at = i; who = n; } }
+      if (who) out.push({ who, q: m[0] });
+    }
+    return out;
+  }
+  // 회피형 대답 ("모르겠다 · 당황스럽다 · 글쎄")
+  const EVADE_RE = /모르겠|모릅니다|몰라요|모르는 일|잘 모르|당황|글쎄|짐작도 안|알 수가 없|알 길이 없/;
   /* 문체 검사: 따옴표 속 대사는 빼고, 문장 끝이 정한 문체와 다른 문장 수를 셈.
    * 명사형이면 "~다 · ~요 · ~까"로 끝난 문장, 소설체면 받침 ㅁ(~함 · ~됨 · ~음)으로 끝난 문장이 어긋난 것 */
   const QUOTE_RE = /"[^"]*"|“[^”]*”|「[^」]*」|『[^』]*』|'[^'\n]*'|‘[^’]*’/g;
@@ -5075,6 +5090,26 @@ const Turn = (() => {
       const again = now.some((q) => norm(q).length >= 8 && (info.prevQuotes ?? []).some((p) => shows(q, p) >= 0.6));
       if (again) (final ? soft : hard)("NPC가 직전에 한 대사(직전NPC대사)를 거의 그대로 되풀이함. 캐릭터가 건넨 말에 먼저 반응하고 새 말 · 행동으로 이음");
     }
+    // ---- 같은 NPC가 회피형 대답을 세 번 잇달아 함 (규칙 28-1 · 28-2) ----
+    {
+      const said = npcLines([plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).join("\n"), info.npcNames);
+      const stuck = [...new Set(said.map((x) => x.who))].filter((who) => {
+        const mine = said.filter((x) => x.who === who), past = (info.npcRecent?.[who] ?? []).slice(-2);
+        return mine.every((x) => EVADE_RE.test(x.q)) && past.length >= 2 && past.every((q) => EVADE_RE.test(q));
+      });
+      if (stuck.length) (final ? soft : hard)(`${stuck.join(", ")}이(가) "모르겠다 · 당황스럽다" 같은 대답을 세 번째 되풀이함 (규칙 28-2). 이번엔 짐작 · 의견 · 느낀 점 · 기억이나 새 행동 중 하나를 말함 (비밀 · 미공개 단서는 지킴)`);
+    }
+    // ---- 받은 물건은 서술에 나와야 함 (줍거나 받는 장면 없이 소지품만 생기지 않게) ----
+    if (plan.give.length && !info.askOnly) {
+      const told = bare([plan.narration, plan.arrival, ...plan.answers.map((a) => a.text), info.recentText].filter(Boolean).join(" "));
+      const seen = (item) => { const w = String(item).split(/\s+/).filter((x) => bare(x).length >= 2); return told.includes(bare(item)) || (w.length > 0 && told.includes(bare(w.at(-1)))); };
+      const unseen = plan.give.filter((g) => !seen(g.item));
+      if (unseen.length) {
+        const names = unseen.map((g) => `「${g.item}」`).join(", ");
+        if (!final) hard(`give_item ${names}을(를) 얻는 장면이 서술에 없음. 실제로 줍거나 받는 장면을 서술하거나, 아직 얻지 않았으면 give_item을 비움`);
+        else { soft(`${names} 얻는 장면이 서술에 없음 → 물건 주지 않음`); plan.give = plan.give.filter((g) => !unseen.includes(g)); }
+      }
+    }
     // ---- 비공개 정보 노출: 이번에 공개하는 단서는 제외. 마지막 시도면 새는 문장만 뺌 ----
     const secrets = (info.secrets ?? []).filter((x) => !(x.clue && x.clue === plan.clue));
     const leakIn = (t) => secrets.filter((x) => leaks(t, x.text, info.known));
@@ -5115,7 +5150,7 @@ const Turn = (() => {
   const feedback = (issues) =>
     `직전 응답에 문제가 있음:\n${issues.filter((i) => i.hard).map((i) => `- ${i.msg}`).join("\n")}\n규칙을 지켜 고친 JSON 하나만 다시 출력.`;
 
-  return { validate, feedback, same, bare, leaks, toneOff, shows };
+  return { validate, feedback, same, bare, leaks, toneOff, shows, npcLines, EVADE_RE };
 })();
 
 
@@ -6436,6 +6471,14 @@ class HostGame {
       npcNames: (s.npcs ?? []).map((id) => this.sc.npcs?.[id]?.name ?? id),
       // 이름이 아직 'KPC'인 자리표시자가 이 사건에 있음 (AI가 새 인물을 kpc로 안 보내면 다시 물음)
       kpcOpen: (s.npcs ?? []).some((id) => /^KPC$/i.test(String(this.sc.npcs?.[id]?.name ?? "").trim())),
+      // NPC마다 최근 대사 3개 (지난 GM 서술 6개에서)
+      npcRecent: (() => {
+        const names = (s.npcs ?? []).map((id) => this.sc.npcs?.[id]?.name).filter((n) => n && !/^KPC$/i.test(n)), o = {};
+        const past = d.log.filter((e) => (e.kind === "ai" || e.kind === "gm") && (e.seq ?? 0) <= (g.aiCursor ?? Infinity)).slice(-6);
+        for (const x of Turn.npcLines(past.map((e) => e.text ?? "").join("\n"), names)) (o[x.who] ??= []).push(x.q);
+        for (const k of Object.keys(o)) o[k] = o[k].slice(-3);
+        return o;
+      })(),
       // 직전 GM 서술의 따옴표 대사 (NPC가 같은 말을 되풀이하는지)
       prevQuotes: (d.log.filter((e) => (e.kind === "ai" || e.kind === "gm") && (e.seq ?? 0) <= (g.aiCursor ?? Infinity)).at(-1)?.text ?? "").match(/"[^"]{4,}"|“[^”]{4,}”|「[^」]{4,}」/g) ?? [],
       gotThisTurn: since.filter((e) => e.kind === "system" && (e.item ? e.gain : /「(.+)」 얻음$/.test(e.text ?? ""))).map((e) => e.item ?? /「(.+)」 얻음$/.exec(e.text)[1]),
@@ -6454,6 +6497,7 @@ class HostGame {
       recentText: d.log.slice(-40).filter((e) => e.kind === "ai" || e.kind === "gm" || (e.kind === "roll" && e.result)).map((e) => `${e.text ?? ""}${e.result ?? ""}`).join(" "),
     };
     if (info.prevQuotes.length) ctx.직전NPC대사 = info.prevQuotes;
+    if (Object.keys(info.npcRecent).length) ctx.최근NPC대사 = info.npcRecent;
     const recent = d.log.filter((e) => !e.secret && e.kind !== "ooc").slice(-25);
     return { ctx, info, recent };
   }
