@@ -179,3 +179,11 @@ test("NPC가 직전 대사를 거의 그대로 되풀이하면 다시 물음", (
   assert.ok(!run({ narration: "한진우가 웃음. \"안녕하세요. 오늘따라 목소리가 밝네요.\"" }, info).issues.some((i) => i.hard));
   assert.ok(!run({ narration: "한서를 보며 말함. \"날씨가 이래서 찬바람이 거세군요. 조심해서 안으로 들어가 보죠.\"" }, info, true).issues.some((i) => i.hard), "마지막 시도는 통과");
 });
+
+test("캐릭터가 NPC에게 한 말을 주어 없이 되풀이하면 다시 묻고, 마지막엔 그 문장만 삭제", () => {
+  const info = base({ chars: [{ pid: "p1", name: "신서현", player: "가", items: [] }], actors: [], order: ["p1"], npcNames: ["한진우"] });
+  const obj = { narration: "한진우는 사방을 둘러보며 낮게 말함. \"일단 제단 쪽을 더듬어보죠.\" 한진우에게 앞으로의 대처를 물음." };
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /되풀이/.test(i.msg)));
+  assert.equal(run(obj, info, true).plan.narration, "한진우는 사방을 둘러보며 낮게 말함. \"일단 제단 쪽을 더듬어보죠.\"");
+  assert.ok(!run({ narration: "한진우에게서 낡은 성냥 냄새가 남." }, info).issues.some((i) => i.hard), "에게서는 통과");
+});
