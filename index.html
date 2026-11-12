@@ -2284,11 +2284,8 @@ html.has-3d .topbar { box-shadow: none; }
 /* 쪽 안 */
 /* 오른쪽 쪽: 3D에서 더 위로 비친 만큼 내려 왼쪽 쪽과 줄 맞춤 */
 #bkPgR > .bk-page { padding-top: calc(24px + var(--dy, 0px)); display: flex; flex-direction: column; }
-/* 테이블 설정 쪽은 쪽 자체가 스크롤되지 않음: 쪽 높이에 고정, 펼친 칸(AI 연결 고급 · 성향)만 줄어들며 그 안에서 스크롤, 날인란은 쪽 아래에 붙음 */
-#home:not(.narrow) #bkPgR { overflow: hidden; }
-#home:not(.narrow) #bkPgR > .bk-page[data-side="R"] { height: 100%; min-height: 0; }
-#home:not(.narrow) #bkPgR > .bk-page[data-side="R"] > * { flex: none; }
-#home:not(.narrow) #bkPgR > .bk-page[data-side="R"] > .bk-scroll { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #9c8455 transparent; }
+/* 테이블 설정 쪽: 다 들어가면 스크롤 없이 날인란이 쪽 아래에 붙고, 넘치면(칸을 펼치거나 낮은 화면) 쪽 전체가 스크롤 */
+#bkPgR > .bk-page > * { flex: none; }
 #bkPgR > .bk-page > .bk-nav.end { margin-top: auto; padding-top: 8px; }
 /* 머리 줄 오른쪽 끝 색인 탭 (파일 불러오기 · 샘플) */
 .ix-head { align-items: flex-end; }
@@ -2642,8 +2639,8 @@ html.has-3d .topbar { box-shadow: none; }
           <label class="lg-ck"><input type="radio" name="mode" value="human" /><i></i>내가 GM <small>(비상용)</small></label></div>
       </div>
       <div class="lg-sec">AI 연결 <small>(AI GM일 때)</small></div>
-      <div class="bk-scroll"><div id="setupAi"></div>
-      <details class="lg-fold"><summary><span class="lg-k">성향</span><span id="styleSum" class="lg-sum"></span></summary><div id="setupStyle" class="lg-sub"></div></details></div>
+      <div id="setupAi"></div>
+      <details class="lg-fold"><summary><span class="lg-k">성향</span><span id="styleSum" class="lg-sum"></span></summary><div id="setupStyle" class="lg-sub"></div></details>
       <p id="setupError" class="error" role="alert"></p>
       <div class="bk-nav end"><button id="openTableBtn" class="seal-btn" type="button" disabled><span class="cap">테이블 열기</span><span class="box"><span class="ghost">開</span><span class="ink">開</span></span></button></div>
       <div class="bk-folio">2</div>
