@@ -7615,15 +7615,15 @@ void main() {
     { mesh: G.flameS, x: CANDLE[1][0], y: .35, z: CANDLE[1][1] },
   ];
   // 첫 화면: 대출 카드 주머니 위쪽에 놓인 짧은 초 (누를 수 있는 물건을 비추는 불빛)
-  const HOME_CANDLE = [.7, -1.7];   // 대출 카드 주머니 위쪽(먼 쪽). 누를 수 있는 물건(책 · 주머니 · 봉투)만 불빛이 닿고 왼쪽 장식은 어둠 속
+  const HOME_CANDLE = [.89, -1.6], HOME_CS = 1.29;   // 대출 카드 주머니 위쪽(먼 쪽). 누를 수 있는 물건(책 · 주머니 · 봉투)만 불빛이 닿고 왼쪽 장식은 어둠 속
   // 바로 위에서 내려다봐도 동그랗게 보이게 면을 늘린 가는 초 + 작은 어두운 받침 (가까운 불빛에 받침이 번쩍이지 않게)
   const G_homeDish = cyl(.15, .025, 14), G_homeCandle = cyl(.075, .156, 14, 1);   // 낮은 초: 펼친 책을 바로 위에서 볼 때 화면 가장자리라 키 큰 초는 옆으로 누운 통처럼 늘어나 보임
   const T_homeDish = tex(16, (g, s) => noise(g, s, [46, 36, 28], .25));
   const homeObjs = [
-    [G_homeDish, T_homeDish, M.trs(HOME_CANDLE[0], 0, HOME_CANDLE[1])],
-    [G_homeCandle, T.wax, M.trs(HOME_CANDLE[0], .025, HOME_CANDLE[1]), .55],
+    [G_homeDish, T_homeDish, M.trs(HOME_CANDLE[0], 0, HOME_CANDLE[1], 0, HOME_CS)],
+    [G_homeCandle, T.wax, M.trs(HOME_CANDLE[0], .025 * HOME_CS, HOME_CANDLE[1], 0, HOME_CS), .55],
   ];
-  const homeFlame = { mesh: G.flameS, x: HOME_CANDLE[0], y: .186, z: HOME_CANDLE[1], home: true };
+  const homeFlame = { mesh: G.flameS, x: HOME_CANDLE[0], y: .186 * HOME_CS, z: HOME_CANDLE[1], home: true, s: HOME_CS };
 
   /* ---------------- 첫 화면 책 (붉은 가죽 장부, 오두막 안 물체) ----------------
    * 닫힌 모양 기준: 책등 x = -0.5, 쪽 x ∈ [-0.5, 0.5], 깊이 z = zc ± D/2, 높이 = 뒤표지 c + 쪽 B + 앞표지 c
@@ -8258,7 +8258,7 @@ void main() {
       const lean = (Math.sin(t * 2.3 + i) * .18 + Math.sin(t * 6.7 + i * 3) * .07) * mo;
       const shear = [1, 0, 0, 0, lean, hgt, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
       // 책 옆 초는 화면을 향한 판(바로 위에서 내려다봐도 불꽃이 위로 섬), 나머지는 세로 축으로만 돔
-      const base = f.home ? [view[0], view[4], view[8], 0, view[1], view[5], view[9], 0, view[2], view[6], view[10], 0, f.x, f.y, f.z, 1] : M.trs(f.x, f.y, f.z, yaw);
+      const base = f.home ? M.mul([view[0], view[4], view[8], 0, view[1], view[5], view[9], 0, view[2], view[6], view[10], 0, f.x, f.y, f.z, 1], M.S(f.s || 1)) : M.trs(f.x, f.y, f.z, yaw);
       // 빛무리 먼저 (불꽃 뒤)
       gl.uniform1f(U.u_alphaTest, .45);
       gl.uniform1f(U.u_ghost, .86);
