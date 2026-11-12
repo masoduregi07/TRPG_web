@@ -375,3 +375,19 @@ test("AI가 쓰는 동안 행운으로 성공하면 실패 서술은 버리고 �
   assert.ok(ai.some((x) => x.includes("들어섬")));
   assert.match(asked[1], /행운 \d+ 써서 성공/, "다시 요청할 땐 성공으로 알림");
 });
+
+test("NPC 카드: 호출 오류는 실패로 안 적고 1분 뒤 다시, 3번 연속이면 포기", async () => {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  let calls = 0;
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {}, aiCall: async () => { calls++; const e = new Error("AI GM이 지친 모양입니다."); e.tired = true; throw e; } });
+  data.phase = "play"; data.game = m.Engine.newState(sc); g.aiReady = () => true;
+  await g.ensureNpcCards();
+  assert.equal(calls, 1);
+  assert.ok(!data.game.npcCardFail?.length, "한 번 오류로 실패 처리 안 함");
+  assert.equal(g.ensureNpcCards(), null, "바로 다시 부르지 않음");
+  for (let i = 0; i < 2; i++) { g.npcCardRetryAt = 0; await g.ensureNpcCards(); }
+  assert.equal(calls, 3);
+  assert.ok(data.game.npcCardFail?.length, "3번 연속 오류면 포기");
+});
