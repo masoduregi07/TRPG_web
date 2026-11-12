@@ -2261,7 +2261,9 @@ html.has-3d .topbar { box-shadow: none; }
 .bk-tab .lb { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 /* 호버 · 키보드 초점: 물건 위에 꼬리말 [새 테이블] [이어하기] [참가하기] (3D 쪽은 들리고 밝아짐) */
 #home:not(.flat) .bk-tab:hover .lb, #home:not(.flat) .bk-tab:focus-visible .lb { left: 50%; bottom: calc(100% + 6px); width: auto; height: auto; overflow: visible; clip-path: none; translate: -50% 0; white-space: nowrap;
-  padding: 6px 13px; background: #f6efdc; color: var(--ink); border: 1px solid #5a4128; font: 17px/1.4 var(--font); box-shadow: 2px 2px 0 rgba(0, 0, 0, .35); animation: bk-lb-in .16s ease-out; pointer-events: none; }   /* 크림 종이 + 진갈색 테 */
+  padding: 6px 14px 6px 22px; background: #c79a5b; color: #2b1a0c; font: 17px/1.4 var(--font); rotate: -4deg; clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%);
+  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, .4)); animation: bk-lb-in .16s ease-out; pointer-events: none; }   /* T1 누런 종이 꼬리표: 왼쪽 뾰족 + 끈 구멍, 살짝 기울임 */
+#home:not(.flat) .bk-tab:hover .lb::before, #home:not(.flat) .bk-tab:focus-visible .lb::before { content: ""; position: absolute; left: 9px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: #3a2414; }
 @keyframes bk-lb-in { from { opacity: 0; translate: -50% 4px; } }
 #home.open .bk-tabs { display: none; }
 .bk-tab:focus-visible { outline: 0; }
