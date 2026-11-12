@@ -2396,10 +2396,8 @@ html.has-3d .topbar { box-shadow: none; }
 /* ===== 이어하기 = 주머니에서 옆으로 쏟아진 대출 카드 목록 (#lbList) ===== */
 .lb-list { position: absolute; top: 50%; z-index: 20; max-height: 86vh; display: flex; flex-direction: column; translate: 0 -50%; filter: drop-shadow(3px 8px 14px rgba(10, 5, 2, .55)); }
 .lb-list[hidden] { display: none; }
-.lb-hd { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 6px; font: 11px/1.4 var(--font); color: #f3e2b5; }
-.lb-hd b { font: 16px/1 "Galmuri9", var(--font); font-weight: 400; }
 /* 목록 = 예전 대출기간표: 반납일(남색 도장) · 사건(챕터) · 비고(진행/준비). 줄 누르면 확인 띠, 줄 끝 ✕ = 폐기 */
-.due { position: relative; outline: 0; margin: 0; animation: lb-out .3s cubic-bezier(.2, .7, .3, 1) backwards; padding: 12px 14px 16px; box-sizing: border-box; background: #f6efdc; box-shadow: 1px 2px 0 rgba(60, 40, 20, .3); }
+.due { position: relative; outline: 0; margin: 0; padding-bottom: 12px !important; animation: lb-out .3s cubic-bezier(.2, .7, .3, 1) backwards; padding: 12px 14px 16px; box-sizing: border-box; background: #f6efdc; box-shadow: 1px 2px 0 rgba(60, 40, 20, .3); }
 .due h4 { margin: 0 0 8px; text-align: center; font: 15px/1.4 "Galmuri11", var(--font); letter-spacing: .5em; font-weight: 400; }
 .due table { width: 100%; border-collapse: collapse; table-layout: fixed; font: 12px/26px var(--font); }
 .due th { border: 1px solid #6b5338; font: 10.5px/22px var(--font); color: #5a4630; font-weight: 400; }
@@ -2419,24 +2417,21 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-del { position: absolute; right: 3px; top: 4px; width: 18px; height: 18px; visibility: hidden; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
 .lb-del:hover, .lb-del:focus-visible { color: var(--blood); outline: 0; }
 .due tr:hover .lb-del, .lb-del:focus-visible { visibility: visible; }
-.lb-ft { margin-top: 10px; padding: 10px 12px; background: #efe0b4; font-size: 13px; color: #6d5a40; }
+.lb-ft { margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(90, 60, 30, .3); font-size: 13px; color: #6d5a40; }
+.due-ask { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .2s ease; }
+.due-ask.on { grid-template-rows: 1fr; }
+.due-ask > .in { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 0; overflow: hidden; font: 13px/1.4 var(--font); }
+.due-ask.on > .in { padding-top: 10px; }
+.due-ask p { margin: 0; min-width: 0; word-break: keep-all; }
+.due-ask .yn { flex: none; display: flex; align-items: center; gap: 2px; color: #8a7a62; white-space: nowrap; }
+.due-ask .gp { position: relative; padding: 2px 8px; border: 0; background: none; color: var(--ink); font: 13px/1.4 var(--font); cursor: pointer; }
+.due-ask .gp:hover, .due-ask .gp:focus-visible { color: var(--blood); outline: 0; }
+.due-ask.danger .gp.y { color: var(--blood); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .due-ask { transition: none; } }
 .lb-ft .recover { margin-top: 8px; }
 .lb-ft .recover summary { cursor: pointer; font-size: 12px; }
 .lb-ft .recover p { margin: 6px 0; }
 @media (prefers-reduced-motion: reduce) { #lbList .due { animation: none; } }
-/* 카드 확인 쪽지: 고른 카드 바로 위(맨 위 카드면 아래), 한 줄짜리 종이 띠 "「제목」 시나리오를 읽을까? [예 / 아니오]". 카드 뒤에서 위로 슥 (0.22초) */
-.lb-ask { position: absolute; z-index: 4; display: flex; align-items: center; gap: 10px; width: max-content; max-width: 100%; box-sizing: border-box; padding: 7px 10px 7px 12px;
-  background: #f6efdc; color: var(--ink); font: 13px/1.4 var(--font); box-shadow: 0 0 0 1px rgba(60, 40, 20, .45), 2px 3px 0 rgba(30, 15, 3, .3); animation: lb-ask-in .22s ease-out; }
-.lb-ask p { margin: 0; min-width: 0; word-break: keep-all; }
-.lb-ask .yn { flex: none; display: flex; align-items: center; white-space: nowrap; }
-.lb-ask .yn::before { content: "["; margin-right: 3px; color: #8a7a62; } .lb-ask .yn::after { content: "]"; margin-left: 3px; color: #8a7a62; }
-.lb-ask .yn button { padding: 0 4px; border: 0; background: none; color: #2b1a0c; font: inherit; cursor: pointer; }
-.lb-ask .yn button:hover, .lb-ask .yn button:focus-visible { background: #5a4128; color: #f3e6c4; outline: 0; }
-.lb-ask .yn i { font-style: normal; color: #8a7a62; }
-.lb-ask.danger .yn .y { color: var(--blood); font-weight: 700; }
-.lb-ask.danger .yn .y:hover, .lb-ask.danger .yn .y:focus-visible { background: var(--blood); color: #fff3dc; }
-@keyframes lb-ask-in { from { translate: 0 18px; opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .lb-ask { animation: none; } }
 /* ===== 참가하기 = 봉투에서 꺼낸 초대장 (#invite) ===== */
 .inv-wrap { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(10, 5, 2, .45); }
 .inv-wrap[hidden] { display: none; }
@@ -2564,16 +2559,18 @@ html.has-3d .topbar { box-shadow: none; }
   </nav>
   <!-- 이어하기: 주머니를 누르면 대출 카드가 옆으로 쏟아져 테이블 목록 -->
   <section id="lbList" class="lb-list" hidden aria-label="이어하기">
-    <div class="lb-hd"><span>탐사자 협회 도서실</span><b id="tableCount">0권</b></div>
-    <div id="myTables" class="due" tabindex="-1"><h4>대출기간표</h4><div class="due-scroll"><table><thead><tr><th class="c-d">반납일</th><th>사건</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div></div>
-    <div class="lb-ft">
-      <label class="pbtn" tabindex="0" role="button">▤ 세이브 파일 불러오기<input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
-      <details class="recover">
-        <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
-        <p class="muted small">책(새 테이블)에 같은 시나리오를 넣고 → 친구의 "내 사본" 파일 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
-        <label class="pbtn" tabindex="0" role="button">사본 파일<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
-        <p id="recoverError" class="error" role="alert"></p>
-      </details>
+    <div id="myTables" class="due" tabindex="-1"><h4>대출기간표</h4><div class="due-scroll"><table><thead><tr><th class="c-d">날짜</th><th>시나리오</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
+      <!-- 줄을 누르면 표 아래가 늘어나며 물음 한 줄 → 예 / 아니오에 잉크 동그라미 -->
+      <div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div>
+      <div class="lb-ft">
+        <label class="pbtn" tabindex="0" role="button">▤ 세이브 파일 불러오기<input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
+        <details class="recover">
+          <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
+          <p class="muted small">책(새 테이블)에 같은 시나리오를 넣고 → 친구의 "내 사본" 파일 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
+          <label class="pbtn" tabindex="0" role="button">사본 파일<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
+          <p id="recoverError" class="error" role="alert"></p>
+        </details>
+      </div>
     </div>
   </section>
   <!-- 참가하기: 봉투를 누르면 열려 초대장 (초대 링크로 오면 열린 채 시작) -->
@@ -9189,32 +9186,38 @@ const BannerArt = (() => {
       yes.focus();
     });
   }
-  /* 대출 확인 쪽지: 고른 카드 바로 위(맨 위 카드면 바로 아래)에 한 줄 종이 띠. 예 / 아니오 (Esc · 바깥 = 아니오) */
+  /* 대출기간표 물음: 고른 줄은 형광펜 그대로, 표 아래가 늘어나며 "「제목」 …?" [예 / 아니오]. 고르면 그 말에 잉크 동그라미 (Esc · 바깥 = 아니오, 동그라미 없이) */
   let cardAskDone = null;
-  function cardAsk(li, text, { danger = false } = {}) {
-    cardAskDone?.(false);
+  function cardAsk(tr, text, { danger = false } = {}) {
+    cardAskDone?.(false, true);
     return new Promise((resolve) => {
-      const wrap = li.closest(".due") ?? li.parentElement, prev = document.activeElement;
-      const yes = el("button", { class: "y", type: "button" }, "예"), no = el("button", { type: "button" }, "아니오");
-      const box = el("div", { class: `lb-ask${danger ? " danger" : ""}`, role: "dialog", "aria-label": text, style: "left:0" },
-        el("p", {}, text), el("span", { class: "yn" }, yes, el("i", {}, "/"), no));
-      li.classList.add("asking");
-      wrap.append(box);
-      const wr = wrap.getBoundingClientRect(), r = li.getBoundingClientRect(), above = r.top - wr.top - box.offsetHeight - 2;
-      box.style.top = `${above >= 0 ? above : r.bottom - wr.top + 2}px`;
-      const away = (e) => { if (!box.contains(e.target)) done(false); };
-      const key = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } };
-      const done = (v) => {
+      const box = $("#dueAsk"), btns = [...box.querySelectorAll(".gp")], prev = document.activeElement;
+      $("#dueAskText").textContent = text;
+      box.classList.toggle("danger", danger);
+      btns.forEach((b) => { b.classList.remove("on", "fresh"); b.querySelector(".ink-circle")?.remove(); });
+      tr.classList.add("asking");
+      box.classList.add("on");
+      const away = (e) => { if (!box.contains(e.target) && !tr.contains(e.target)) done(false, true); };
+      const key = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false, true); } };
+      const pick = (e) => done(e.currentTarget.dataset.v === "1");
+      const done = async (v, quiet = false) => {
         if (cardAskDone !== done) return;
-        cardAskDone = null; box.remove(); li.classList.remove("asking");
+        cardAskDone = null;
         removeEventListener("keydown", key, true); removeEventListener("pointerdown", away, true);
-        prev?.focus?.({ preventScroll: true }); resolve(v);
+        btns.forEach((b) => b.removeEventListener("click", pick));
+        if (!quiet) {   // 고른 말에 잉크 동그라미가 그려진 뒤 닫힘
+          const b = btns.find((x) => x.dataset.v === (v ? "1" : "0"));
+          b.classList.add("on", "fresh"); b.append(inkCircle()); Sfx.play("tap");
+          await new Promise((r) => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 520));
+        }
+        if (!v || quiet) { box.classList.remove("on"); tr.classList.remove("asking"); prev?.focus?.({ preventScroll: true }); }
+        resolve(v);
       };
       cardAskDone = done;
-      yes.onclick = () => done(true); no.onclick = () => done(false);
+      btns.forEach((b) => b.addEventListener("click", pick));
       addEventListener("keydown", key, true);
       setTimeout(() => addEventListener("pointerdown", away, true));   // 지금 누른 클릭은 빼고
-      (danger ? no : yes).focus({ preventScroll: true });
+      btns[danger ? 1 : 0].focus({ preventScroll: true });
     });
   }
   // 대출 카드 번호: 방 코드에서 4자리 (화면 장식 · 같은 방은 늘 같은 번호)
@@ -9223,6 +9226,7 @@ const BannerArt = (() => {
   async function deleteTable(t, li = null) {
     const ask = `「${t.title}」 기록을 지울까?`;
     if (!(await (li ? cardAsk(li, ask, { danger: true }) : paperAsk(ask)))) return;
+    $("#dueAsk").classList.remove("on");
     try { await HistoryArchive.deleteHostRoom(t.room); }
     catch { return toast('보관 기록 삭제 실패. 테이블은 유지됨.'); }
     await DB.del(K.host(t.room));
@@ -9233,12 +9237,11 @@ const BannerArt = (() => {
   function renderTables() {
     const list = app.tables ?? [];
     Scene3D.desk({ count: list.length });
-    $("#tableCount").textContent = `${list.length}권`;
     const open = async (tr, t) => { if (await cardAsk(tr, `「${t.title}」 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); };
     const rows = list.map((t) => el("tr", { "data-room": t.room, tabindex: "0", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title,
       on: { click: (e) => { if (!e.target.closest(".lb-del")) open(e.currentTarget, t); }, keydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) open(e.currentTarget, t); } } },
       el("td", {}, el("span", { class: "st" }, md(t.savedAt))),
-      el("td", { class: "n" }, t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.title),
+      el("td", { class: "n" }, t.title),
       el("td", { class: "c" }, t.phase === "play" ? "진행" : "준비",
         el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: (e) => deleteTable(t, e.currentTarget.closest("tr")) } }, "✕"))));
     while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
