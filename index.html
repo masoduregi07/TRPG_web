@@ -4972,7 +4972,9 @@ const Turn = (() => {
     for (const b of r.results ?? []) {
       const c = charOf(b.who);
       if (!c) { soft(`results의 '${b.who}'을(를) 모름 → 무시`); continue; }
-      if (info.actors.length && !info.actors.some((a) => a.pid === c.pid)) { soft(`이번 차례 행동 없는 ${c.name} 서술 → 제외`); continue; }
+      // 행동표에 오른 사람(행동 · @NPC 대사 · 판정 굴림)의 결과는 남김. 목록이 없으면(예전 호출) 행동한 사람만
+      const turnPids = info.turnPids ?? info.actors.map((a) => a.pid);
+      if (turnPids.length && !turnPids.includes(c.pid)) { soft(`이번 차례 행동 없는 ${c.name} 서술 → 제외`); continue; }
       const ex = plan.blocks.find((x) => x.pid === c.pid);
       if (ex) ex.text = dedupSentences(`${ex.text} ${b.text}`); else plan.blocks.push({ pid: c.pid, name: c.name, text: b.text });
     }
@@ -5822,7 +5824,7 @@ class HostGame {
     if (r.ok) d.game.offTrack = 0;
     const tag = `${spec.skill} ${tgt}${diff !== "보통" ? ` · ${diff} ${r.thr}` : ""}${n > 0 ? ` · 보너스 ${n}` : n < 0 ? ` · 페널티 ${-n}` : ""}${spec.improv ? " · 즉흥" : ""}`;
     const tens = r.roll.tens.length > 1 ? ` (10의 자리 ${r.roll.tens.map((t) => (t ? `${t}0` : "00")).join(" · ")})` : "";
-    this.addLog({ kind: "roll", byId: pid, by, roll: rollOf(r.roll), dice: Rules.diceFx(r.roll), detail: `1d100 → ${r.roll.value} / ${r.thr}${tens}`,
+    const rollE = this.addLog({ kind: "roll", byId: pid, by, roll: rollOf(r.roll), dice: Rules.diceFx(r.roll), detail: `1d100 → ${r.roll.value} / ${r.thr}${tens}`,
       text: `${spec.label} (${tag})${pushed ? " · 밀어붙임" : ""}`,
       level: r.lv.name, result: `${r.lv.name}${pushed && !r.ok ? " — 밀어붙인 실패: 대가가 따름" : ""}${res?.text ? ` — ${res.text}` : ""}`, ok: r.ok, crit: r.crit, pushed });
     if (res?.clue) { this.addLog({ kind: "clue", text: res.clue.text }); this.clueHandout(res.clue, [pid]); }
@@ -5831,7 +5833,7 @@ class HostGame {
     // 실패 뒤 기회: 밀어붙이기 (한 번 · 대실패 · 사건 이동 제외) / 행운 쓰기 (모자란 만큼, 행운 · 이성 판정 제외)
     if (!r.ok && c && !pushed && r.lv.code !== "fumble" && !res?.moved) {
       const luckCost = Rules.isLuck(spec.skill) ? 0 : r.roll.value - r.thr;
-      d.game.retry = { pid, spec, checkId: check?.id ?? null, pushable: true, luckCost: luckCost > 0 && luckCost <= c.luck ? luckCost : 0 };
+      d.game.retry = { pid, spec, checkId: check?.id ?? null, rollId: rollE.id, pushable: true, luckCost: luckCost > 0 && luckCost <= c.luck ? luckCost : 0 };
     }
     this.pushAll(); this.queueAI();
   }
@@ -6322,7 +6324,7 @@ class HostGame {
         }
         if (!(r.luckCost > 0) || c.luck < r.luckCost) return this.notice(pid, "행운 부족.");
         c.luck -= r.luckCost;
-        this.addLog({ kind: "system", text: `${c.name}: 행운 ${r.luckCost} 사용 → ${r.spec.label} 성공 (남은 행운 ${c.luck})` });
+        this.addLog({ kind: "system", text: `${c.name}: 행운 ${r.luckCost} 사용 → ${r.spec.label} 성공 (남은 행운 ${c.luck})`, ...(r.rollId ? { luckFor: r.rollId, luckCost: r.luckCost } : {}) });
         if (check) this.applyCheckResult(pid, check, true, false);
         this.pushAll();
         this.queueAI();
@@ -6656,7 +6658,9 @@ class HostGame {
     ctx.정체시진행 = stuck ? "사건이 정체됨. 플레이어의 새 행동을 꾸며내지 말고, NPC의 자발적 발언·기존 사건의 환경 변화·공개 가능한 힌트를 통해 현 장면의 목표 쪽으로 자연스럽게 전개한다. 아직 충족되지 않은 이동 조건과 주사위 판정은 건너뛰지 않는다." : "정상 진행";
     const hint = this.currentHint();
     if (hint) ctx.지금줄힌트 = hint;
-    const since = this.sinceAI();
+    // 행운을 써서 성공으로 바꾼 굴림은 성공으로 본다 (실패 서술 · 보상 무시가 나오지 않게)
+    const lucky = new Map(this.sinceAI().filter((e) => e.luckFor).map((e) => [e.luckFor, e]));
+    const since = this.sinceAI().map((e) => (e.kind === "roll" && lucky.has(e.id) ? { ...e, ok: true, result: `${e.result} → 행운 ${lucky.get(e.id).luckCost ?? ""} 써서 성공` } : e));
     const lastRoll = [...since].reverse().find((e) => e.kind === "roll" && e.result && !e.dmg);
     if (lastRoll) ctx.직전판정 = { 행동: lastRoll.text, 결과: lastRoll.result, 특이: lastRoll.crit || "" };
     // 발언 기회: 최근 기록에서 말이 적은 캐릭터
@@ -6696,6 +6700,8 @@ class HostGame {
         db: q.character.db ?? Rules.dbBuild(q.character.chars).db, dead: !!q.character.dead, down: q.character.down ?? "" })),
       npcs: (s.npcs ?? []).map((id) => { const n = Engine.npcFight(this.sc, g, id); return n ? { id, name: this.sc.npcs[id].name ?? id, hp: n.hp, hpMax: n.hpMax, db: n.db } : null; }).filter(Boolean),
       actors: uniq(since.filter((e) => e.kind === "say" && e.style === "act").map((e) => e.byId)),
+      // 행동표에 오르는 입력(행동 · 질문 · @NPC 대사 · 판정 굴림)을 한 캐릭터 (results 허용 범위)
+      turnPids: [...new Set(since.filter((e) => e.byId && d.players[e.byId]?.character && ((e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc)) || (e.kind === "roll" && e.result && !e.dmg))).map((e) => e.byId))],
       order: [...new Set(since.filter((e) => (e.kind === "say" || (e.kind === "roll" && e.result && !e.dmg)) && e.byId).map((e) => e.byId))],
       askers: uniq(since.filter((e) => e.kind === "say" && e.style === "ask").map((e) => e.byId)),
       askOnly,
@@ -6968,7 +6974,7 @@ class HostGame {
     const epoch = this.ai.epoch, game = this.data.game, scene = game.currentScene;
     let context, batchEndSeq;
     // 판정 결과가 상태를 바꿨는지 (AI가 생각하는 동안 굴림 · 행운 사용). 글 입력은 다음 차례로 넘어가므로 셈하지 않음
-    const rollSig = () => JSON.stringify([game.passedChecks, game.triedChecks, game.revealedClues.length, game.flags, Engine.pendingList(game).map((p) => p.checkId)]);
+    const rollSig = () => JSON.stringify([game.passedChecks, game.triedChecks, game.revealedClues.length, game.flags, Engine.pendingList(game).map((p) => p.checkId), game.retry?.rollId ?? null]);
     const sig0 = rollSig();
     const stale = () => controller.signal.aborted || epoch !== this.ai.epoch ||
       this.data.game !== game || game.currentScene !== scene || game.result ||

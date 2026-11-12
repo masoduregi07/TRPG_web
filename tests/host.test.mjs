@@ -309,3 +309,69 @@ test("판정 여러 개 적용 · NPC 대사의 질문자 기록", async () => {
     checks: [{ type: "improv", spec: { skill: "관찰력", reason: "벽 살피기" }, who: "p1", whoName: "한서" }, { type: "improv", spec: { skill: "듣기", reason: "소리 듣기" }, who: "p2", whoName: "민준" }] });
   assert.equal(data.game.pendingChecks.length, 2);
 });
+
+function aiTable(aiCall) {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {}, aiCall, aiDebounceMs: 100000 });
+  const seat = (c, key, name, ch) => {
+    const { pid } = g.onConnect(c, { key, name, build: m.APP_BUILD });
+    g.onMessage(c, { t: "rollChars" });
+    g.onMessage(c, { t: "char", character: { name: ch, background: m.Engine.charRules(sc).backgrounds[0]?.name ?? "", alloc: {} }, ready: true });
+    return pid;
+  };
+  return { m, g, data, sc, seat, stop: () => { clearTimeout(g.ai.timer); g.ai.timer = null; } };
+}
+
+test("다인 차례: @NPC 대사 · 판정 굴림을 한 캐릭터의 결과도 남음", async () => {
+  let reply = "";
+  const t = aiTable(async () => reply);
+  t.seat("c1", KEY, "가", "한서"); t.seat("c2", KEY2, "나", "도윤");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  t.g.onMessage("c1", { t: "chat", text: "선반을 뒤진다", style: "act" });
+  t.g.onMessage("c2", { t: "chat", text: "@바르톨 그날 밤에 누굴 봤습니까?", style: "talk" });
+  t.stop();
+  reply = JSON.stringify({ narration: "", results: [{ who: "한서", text: "먼지 쌓인 장부가 드러남." }, { who: "도윤", text: '바르톨이 고개를 저음. "그날 밤엔 아무도 못 봤소."' }] });
+  await t.g.runAI();
+  assert.deepEqual([...t.data.log.filter((e) => e.kind === "ai").map((e) => e.focus)], ["한서", "도윤"]);
+  // 판정 굴림 + 다른 사람 행동
+  t.g.hostAction({ t: "requestCheck", checkId: "persuade_fisherman" });
+  t.g.onMessage("c1", { t: "check", checkId: "persuade_fisherman" });
+  t.g.onMessage("c2", { t: "chat", text: "부두 끝의 배를 살펴본다", style: "act" });
+  t.stop();
+  reply = JSON.stringify({ narration: "", results: [{ who: "한서", text: "바르톨이 그물만 만지작거림." }, { who: "도윤", text: "배 안엔 젖은 밧줄뿐임." }] });
+  await t.g.runAI();
+  assert.deepEqual([...t.data.log.filter((e) => e.kind === "ai").slice(-2).map((e) => e.focus)], ["한서", "도윤"]);
+});
+
+test("AI가 쓰는 동안 행운으로 성공하면 실패 서술은 버리고 성공으로 다시 요청", async () => {
+  let release, calls = 0; const asked = [];
+  const t = aiTable(async (msgs) => {
+    calls++; asked.push(msgs[1].content);
+    if (calls === 1) await new Promise((r) => (release = r));
+    return JSON.stringify({ narration: calls === 1 ? "손이 미끄러져 창틀을 놓침." : "창틀을 넘어 안으로 들어섬." });
+  });
+  const pid = t.seat("c1", KEY, "가", "한서");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  const c = t.data.players[pid].character; c.luck = 99; c.chars["민첩"] = 40;
+  // 즉흥 판정 실패 (행운으로 메울 수 있는 실패)가 나올 때까지
+  for (let i = 0; i < 300; i++) {
+    t.g.requestImprov({ skill: "민첩", reason: "창틀 넘기" }, { who: pid, whoName: "한서" });
+    t.g.onMessage("c1", { t: "check", checkId: t.data.game.pendingChecks.at(-1).checkId });
+    if (t.data.game.retry?.luckCost > 0) break;
+    t.g.invalidateAI(); t.g.rate.clear();
+  }
+  assert.ok(t.data.game.retry?.luckCost > 0);
+  t.stop(); t.g.runAI();
+  await new Promise((r) => setTimeout(r, 10));
+  t.g.rate.clear();
+  t.g.onMessage("c1", { t: "luck" });
+  release();
+  for (let i = 0; i < 50 && calls < 2; i++) await new Promise((r) => setTimeout(r, 10));
+  t.stop(); if (!t.data.log.some((e) => e.kind === "ai")) await t.g.runAI();
+  const ai = t.data.log.filter((e) => e.kind === "ai").map((e) => e.text);
+  assert.ok(!ai.some((x) => x.includes("미끄러져")), "실패 서술은 적용 안 함");
+  assert.ok(ai.some((x) => x.includes("들어섬")));
+  assert.match(asked[1], /행운 \d+ 써서 성공/, "다시 요청할 땐 성공으로 알림");
+});
