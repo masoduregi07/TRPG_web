@@ -7702,7 +7702,8 @@ void main() {
   const DT = {
     // 대출 카드 포켓(L1) = 세 겹: 속(어두운 안쪽) · 카드(B 색인 카드: 붉은 머리줄 + 남색 괘선, 테이블 수만큼 최대 3장) · 앞판(반달 홈 북포켓 + 인쇄 + 최근 날짜 도장).
     // 카드 판만 따로 움직여 호버하면 위로 더 빠져나옴
-    pocket: ctex(112, 140, (g, w, h) => { const top = 58; g.fillStyle = "#4e3519"; g.fillRect(0, top - 12, w, h - top + 12); }),
+    // 테이블이 0개면 포켓만: 속은 반달 홈으로만 보이고(앞판 윗변 위로 안 나옴) 카드 · 옆면 없음
+    pocket: ctex(112, 140, (g, w, h) => { const top = 58, y = desk.count > 0 ? top - 12 : top; g.fillStyle = "#4e3519"; g.fillRect(0, y, w, h - y); }),
     cards: ctex(112, 140, (g, w, h) => {
       const top = 58, n = Math.min(3, desk.count);
       for (let i = 0; i < n; i++) {
@@ -7764,9 +7765,16 @@ void main() {
     const lit = () => .3;
     gl.uniform1f(U.u_alphaTest, .5);
     const pk = deskModel("pocket"), slide = (dy, dz) => chain(pk, M.T(0, dy, dz));   // 주머니 판 안 좌표 (판 두께 1 = .006)
-    drawSlab(pk, DT.pocket.t, T_kraft, T_kraft, lit("pocket"));
-    drawSlab(chain(slide(1, -cardsUp * .07 / DK.pocket.d), M.S(1, .5, 1)), DT.cards.t, DT.cards.t, DT.cards.t, lit("pocket") + .04);
-    drawSlab(chain(slide(1.5, 0), M.S(1, .5, 1)), DT.front.t, DT.front.t, DT.front.t, lit("pocket"));
+    if (desk.count > 0) {
+      drawSlab(pk, DT.pocket.t, T_kraft, T_kraft, lit("pocket"));
+      drawSlab(chain(slide(1, -cardsUp * .07 / DK.pocket.d), M.S(1, .5, 1)), DT.cards.t, DT.cards.t, DT.cards.t, lit("pocket") + .04);
+    } else {   // 빈 포켓: 속은 윗면만(옆면 · 아랫면을 그리면 빈 자리에 테두리 조각이 비침), 카드 없음
+      gl.uniformMatrix4fv(U.u_model, false, pk); gl.uniform1f(U.u_emissive, lit("pocket"));
+      gl.bindTexture(gl.TEXTURE_2D, DT.pocket.t); drawMesh(SL.top);
+    }
+    const fr = chain(slide(1.5, 0), M.S(1, .5, 1));
+    if (desk.count > 0) drawSlab(fr, DT.front.t, DT.front.t, DT.front.t, lit("pocket"));
+    else { gl.uniformMatrix4fv(U.u_model, false, fr); gl.bindTexture(gl.TEXTURE_2D, DT.front.t); drawMesh(SL.top); }
     drawSlab(deskModel("env"), DT.env.t, T_kraft, T_kraft, lit("env"));
     // 덮개: 봉투 먼 쪽 변이 경첩. 열면(envOpen 0→1) 위로 젖혀져 봉투 뒤 탁자 쪽으로 넘어감
     const o = DK.env, fd = o.d * 44 / 68;
@@ -8013,7 +8021,7 @@ void main() {
       drawBook();
       if (bk.cb) {
         const vp = M.mul(proj, view);
-        bk.cb({ hits: { book: screenRect(vp, bookParts().front), pocket: screenRect(vp, deskModel("pocket"), -.5 - cardsUp * .07 / DK.pocket.d), invite: screenRect(vp, deskModel("env")) }, zoom: bookZoom(eye, cam.target), px: innerWidth / W });
+        bk.cb({ hits: { book: screenRect(vp, bookParts().front), pocket: screenRect(vp, deskModel("pocket"), desk.count > 0 ? -.5 - cardsUp * .07 / DK.pocket.d : 58 / 140 - .5), invite: screenRect(vp, deskModel("env")) }, zoom: bookZoom(eye, cam.target), px: innerWidth / W });
       }
     }
 
@@ -8072,7 +8080,7 @@ void main() {
     /** 초대장 봉투 덮개 열기 · 닫기 (0.32초) */
     envOpen(on) { const from = desk.envOpen, to = on ? 1 : 0; return from === to ? Promise.resolve() : anim(320, 0, (e) => { desk.envOpen = from + (to - from) * e; }); },
     /** 주머니 위로 빼꼼 보이는 카드 수(최대 3) · 권 수 */
-    desk({ count, date = "" }) { if (desk.count === count && desk.date === date) return; desk.count = count; desk.date = date; DT.cards.paint(); DT.front.paint(); scheduleFrame(); },
+    desk({ count, date = "" }) { if (desk.count === count && desk.date === date) return; desk.count = count; desk.date = date; DT.pocket.paint(); DT.cards.paint(); DT.front.paint(); scheduleFrame(); },
     /** 닫힌 책 → 카메라가 위로 다가옴 + 표지 + 여러 장 차라락 → spread 면 */
     bookOpen(to) {
       bk.sp = to; bk.cur = chOf(to);
