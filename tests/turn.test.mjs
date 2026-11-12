@@ -270,7 +270,10 @@ test("겹친 문장: narration + 한 명 results를 이을 때 같은 문장은 
   assert.equal(a.plan.narration, s);
   const b = run({ narration: `${s} 파도가 침. ${s}` });
   assert.equal(b.plan.narration, `${s} 파도가 침.`);
-  assert.equal(Turn.dedupSentences("짧음. 짧음."), "짧음. 짧음.", "6자 미만 짧은 문장은 그대로");
+  assert.equal(Turn.dedupSentences("짧음. 짧음."), "짧음. 짧음.", "4자 미만 짧은 문장은 그대로");
+  // 대사 끝 토막이 따옴표 밖에 한 번 더 붙은 응답 (5자 문장 + 짝 없는 따옴표)
+  assert.equal(Turn.dedupSentences('한진우는 멋쩍게 웃었다. "아, 제 주머니요! 자, 보실래요?" 자, 보실래요?"'), '한진우는 멋쩍게 웃었다. "아, 제 주머니요! 자, 보실래요?"');
+  assert.equal(Turn.dedupSentences('한진우가 말했다. "자, 보실래요? 자, 보실래요?"'), '한진우가 말했다. "자, 보실래요?"', "닫는 따옴표는 남김");
 });
 
 test("NPC에게 물었는데 대사 없이 몸짓만: 첫 시도 다시 요청, 대사가 있으면 통과", () => {
@@ -297,4 +300,43 @@ test("판정 결과만 있는 차례: 받은 물건을 살피는 반응은 통�
   assert.ok(!look.issues.some((x) => x.hard), JSON.stringify(look.issues));
   const again = m.Turn.validate(m.AI.parseGM(JSON.stringify({ narration: "바르톨이 녹슨 열쇠를 한서에게 건넴. 바람이 거세짐." })), info, {});
   assert.ok(again.issues.some((x) => x.hard && /이미 나온 일/.test(x.msg)));
+});
+
+// ---- 실제 플레이 기록(1층 예배당)에서 나온 문제 ----
+const chapel = (over = {}) => base({ chars: [{ pid: "p1", name: "김나윤", player: "가", items: [] }], actors: [], order: ["p1"], npcNames: ["한진우"], ...over });
+
+test("캐릭터가 NPC에게 한 말을 풀어 쓴 문장(…에게 …말을 건넸다)은 문장 앞에 다른 말이 붙어도 되풀이", () => {
+  const info = chapel({ askNpc: ["한진우"] });
+  const echo = { narration: "어두운 예배당 안에서 한진우에게 어두워서 무언가를 하기 어렵다고 말을 건넸다." };
+  assert.ok(run(echo, info).issues.some((i) => i.hard && /규칙 10/.test(i.msg)));
+  assert.ok(run({ narration: "김나윤은 한진우에게 어깨의 얼룩이 무엇인지 물었다. 한진우가 어깨를 털었다." }, info).issues.some((i) => i.hard && /규칙 10/.test(i.msg)), "캐릭터가 주어여도");
+  assert.equal(run({ narration: "김나윤은 한진우에게 어깨의 얼룩이 무엇인지 물었다. 한진우가 어깨를 털었다. \"빗물이겠죠.\"" }, info, true).plan.narration, "한진우가 어깨를 털었다. \"빗물이겠죠.\"", "마지막 시도는 그 문장만 삭제");
+  for (const ok of ["한진우는 김나윤에게 손전등이 없느냐고 물었다.", "관리인이 한진우에게 다가와 낮게 말했다. \"문 닫을 시간이오.\"", "김나윤이 묻자 한진우는 천장을 올려다보았다. \"위에서 떨어진 거네요.\"", "한진우에게서 쇠 냄새가 났다."])
+    assert.ok(!run({ narration: ok }, chapel({ npcNames: ["한진우", "관리인"] })).issues.some((i) => /규칙 10/.test(i.msg)), ok);
+});
+
+test("NPC 몸짓: 주인 찾기 · 최근 서술에서 쓴 몸짓을 또 쓰면 다시 물음", () => {
+  const g = (t) => JSON.parse(JSON.stringify(Turn.gestures(t, ["한진우"], ["김나윤"])));
+  assert.deepEqual(g("한진우는 안경을 고쳐 쓰며 주위를 두리번거렸다. \"한숨이 나오네요.\""), { 한진우: ["안경을 고쳐 씀"] }, "따옴표 안은 안 셈");
+  assert.deepEqual(g("김나윤이 한숨을 쉬었다."), {}, "캐릭터 몸짓은 안 셈");
+  assert.deepEqual(g("진우는 멋쩍게 웃었다."), { 한진우: ["멋쩍은 웃음", "웃음"] }, "성 뺀 이름도");
+  const info = chapel({ npcGestures: { 한진우: [["안경을 고쳐 씀"], ["멋쩍은 웃음", "웃음"]] } });
+  const again = run({ narration: "한진우는 손가락을 닦아내며 안경을 다시 고쳐 썼다. \"왠지 쇠 냄새가 나네요.\"" }, info);
+  assert.ok(again.issues.some((i) => i.hard && /안경을 고쳐 씀/.test(i.msg)));
+  assert.ok(!run({ narration: "한진우는 손끝을 코에 가져갔다가 얼굴을 굳혔다. \"쇠 냄새… 이거 피 같은데요.\"" }, info).issues.some((i) => /몸짓/.test(i.msg)));
+  assert.ok(!run({ narration: "한진우가 웃었다. \"별일 아니에요.\"" }, info).issues.some((i) => /몸짓/.test(i.msg)), "흔한 몸짓(웃음)은 두 번 이어 쓴 뒤에만");
+  assert.ok(run({ narration: "한진우가 웃었다. \"별일 아니에요.\"" }, chapel({ npcGestures: { 한진우: [["웃음"], ["웃음"]] } })).issues.some((i) => i.hard && /웃음/.test(i.msg)));
+  assert.ok(!again.issues.length || !run({ narration: "한진우는 안경을 다시 고쳐 썼다. \"쇠 냄새가 나네요.\"" }, info, true).issues.some((i) => i.hard), "마지막 시도는 통과");
+});
+
+test("서술이 직전 서술과 같은 말머리로 시작하면 다시 물음", () => {
+  const info = chapel({ prevNarration: "어두운 예배당 안에서 한진우에게 말을 건넸다." });
+  assert.ok(run({ narration: "어두운 예배당 안에서 한진우는 주위를 두리번거렸다. \"주머니를 뒤져 볼까요?\"" }, info).issues.some((i) => i.hard && /말머리/.test(i.msg)));
+  assert.ok(!run({ narration: "한진우가 제복 주머니를 더듬었다. \"성냥이 더 있을 텐데.\"" }, info).issues.some((i) => /말머리/.test(i.msg)));
+});
+
+test("지시문: 사실 유지 · 말 뒤집기 · 몸짓 · 문답 맴돎 안내가 들어 있음", () => {
+  const sys = AI.gmMessages({}, [], {})[0].content;
+  for (const k of ["이미 정해진 것(색 · 냄새", "까닭 없이 뒤집지 않는다", "최근NPC몸짓", "문답만 이어짐"]) assert.ok(sys.includes(k), k);
+  assert.deepEqual([...sys.matchAll(/^(\d+)\. /gm)].map((x) => +x[1]), Array.from({ length: 39 }, (_, i) => i + 1), "번호 1~39 그대로");
 });
