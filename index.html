@@ -2494,7 +2494,7 @@ html.has-3d .topbar { box-shadow: none; }
 .seal-btn.blue .cap { color: #2c4a6a; }
 /* 기본 UI 버튼 = 종이 박스(크림 바탕 + 진갈색 1px 테 + 1px 그림자, 호버 진갈색 칠) */
 .pbtn, #bkPages .btn { display: inline-flex; align-items: center; justify-content: center; height: auto; padding: 4px 14px 3px; border: 0; cursor: pointer; background: #f2e6c6; color: #5a4128;
-  box-shadow: inset 0 0 0 1px #5a4128, 1px 1px 0 rgba(60, 40, 20, .3); font: 13px/1.4 var(--font); letter-spacing: .05em; }
+  box-shadow: inset 0 0 0 1px #5a4128, 1px 1px 0 rgba(60, 40, 20, .3); font: 12px/1.4 var(--font); letter-spacing: .05em; }
 .pbtn:hover, .pbtn:focus-visible, #bkPages .btn:hover:not(:disabled), #bkPages .btn:focus-visible { background: #5a4128; color: #f3e6c4; outline: 0; transform: none; }
 .pbtn.red { background: #8a2216; color: #f6e7c8; box-shadow: inset 0 0 0 1px #5e140b, 1px 1px 0 rgba(60, 40, 20, .3); }
 .pbtn.red:hover, .pbtn.red:focus-visible { background: #a8291a; color: #fff3dc; }
@@ -9471,14 +9471,14 @@ const BannerArt = (() => {
       sel("difficulty", "난이도", [["normal", "보통"], ["easy", "쉬움"], ["hard", "어려움"]]),
       sel("length", "서술 분량", [["normal", "보통"], ["short", "짧게"], ["long", "길게"]]),
       sel("improv", "즉흥 판정", [["normal", "보통"], ["low", "적게"], ["high", "자주"]]),
-      sel("mood", "분위기", [["default", "시나리오대로"], ["horror", "공포"], ["adventure", "모험"], ["comic", "코믹"]]),
+      sel("mood", "분위기", [["default", "기본"], ["horror", "공포"], ["adventure", "모험"], ["comic", "코믹"]]),
       sel("npcVoice", "NPC 연기", [["plain", "담백하게"], ["vivid", "생생하게"]]),
       el("label", { class: "lg-row" }, el("span", { class: "lg-k" }, "피할 소재"), avoid),
       el("p", { class: "small muted lg-note" }, "서술 분량은 평소 기준. 사건 전환 · 단서 공개 · 대성공/대실패 · 결말은 자동으로 더 길게. 게임 중 GM 노트에서 바꿀 수 있음."));
     return el("div", { class: "ai-grid" },
       sel("tone", "문체", [["nominal", "명사형 (~함, ~됨)"], ["prose", "소설체 (~했다)"]]),
       sel("length", "서술 분량", [["normal", "보통"], ["short", "짧게"], ["long", "길게"]]),
-      sel("mood", "분위기", [["default", "시나리오대로"], ["horror", "공포"], ["adventure", "모험"], ["comic", "코믹"]]),
+      sel("mood", "분위기", [["default", "기본"], ["horror", "공포"], ["adventure", "모험"], ["comic", "코믹"]]),
       sel("difficulty", "난이도", [["normal", "보통"], ["easy", "쉬움 (보너스 주사위)"], ["hard", "어려움 (페널티 주사위)"]]),
       sel("improv", "즉흥 판정", [["normal", "보통"], ["low", "적게"], ["high", "자주"]]),
       sel("npcVoice", "NPC 연기", [["plain", "담백하게"], ["vivid", "생생하게"]]),
@@ -9489,7 +9489,7 @@ const BannerArt = (() => {
   /* ---------------- 호스트 설정 ---------------- */
   let validScenario = null, scSealed = true;
   function styleSummary(v) {
-    const T = { tone: { nominal: "명사형", prose: "소설체" }, length: { normal: "보통", short: "짧게", long: "길게" }, mood: { default: "시나리오대로", horror: "공포", adventure: "모험", comic: "코믹" },
+    const T = { tone: { nominal: "명사형", prose: "소설체" }, length: { normal: "보통", short: "짧게", long: "길게" }, mood: { default: "기본", horror: "공포", adventure: "모험", comic: "코믹" },
       difficulty: { normal: "보통", easy: "쉬움", hard: "어려움" } };
     return Object.entries(T).map(([k, m]) => m[v?.[k]] ?? Object.values(m)[0]).join(" · ") + " …";
   }
