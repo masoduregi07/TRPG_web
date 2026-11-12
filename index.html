@@ -2422,10 +2422,13 @@ html.has-3d .topbar { box-shadow: none; }
 .due .c-n, .due td.c { background-color: rgba(150, 110, 40, .1); }
 .due tr[data-room] { cursor: pointer; }
 .due tr.front td.n { font-weight: 700; }
-.due tr.hot td { background-image: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
 .due td.c { padding: 0 6px; font-size: 12px; color: #5a4630; }   /* 비고 = 지금 챕터 (도장 없음) */
 @keyframes lb-out { from { translate: 0 60vh; } }   /* 화면 아래에서 위로 올라옴 */
-.due tr[data-room]:hover td, .due tr.asking td { background-image: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
+.due { --due-pick: #a8251a; }
+/* 줄 호버 · 물음 열린 줄 = 책갈피 표시(B): 밝은 종이색 + 왼쪽 붉은 띠 4px + 이름 붉은 밑줄 */
+.due tr[data-room]:hover td, .due tr.asking td { background-image: linear-gradient(rgba(255, 250, 235, .95), rgba(255, 250, 235, .95)); }
+.due tr[data-room]:hover td:first-child, .due tr.asking td:first-child { box-shadow: inset 4px 0 0 var(--due-pick); }
+.due tr[data-room]:hover td.n, .due tr.asking td.n { text-decoration: underline 1px var(--due-pick); text-underline-offset: 4px; }
 .due td.c { position: relative; }
 .lb-ft { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 8px; border-top: 1px dashed rgba(90, 60, 30, .3); font-size: 13px; color: #6d5a40; }   /* 왼쪽 안내 한 줄 · 오른쪽 아이콘 줄, 세로 가운데 */
 .lb-ft .error { flex: 1; min-width: 0; min-height: 0; margin: 0; font-size: 12px; line-height: 1.4; }
