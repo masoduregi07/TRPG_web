@@ -263,3 +263,22 @@ test("회피 세 번째: 같은 NPC + 같은 질문자만 셈", () => {
   const same = { 한진우: [{ q: "\"저도 모르겠습니다.\"", by: ["한서"] }, { q: "\"글쎄요.\"", by: ["한서"] }] };
   assert.ok(run(say, base({ npcNames: ["한진우"], npcRecentBy: same, talkTo: { 한진우: ["한서"] } })).issues.some((i) => i.hard && /세 번째/.test(i.msg)), "같은 사람에게 세 번째");
 });
+
+test("겹친 문장: narration + 한 명 results를 이을 때 같은 문장은 하나만", () => {
+  const s = "바르톨이 콧방귀를 뀌며 그물에 다시 시선을 고정함.";
+  const a = run({ narration: s, results: [{ who: "한서", text: s }] }, base({ npcNames: ["바르톨"] }));
+  assert.equal(a.plan.narration, s);
+  const b = run({ narration: `${s} 파도가 침. ${s}` });
+  assert.equal(b.plan.narration, `${s} 파도가 침.`);
+  assert.equal(Turn.dedupSentences("짧음. 짧음."), "짧음. 짧음.", "6자 미만 짧은 문장은 그대로");
+});
+
+test("NPC에게 물었는데 대사 없이 몸짓만: 첫 시도 다시 요청, 대사가 있으면 통과", () => {
+  const info = base({ npcNames: ["바르톨"], askNpc: ["바르톨"] });
+  const mute = run({ narration: "바르톨이 콧방귀를 뀌며 그물에 시선을 고정함." }, info);
+  assert.ok(mute.issues.some((i) => i.hard && /대사로 대답하지 않음/.test(i.msg)));
+  assert.ok(!run({ narration: "바르톨이 콧방귀를 뀜. \"내 알 바 아니라니까. 등대 일은 묻지 마쇼.\"" }, info).issues.some((i) => /대사로 대답하지 않음/.test(i.msg)));
+  assert.ok(!run({ narration: "바르톨이 콧방귀를 뀜." }, info, true).issues.some((i) => i.hard), "마지막 시도는 통과");
+  assert.ok(Turn.isQuestion("아는 사람이 아닌거요?") && Turn.isQuestion("왜 알 바가 아니오.") && Turn.isQuestion("그 등대에 누가 사나"));
+  assert.ok(!Turn.isQuestion("고맙소.") && !Turn.isQuestion("그물을 살핀다"));
+});
