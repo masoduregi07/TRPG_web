@@ -2456,6 +2456,10 @@ html.has-3d .topbar { box-shadow: none; }
 .due-ic.tip:hover::after, .due-ic.tip:focus-visible::after { content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 5; white-space: nowrap; padding: 5px 9px; background: #2b1d12; color: #f3e6c4; font: 12px/1.4 var(--font); box-shadow: 2px 2px 0 rgba(0, 0, 0, .3); }
 .due.del-mode tr[data-room] { cursor: crosshair; }
 .due.del-mode tr[data-room]:hover td, .due.del-mode tr.asking td { background-image: linear-gradient(transparent 55%, rgba(168, 37, 26, .22) 55%); }
+/* 폐기 모드 표시(B 재단선): 종이 둘레 붉은 점선 + 제목 옆 ✂ + 고른 줄 이름에 붉은 줄 */
+.due.del-mode { outline: 2px dashed var(--blood); outline-offset: -5px; }
+.due.del-mode h4::after { content: " ✂"; color: var(--blood); letter-spacing: 0; }
+.due.del-mode tr[data-room]:hover td.n, .due.del-mode tr.asking td.n { text-decoration: line-through 1.5px var(--blood); }
 @media (prefers-reduced-motion: reduce) { #lbList .due { animation: none; } }
 /* ===== 참가하기 = 봉투에서 꺼낸 초대장 (#invite) ===== */
 .inv-wrap { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: transparent; transition: background .2s; }
