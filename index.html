@@ -2252,8 +2252,8 @@ html.has-3d .topbar { box-shadow: none; }
 .bk-pg { position: absolute; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #9c8455 transparent; pointer-events: auto; visibility: hidden; opacity: 0; }
 .bk-pg.on { visibility: visible; opacity: 1; transition: opacity .18s; }
 .bk-page { position: relative; min-height: 100%; padding: 24px 38px 40px; box-sizing: border-box; font-size: 14px; line-height: 1.55; }   /* 위 24 = 쪽 테두리와 띄움, 아래 40 = 쪽 번호 자리 */
-#home.narrow .bk-page { padding: 22px 20px 52px; }
-#home.narrow .bk-page + .bk-page { border-top: 2px dashed rgba(42, 26, 16, .35); min-height: 0; }
+#home.bk-narrow .bk-page { padding: 22px 20px 52px; }
+#home.bk-narrow .bk-page + .bk-page { border-top: 2px dashed rgba(42, 26, 16, .35); min-height: 0; }
 /* 책 · 주머니 · 봉투 = 3D 물건 위 투명 단추 (글자는 읽기 프로그램용) */
 .bk-tabs { position: absolute; inset: 0; pointer-events: none; }
 .bk-tab { position: absolute; left: 0; top: 0; width: 0; height: 0; box-sizing: border-box; padding: 0; border: 0; display: flex; align-items: center; justify-content: center; white-space: nowrap;
@@ -2396,8 +2396,8 @@ html.has-3d .topbar { box-shadow: none; }
 .bk-page[data-spread="0"][data-side="L"] { display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; }
 .bk-page[data-spread="0"][data-side="L"] > * { flex: none; }
 .bk-page[data-spread="0"][data-side="L"] > .ev-warns { flex: 1 1 0; min-height: 64px; overflow-y: auto; align-content: start; padding-right: 4px; scrollbar-width: thin; scrollbar-color: #9c8455 transparent; }
-#home.narrow .bk-page[data-spread="0"][data-side="L"] { height: auto; }
-#home.narrow .bk-page[data-spread="0"][data-side="L"] > .ev-warns { flex: none; max-height: 220px; }
+#home.bk-narrow .bk-page[data-spread="0"][data-side="L"] { height: auto; }
+#home.bk-narrow .bk-page[data-spread="0"][data-side="L"] > .ev-warns { flex: none; max-height: 220px; }
 /* ===== 이어하기 = 주머니에서 옆으로 쏟아진 대출 카드 목록 (#lbList) ===== */
 .lb-list { position: absolute; top: 50%; z-index: 20; max-height: 86vh; display: flex; flex-direction: column; translate: 0 -50%; filter: drop-shadow(3px 8px 14px rgba(10, 5, 2, .55)); }
 .lb-list[hidden] { display: none; }
@@ -2522,11 +2522,12 @@ html.has-3d .topbar { box-shadow: none; }
 .seal-btn.stamped .box { animation: seal-thud .18s .16s ease-out; }
 @keyframes seal-thud { 30% { translate: 1px 2px; } 60% { translate: -1px 0; } }
 @media (prefers-reduced-motion: reduce) { .seal-btn.stamped .ink { animation: none; opacity: 1; scale: 1; } .seal-btn.stamped .box { animation: none; } }
-#home.narrow #bkPgR > .bk-page { padding-top: 22px; }
-#home.narrow .bk-head h2 { font-size: 15px; }
-#home.narrow .ix-head { flex-wrap: wrap; }
-#home.narrow .ix-tabs { margin-left: auto; }
-#home.narrow .lg-row { flex-wrap: wrap; gap: 4px var(--lg-gap); padding: 4px 0; }
+#home.bk-narrow #bkPgR > .bk-page { padding-top: 22px; }
+#home.bk-narrow .bk-head h2 { font-size: 15px; }
+#home.bk-narrow .ix-head { flex-wrap: wrap; }
+#home.bk-narrow .ix-tabs { margin-left: auto; }
+#home.bk-narrow .lg-row { flex-wrap: wrap; gap: 4px var(--lg-gap); padding: 4px 0; }
+#home.bk-narrow .lg-row input:not([type="checkbox"]):not([type="radio"]) { min-width: 120px; }   /* 좁은 화면: 입력칸이 0까지 줄지 않고 다음 줄로 */
 /* 낮은 화면(쪽 높이 ~560px 이하): 간격만 줄여 쪽 안에 들어가게 */
 @media (max-height: 820px) {
   .bk-page { padding-bottom: 40px; }
@@ -9067,7 +9068,7 @@ const BannerArt = (() => {
     /** 쪽 자리 = 3D 책의 쪽이 화면에 비친 자리 (WebGL이 없으면 화면 가운데) */
     function measure() {
       narrow = innerWidth < 760; flat = !Scene3D.ok;
-      home.classList.toggle("narrow", narrow); home.classList.toggle("flat", flat);
+      home.classList.toggle("bk-narrow", narrow); home.classList.toggle("flat", flat);
       if (spread < 0) return;
       let r = Scene3D.bookRects(spread);
       if (!r) {
