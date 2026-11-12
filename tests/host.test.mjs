@@ -89,10 +89,11 @@ test("비밀 굴림(/sr)은 본인과 호스트만", () => {
   assert.ok(g.visible(e, data.hostPid));
 });
 
-test("askGM: 비밀을 흘리면 다시 묻고, 두 번째도 흘리면 그 문장 삭제", async () => {
+test("askGM: 비밀을 흘리면 다시 묻고(두 번까지), 세 번째도 흘리면 그 문장 삭제", async () => {
   const { m, g } = table();
   const replies = [
     JSON.stringify({ narration: "노인이 웃음. 노인은 등대 열쇠를 갖고 있음." }),
+    JSON.stringify({ narration: "노인이 웃음. 등대 열쇠를 갖고 있음. 바람이 붊." }),
     JSON.stringify({ narration: "노인이 웃음. 사실 등대 열쇠를 갖고 있음. 파도가 침." }),
   ];
   const asked = [];
@@ -101,8 +102,9 @@ test("askGM: 비밀을 흘리면 다시 묻고, 두 번째도 흘리면 그 문�
   const info = { skills: [], clues: [], checks: [], exits: [], pending: [], pendingOwners: [], chars: [], npcs: [], actors: [], askers: [], askOnly: false,
     handouts: [], npcNames: [], gotThisTurn: [], onlyFailedRolls: false, recentText: "", secrets: [{ kind: "NPC 비밀", text: SECRET }], known: "" };
   const plan = await g.askGM({ ctx: {}, info, recent: [] });
-  assert.equal(asked.length, 2);
+  assert.equal(asked.length, 3);
   assert.match(asked[1].at(-1).content, /비공개 정보/);
+  assert.match(asked[2].at(-1).content, /비공개 정보/);
   assert.equal(plan.narration, "노인이 웃음. 파도가 침.");
 });
 
@@ -434,4 +436,17 @@ test("askGM: 캐릭터 말을 옮겨 쓴 서술 · 되풀이한 몸짓이면 이
   plan = await g.askGM({ ctx: {}, info, recent: [] });
   assert.match(asked[3].at(-1).content, /안경을 고쳐 씀/);
   assert.match(plan.narration, /손등으로/);
+});
+
+test("askGM: 두 번 잇달아 캐릭터 말만 옮겨 쓰면 세 번째 응답을 씀", async () => {
+  const { g } = table();
+  const echo = JSON.stringify({ narration: "어두운 예배당 안에서 한진우에게 어두워서 무언가를 하기 어렵다고 말을 건넸다." });
+  const replies = [echo, echo, JSON.stringify({ narration: "한진우가 성냥갑을 흔들어 보았다. \"세 개비 남았어요. 아껴 써야겠는데요.\"" })];
+  let n = 0;
+  g.aiCall = async () => replies[n++];
+  const info = { skills: [], clues: [], checks: [], exits: [], pending: [], pendingOwners: [], chars: [{ pid: "p1", name: "김나윤", player: "가", items: [] }], npcs: [], actors: [], askers: [], order: ["p1"], askOnly: false,
+    handouts: [], npcNames: ["한진우"], gotThisTurn: [], onlyFailedRolls: false, recentText: "", secrets: [], known: "", tone: "prose", askNpc: ["한진우"] };
+  const plan = await g.askGM({ ctx: {}, info, recent: [] });
+  assert.equal(n, 3);
+  assert.match(plan.narration, /세 개비/);
 });
