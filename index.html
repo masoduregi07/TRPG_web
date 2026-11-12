@@ -2416,15 +2416,13 @@ html.has-3d .topbar { box-shadow: none; }
 @keyframes lb-out { from { translate: var(--from, 0px) 0; opacity: 0; } }
 .due tr[data-room]:hover td, .due tr.asking td { background: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
 .due td.c { position: relative; }
-.lb-del { position: absolute; right: 3px; top: 4px; width: 18px; height: 18px; visibility: hidden; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
-.lb-del:hover, .lb-del:focus-visible { color: var(--blood); outline: 0; }
-.due tr:hover .lb-del, .lb-del:focus-visible { visibility: visible; }
 .lb-ft { margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(90, 60, 30, .3); font-size: 13px; color: #6d5a40; }
 .due-ask { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .2s ease; }
 .due-ask.on { grid-template-rows: 1fr; }
 .due-ask > .in { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 0; overflow: hidden; font: 13px/1.4 var(--font); }
-.due-ask.on > .in { padding: 6px 8px; }
+.due-ask.on > .in { padding-top: 6px; padding-bottom: 6px; padding-right: 8px; }
 .due tr.ask-row td { height: auto; padding: 0; text-align: left; border-bottom-style: dashed; }
+.due tr.ask-row td + td .in { padding-left: 6px; }   /* 물음 = 이름 칸 글자와 같은 왼쪽 */
 .due-ask p { margin: 0; min-width: 0; word-break: keep-all; }
 .due-ask .yn { flex: none; display: flex; align-items: center; gap: 2px; color: #8a7a62; white-space: nowrap; }
 .due-ask .gp { position: relative; padding: 2px 8px; border: 0; background: none; color: var(--ink); font: 13px/1.4 var(--font); cursor: pointer; }
@@ -2432,6 +2430,15 @@ html.has-3d .topbar { box-shadow: none; }
 .due-ask.danger .gp.y { color: var(--blood); font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .due-ask { transition: none; } }
 .lb-ft .recover { margin-top: 8px; }
+.lb-ftrow { display: flex; align-items: center; justify-content: space-between; }
+/* 폐기 아이콘(모노톤): 누르면 폐기 모드 = 먹색으로 칠해짐, 줄 호버는 붉은 형광펜 */
+.due-del { position: relative; width: 30px; height: 30px; padding: 6px; border: 0; background: none; color: #5a4128; cursor: pointer; }
+.due-del svg { display: block; width: 18px; height: 18px; }
+.due-del:hover, .due-del:focus-visible { color: var(--ink); outline: 0; background: rgba(90, 65, 40, .12); }
+.due-del[aria-pressed="true"] { background: #2b1d12; color: #f3e6c4; }
+.due-del.tip:hover::after, .due-del.tip:focus-visible::after { content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 5; white-space: nowrap; padding: 5px 9px; background: #2b1d12; color: #f3e6c4; font: 12px/1.4 var(--font); box-shadow: 2px 2px 0 rgba(0, 0, 0, .3); }
+.due.del-mode tr[data-room] { cursor: crosshair; }
+.due.del-mode tr[data-room]:hover td, .due.del-mode tr.asking td { background: linear-gradient(transparent 55%, rgba(168, 37, 26, .22) 55%); }
 .lb-ft .recover summary { cursor: pointer; font-size: 12px; }
 .lb-ft .recover p { margin: 6px 0; }
 @media (prefers-reduced-motion: reduce) { #lbList .due { animation: none; } }
@@ -2562,11 +2569,12 @@ html.has-3d .topbar { box-shadow: none; }
   </nav>
   <!-- 이어하기: 주머니를 누르면 대출 카드가 옆으로 쏟아져 테이블 목록 -->
   <section id="lbList" class="lb-list" hidden aria-label="이어하기">
-    <div id="myTables" class="due" tabindex="-1"><h4>대출기간표</h4><div class="due-scroll"><table><thead><tr><th class="c-d">날짜</th><th>시나리오</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
+    <div id="myTables" class="due" tabindex="-1"><h4>시나리오 리스트</h4><div class="due-scroll"><table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
       <!-- 줄을 누르면 그 줄 바로 아래가 늘어나며 물음 한 줄 → 예 / 아니오에 잉크 동그라미 (평소엔 숨겨 둔 줄) -->
-      <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td colspan="3"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div></td></tr></tbody></table>
+      <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td></td><td colspan="2"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div></td></tr></tbody></table>
       <div class="lb-ft">
-        <label class="pbtn" tabindex="0" role="button">▤ 세이브 파일 불러오기<input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
+        <div class="lb-ftrow"><label class="pbtn" tabindex="0" role="button">▤ 세이브 파일 불러오기<input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
+          <button id="dueDelBtn" class="due-del tip" type="button" data-tip="시나리오 폐기" aria-label="시나리오 폐기" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.5h6l3 3v10h-9z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M9.5 1.5v3h3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M5.5 7.5h5M5.5 10h4" stroke="currentColor" stroke-width="1" opacity=".55"/><path d="M1.5 12.5l13-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
         <details class="recover">
           <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
           <p class="muted small">책(새 테이블)에 같은 시나리오를 넣고 → 친구의 "내 사본" 파일 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
@@ -9203,7 +9211,7 @@ const BannerArt = (() => {
       const row = $("#dueAskRow");
       box.classList.remove("on"); tr.after(row); void box.offsetHeight; box.classList.add("on");
       const away = (e) => { if (!box.contains(e.target) && !tr.contains(e.target)) done(false, true); };
-      const key = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false, true); } };
+      const key = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); done(false, true); } };   // 물음만 닫음 (목록 · 폐기 모드는 그대로)
       const pick = (e) => done(e.currentTarget.dataset.v === "1");
       const done = async (v, quiet = false) => {
         if (cardAskDone !== done) return;
@@ -9229,7 +9237,7 @@ const BannerArt = (() => {
   const cardNo = (room) => String([...String(room)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 9000, 7) + 1000);
   const md = (ts) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`; };
   async function deleteTable(t, li = null) {
-    const ask = `「${t.title}」 기록을 지울까?`;
+    const ask = li ? "이 시나리오를 폐기할까?" : `「${t.title}」 기록을 지울까?`;
     if (!(await (li ? cardAsk(li, ask, { danger: true }) : paperAsk(ask)))) return;
     $("#dueAsk").classList.remove("on"); stashAsk();
     try { await HistoryArchive.deleteHostRoom(t.room); }
@@ -9242,13 +9250,12 @@ const BannerArt = (() => {
   function renderTables() {
     const list = app.tables ?? [];
     Scene3D.desk({ count: list.length });
-    const open = async (tr, t) => { if (await cardAsk(tr, `「${t.title}」 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); };
+    const open = async (tr, t) => { if (Desk.delMode) return deleteTable(t, tr); if (await cardAsk(tr, "이 시나리오를 읽을까?")) Book.leave(`room=${t.room}`); };
     const rows = list.map((t) => el("tr", { "data-room": t.room, tabindex: "0", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title,
-      on: { click: (e) => { if (!e.target.closest(".lb-del")) open(e.currentTarget, t); }, keydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) open(e.currentTarget, t); } } },
+      on: { click: (e) => open(e.currentTarget, t), keydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) open(e.currentTarget, t); } } },
       el("td", { class: "d" }, md(t.savedAt)),
       el("td", { class: "n" }, t.title),
-      el("td", { class: "c" }, el("span", { class: `st${t.phase === "play" ? "" : " prep"}` }, t.phase === "play" ? "진행" : "준비"),
-        el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: (e) => deleteTable(t, e.currentTarget.closest("tr")) } }, "✕"))));
+      el("td", { class: "c" }, el("span", { class: `st${t.phase === "play" ? "" : " prep"}` }, t.phase === "play" ? "진행" : "준비"))));
     while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
     cardAskDone?.(false, true); stashAsk();
     $("#dueRows").replaceChildren(...rows);
@@ -9264,12 +9271,16 @@ const BannerArt = (() => {
       list.style.width = `${w}px`; list.style.left = `${x}px`;
       list.style.setProperty("--from", `${Math.round((r ? r.x + r.w / 2 : x) - x - w / 2)}px`);
     }
-    const key = (e) => { if (e.key === "Escape" && open && !cardAskDone) { e.preventDefault(); e.stopImmediatePropagation(); close(); } };
+    // 폐기 모드: 오른쪽 아래 아이콘으로 켜고 끔 (Esc도 끔). 켜진 동안 줄을 누르면 폐기 물음
+    let delMode = false;
+    const setDel = (on) => { delMode = on; $("#myTables").classList.toggle("del-mode", on); $("#dueDelBtn").setAttribute("aria-pressed", String(on)); cardAskDone?.(false, true); };
+    $("#dueDelBtn").addEventListener("click", () => { setDel(!delMode); Sfx.play("tap"); });
+    const key = (e) => { if (e.key === "Escape" && open && !cardAskDone && !e.defaultPrevented) { e.preventDefault(); e.stopImmediatePropagation(); if (delMode) setDel(false); else close(); } };
     const away = (e) => { if (open === "list" && !list.contains(e.target) && !e.target.closest?.(".lb-ask, .pask") && !e.target.closest?.('[data-act="pocket"]')) close(); };
     function close() {
       if (!open) return;
       cardAskDone?.(false);
-      list.hidden = true; inv.hidden = true; open = "";
+      list.hidden = true; inv.hidden = true; open = ""; setDel(false);
       removeEventListener("keydown", key, true); removeEventListener("pointerdown", away, true);
     }
     function show(which) {
@@ -9285,7 +9296,7 @@ const BannerArt = (() => {
     inv.addEventListener("click", (e) => { if (e.target === inv) close(); });
     addEventListener("resize", () => { if (open === "list") place(); });
     Book.onAct((act) => show(act === "pocket" ? "list" : "invite"));
-    return { place, close, show, invite(code) { $("#joinLinkInput").value = code; $("#joinLinkInput").dispatchEvent(new Event("input")); show("invite"); } };
+    return { get delMode() { return delMode; }, place, close, show, invite(code) { $("#joinLinkInput").value = code; $("#joinLinkInput").dispatchEvent(new Event("input")); show("invite"); } };
   })();
   function showHome({ invite = null } = {}) {
     show("home");
