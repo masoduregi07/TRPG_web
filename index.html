@@ -2488,7 +2488,6 @@ html.has-3d .topbar { box-shadow: none; }
 .inv-row input:focus { outline: 0; box-shadow: inset 0 -2px 0 #1e1610; }
 .inv .lend { margin: 8px 0 6px; }
 .inv .error { min-height: 0; margin: 4px 0 0; }
-.inv-go { display: flex; justify-content: flex-end; margin-top: 8px; }
 @media (prefers-reduced-motion: reduce) { .inv-wrap.out .inv { animation: none; } .inv-wrap { transition: none; } }
 /* 초대장 안 명단: 그 방에 이미 앉은 플레이어 · 캐릭터 (나는 빼고) */
 .lend .r { display: grid; grid-template-columns: 44px 1fr 1fr; border-bottom: 1px solid rgba(30, 22, 16, .7); font: 11.5px/26px var(--font); }
@@ -2501,11 +2500,17 @@ html.has-3d .topbar { box-shadow: none; }
 .lend .r.in > span:not(:first-child) { clip-path: inset(0 100% 0 0); animation: lend-write .5s steps(8) var(--d, 0s) forwards; }
 @keyframes lend-write { to { clip-path: inset(0 0 0 0); } }
 @media (prefers-reduced-motion: reduce) { .lend .r.in > span:not(:first-child) { animation: none; clip-path: none; } }
-.seal-btn.blue { flex-direction: column-reverse; }
-.seal-btn.blue .box { width: 74px; height: 74px; border-color: #8e2438; background: rgba(142, 36, 56, .04); }
-.seal-btn.blue .ghost { border-color: rgba(142, 36, 56, .3); color: rgba(142, 36, 56, .3); font-size: 28px; }
-.seal-btn.blue .ink { border-color: #771d2c; color: #771d2c; background: rgba(119, 29, 44, .08); font-size: 28px; }
-.seal-btn.blue .cap { color: #8e2438; }
+/* 닉네임 줄 끝 서명 "참가하기": 누르면 붓선이 다시 그어지며 와인색 → 0.38초 뒤 입장 */
+.inv-name { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.inv-name input { flex: 1; min-width: 0; }
+.inv-sig { position: relative; flex: none; display: grid; place-items: center; height: 30px; padding: 0 6px; border: 0; background: none; box-shadow: none; cursor: pointer; font: 19px/1 "Galmuri14", var(--font); color: #1e1610; transform: skewX(-14deg) rotate(-4deg); }
+.inv-sig svg { position: absolute; left: -2px; right: -2px; bottom: -2px; width: calc(100% + 4px); height: 10px; overflow: visible; }
+.inv-sig path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; vector-effect: non-scaling-stroke; stroke-dasharray: 1; }
+.inv-sig:hover, .inv-sig:focus-visible, .inv-sig.stamped { color: #8e2438; outline: 0; }
+.inv-sig:focus-visible { text-decoration: underline dotted 1px; text-underline-offset: 4px; }
+.inv-sig.stamped path { animation: inv-sign .3s ease-out; }
+@keyframes inv-sign { from { stroke-dashoffset: 1; } }
+@media (prefers-reduced-motion: reduce) { .inv-sig.stamped path { animation: none; } }
 /* 기본 UI 버튼 = 종이 박스(크림 바탕 + 진갈색 1px 테 + 1px 그림자, 호버 진갈색 칠) */
 .pbtn, #bkPages .btn { display: inline-flex; align-items: center; justify-content: center; height: auto; padding: 4px 14px 3px; border: 0; cursor: pointer; background: #f2e6c6; color: #5a4128;
   box-shadow: inset 0 0 0 1px #5a4128, 1px 1px 0 rgba(60, 40, 20, .3); font: 12px/1.4 var(--font); letter-spacing: .05em; }
@@ -2616,9 +2621,8 @@ html.has-3d .topbar { box-shadow: none; }
           <div class="r h"><span>No</span><span>플레이어</span><span>캐릭터</span></div>
           <div id="joinRows"></div>
         </div>
-        <label class="inv-row"><span>닉네임</span><input id="bkJoinName" maxlength="16" placeholder="이름을 적어 주세요" autocomplete="nickname" /></label>
+        <div class="inv-row"><span>닉네임</span><span class="inv-name"><input id="bkJoinName" maxlength="16" placeholder="이름을 적어 주세요" autocomplete="nickname" /><button id="joinLinkBtn" class="inv-sig" type="button">참가하기<svg viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M2 9 C 20 3, 40 13, 62 7 S 100 2, 118 8" /></svg></button></span></div>
         <p id="inviteError" class="error" role="alert"></p>
-        <div class="inv-go"><button id="joinLinkBtn" class="seal-btn blue" type="button"><span class="box"><span class="ghost">參</span><span class="ink">參</span></span><span class="cap">참가 날인</span></button></div>
       </div>
     </div>
   </div>
@@ -9493,7 +9497,7 @@ const BannerArt = (() => {
     // 닉네임으로 바로 자리에 앉음 (이미 앉았던 방이면 그 자리 그대로)
     if (!name && !LS.get(K.me(code))) { $("#inviteError").textContent = "닉네임 입력 필요."; return $("#bkJoinName").focus(); }
     if (name) { LS.set(K.name, name); if (!LS.get(K.me(code))) LS.set(K.me(code), { key: randomId(24), name }); }
-    btn.classList.add("stamped"); Sfx.play("stamp");
+    btn.classList.add("stamped"); Sfx.play("quill");
     await new Promise((r) => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 380));
     Book.leave(`room=${code}`);
   });
