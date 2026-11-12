@@ -6879,15 +6879,19 @@ class HostGame {
 
   /** AI 호출 (일시적 오류면 한 번 더). 사용 한도 · 키 · 모델 오류는 바로 실패 */
   async callAI(messages, signal = null) {
-    let maxTokens = 1200;
-    for (let i = 0; ; i++) {
+    let maxTokens = 1200, retries = 0;
+    for (;;) {
       if (signal?.aborted) { const e = new Error("AI 요청 취소됨."); e.cancelled = true; throw e; }
       try { return await this.aiCall(messages, { maxTokens, signal, strictLength: true }); }
       catch (e) {
-        if (e.truncated) maxTokens = Math.min(maxTokens * 2, 4000);
+        if (e.truncated && maxTokens < 4000) {
+          maxTokens = Math.min(maxTokens * 2, 4000);
+          this.note(`AI 응답 잘림 → ${maxTokens.toLocaleString()} 토큰으로 다시 시도`);
+          continue;
+        }
         const fatal = e.cancelled || signal?.aborted || e.tired || /HTTP (40[0-4])|API 키|모델 이름|설정 미완료/.test(e.message);
         // 서버 붐빔(503 등)은 조금 더 기다려 두 번까지 다시, 그 밖의 실패는 한 번
-        if (fatal || i >= (e.busy ? 2 : 1)) throw e;
+        if (fatal || retries >= (e.busy ? 2 : 1)) throw e;
         this.note(`AI 호출 실패 → 다시 시도 (${Engine.clip(e.message, 60)})`);
         await new Promise((resolve, reject) => {
           const cancelled = () => {
@@ -6895,10 +6899,11 @@ class HostGame {
             const err = new Error("AI 요청 취소됨."); err.cancelled = true;
             reject(err);
           };
-          const timer = setTimeout(() => { signal?.removeEventListener("abort", cancelled); resolve(); }, e.busy ? [3000, 8000][i] : 1500);
+          const timer = setTimeout(() => { signal?.removeEventListener("abort", cancelled); resolve(); }, e.busy ? [3000, 8000][retries] : 1500);
           if (signal?.aborted) cancelled();
           else signal?.addEventListener("abort", cancelled, { once: true });
         });
+        retries++;
       }
     }
   }

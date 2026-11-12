@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { load, sample } from "./load.mjs";
 
 const KEY = "abcdefghijklmnop", KEY2 = "qrstuvwxyz012345";
-function table() {
-  const m = load();
+function table(extra = {}) {
+  const m = load(extra);
   const sc = sample(m); m.Engine.validateScenario(sc);
   const sent = [], local = [];
   const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "human", scenario: sc });
@@ -12,6 +12,23 @@ function table() {
   return { m, g, data, sent, local };
 }
 const to = (sent, c, t) => sent.filter(([x, msg]) => x === c && msg.t === t).map(([, msg]) => msg);
+
+test("AI 출력이 두 번 잘리면 4,000 토큰으로 한 번 더 요청", async () => {
+  const { g } = table({ setTimeout: (fn) => { fn(); return 0; }, clearTimeout: () => {} });
+  const limits = [];
+  g.aiCall = async (_messages, { maxTokens }) => {
+    limits.push(maxTokens);
+    if (limits.length < 3) {
+      const error = new Error("AI 응답이 출력 한도에서 잘림.");
+      error.truncated = true;
+      throw error;
+    }
+    return "완료";
+  };
+
+  assert.equal(await g.callAI([]), "완료");
+  assert.deepEqual(limits, [1200, 2400, 4000]);
+});
 
 test("접속: 버전 · 키 형식 · 닉네임 확인", () => {
   const { m, g } = table();
