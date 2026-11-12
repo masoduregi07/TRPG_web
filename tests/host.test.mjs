@@ -30,6 +30,20 @@ test("AI 출력이 두 번 잘리면 4,000 토큰으로 한 번 더 요청", asy
   assert.deepEqual(limits, [1200, 2400, 4000]);
 });
 
+test("AI 출력이 4,000 토큰에서도 잘리면 추가 호출 없이 종료", async () => {
+  const { g } = table({ setTimeout: (fn) => globalThis.setTimeout(fn, 0), clearTimeout: globalThis.clearTimeout });
+  const limits = [];
+  g.aiCall = async (_messages, { maxTokens }) => {
+    limits.push(maxTokens);
+    const error = new Error("AI 응답이 출력 한도에서 잘림.");
+    error.truncated = true;
+    throw error;
+  };
+
+  await assert.rejects(g.callAI([]), (error) => error.truncated === true);
+  assert.deepEqual(limits, [1200, 2400, 4000]);
+});
+
 test("접속: 버전 · 키 형식 · 닉네임 확인", () => {
   const { m, g } = table();
   assert.equal(g.onConnect("c1", { key: KEY, name: "가", build: m.APP_BUILD - 1 }).ok, false);

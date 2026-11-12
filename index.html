@@ -6884,10 +6884,13 @@ class HostGame {
       if (signal?.aborted) { const e = new Error("AI 요청 취소됨."); e.cancelled = true; throw e; }
       try { return await this.aiCall(messages, { maxTokens, signal, strictLength: true }); }
       catch (e) {
-        if (e.truncated && maxTokens < 4000) {
-          maxTokens = Math.min(maxTokens * 2, 4000);
-          this.note(`AI 응답 잘림 → ${maxTokens.toLocaleString()} 토큰으로 다시 시도`);
-          continue;
+        if (e.truncated) {
+          if (maxTokens < 4000) {
+            maxTokens = Math.min(maxTokens * 2, 4000);
+            this.note(`AI 응답 잘림 → ${maxTokens.toLocaleString()} 토큰으로 다시 시도`);
+            continue;
+          }
+          throw e;
         }
         const fatal = e.cancelled || signal?.aborted || e.tired || /HTTP (40[0-4])|API 키|모델 이름|설정 미완료/.test(e.message);
         // 서버 붐빔(503 등)은 조금 더 기다려 두 번까지 다시, 그 밖의 실패는 한 번
