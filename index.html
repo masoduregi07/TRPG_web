@@ -2454,18 +2454,14 @@ html.has-3d .topbar { box-shadow: none; }
 .due.del-mode tr[data-room]:hover td, .due.del-mode tr.asking td { background: linear-gradient(transparent 55%, rgba(168, 37, 26, .22) 55%); }
 @media (prefers-reduced-motion: reduce) { #lbList .due { animation: none; } }
 /* ===== 참가하기 = 봉투에서 꺼낸 초대장 (#invite) ===== */
-.inv-wrap { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(10, 5, 2, .45); }
+.inv-wrap { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: transparent; transition: background .2s; }
 .inv-wrap[hidden] { display: none; }
-.inv { width: min(440px, 92vw); max-height: 94vh; overflow-y: auto; perspective: 700px; animation: inv-up .36s cubic-bezier(.2, .75, .3, 1) backwards; }
-@keyframes inv-up { from { translate: 0 70vh; } }   /* 봉투째 화면 아래에서 위로 */
-.inv-flap { transform-origin: 50% 100%; animation: inv-flap .32s ease-in-out .32s backwards; }   /* 그다음 덮개가 위로 젖혀 열림 */
-@keyframes inv-flap { from { transform: rotateX(180deg); z-index: 2; } 50% { z-index: 2; } }
-.inv-paper { animation: inv-out .3s cubic-bezier(.2, .75, .3, 1) .58s backwards; }   /* 열린 뒤 편지가 살짝 빠져나옴 */
-@keyframes inv-out { from { translate: 0 22px; } }
-.inv-flap { position: relative; height: 110px; background: #ddd0b0; clip-path: polygon(0 100%, 50% 0, 100% 100%); }
-.inv-seal { position: absolute; left: 50%; bottom: 4px; width: 34px; height: 34px; margin-left: -17px; border-radius: 50%; background: #2a3a8a; color: #e8edf5; font: 14px/34px "Galmuri9", var(--font); text-align: center;
-  clip-path: polygon(0 0, 100% 0, 100% 55%, 70% 70%, 50% 50%, 30% 75%, 0 60%); }
-.inv-paper { position: relative; margin-top: -18px; padding: 18px 26px 20px; background: #f6eedb; color: var(--ink); box-shadow: 3px 8px 18px rgba(0, 0, 0, .6); }
+/* 3D 봉투 덮개가 열린 뒤(.out) 초대장이 봉투 자리에서 빠져나와 화면 가운데로 커짐 (--fx · --fy · --fs = 봉투 자리) */
+.inv { width: min(440px, 92vw); max-height: 94vh; overflow-y: auto; visibility: hidden; }
+.inv-wrap.out { background: rgba(10, 5, 2, .45); }
+.inv-wrap.out .inv { visibility: visible; animation: inv-out .36s cubic-bezier(.2, .75, .3, 1) backwards; }
+@keyframes inv-out { from { translate: var(--fx, 0) var(--fy, 0); scale: var(--fs, .3); opacity: 0; } 30% { opacity: 1; } }
+.inv-paper { position: relative; padding: 18px 26px 20px; background: #f6eedb; color: var(--ink); box-shadow: 3px 8px 18px rgba(0, 0, 0, .6); }
 .inv-paper::before { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(42, 58, 138, .5); outline: 1px solid rgba(42, 58, 138, .5); outline-offset: -4px; pointer-events: none; }
 .inv-paper h2 { margin: 0; text-align: center; font: 22px/1.3 "Galmuri14", var(--font); font-weight: 400; color: #2a3a8a; letter-spacing: .3em; }
 .inv-sub { margin: 2px 0 10px; text-align: center; font: 11px/1.4 "Galmuri9", var(--font); color: #7a5a3a; }
@@ -2477,7 +2473,7 @@ html.has-3d .topbar { box-shadow: none; }
 .inv .lend { margin: 8px 0 6px; }
 .inv .error { min-height: 0; margin: 4px 0 0; }
 .inv-go { display: flex; justify-content: flex-end; margin-top: 8px; }
-@media (prefers-reduced-motion: reduce) { .inv, .inv-flap, .inv-paper { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .inv-wrap.out .inv { animation: none; } .inv-wrap { transition: none; } }
 /* 초대장 안 명단: 그 방에 이미 앉은 플레이어 · 캐릭터 (나는 빼고) */
 .lend .r { display: grid; grid-template-columns: 44px 1fr 1fr; border-bottom: 1px solid rgba(60, 40, 20, .5); font: 11.5px/26px var(--font); }
 .lend .r > span { padding-left: 5px; border-right: 1px solid rgba(60, 40, 20, .5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2596,7 +2592,6 @@ html.has-3d .topbar { box-shadow: none; }
   <!-- 참가하기: 봉투를 누르면 열려 초대장 (초대 링크로 오면 열린 채 시작) -->
   <div id="invite" class="inv-wrap" hidden>
     <div class="inv" role="dialog" aria-modal="true" aria-label="초대장">
-      <div class="inv-flap" aria-hidden="true"><span class="inv-seal">參</span></div>
       <div class="inv-paper">
         <h2>초 대 장</h2>
         <div class="inv-sub">탐사자 협회 · No.<span id="joinCardNo">____</span></div>
@@ -7364,6 +7359,7 @@ void main() {
       const c = Math.cos(ry) * s, n = Math.sin(ry) * s;
       return [c, 0, -n, 0, 0, s, 0, 0, n, 0, c, 0, x, y, z, 1];
     },
+    RX(a) { const c = Math.cos(a), n = Math.sin(a); return [1, 0, 0, 0, 0, c, n, 0, 0, -n, c, 0, 0, 0, 0, 1]; },
     RZ(a) { const c = Math.cos(a), n = Math.sin(a); return [c, n, 0, 0, -n, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]; },
     T: (x, y, z) => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1],
     S: (x, y = x, z = x) => [x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1],
@@ -7700,7 +7696,7 @@ void main() {
   };
   /* 책 오른쪽 탁자 위: 대출 카드 주머니(이어하기, 위) + 초대장 봉투(참가하기, 아래). 납작한 판 + 캔버스 텍스처 (글자 포함)
    * 주머니 위로 최근 테이블 카드 3장의 제목줄이 빼꼼 → 목록이 바뀌면 다시 그림(desk) */
-  const desk = { count: -1, hover: "" };
+  const desk = { count: -1, hover: "", envOpen: 0 };
   const DK = { pocket: { x: .9, z: -1.12, w: .62, d: .78, th: .006, rot: -.16 }, env: { x: .86, z: -.42, w: .6, d: .36, th: .006, rot: .12 } };   // 책 오른쪽에 바짝, 비스듬히
   const T_kraft = tex(16, (g, s) => noise(g, s, [176, 132, 76], .2));
   const KRAFT = [199, 154, 91];
@@ -7739,15 +7735,27 @@ void main() {
       g.font = "10px Galmuri9"; g.textAlign = "center"; g.fillText("대 출 카 드", w / 2, top + 36);
       g.fillStyle = "rgba(58,36,16,.5)"; g.fillRect(w / 2 - 26, top + 50, 52, 1);
     }),
+    // 봉투 = 몸통 + 덮개(따로 그려 3D에서 젖혀 열림). 덮개 = 위 44줄(V자 + 봉랍), 밖은 투명
     env: ctex(112, 68, (g, w, h) => {
       grain(g, w, h, [232, 220, 192], .08, 2);
-      g.fillStyle = "rgba(90,60,30,.4)";
-      for (let x = 0; x < w; x++) { const y = Math.round(Math.abs(x - w / 2) / (w / 2) * -26 + 34); g.fillRect(x, y, 1, 1); }
+      g.fillStyle = "rgba(60,40,20,.55)"; g.fillRect(0, 0, w, 1.5);   // 열린 입구
+      g.fillStyle = "#f6eedb"; g.fillRect(10, 1.5, w - 20, 7);   // 안에 든 초대장 윗변
+      g.fillStyle = "rgba(42,58,138,.6)"; g.fillRect(13, 4, w - 26, .6);
+      g.strokeStyle = "rgba(90,60,30,.25)"; g.lineWidth = .6; g.beginPath(); g.moveTo(0, h); g.lineTo(w / 2, 40); g.lineTo(w, h); g.stroke();   // 아래 날개 접힌 자국
+      g.font = "8px Galmuri7"; g.textAlign = "right"; g.textBaseline = "top"; g.fillStyle = "#5a4630"; g.fillText("초대장 재중", w - 6, h - 12);
+    }),
+    flap: ctex(112, 44, (g, w) => {
+      const shape = () => { g.beginPath(); g.moveTo(0, 0); g.lineTo(w, 0); g.lineTo(w, 8); g.lineTo(w / 2, 34); g.lineTo(0, 8); g.closePath(); };
+      g.save(); shape(); g.clip(); grain(g, w, 44, [226, 212, 182], .08, 0); g.restore();
+      g.strokeStyle = "rgba(90,60,30,.45)"; g.lineWidth = .8; g.beginPath(); g.moveTo(0, 8); g.lineTo(w / 2, 34); g.lineTo(w, 8); g.stroke();
       const cx = w / 2, cy = 34;
       g.fillStyle = "#2a3a8a"; g.beginPath(); g.arc(cx, cy, 9, 0, Math.PI * 2); g.fill();
       g.fillStyle = "#1d2a66"; g.fillRect(cx - 9, cy + 7, 4, 3); g.fillRect(cx + 6, cy + 6, 3, 4);
       g.font = "10px Galmuri9"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#e8edf5"; g.fillText("參", cx, cy + 1);
-      g.font = "8px Galmuri7"; g.textAlign = "right"; g.textBaseline = "top"; g.fillStyle = "#5a4630"; g.fillText("초대장 재중", w - 6, h - 12);
+    }),
+    flapIn: ctex(112, 44, (g, w) => {
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(w, 0); g.lineTo(w, 8); g.lineTo(w / 2, 34); g.lineTo(0, 8); g.closePath();
+      g.fillStyle = "#cbbb96"; g.fill();
     }),
   };
   // 탁자 면에서 .004 띄움: 아랫면이 탁자와 같은 높이면 겹쳐 깜빡임(투명한 윗부분 너머로 무늬가 움직여 보임)
@@ -7765,11 +7773,18 @@ void main() {
     drawSlab(chain(slide(1, -cardsUp * .07 / DK.pocket.d), M.S(1, .5, 1)), DT.cards.t, DT.cards.t, DT.cards.t, lit("pocket") + .04);
     drawSlab(chain(slide(1.5, 0), M.S(1, .5, 1)), DT.front.t, DT.front.t, DT.front.t, lit("pocket"));
     drawSlab(deskModel("env"), DT.env.t, T_kraft, T_kraft, lit("env"));
+    // 덮개: 봉투 먼 쪽 변이 경첩. 열면(envOpen 0→1) 위로 젖혀져 봉투 뒤 탁자 쪽으로 넘어감
+    const o = DK.env, fd = o.d * 44 / 68;
+    // 끝까지 넘기면 뒤쪽 주머니와 겹치므로 135°에서 멈춤. 판이 얇아 앞뒤 면이 겹쳐 보이니 90°를 넘으면 앞뒤 다 안쪽 면
+    const ang = desk.envOpen * Math.PI * .75, face = ang < Math.PI / 2 ? DT.flap.t : DT.flapIn.t;
+    const flap = chain(M.trs(o.x, .004 + o.th, o.z, o.rot), M.T(-o.w / 2, 0, -o.d / 2), M.RX(-ang), M.T(0, 0, fd / 2), M.S(o.w, o.th * .5, fd));
+    gl.uniformMatrix4fv(U.u_model, false, flap); gl.uniform1f(U.u_emissive, lit("env") + .02);   // 옆면은 안 그림(투명한 자리에 테두리 조각이 비침)
+    gl.bindTexture(gl.TEXTURE_2D, face); drawMesh(SL.top); drawMesh(SL.bot);
     gl.uniform1f(U.u_alphaTest, 0);
   }
   // 픽셀 글꼴이 늦게 오면 표지 · 주머니 · 봉투 글자를 다시 그림
   document.fonts?.load?.("8px Galmuri7").then(() => document.fonts.load("15px Galmuri14")).then(() => {
-    if (!gl.isContextLost()) { BT.cover.paint(); DT.cards.paint(); DT.front.paint(); DT.env.paint(); scheduleFrame(); }
+    if (!gl.isContextLost()) { BT.cover.paint(); DT.cards.paint(); DT.front.paint(); DT.env.paint(); DT.flap.paint(); scheduleFrame(); }
   }, noop);
 
   const bk = { on: false, p: 0, a: 0, hL: BK.hL0, sp: 0, zoom: 0, sheets: [], side: ["R"], ride: [null], cur: -1, cb: null };
@@ -8059,6 +8074,8 @@ void main() {
     onBook(fn) { bk.cb = fn; },
     /** 탁자 위 물건에 마우스: 살짝 들림 ("pocket" · "env" · "") */
     deskHover(k) { if (desk.hover !== k) { desk.hover = k; scheduleFrame(); } },
+    /** 초대장 봉투 덮개 열기 · 닫기 (0.32초) */
+    envOpen(on) { const from = desk.envOpen, to = on ? 1 : 0; return from === to ? Promise.resolve() : anim(320, 0, (e) => { desk.envOpen = from + (to - from) * e; }); },
     /** 주머니 위로 빼꼼 보이는 카드 수(최대 3) · 권 수 */
     desk({ count }) { if (desk.count === count) return; desk.count = count; DT.cards.paint(); DT.front.paint(); scheduleFrame(); },
     /** 닫힌 책 → 카메라가 위로 다가옴 + 표지 + 여러 장 차라락 → spread 면 */
@@ -8139,6 +8156,7 @@ const Scene3D = (() => {
     book(on, spread = -1) { bookOn = on; bookSp = spread; current?.book(on, spread); },
     onBook(fn) { bookCb = fn; current?.onBook(fn); },
     deskHover(k) { current?.deskHover?.(k); },
+    envOpen(on) { return current?.ok ? current.envOpen(on) : Promise.resolve(); },
     desk(d) { deskState = d; current?.desk?.(d); },
     bookOpen(to) { bookSp = to; return call("bookOpen", to); },
     bookFlip(to) { bookSp = to; return call("bookFlip", to); },
@@ -9314,7 +9332,8 @@ const BannerArt = (() => {
     function close() {
       if (!open) return;
       cardAskDone?.(false);
-      list.hidden = true; inv.hidden = true; open = ""; setDel(false);
+      if (open === "invite") Scene3D.envOpen(false);
+      list.hidden = true; inv.hidden = true; inv.classList.remove("out"); open = ""; setDel(false);
       removeEventListener("keydown", key, true); removeEventListener("pointerdown", away, true);
     }
     function show(which) {
@@ -9323,7 +9342,17 @@ const BannerArt = (() => {
       Book.close();
       open = which;
       if (which === "list") { place(); list.hidden = false; Sfx.play("page"); $("#myTables").focus({ preventScroll: true }); }
-      else { inv.hidden = false; Sfx.play("page"); $("#bkJoinName").value ||= LS.get(K.name) ?? ""; ($("#joinLinkInput").value ? $("#bkJoinName") : $("#joinLinkInput")).focus({ preventScroll: true }); }
+      else {
+        // 3D 봉투 덮개가 먼저 젖혀 열리고 → 초대장이 봉투 자리에서 빠져나와 가운데로
+        const r = Book.rect("invite"), card = inv.querySelector(".inv");
+        if (r) for (const [k, v] of [["--fx", `${Math.round(r.x + r.w / 2 - innerWidth / 2)}px`], ["--fy", `${Math.round(r.y + r.h / 2 - innerHeight / 2)}px`], ["--fs", Math.min(r.w / 440, .6).toFixed(3)]]) card.style.setProperty(k, v);
+        inv.hidden = false; Sfx.play("page"); $("#bkJoinName").value ||= LS.get(K.name) ?? "";
+        Scene3D.envOpen(true).then(() => {
+          if (open !== "invite") return;
+          inv.classList.add("out");
+          ($("#joinLinkInput").value ? $("#bkJoinName") : $("#joinLinkInput")).focus({ preventScroll: true });
+        });
+      }
       addEventListener("keydown", key, true);
       setTimeout(() => addEventListener("pointerdown", away, true));
     }
