@@ -7696,44 +7696,39 @@ void main() {
   };
   /* 책 오른쪽 탁자 위: 대출 카드 주머니(이어하기, 위) + 초대장 봉투(참가하기, 아래). 납작한 판 + 캔버스 텍스처 (글자 포함)
    * 주머니 위로 최근 테이블 카드 3장의 제목줄이 빼꼼 → 목록이 바뀌면 다시 그림(desk) */
-  const desk = { count: -1, hover: "", envOpen: 0 };
+  const desk = { count: -1, date: "", hover: "", envOpen: 0 };
   const DK = { pocket: { x: .9, z: -1.12, w: .62, d: .78, th: .006, rot: -.16 }, env: { x: .86, z: -.42, w: .6, d: .36, th: .006, rot: .12 } };   // 책 오른쪽에 바짝, 비스듬히
   const T_kraft = tex(16, (g, s) => noise(g, s, [176, 132, 76], .2));
-  const KRAFT = [199, 154, 91];
   const DT = {
-    // 주머니 = 세 겹(속 · 카드 · 앞판). 카드 판만 따로 움직여 호버하면 위로 더 빠져나옴
-    pocket: ctex(112, 140, (g, w, h) => {
-      const top = 58;
-      g.fillStyle = "#4e3519"; g.fillRect(0, 0, w, h); g.fillStyle = "#3a2510"; g.fillRect(6, top - 10, w - 12, 10);
-    }),
+    // 대출 카드 포켓(L1) = 세 겹: 속(어두운 안쪽) · 카드(B 색인 카드: 붉은 머리줄 + 남색 괘선, 테이블 수만큼 최대 3장) · 앞판(반달 홈 북포켓 + 인쇄 + 최근 날짜 도장).
+    // 카드 판만 따로 움직여 호버하면 위로 더 빠져나옴
+    pocket: ctex(112, 140, (g, w, h) => { const top = 58; g.fillStyle = "#4e3519"; g.fillRect(0, top - 12, w, h - top + 12); }),
     cards: ctex(112, 140, (g, w, h) => {
-      const top = 58;
-      // 카드: 테이블 수만큼(최대 3장) 제목줄이 빼꼼. 글자 대신 물결 선(필기 흔적)
-      const n = Math.min(3, desk.count);
+      const top = 58, n = Math.min(3, desk.count);
       for (let i = 0; i < n; i++) {
-        const y = top - 6 - (n - 1 - i) * 15 - 14, len = 34 + ((i * 37 + desk.count * 11) % 30);
-        g.fillStyle = "rgba(40,20,5,.45)"; g.fillRect(12, y - .5, w - 24, .5);
-        g.fillStyle = "#f4ead0"; g.fillRect(12, y, w - 24, h - y);
-        g.fillStyle = "#a8251a"; g.fillRect(12, y + 13, w - 24, .6);
-        g.strokeStyle = "#3a2a1a"; g.lineWidth = .8; g.beginPath();
-        for (let x = 0; x <= len; x += .5) { const yy = y + 7 + Math.sin(x * .9 + i * 2) * 1.3; x ? g.lineTo(17 + x, yy) : g.moveTo(17, yy); }
-        g.stroke();
-        g.fillStyle = "#2a3a8a"; for (let x = 0; x < 16; x += 3) g.fillRect(w - 36 + x, y + 7, 1.5, .8);   // 점선 = 번호 자리
+        const y = top - 6 - (n - 1 - i) * 7 - 26, x = 12 + [2, -1, 0][i];
+        g.fillStyle = "rgba(40,20,5,.4)"; g.fillRect(x, y - .5, w - 24, .5);
+        g.fillStyle = ["#e9dfc4", "#efe6cc", "#f4ecd4"][i + 3 - n]; g.fillRect(x, y, w - 24, h - y);
+        g.fillStyle = "rgba(168,37,26,.75)"; g.fillRect(x, y + 16, w - 24, .8);
+        g.fillStyle = "rgba(42,58,138,.25)"; for (let yy = y + 26; yy < h; yy += 9) g.fillRect(x, yy, w - 24, .5);
       }
     }),
     front: ctex(112, 140, (g, w, h) => {
       const top = 58;
-      // 앞판: 누런 종이 + 엄지 홈 + 글자
       const tmp = document.createElement("canvas"); tmp.width = w; tmp.height = h - top;
-      grain(tmp.getContext("2d"), w, h - top, KRAFT, .14, 0);
-      g.save(); g.beginPath(); g.moveTo(0, top); g.lineTo(w * .4, top); g.lineTo(w * .45, top + 6); g.lineTo(w * .55, top + 6); g.lineTo(w * .6, top); g.lineTo(w, top); g.lineTo(w, h); g.lineTo(0, h); g.closePath(); g.clip();
-      g.drawImage(tmp, 0, top); g.restore();
-      g.fillStyle = "rgba(60,30,10,.35)"; g.fillRect(0, top, w * .4, 1); g.fillRect(w * .6, top, w * .4, 1);
-      g.textBaseline = "top"; g.fillStyle = "#3a2410";
-      g.font = "8px Galmuri7"; g.textAlign = "left"; g.fillText("탐사자 협회 도서실", 7, top + 12);
-      g.font = "10px Galmuri9"; g.textAlign = "right"; g.fillText(`${Math.max(0, desk.count)}권`, w - 7, top + 10);
-      g.font = "10px Galmuri9"; g.textAlign = "center"; g.fillText("대 출 카 드", w / 2, top + 36);
-      g.fillStyle = "rgba(58,36,16,.5)"; g.fillRect(w / 2 - 26, top + 50, 52, 1);
+      grain(tmp.getContext("2d"), w, h - top, [222, 196, 140], .1, 1);
+      g.save(); g.beginPath(); g.moveTo(0, top); g.lineTo(w / 2 - 12, top); g.arc(w / 2, top, 12, Math.PI, 0, true); g.lineTo(w, top); g.lineTo(w, h); g.lineTo(0, h); g.closePath(); g.clip();
+      g.drawImage(tmp, 0, top);
+      g.strokeStyle = "rgba(90,40,20,.6)"; g.lineWidth = .6; g.strokeRect(5, top + 16, w - 10, h - top - 21);
+      g.restore();
+      g.textBaseline = "top"; g.textAlign = "center"; g.fillStyle = "#4a2a14"; g.font = "8px Galmuri7"; g.fillText("탐사자 협회 도서실", w / 2, top + 20);
+      g.font = "10px Galmuri9"; g.fillText("대 출 카 드", w / 2, top + 31);
+      g.fillStyle = "rgba(74,42,20,.55)"; for (const y of [top + 47, top + 53, top + 59]) g.fillRect(14, y, w - 28, .5);
+      g.fillStyle = "rgba(74,42,20,.4)"; g.fillRect(14, top + 65, 44, .5);
+      // 가장 최근 테이블 날짜 도장 (테이블이 없으면 없음)
+      if (!desk.date) return;
+      g.save(); g.translate(w - 30, top + 66); g.rotate(-.15); g.strokeStyle = "rgba(42,58,138,.7)"; g.lineWidth = .8; g.strokeRect(-14, -5, 28, 10);
+      g.fillStyle = "rgba(42,58,138,.8)"; g.font = "8px Galmuri7"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(desk.date, 0, .5); g.restore();
     }),
     // 봉투 = 몸통 + 덮개(따로 그려 3D에서 젖혀 열림). 덮개 = 위 44줄(V자 + 봉랍), 밖은 투명
     env: ctex(112, 68, (g, w, h) => {
@@ -8077,7 +8072,7 @@ void main() {
     /** 초대장 봉투 덮개 열기 · 닫기 (0.32초) */
     envOpen(on) { const from = desk.envOpen, to = on ? 1 : 0; return from === to ? Promise.resolve() : anim(320, 0, (e) => { desk.envOpen = from + (to - from) * e; }); },
     /** 주머니 위로 빼꼼 보이는 카드 수(최대 3) · 권 수 */
-    desk({ count }) { if (desk.count === count) return; desk.count = count; DT.cards.paint(); DT.front.paint(); scheduleFrame(); },
+    desk({ count, date = "" }) { if (desk.count === count && desk.date === date) return; desk.count = count; desk.date = date; DT.cards.paint(); DT.front.paint(); scheduleFrame(); },
     /** 닫힌 책 → 카메라가 위로 다가옴 + 표지 + 여러 장 차라락 → spread 면 */
     bookOpen(to) {
       bk.sp = to; bk.cur = chOf(to);
@@ -9300,7 +9295,7 @@ const BannerArt = (() => {
   /** 이어하기: 주머니에서 쏟아진 대출 카드 목록 (최근 순, 전부) + 3D 주머니 위로 빼꼼 보이는 제목 3개 */
   function renderTables() {
     const list = app.tables ?? [];
-    Scene3D.desk({ count: list.length });
+    Scene3D.desk({ count: list.length, date: list[0] ? md(list[0].savedAt) : "" });
     const open = async (tr, t) => { if (Desk.delMode) return deleteTable(t, tr); if (await cardAsk(tr, "이 시나리오를 읽을까?")) Book.leave(`room=${t.room}`); };
     const rows = list.map((t) => el("tr", { "data-room": t.room, tabindex: "0", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title,
       on: { click: (e) => open(e.currentTarget, t), keydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) open(e.currentTarget, t); } } },
