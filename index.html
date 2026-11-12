@@ -2398,24 +2398,23 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-list[hidden] { display: none; }
 .lb-hd { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 6px; font: 11px/1.4 var(--font); color: #f3e2b5; }
 .lb-hd b { font: 16px/1 "Galmuri9", var(--font); font-weight: 400; }
-.lb-cards { position: relative; outline: 0; margin: 0; padding: 0; list-style: none; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #a08660 transparent; }
-/* 카드: 왼쪽 여백 칸(상태 동그라미) │ 붉은 여백선 │ 제목 · 챕터 · 대출일 · 플레이어 · 오른쪽 위 번호, 괘선 28px. 주머니 쪽에서 미끄러져 나옴 */
-.lb-card { position: relative; margin-bottom: -4px; background: #f6eedb; box-shadow: 0 2px 0 rgba(60, 40, 20, .25);
-  background-image: repeating-linear-gradient(transparent 0 27px, rgba(70, 110, 170, .25) 27px 28px); background-position: 0 34px;
+.lb-cards { position: relative; outline: 0; margin: 0 0 0 -14px; padding: 2px 0 0 14px;   /* 호버로 왼쪽 10px 빠지는 카드가 안 잘리게 */ list-style: none; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #a08660 transparent; }
+/* 카드 = 예전 대출 카드: 윗줄 제목 + 4자리 번호 + 붉은 선, 아래 칸 줄(상 태 · 대출일 · 플레이어). 주머니 쪽에서 미끄러져 나옴 */
+.lb-card { position: relative; margin-bottom: 8px; padding: 7px 10px 6px; background: #f4ead0; color: var(--ink); font: 11px/1.35 var(--font);
+  box-shadow: 0 -1px 0 rgba(60, 40, 20, .25), 1px 1px 0 rgba(60, 40, 20, .25), 0 4px 6px rgba(30, 15, 3, .35);
   animation: lb-out .32s cubic-bezier(.2, .7, .3, 1) calc(var(--i, 0) * 35ms) backwards; transition: translate .12s; }
 @keyframes lb-out { from { translate: var(--from, 0px) 0; opacity: 0; } }
-.lb-card:hover, .lb-card:focus-within, .lb-card.asking { translate: -10px 0; z-index: 2; box-shadow: 0 0 0 2px #a8251a, 0 2px 0 rgba(60, 40, 20, .25); }
-.lb-open { all: unset; display: grid; grid-template-columns: 44px 1fr auto; width: 100%; min-height: 96px; box-sizing: border-box; cursor: pointer; color: var(--ink); }
-.lb-open:focus-visible { outline: 2px dotted #2b1a0c; outline-offset: -3px; }
-.lb-side { display: flex; justify-content: center; padding-top: 7px; border-right: 2px solid rgba(168, 37, 26, .6); }
-.lb-st { width: 26px; height: 26px; border-radius: 50%; box-sizing: border-box; font: 10px/26px "Galmuri9", var(--font); text-align: center; color: #f6eedb; background: #a8251a; }
-.lb-st.prep { background: none; color: #7a6a50; border: 1px dashed #7a6a50; line-height: 24px; }
-.lb-main { min-width: 0; padding: 5px 0 6px 12px; }
-.lb-main b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 16px/24px "Galmuri14", var(--font); font-weight: 400; }
-.lb-main .l { display: block; font-size: 12.5px; line-height: 28px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-card .hw { font-family: "Galmuri9", var(--font); color: #2a3a8a; }
-.lb-no { padding: 8px 30px 0 10px; font: 12px/1 "Galmuri9", var(--font); color: #7a5a3a; }
-.lb-del { position: absolute; right: 6px; top: 6px; width: 18px; height: 18px; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
+.lb-card:hover, .lb-card:focus-within, .lb-card.asking { translate: -10px 0; z-index: 2; box-shadow: 0 0 0 2px #a8251a, 0 4px 6px rgba(30, 15, 3, .35); }
+.lb-open { all: unset; display: block; width: 100%; cursor: pointer; }
+.lb-open:focus-visible { outline: 2px dotted #2b1a0c; outline-offset: 2px; }
+.lb-card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 22px 2px 0; margin-bottom: 2px; border-bottom: 2px solid #a8251a; }
+.lb-card .top b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 14px/1.3 "Galmuri14", var(--font); font-weight: 400; }
+.lb-card .no { flex: none; font: 14px/1 "Galmuri9", var(--font); letter-spacing: .05em; }
+.lb-card .r { display: grid; grid-template-columns: 42px 1fr; border-bottom: 1px solid rgba(60, 40, 20, .55); }
+.lb-card .r > span:first-child { padding: 3px 0; border-right: 1px solid rgba(60, 40, 20, .55); font-size: 9.5px; color: #5a4630; }
+.lb-card .r > span + span { padding: 2px 6px; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-card .hw { font: 12px/1.3 "Galmuri9", var(--font); color: #2a3a8a; }
+.lb-del { position: absolute; right: 6px; top: 5px; width: 18px; height: 18px; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
 .lb-del:hover, .lb-del:focus-visible { color: var(--blood); outline: 0; }
 .lb-ft { margin-top: 10px; padding: 10px 12px; background: #efe0b4; font-size: 13px; color: #6d5a40; }
 .lb-ft .recover { margin-top: 8px; }
@@ -7690,8 +7689,8 @@ void main() {
   const DT = {
     pocket: ctex(112, 140, (g, w, h) => {
       const top = 58;
-      // 뒤판 (앞판 위로 조금 솟은 안쪽 그늘)
-      g.fillStyle = "#6a4a26"; g.fillRect(4, top - 8, w - 8, 8);
+      // 주머니 속 (투명하게 두지 않음 → 테두리가 반듯한 사각형 하나, 탁자와 겹쳐 깜빡일 틈이 없음) + 앞판 위 그늘
+      g.fillStyle = "#4e3519"; g.fillRect(0, 0, w, top); g.fillStyle = "#3a2510"; g.fillRect(6, top - 10, w - 12, 10);
       // 카드: 테이블 수만큼(최대 3장) 제목줄이 빼꼼. 글자 대신 물결 선(필기 흔적)
       const n = Math.min(3, desk.count);
       for (let i = 0; i < n; i++) {
@@ -9234,11 +9233,10 @@ const BannerArt = (() => {
     $("#tableCount").textContent = `${list.length}권`;
     $("#myTables").replaceChildren(...list.map((t, i) => el("li", { class: "lb-card", "data-room": t.room, style: `--i:${Math.min(i, 8)}` },
       el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: async (e) => { if (await cardAsk(e.currentTarget.closest(".lb-card"), `「${t.title}」 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); } } },
-        el("span", { class: "lb-side" }, el("span", { class: t.phase === "play" ? "lb-st" : "lb-st prep" }, t.phase === "play" ? "진행" : "준비")),
-        el("span", { class: "lb-main" }, el("b", {}, t.title),
-          el("span", { class: "l" }, `${t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.phase === "play" ? "진행 중" : "아직 시작 전"} · `, el("span", { class: "hw" }, `${md(t.savedAt)} (${ago(t.savedAt)})`)),
-          el("span", { class: "l hw" }, (t.players ?? []).join(", ") || "-")),
-        el("span", { class: "lb-no" }, `No.${cardNo(t.room)}`)),
+        el("div", { class: "top" }, el("b", {}, t.title), el("span", { class: "no" }, cardNo(t.room))),
+        el("div", { class: "r" }, el("span", {}, "상 태"), el("span", {}, `${t.phase === "play" ? "진행 중" : "준비 중"}${t.chapter ? ` · ${t.chapter.n}장 ${t.chapter.title}` : ""}`)),
+        el("div", { class: "r" }, el("span", {}, "대출일"), el("span", { class: "hw" }, `${new Date(t.savedAt).getFullYear()}·${md(t.savedAt)} · ${ago(t.savedAt)}`)),
+        el("div", { class: "r" }, el("span", {}, "플레이어"), el("span", { class: "hw" }, (t.players ?? []).join(", ") || "-"))),
       el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: (e) => deleteTable(t, e.currentTarget.closest(".lb-card")) } }, "✕"))));
     if (!$("#lbList").hidden) Desk.place();
   }
