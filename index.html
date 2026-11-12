@@ -2266,6 +2266,11 @@ html.has-3d .topbar { box-shadow: none; }
 #home:not(.flat) .bk-tab:hover .lb::before, #home:not(.flat) .bk-tab:focus-visible .lb::before { content: ""; position: absolute; left: 9px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: #3a2414; }
 @keyframes bk-lb-in { from { opacity: 0; translate: -50% 4px; } }
 #home.open .bk-tabs { display: none; }
+/* 호버 · 초점 강조: 물건 윗면 둘레를 따라 도트 점선 (6px 바깥, 2px 점 · 4px 간격) */
+.desk-hl { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; opacity: 0; transition: opacity .12s; }
+.desk-hl.on { opacity: 1; }
+.desk-hl polygon { fill: none; stroke: #f3e2b4; stroke-width: 2; stroke-dasharray: 2 4; stroke-linejoin: miter; shape-rendering: crispEdges; }
+#home.flat .desk-hl { display: none; }
 .bk-tab:focus-visible { outline: 0; }
 #home.busy .bk-tab { pointer-events: none; }
 /* WebGL 없을 때: 평면 표지 + 탭 목록 */
@@ -2569,6 +2574,7 @@ html.has-3d .topbar { box-shadow: none; }
   <div class="bk-pages" id="bkPages"><div class="bk-pg l" id="bkPgL"></div><div class="bk-pg r" id="bkPgR"></div></div>
   <!-- 3D 물건이 화면에 비친 자리에 맞춘 투명 단추 (WebGL이 없으면 글자 단추 목록) -->
   <nav class="bk-tabs" id="bkTabs" aria-label="메뉴">
+    <svg class="desk-hl" id="deskHl" aria-hidden="true"><polygon /></svg>
     <button class="bk-tab" type="button" data-act="book" style="--c:#a5321e"><span class="lb">새 테이블</span></button>
     <button class="bk-tab" type="button" data-act="pocket" style="--c:#8a6a1e"><span class="lb">이어하기</span></button>
     <button class="bk-tab" type="button" data-act="invite" style="--c:#2c4a6a"><span class="lb">참가하기</span></button>
@@ -7745,14 +7751,14 @@ void main() {
     }),
   };
   // 탁자 면에서 .004 띄움: 아랫면이 탁자와 같은 높이면 겹쳐 깜빡임(투명한 윗부분 너머로 무늬가 움직여 보임)
-  const deskModel = (k) => { const o = DK[k], lift = (desk.hover === k ? .03 : 0) + .004; return chain(M.trs(o.x, lift, o.z, o.rot), M.T(-o.w / 2, 0, 0), M.S(o.w, o.th, o.d)); };
-  // 호버 강조: 물건이 들리고(.03) 조금 밝아짐, 주머니는 카드가 위로 더 빠져나옴(.07, 0.18초 따라감)
+  const deskModel = (k) => { const o = DK[k], lift = .004; return chain(M.trs(o.x, lift, o.z, o.rot), M.T(-o.w / 2, 0, 0), M.S(o.w, o.th, o.d)); };
+  // 호버 강조 = 화면 쪽 도트 점선 테두리(#deskHl), 주머니는 카드가 위로 더 빠져나옴(.07, 0.18초 따라감)
   let cardsUp = 0, deskT = 0;
   function drawDesk() {
     const now = performance.now(), dt = Math.min(.1, (now - (deskT || now)) / 1000); deskT = now;
     const want = desk.hover === "pocket" ? 1 : 0;
     if (cardsUp !== want) { cardsUp += Math.sign(want - cardsUp) * Math.min(Math.abs(want - cardsUp), dt / .18); scheduleFrame(); }
-    const lit = (k) => (desk.hover === k ? .42 : .3);
+    const lit = () => .3;
     gl.uniform1f(U.u_alphaTest, .5);
     const pk = deskModel("pocket"), slide = (dy, dz) => chain(pk, M.T(0, dy, dz));   // 주머니 판 안 좌표 (판 두께 1 = .006)
     drawSlab(pk, DT.pocket.t, T_kraft, T_kraft, lit("pocket"));
@@ -7859,7 +7865,7 @@ void main() {
       gl.bindTexture(gl.TEXTURE_2D, tx); drawMesh(m.paper);
       gl.bindTexture(gl.TEXTURE_2D, BT.edge); drawMesh(m.rest);
     }
-    drawSlab(P.front, BT.cover.t, BT.leather, BT.leather, desk.hover === "book" && !bk.p ? .22 : .14);   // 호버하면 표지가 조금 밝아짐
+    drawSlab(P.front, BT.cover.t, BT.leather, BT.leather, .14);
     for (const s of bk.sheets) {
       const m = chain(pivot(s.th, (s.yR + s.yL) / 2), M.T(-.5, s.yR, BK.zc), M.S(1, .002, BK.D));
       drawSlab(m, BT.paper[0].t, BT.paper[1].t, BT.edge, pe);
@@ -7899,11 +7905,11 @@ void main() {
     return [(x / w + 1) / 2 * innerWidth, (1 - y / w) / 2 * innerHeight];
   }
   /** 단위 판 윗면 네 귀를 화면에 비춘 둘레 상자 */
-  function screenRect(vp, model) {
-    const pts = [[0, 1, -.5], [1, 1, -.5], [1, 1, .5], [0, 1, .5]].map((q) => toScreen(vp, [0, 1, 2].map((r) => model[r] * q[0] + model[4 + r] * q[1] + model[8 + r] * q[2] + model[12 + r])));
+  function screenRect(vp, model, z0 = -.5) {
+    const pts = [[0, 1, z0], [1, 1, z0], [1, 1, .5], [0, 1, .5]].map((q) => toScreen(vp, [0, 1, 2].map((r) => model[r] * q[0] + model[4 + r] * q[1] + model[8 + r] * q[2] + model[12 + r])));
     const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
     const x = Math.min(...xs), y = Math.min(...ys);
-    return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
+    return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y, pts };   // pts = 윗면 네 귀(화면 좌표, 도트 테두리용)
   }
   // 방으로 들어갈 때 다가간 만큼 쪽이 커지는 배율 (DOM 쪽 내용을 같이 키움)
   const bookZoom = (eye, tg) => {
@@ -7997,7 +8003,7 @@ void main() {
       drawBook();
       if (bk.cb) {
         const vp = M.mul(proj, view);
-        bk.cb({ hits: { book: screenRect(vp, bookParts().front), pocket: screenRect(vp, deskModel("pocket")), invite: screenRect(vp, deskModel("env")) }, zoom: bookZoom(eye, cam.target), px: innerWidth / W });
+        bk.cb({ hits: { book: screenRect(vp, bookParts().front), pocket: screenRect(vp, deskModel("pocket"), -.5 - cardsUp * .07 / DK.pocket.d), invite: screenRect(vp, deskModel("env")) }, zoom: bookZoom(eye, cam.target), px: innerWidth / W });
       }
     }
 
@@ -9097,7 +9103,17 @@ const BannerArt = (() => {
     function tabsState() { home.classList.toggle("open", spread >= 0); }
     // 3D 책 · 주머니 · 봉투가 화면에 비친 자리에 투명 단추를 맞춤 (매 프레임, 바뀐 것만) + 방으로 들어갈 때 쪽 내용도 같이 커짐
     const hitRects = {};
+    const hl = $("#deskHl"), hlPoly = hl.querySelector("polygon");
+    let hlKey = "";
     Scene3D.onBook(({ hits, zoom, px }) => {
+      // 호버한 물건 윗면 둘레에 도트 점선 (가운데에서 6px 바깥으로)
+      const q = hlKey && hits[hlKey]?.pts;
+      if (q) {
+        const cx = q.reduce((a, p) => a + p[0], 0) / 4, cy = q.reduce((a, p) => a + p[1], 0) / 4;
+        const pts = q.map(([x, y]) => { const d = Math.hypot(x - cx, y - cy) || 1; return `${Math.round(x + (x - cx) / d * 6)},${Math.round(y + (y - cy) / d * 6)}`; }).join(" ");
+        if (hl._p !== pts) { hl._p = pts; hlPoly.setAttribute("points", pts); }
+      }
+      hl.classList.toggle("on", !!q);
       for (const t of tabEls) {
         const r = hits[t.dataset.act], k = `${r.x | 0},${r.y | 0},${r.w | 0},${r.h | 0}`;
         hitRects[t.dataset.act] = r;
@@ -9145,7 +9161,7 @@ const BannerArt = (() => {
     tabEls.forEach((t) => {
       const act = t.dataset.act, k = act === "invite" ? "env" : act;
       t.addEventListener("click", (e) => { e.stopPropagation(); if (act === "book") go(0); else onAct?.(act); });
-      for (const [ev, v] of [["pointerenter", k], ["pointerleave", ""], ["focus", k], ["blur", ""]]) t.addEventListener(ev, () => Scene3D.deskHover(v));
+      for (const [ev, v] of [["pointerenter", k], ["pointerleave", ""], ["focus", k], ["blur", ""]]) t.addEventListener(ev, () => { hlKey = v && act; Scene3D.deskHover(v); });
     });
     // 책 밖 누르기 = 덮기 (펼친 쪽 둘레 여백은 빼고)
     const onPage = (e) => rects && [rects.L, rects.R].some((q) => e.clientX >= q.x - 16 && e.clientX <= q.x + q.w + 16 && e.clientY >= q.y - 16 && e.clientY <= q.y + q.h + 16);
