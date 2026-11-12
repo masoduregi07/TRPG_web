@@ -2478,34 +2478,39 @@ html.has-3d .topbar { box-shadow: none; }
 .inv-wrap.out .inv { visibility: visible; animation: inv-out .36s cubic-bezier(.2, .75, .3, 1) backwards; }
 @keyframes inv-out { from { translate: var(--fx, 0) var(--fy, 0); scale: var(--fs, .3); opacity: 0; } 30% { opacity: 1; } }
 .inv-paper { position: relative; padding: 18px 26px 20px; background: #f6eedb; color: var(--ink); box-shadow: 3px 8px 18px rgba(0, 0, 0, .6); }
-.inv-paper::before { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(42, 58, 138, .5); outline: 1px solid rgba(42, 58, 138, .5); outline-offset: -4px; pointer-events: none; }
-.inv-paper h2 { margin: 0; text-align: center; font: 22px/1.3 "Galmuri14", var(--font); font-weight: 400; color: #2a3a8a; letter-spacing: .3em; }
+.inv-paper::before { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(30, 22, 16, .75); outline: 1px solid rgba(30, 22, 16, .75); outline-offset: -4px; pointer-events: none; }
+.inv-paper h2 { margin: 0; text-align: center; font: 22px/1.3 "Galmuri14", var(--font); font-weight: 400; color: #8e2438; letter-spacing: .3em; }
 .inv-sub { margin: 2px 0 10px; text-align: center; font: 11px/1.4 "Galmuri9", var(--font); color: #7a5a3a; }
 .inv-row { display: grid; grid-template-columns: 70px 1fr; align-items: center; min-height: 38px; cursor: text; }
 .inv-row > span { font: 12.5px/1.4 var(--font); }
-.inv-row input { height: 30px; padding: 0 4px; border: 0; border-bottom: 1px solid #2a3a8a; border-radius: 0; box-shadow: none; background: transparent; font: 15px/1.4 "Galmuri9", var(--font); color: #2a3a8a; }
-.inv-row input::placeholder { color: #a9b0cc; }
-.inv-row input:focus { outline: 0; box-shadow: inset 0 -2px 0 #2a3a8a; }
+.inv-row input { height: 30px; padding: 0 4px; border: 0; border-bottom: 1px solid #1e1610; border-radius: 0; box-shadow: none; background: transparent; font: 15px/1.4 "Galmuri9", var(--font); color: #8e2438; }
+.inv-row input::placeholder { color: #cfa8b0; }
+.inv-row input:focus { outline: 0; box-shadow: inset 0 -2px 0 #1e1610; }
 .inv .lend { margin: 8px 0 6px; }
 .inv .error { min-height: 0; margin: 4px 0 0; }
-.inv-go { display: flex; justify-content: flex-end; margin-top: 8px; }
 @media (prefers-reduced-motion: reduce) { .inv-wrap.out .inv { animation: none; } .inv-wrap { transition: none; } }
 /* 초대장 안 명단: 그 방에 이미 앉은 플레이어 · 캐릭터 (나는 빼고) */
-.lend .r { display: grid; grid-template-columns: 44px 1fr 1fr; border-bottom: 1px solid rgba(60, 40, 20, .5); font: 11.5px/26px var(--font); }
-.lend .r > span { padding-left: 5px; border-right: 1px solid rgba(60, 40, 20, .5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lend .r { display: grid; grid-template-columns: 44px 1fr 1fr; border-bottom: 1px solid rgba(30, 22, 16, .7); font: 11.5px/26px var(--font); }
+.lend .r > span { padding-left: 5px; border-right: 1px solid rgba(30, 22, 16, .7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lend .r > span:last-child { border-right: 0; }
 .lend .r.h { color: #5a4630; }
-.lend .pl { font: 12px/26px "Galmuri9", var(--font); color: #2a3a8a; }
-.lend .ch { font: 12px/26px "Galmuri9", var(--font); color: #8a2216; }
+.lend .pl { font: 12px/26px "Galmuri9", var(--font); color: #8e2438; }
+.lend .ch { font: 12px/26px "Galmuri9", var(--font); color: #1e1610; }
 .lend .ch small, .lend .pl small { font: 10.5px/26px var(--font); color: #8a6a1e; }
 .lend .r.in > span:not(:first-child) { clip-path: inset(0 100% 0 0); animation: lend-write .5s steps(8) var(--d, 0s) forwards; }
 @keyframes lend-write { to { clip-path: inset(0 0 0 0); } }
 @media (prefers-reduced-motion: reduce) { .lend .r.in > span:not(:first-child) { animation: none; clip-path: none; } }
-.seal-btn.blue { flex-direction: column-reverse; }
-.seal-btn.blue .box { width: 74px; height: 74px; border-color: #2c4a6a; background: rgba(44, 74, 106, .04); }
-.seal-btn.blue .ghost { border-color: rgba(44, 74, 106, .3); color: rgba(44, 74, 106, .3); font-size: 28px; }
-.seal-btn.blue .ink { border-color: #23406a; color: #23406a; background: rgba(35, 64, 106, .08); font-size: 28px; }
-.seal-btn.blue .cap { color: #2c4a6a; }
+/* 닉네임 줄 끝 서명 "참가하기": 누르면 붓선이 다시 그어지며 와인색 → 0.38초 뒤 입장 */
+.inv-name { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.inv-name input { flex: 1; min-width: 0; }
+.inv-sig { position: relative; flex: none; display: grid; place-items: center; height: 30px; padding: 0 6px; border: 0; background: none; box-shadow: none; cursor: pointer; font: 19px/1 "Galmuri14", var(--font); color: #1e1610; transform: skewX(-14deg) rotate(-4deg); }
+.inv-sig svg { position: absolute; left: -2px; right: -2px; bottom: -2px; width: calc(100% + 4px); height: 10px; overflow: visible; }
+.inv-sig path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; vector-effect: non-scaling-stroke; stroke-dasharray: 1; }
+.inv-sig:hover, .inv-sig:focus-visible, .inv-sig.stamped { color: #8e2438; outline: 0; }
+.inv-sig:focus-visible { text-decoration: underline dotted 1px; text-underline-offset: 4px; }
+.inv-sig.stamped path { animation: inv-sign .3s ease-out; }
+@keyframes inv-sign { from { stroke-dashoffset: 1; } }
+@media (prefers-reduced-motion: reduce) { .inv-sig.stamped path { animation: none; } }
 /* 기본 UI 버튼 = 종이 박스(크림 바탕 + 진갈색 1px 테 + 1px 그림자, 호버 진갈색 칠) */
 .pbtn, #bkPages .btn { display: inline-flex; align-items: center; justify-content: center; height: auto; padding: 4px 14px 3px; border: 0; cursor: pointer; background: #f2e6c6; color: #5a4128;
   box-shadow: inset 0 0 0 1px #5a4128, 1px 1px 0 rgba(60, 40, 20, .3); font: 12px/1.4 var(--font); letter-spacing: .05em; }
@@ -2616,9 +2621,8 @@ html.has-3d .topbar { box-shadow: none; }
           <div class="r h"><span>No</span><span>플레이어</span><span>캐릭터</span></div>
           <div id="joinRows"></div>
         </div>
-        <label class="inv-row"><span>닉네임</span><input id="bkJoinName" maxlength="16" placeholder="이름을 적어 주세요" autocomplete="nickname" /></label>
+        <div class="inv-row"><span>닉네임</span><span class="inv-name"><input id="bkJoinName" maxlength="16" placeholder="이름을 적어 주세요" autocomplete="nickname" /><button id="joinLinkBtn" class="inv-sig" type="button">참가하기<svg viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M2 9 C 20 3, 40 13, 62 7 S 100 2, 118 8" /></svg></button></span></div>
         <p id="inviteError" class="error" role="alert"></p>
-        <div class="inv-go"><button id="joinLinkBtn" class="seal-btn blue" type="button"><span class="box"><span class="ghost">參</span><span class="ink">參</span></span><span class="cap">참가 날인</span></button></div>
       </div>
     </div>
   </div>
@@ -7767,6 +7771,7 @@ void main() {
   const desk = { count: -1, date: "", hover: "", envOpen: 0 };
   const DK = { pocket: { x: .9, z: -1.12, w: .62, d: .78, th: .006, rot: -.16 }, env: { x: .86, z: -.42, w: .6, d: .36, th: .006, rot: .12 } };   // 책 오른쪽에 바짝, 비스듬히
   const T_kraft = tex(16, (g, s) => noise(g, s, [176, 132, 76], .2));
+  const SEAL_IMG = new Image(); SEAL_IMG.src = "img/seal.png";
   const DT = {
     // 대출 카드 포켓(L1) = 세 겹: 속(어두운 안쪽) · 카드(B 색인 카드: 붉은 머리줄 + 남색 괘선, 테이블 수만큼 최대 3장) · 앞판(반달 홈 북포켓 + 인쇄 + 최근 날짜 도장).
     // 카드 판만 따로 움직여 호버하면 위로 더 빠져나옴
@@ -7804,7 +7809,7 @@ void main() {
       grain(g, w, h, [232, 220, 192], .08, 2);
       g.fillStyle = "rgba(60,40,20,.55)"; g.fillRect(0, 0, w, 1.5);   // 열린 입구
       g.fillStyle = "#f6eedb"; g.fillRect(10, 1.5, w - 20, 7);   // 안에 든 초대장 윗변
-      g.fillStyle = "rgba(42,58,138,.6)"; g.fillRect(13, 4, w - 26, .6);
+      g.fillStyle = "rgba(30,22,16,.6)"; g.fillRect(13, 4, w - 26, .6);
       g.strokeStyle = "rgba(90,60,30,.25)"; g.lineWidth = .6; g.beginPath(); g.moveTo(0, h); g.lineTo(w / 2, 40); g.lineTo(w, h); g.stroke();   // 아래 날개 접힌 자국
       g.font = "8px Galmuri7"; g.textAlign = "right"; g.textBaseline = "top"; g.fillStyle = "#5a4630"; g.fillText("초대장 재중", w - 6, h - 12);
     }),
@@ -7813,9 +7818,8 @@ void main() {
       g.save(); shape(); g.clip(); grain(g, w, 44, [226, 212, 182], .08, 0); g.restore();
       g.strokeStyle = "rgba(90,60,30,.45)"; g.lineWidth = .8; g.beginPath(); g.moveTo(0, 8); g.lineTo(w / 2, 34); g.lineTo(w, 8); g.stroke();
       const cx = w / 2, cy = 34;
-      g.fillStyle = "#2a3a8a"; g.beginPath(); g.arc(cx, cy, 9, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#1d2a66"; g.fillRect(cx - 9, cy + 7, 4, 3); g.fillRect(cx + 6, cy + 6, 3, 4);
-      g.font = "10px Galmuri9"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#e8edf5"; g.fillText("參", cx, cy + 1);
+      // 봉랍 = img/seal.png (늦게 오면 onload에서 다시 그림)
+      if (SEAL_IMG.naturalWidth) { g.save(); g.imageSmoothingEnabled = true; g.drawImage(SEAL_IMG, cx - 13, cy - 16, 26, 26); g.restore(); }
     }),
     flapIn: ctex(112, 44, (g, w) => {
       g.beginPath(); g.moveTo(0, 0); g.lineTo(w, 0); g.lineTo(w, 8); g.lineTo(w / 2, 34); g.lineTo(0, 8); g.closePath();
@@ -7857,6 +7861,7 @@ void main() {
   document.fonts?.load?.("8px Galmuri7").then(() => document.fonts.load("15px Galmuri14")).then(() => {
     if (!gl.isContextLost()) { BT.cover.paint(); DT.cards.paint(); DT.front.paint(); DT.env.paint(); DT.flap.paint(); scheduleFrame(); }
   }, noop);
+  SEAL_IMG.onload = () => { if (!gl.isContextLost()) { DT.flap.paint(); scheduleFrame(); } };
 
   const bk = { on: false, p: 0, a: 0, hL: BK.hL0, sp: 0, zoom: 0, sheets: [], side: ["R"], ride: [null], cur: -1, cb: null };
   const pivot = (a, ys) => chain(M.T(-.5, ys, 0), M.RZ(a), M.T(.5, -ys, 0));
@@ -9492,7 +9497,7 @@ const BannerArt = (() => {
     // 닉네임으로 바로 자리에 앉음 (이미 앉았던 방이면 그 자리 그대로)
     if (!name && !LS.get(K.me(code))) { $("#inviteError").textContent = "닉네임 입력 필요."; return $("#bkJoinName").focus(); }
     if (name) { LS.set(K.name, name); if (!LS.get(K.me(code))) LS.set(K.me(code), { key: randomId(24), name }); }
-    btn.classList.add("stamped"); Sfx.play("stamp");
+    btn.classList.add("stamped"); Sfx.play("quill");
     await new Promise((r) => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 380));
     Book.leave(`room=${code}`);
   });
