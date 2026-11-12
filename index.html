@@ -4897,6 +4897,16 @@ const Turn = (() => {
     return hit / c.size;
   }
   const SENT_RE = /(?<=[.!?…。]["”」』’']?)\s+|\n+/;   // 따옴표 대사가 끝난 뒤에서도 나눔
+  /* 같은 문장이 두 번 나오면 뒤의 것을 지움 (줄바꿈은 그대로). 공백 · 문장부호 · 따옴표를 뺀 6자 이상 문장만 견줌 */
+  function dedupSentences(text, seen = new Set()) {
+    const key = (x) => String(x).replace(/[\s.!?…。,"'“”‘’「」『』~-]/g, "");
+    return String(text ?? "").split("\n").map((line) => line.split(/(?<=[.!?…。]["”」』’']?)\s+/).filter((x) => {
+      const k = key(x);
+      if (k.length < 6) return true;
+      if (seen.has(k)) return false;
+      seen.add(k); return true;
+    }).join(" ").trim()).filter((line, i, all) => line || (i > 0 && all[i - 1])).join("\n").trim();
+  }
   /* 따옴표 대사의 주인: 대사 앞에서 가장 가까이 나온 NPC 이름 (없으면 모름 → 뺌) */
   const LINE_RE = /"[^"]{2,}"|“[^”]{2,}”|「[^」]{2,}」/g;
   function npcLines(text, names) {
@@ -4956,7 +4966,7 @@ const Turn = (() => {
       if (!c) { soft(`results의 '${b.who}'을(를) 모름 → 무시`); continue; }
       if (info.actors.length && !info.actors.some((a) => a.pid === c.pid)) { soft(`이번 차례 행동 없는 ${c.name} 서술 → 제외`); continue; }
       const ex = plan.blocks.find((x) => x.pid === c.pid);
-      if (ex) ex.text += ` ${b.text}`; else plan.blocks.push({ pid: c.pid, name: c.name, text: b.text });
+      if (ex) ex.text = dedupSentences(`${ex.text} ${b.text}`); else plan.blocks.push({ pid: c.pid, name: c.name, text: b.text });
     }
     // 블록은 AI가 준 순서 말고 입력이 들어온 순서대로 (이번 차례 정리 카드와 같은 순서)
     const rank = (pid) => { const i = (info.order ?? []).indexOf(pid); return i < 0 ? Infinity : i; };
@@ -4965,11 +4975,18 @@ const Turn = (() => {
       // 행동표 응답에서 narration은 비워야 함. 캐릭터 행동을 되풀이한 narration은 버림 (분위기 서술만 남김)
       if (plan.narration && info.chars.some((c) => plan.narration.includes(c.name))) { soft("results와 narration에 같은 행동을 되풀이 → narration 삭제"); plan.narration = ""; }
       // 행동한 사람이 한 명이면 ▶ 블록 없이 한 덩어리로
-      if (plan.blocks.length === 1 && !info.table) { plan.narration = [plan.narration, plan.blocks[0].text].filter(Boolean).join(" "); plan.blocks = []; }
+      if (plan.blocks.length === 1 && !info.table) { plan.narration = [plan.narration, plan.blocks[0].text].filter(Boolean).join(" "); plan.blocks = []; }   // 아래에서 겹친 문장 지움
       else {
         if (plan.narration) plan.blocks.unshift({ pid: null, name: "", text: plan.narration });
         plan.narration = plan.blocks.map((b) => b.text).join("\n");
       }
+    }
+    // narration + results를 이을 때 · AI가 같은 문장을 되풀이할 때 겹친 문장은 하나만 (블록이면 블록끼리도)
+    {
+      const before = plan.narration;
+      if (plan.blocks.length) { const seen = new Set(); for (const b of plan.blocks) b.text = dedupSentences(b.text, seen); plan.blocks = plan.blocks.filter((b) => b.text); plan.narration = plan.blocks.map((b) => b.text).join("\n"); }
+      else plan.narration = dedupSentences(plan.narration);
+      if (plan.narration !== before) soft("같은 문장이 두 번 나옴 → 하나만 남김");
     }
 
     // ---- 사건 이동 ----
@@ -5240,6 +5257,10 @@ const Turn = (() => {
         const mine = said.filter((x) => x.who === who);
         return mine.every((x) => EVADE_RE.test(x.q)) && past.length >= 2 && past.every((q) => EVADE_RE.test(q));
       });
+      // NPC에게 물었는데 대사가 하나도 없이 몸짓만으로 넘김 (규칙 25: 건넨 말에 먼저 반응)
+      const spoken = [plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).join("\n");
+      const mute = (info.askNpc ?? []).filter((n) => (info.npcNames ?? []).includes(n) && !said.some((x) => x.who === n));
+      if (mute.length && !spoken.match(LINE_RE)) (final ? soft : hard)(`${mute.join(", ")}에게 물음을 건넸는데 대사로 대답하지 않음 (규칙 25). 몸짓만으로 넘기지 말고 그 물음에 대한 대답(아는 것 · 모르는 이유 · 말하지 않는 까닭)을 따옴표 대사로`);
       if (stuck.length) (final ? soft : hard)(`${stuck.join(", ")}이(가) "모르겠다 · 당황스럽다" 같은 대답이나 "더 조사해 보자"로 미루는 대답을 세 번째 되풀이함 (규칙 28 · 31). 이번엔 자기 짐작(틀려도 됨) · 의견 · 기억을 말하거나, 맞는 가능한판정이 있으면 request_check로 검 (미공개 사실을 확정하지는 않음)`);
     }
     // ---- 받은 물건은 서술에 나와야 함 (줍거나 받는 장면 없이 소지품만 생기지 않게) ----
@@ -5294,7 +5315,9 @@ const Turn = (() => {
   const feedback = (issues) =>
     `직전 응답에 문제가 있음:\n${issues.filter((i) => i.hard).map((i) => `- ${i.msg}`).join("\n")}\n규칙을 지켜 고친 JSON 하나만 다시 출력.`;
 
-  return { validate, feedback, same, bare, leaks, toneOff, shows, npcLines, EVADE_RE };
+  /** 물음인지: 물음표 · 의문 어미(~까 · ~니 · ~냐 · ~나요 · ~가요 · ~는지 · ~던가) · 의문사(왜 · 누구 · 뭐 · 무엇 · 어디 · 언제 · 어떻게 · 얼마) */
+  const isQuestion = (t) => { const x = String(t ?? "").trim(); return /\?/.test(x) || /(까|니|냐|나요|가요|는지|던가)[.!…]*$/.test(x) || /(^|\s)(왜|누구|누가|뭐|무엇|무슨|어디|언제|어떻게|얼마)/.test(x); };
+  return { validate, feedback, same, bare, leaks, toneOff, shows, npcLines, dedupSentences, isQuestion, EVADE_RE };
 })();
 
 
@@ -6720,6 +6743,8 @@ class HostGame {
       })(),
       // 이번 차례 NPC에게 말을 건 캐릭터 (NPC 이름 → 캐릭터 이름들)
       talkTo: since.reduce((o, e) => { const n = e.kind === "say" && e.toNpc && d.players[e.byId]?.character?.name; if (n) (o[e.toNpc] ??= []).push(n); return o; }, {}),
+      // 이번 차례 @NPC로 물음을 건넨 NPC (물음표 · 의문 어미 · 의문사)
+      askNpc: [...new Set(since.filter((e) => e.kind === "say" && e.toNpc && Turn.isQuestion(e.text)).map((e) => e.toNpc))],
       // 직전 GM 서술의 따옴표 대사 (NPC가 같은 말을 되풀이하는지)
       prevQuotes: (d.log.filter((e) => (e.kind === "ai" || e.kind === "gm") && (e.seq ?? 0) <= (g.aiCursor ?? Infinity)).at(-1)?.text ?? "").match(/"[^"]{4,}"|“[^”]{4,}”|「[^」]{4,}」/g) ?? [],
       gotThisTurn: since.filter((e) => e.kind === "system" && (e.item ? e.gain : /「(.+)」 얻음$/.test(e.text ?? ""))).map((e) => e.item ?? /「(.+)」 얻음$/.exec(e.text)[1]),
