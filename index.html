@@ -2429,14 +2429,18 @@ html.has-3d .topbar { box-shadow: none; }
 .due-ask .gp:hover, .due-ask .gp:focus-visible { color: var(--blood); outline: 0; }
 .due-ask.danger .gp.y { color: var(--blood); font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .due-ask { transition: none; } }
-.lb-ft .recover { margin-top: 8px; }
-.lb-ftrow { display: flex; align-items: center; justify-content: space-between; }
-/* 폐기 아이콘(모노톤): 누르면 폐기 모드 = 먹색으로 칠해짐, 줄 호버는 붉은 형광펜 */
-.due-del { position: relative; width: 30px; height: 30px; padding: 6px; border: 0; background: none; color: #5a4128; cursor: pointer; }
-.due-del svg { display: block; width: 18px; height: 18px; }
-.due-del:hover, .due-del:focus-visible { color: var(--ink); outline: 0; background: rgba(90, 65, 40, .12); }
+.lb-ft .recover { margin: 0; padding-right: 72px; min-height: 30px; }
+.lb-ft .recover > summary { line-height: 30px; }
+.lb-ftrow { position: absolute; right: 10px; bottom: 8px; display: flex; gap: 2px; }   /* 오른쪽 아래 아이콘 줄 (복구 접힘 글과 같은 높이) */
+.lb-ft { position: relative; }
+/* 아이콘(모노톤 18px): 세이브 불러오기 · 폐기. 폐기 모드 = 먹색 칠 + 휴지통 뚜껑 열림, 줄 호버는 붉은 형광펜. 호버하면 위에 꼬리말 */
+.due-ic { position: relative; display: inline-block; width: 30px; height: 30px; padding: 6px; box-sizing: border-box; border: 0; background: none; color: #5a4128; cursor: pointer; }
+.due-ic svg { display: block; width: 18px; height: 18px; }
+.due-ic:hover, .due-ic:focus-visible { color: var(--ink); outline: 0; background: rgba(90, 65, 40, .12); }
+.due-del .ic-open, .due-del[aria-pressed="true"] .ic-shut { display: none; }
+.due-del[aria-pressed="true"] .ic-open { display: block; }
 .due-del[aria-pressed="true"] { background: #2b1d12; color: #f3e6c4; }
-.due-del.tip:hover::after, .due-del.tip:focus-visible::after { content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 5; white-space: nowrap; padding: 5px 9px; background: #2b1d12; color: #f3e6c4; font: 12px/1.4 var(--font); box-shadow: 2px 2px 0 rgba(0, 0, 0, .3); }
+.due-ic.tip:hover::after, .due-ic.tip:focus-visible::after { content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 5; white-space: nowrap; padding: 5px 9px; background: #2b1d12; color: #f3e6c4; font: 12px/1.4 var(--font); box-shadow: 2px 2px 0 rgba(0, 0, 0, .3); }
 .due.del-mode tr[data-room] { cursor: crosshair; }
 .due.del-mode tr[data-room]:hover td, .due.del-mode tr.asking td { background: linear-gradient(transparent 55%, rgba(168, 37, 26, .22) 55%); }
 .lb-ft .recover summary { cursor: pointer; font-size: 12px; }
@@ -2573,8 +2577,9 @@ html.has-3d .topbar { box-shadow: none; }
       <!-- 줄을 누르면 그 줄 바로 아래가 늘어나며 물음 한 줄 → 예 / 아니오에 잉크 동그라미 (평소엔 숨겨 둔 줄) -->
       <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td></td><td colspan="2"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div></td></tr></tbody></table>
       <div class="lb-ft">
-        <div class="lb-ftrow"><label class="pbtn" tabindex="0" role="button">▤ 세이브 파일 불러오기<input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
-          <button id="dueDelBtn" class="due-del tip" type="button" data-tip="시나리오 폐기" aria-label="시나리오 폐기" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.5h6l3 3v10h-9z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M9.5 1.5v3h3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M5.5 7.5h5M5.5 10h4" stroke="currentColor" stroke-width="1" opacity=".55"/><path d="M1.5 12.5l13-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
+        <!-- 오른쪽 아래 모노톤 아이콘: 세이브 파일 불러오기 · 시나리오 폐기(누르면 폐기 모드 = 휴지통 뚜껑 열림) -->
+        <div class="lb-ftrow"><label class="due-ic tip" tabindex="0" role="button" data-tip="세이브 파일 불러오기" aria-label="세이브 파일 불러오기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4.5v9h13v-7h-6.5l-1.5-2z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 12V7.5M5.8 9.6L8 7.4l2.2 2.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
+          <button id="dueDelBtn" class="due-ic due-del tip" type="button" data-tip="시나리오 폐기" aria-label="시나리오 폐기" aria-pressed="false"><svg class="ic-shut" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M6 4V2.5h4V4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M3.8 4l.8 10h6.8l.8-10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.5 6.5v5M9.5 6.5v5" stroke="currentColor" stroke-width="1"/></svg><svg class="ic-open" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.2 3.6l10.6-2.4M6.3 2.6l-.3-1.3 3.7-.8.3 1.3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M3.8 5.5l.8 8.5h6.8l.8-8.5z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.5 7.5v4.5M9.5 7.5v4.5" stroke="currentColor" stroke-width="1"/></svg></button></div>
         <details class="recover">
           <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
           <p class="muted small">책(새 테이블)에 같은 시나리오를 넣고 → 친구의 "내 사본" 파일 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
