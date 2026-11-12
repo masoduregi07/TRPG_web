@@ -2429,8 +2429,8 @@ html.has-3d .topbar { box-shadow: none; }
 .due-ask .gp:hover, .due-ask .gp:focus-visible { color: var(--blood); outline: 0; }
 .due-ask.danger .gp.y { color: var(--blood); font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .due-ask { transition: none; } }
-.lb-ft .recover { margin: 0; padding-right: 72px; min-height: 30px; }
-.lb-ft .recover > summary { line-height: 30px; }
+.lb-ft { min-height: 34px; }
+.lb-ft .error { min-height: 0; margin: 0; padding: 8px 110px 0 0; font-size: 12px; }
 .lb-ftrow { position: absolute; right: 10px; bottom: 8px; display: flex; gap: 2px; }   /* 오른쪽 아래 아이콘 줄 (복구 접힘 글과 같은 높이) */
 .lb-ft { position: relative; }
 /* 아이콘(모노톤 18px): 세이브 불러오기 · 폐기. 폐기 모드 = 먹색 칠 + 휴지통 뚜껑 열림, 줄 호버는 붉은 형광펜. 호버하면 위에 꼬리말 */
@@ -2443,8 +2443,6 @@ html.has-3d .topbar { box-shadow: none; }
 .due-ic.tip:hover::after, .due-ic.tip:focus-visible::after { content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 5; white-space: nowrap; padding: 5px 9px; background: #2b1d12; color: #f3e6c4; font: 12px/1.4 var(--font); box-shadow: 2px 2px 0 rgba(0, 0, 0, .3); }
 .due.del-mode tr[data-room] { cursor: crosshair; }
 .due.del-mode tr[data-room]:hover td, .due.del-mode tr.asking td { background: linear-gradient(transparent 55%, rgba(168, 37, 26, .22) 55%); }
-.lb-ft .recover summary { cursor: pointer; font-size: 12px; }
-.lb-ft .recover p { margin: 6px 0; }
 @media (prefers-reduced-motion: reduce) { #lbList .due { animation: none; } }
 /* ===== 참가하기 = 봉투에서 꺼낸 초대장 (#invite) ===== */
 .inv-wrap { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(10, 5, 2, .45); }
@@ -2490,7 +2488,6 @@ html.has-3d .topbar { box-shadow: none; }
 .pbtn.red { background: #8a2216; color: #f6e7c8; box-shadow: inset 0 0 0 1px #5e140b, 1px 1px 0 rgba(60, 40, 20, .3); }
 .pbtn.red:hover, .pbtn.red:focus-visible { background: #a8291a; color: #fff3dc; }
 .pbtn:active, #bkPages .btn:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: inset 0 0 0 1px #5a4128; }
-.lb-ft .recover .pbtn { margin-top: 4px; }
 /* 확인 쪽지 (화면 가운데 미니 창) */
 .pask { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; background: rgba(10, 6, 3, .45); }
 .pask[hidden] { display: none; }
@@ -2577,15 +2574,11 @@ html.has-3d .topbar { box-shadow: none; }
       <!-- 줄을 누르면 그 줄 바로 아래가 늘어나며 물음 한 줄 → 예 / 아니오에 잉크 동그라미 (평소엔 숨겨 둔 줄) -->
       <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td></td><td colspan="2"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div></td></tr></tbody></table>
       <div class="lb-ft">
-        <!-- 오른쪽 아래 모노톤 아이콘: 세이브 파일 불러오기 · 시나리오 폐기(누르면 폐기 모드 = 휴지통 뚜껑 열림) -->
-        <div class="lb-ftrow"><label class="due-ic tip" tabindex="0" role="button" data-tip="세이브 파일 불러오기" aria-label="세이브 파일 불러오기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4.5v9h13v-7h-6.5l-1.5-2z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 12V7.5M5.8 9.6L8 7.4l2.2 2.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
+        <!-- 오른쪽 아래 모노톤 아이콘: 플레이어 사본으로 복구 · 세이브 파일 불러오기 · 시나리오 폐기(누르면 폐기 모드 = 휴지통 뚜껑 열림) -->
+        <div class="lb-ftrow"><label id="recoverBtn" class="due-ic tip" tabindex="0" role="button" data-tip="플레이어 사본으로 복구" aria-label="플레이어 사본으로 복구"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 1.5h6l2.5 2.5v8h-8.5z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M3.5 4v10.5h8" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M7.5 9.2a2.3 2.3 0 1 0 .8-2.6M7.3 5.6v1.9h1.9" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
+          <label class="due-ic tip" tabindex="0" role="button" data-tip="세이브 파일 불러오기" aria-label="세이브 파일 불러오기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4.5v9h13v-7h-6.5l-1.5-2z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 12V7.5M5.8 9.6L8 7.4l2.2 2.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
           <button id="dueDelBtn" class="due-ic due-del tip" type="button" data-tip="시나리오 폐기" aria-label="시나리오 폐기" aria-pressed="false"><svg class="ic-shut" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M6 4V2.5h4V4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M3.8 4l.8 10h6.8l.8-10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.5 6.5v5M9.5 6.5v5" stroke="currentColor" stroke-width="1"/></svg><svg class="ic-open" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.2 3.6l10.6-2.4M6.3 2.6l-.3-1.3 3.7-.8.3 1.3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M3.8 5.5l.8 8.5h6.8l.8-8.5z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.5 7.5v4.5M9.5 7.5v4.5" stroke="currentColor" stroke-width="1"/></svg></button></div>
-        <details class="recover">
-          <summary>호스트 데이터 분실 시: 플레이어 사본으로 복구</summary>
-          <p class="muted small">책(새 테이블)에 같은 시나리오를 넣고 → 친구의 "내 사본" 파일 선택. 장면 · 단서 · 캐릭터 · 로그 복구. 친구들은 같은 링크, 같은 닉네임으로 들어오면 제자리를 찾음.</p>
-          <label class="pbtn" tabindex="0" role="button">사본 파일<input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
-          <p id="recoverError" class="error" role="alert"></p>
-        </details>
+        <p id="recoverError" class="error" role="alert"></p>
       </div>
     </div>
   </section>
@@ -9598,11 +9591,16 @@ const BannerArt = (() => {
   });
 
   // 복구 (이어하기 장): 새 테이블 장에 넣은 시나리오 + 친구의 사본 파일
+  // 복구 아이콘: 책에 넣은 시나리오가 없으면 파일 고르기 전에 막고 안내
+  $("#recoverBtn").addEventListener("click", (e) => {
+    if (e.target.id === "recoverInput" || validScenario || (setupReady && validate())) return ($("#recoverError").textContent = "");
+    e.preventDefault(); $("#recoverError").textContent = "복구 실패: 책(새 테이블)에 같은 시나리오를 넣고 검사 통과 먼저.";
+  });
   $("#recoverInput").addEventListener("change", async (e) => {
     try {
       $("#recoverError").textContent = "";
       const sc = validScenario ?? validate();
-      if (!sc) throw new Error("새 테이블 장에 같은 시나리오를 넣고 검사 통과 먼저.");
+      if (!sc) throw new Error("책(새 테이블)에 같은 시나리오를 넣고 검사 통과 먼저.");
       const copy = JSON.parse(await readFile(e.target));
       if (copy?.snap?.scenario?.title && copy.snap.scenario.title !== sc.title &&
           !(await paperAsk(`사본은 「${copy.snap.scenario.title}」, 넣은 시나리오는 「${sc.title}」. 계속할까?`))) return;
