@@ -2404,27 +2404,28 @@ html.has-3d .topbar { box-shadow: none; }
 #home.bk-narrow .bk-page[data-spread="0"][data-side="L"] { height: auto; }
 #home.bk-narrow .bk-page[data-spread="0"][data-side="L"] > .ev-warns { flex: none; max-height: 220px; }
 /* ===== 이어하기 = 주머니에서 옆으로 쏟아진 대출 카드 목록 (#lbList) ===== */
-.lb-list { position: absolute; top: 50%; z-index: 20; max-height: 86vh; display: flex; flex-direction: column; translate: 0 -50%; filter: drop-shadow(3px 8px 14px rgba(10, 5, 2, .55)); }
+.lb-list { position: absolute; top: 0; bottom: 0; z-index: 20; display: flex; flex-direction: column; justify-content: safe center; padding: 12px 0; box-sizing: border-box; overflow-y: auto; pointer-events: none; scrollbar-width: none; filter: drop-shadow(3px 8px 14px rgba(10, 5, 2, .55)); }   /* 줄 수만큼 표가 늘어남(표 안 스크롤 없음), 화면보다 길 때만 목록째 움직임 */
+.lb-list > * { pointer-events: auto; flex: none; }
 .lb-list[hidden] { display: none; }
-/* 목록 = 예전 대출기간표: 반납일(남색 도장) · 사건(챕터) · 비고(진행/준비). 줄 누르면 확인 띠, 줄 끝 ✕ = 폐기 */
+/* 목록 = 예전 대출기간표: 날짜 · 이름 · 비고(챕터). 줄 수만큼 표가 늘어남(안 스크롤), 줄 누르면 그 아래 물음 줄 */
 .due { position: relative; outline: 0; margin: 0; padding-bottom: 12px !important; animation: lb-out .38s cubic-bezier(.2, .75, .3, 1) backwards; padding: 12px 14px 16px; box-sizing: border-box; background: #f6efdc; box-shadow: 1px 2px 0 rgba(60, 40, 20, .3); }
 .due h4 { margin: 0 0 8px; text-align: center; font: 15px/1.4 "Galmuri11", var(--font); letter-spacing: .5em; font-weight: 400; }
 .due table { width: 100%; border-collapse: collapse; table-layout: fixed; font: 12px/26px var(--font); }
 .due th { border: 1px solid #6b5338; font: 10.5px/22px var(--font); color: #5a4630; font-weight: 400; }
-.due .c-d { width: 54px; } .due .c-n { width: 74px; }   /* 날짜는 MM·DD 폭만큼 */
+.due .c-d { width: 54px; } .due .c-n { width: 168px; }   /* 날짜는 MM·DD 폭만큼, 비고 = 챕터 */
 .due td.d { font: 12px/26px "Galmuri9", var(--font); color: #2a3a8a; }
 .due td { height: 26px; border-left: 1px solid #6b5338; border-right: 1px solid #6b5338; border-bottom: 1px solid rgba(107, 83, 56, .4); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .due tr:last-child td { border-bottom: 1px solid #6b5338; }
-.due td.n { text-align: left; padding-left: 6px; font-size: 11.5px; }
-.due-scroll { max-height: calc(24px + 9 * 26px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #a08660 transparent; }   /* 9줄 넘으면 표 안에서 스크롤 */
-.due thead th { position: sticky; top: 0; background: #f6efdc; }
+.due td.n { padding: 0 6px; font-size: 12px; }   /* 이름은 가운데 */
+/* 칸마다 다른 옅은 바탕: 날짜 남색 · 이름 그대로 · 비고 황토 */
+.due .c-d, .due td.d, .due tr.ask-row td:first-child { background-color: rgba(42, 58, 138, .07); }
+.due .c-n, .due td.c { background-color: rgba(150, 110, 40, .1); }
 .due tr[data-room] { cursor: pointer; }
 .due tr.front td.n { font-weight: 700; }
-.due tr.hot td { background: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
-.due .st { display: inline-block; padding: 0 5px; border: 1.5px solid #a8251a; color: #a8251a; font: 11px/16px "Galmuri9", var(--font); rotate: -3deg; }   /* 비고 = 도장 (진행 붉은색 · 준비 갈색) */
-.due .st.prep { border-color: #7a6a50; color: #7a6a50; rotate: 2deg; }
+.due tr.hot td { background-image: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
+.due td.c { padding: 0 6px; font-size: 12px; color: #5a4630; }   /* 비고 = 지금 챕터 (도장 없음) */
 @keyframes lb-out { from { translate: 0 60vh; } }   /* 화면 아래에서 위로 올라옴 */
-.due tr[data-room]:hover td, .due tr.asking td { background: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
+.due tr[data-room]:hover td, .due tr.asking td { background-image: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
 .due td.c { position: relative; }
 .lb-ft { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 8px; border-top: 1px dashed rgba(90, 60, 30, .3); font-size: 13px; color: #6d5a40; }   /* 왼쪽 안내 한 줄 · 오른쪽 아이콘 줄, 세로 가운데 */
 .lb-ft .error { flex: 1; min-width: 0; min-height: 0; margin: 0; font-size: 12px; line-height: 1.4; }
@@ -2451,7 +2452,7 @@ html.has-3d .topbar { box-shadow: none; }
 .due-del[aria-pressed="true"] { background: #2b1d12; color: #f3e6c4; }
 .due-ic.tip:hover::after, .due-ic.tip:focus-visible::after { content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 5; white-space: nowrap; padding: 5px 9px; background: #2b1d12; color: #f3e6c4; font: 12px/1.4 var(--font); box-shadow: 2px 2px 0 rgba(0, 0, 0, .3); }
 .due.del-mode tr[data-room] { cursor: crosshair; }
-.due.del-mode tr[data-room]:hover td, .due.del-mode tr.asking td { background: linear-gradient(transparent 55%, rgba(168, 37, 26, .22) 55%); }
+.due.del-mode tr[data-room]:hover td, .due.del-mode tr.asking td { background-image: linear-gradient(transparent 55%, rgba(168, 37, 26, .22) 55%); }
 @media (prefers-reduced-motion: reduce) { #lbList .due { animation: none; } }
 /* ===== 참가하기 = 봉투에서 꺼낸 초대장 (#invite) ===== */
 .inv-wrap { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: transparent; transition: background .2s; }
@@ -2577,7 +2578,7 @@ html.has-3d .topbar { box-shadow: none; }
   </nav>
   <!-- 이어하기: 주머니를 누르면 대출 카드가 옆으로 쏟아져 테이블 목록 -->
   <section id="lbList" class="lb-list" hidden aria-label="이어하기">
-    <div id="myTables" class="due" tabindex="-1"><h4>시나리오 리스트</h4><div class="due-scroll"><table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
+    <div id="myTables" class="due" tabindex="-1"><h4>시나리오 리스트</h4><div class="due-body"><table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
       <!-- 줄을 누르면 그 줄 바로 아래가 늘어나며 물음 한 줄 → 예 / 아니오에 잉크 동그라미 (평소엔 숨겨 둔 줄) -->
       <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td></td><td colspan="2"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div></td></tr></tbody></table>
       <div class="lb-ft">
@@ -9304,12 +9305,16 @@ const BannerArt = (() => {
   function renderTables() {
     const list = app.tables ?? [];
     Scene3D.desk({ count: list.length, date: list[0] ? md(list[0].savedAt) : "" });
-    const open = async (tr, t) => { if (Desk.delMode) return deleteTable(t, tr); if (await cardAsk(tr, "이 시나리오를 읽을까?")) Book.leave(`room=${t.room}`); };
+    const open = async (tr, t) => {
+      if (cardAskDone && tr.classList.contains("asking")) return;   // 이미 물음이 열린 줄: 그대로 둠 (다른 곳을 누를 때까지 고정)
+      if (Desk.delMode) return deleteTable(t, tr);
+      if (await cardAsk(tr, "이 시나리오를 읽을까?")) Book.leave(`room=${t.room}`);
+    };
     const rows = list.map((t) => el("tr", { "data-room": t.room, tabindex: "0", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title,
       on: { click: (e) => open(e.currentTarget, t), keydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) open(e.currentTarget, t); } } },
       el("td", { class: "d" }, md(t.savedAt)),
       el("td", { class: "n" }, t.title),
-      el("td", { class: "c" }, el("span", { class: `st${t.phase === "play" ? "" : " prep"}` }, t.phase === "play" ? "진행" : "준비"))));
+      el("td", { class: "c" }, t.chapter ? `${t.chapter.n}장 ${t.chapter.title}` : "")));
     while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
     cardAskDone?.(false, true); stashAsk();
     $("#dueRows").replaceChildren(...rows);
