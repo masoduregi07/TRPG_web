@@ -7857,9 +7857,151 @@ void main() {
     gl.bindTexture(gl.TEXTURE_2D, face); drawMesh(SL.top); drawMesh(SL.bot);
     gl.uniform1f(U.u_alphaTest, 0);
   }
+  /* 책 왼쪽 탁자 위 (장식): 빛바랜 사진 두 장 · 신분증 카드 · 만년필 · 가죽 주머니 + 쏟아진 주사위 셋
+   * 책을 펼치면 표지가 이 자리에 놓이므로 펼치는 동안 디더로 사라짐 */
+  /** 회전체: prof = [[반지름, 높이], …] 아래에서 위로. wob = 반지름 들쭉날쭉(구겨진 가죽) */
+  function lathe(prof, seg, wob = 0) {
+    const pos = [], nrm = [], uv = [], idx = [], n = prof.length;
+    const bump = (i, j) => (wob && i > 0 && i < n - 1 ? 1 + wob * (Math.sin(j % seg * 2.3 + i * 1.7) * .6 + Math.sin(j % seg * 5.1 + i * 3.9) * .4) : 1);
+    for (let i = 0; i < n; i++) {
+      const [ra, ya] = prof[Math.max(0, i - 1)], [rb, yb] = prof[Math.min(n - 1, i + 1)];
+      const dr = rb - ra, dy = yb - ya, l = Math.hypot(dr, dy) || 1;
+      for (let j = 0; j <= seg; j++) {
+        const a = j / seg * Math.PI * 2, r = prof[i][0] * bump(i, j);
+        pos.push(Math.cos(a) * r, prof[i][1], Math.sin(a) * r);
+        nrm.push(Math.cos(a) * dy / l, -dr / l, Math.sin(a) * dy / l);
+        uv.push(j / seg, i / (n - 1));
+      }
+    }
+    for (let i = 0; i < n - 1; i++) for (let j = 0; j < seg; j++) { const a = i * (seg + 1) + j, b = a + seg + 1; idx.push(a, b, b + 1, a, b + 1, a + 1); }
+    return mesh(pos, nrm, uv, idx);
+  }
+  /** 주사위: 밑면 중심이 원점인 정육면체, 면마다 텍스처 3×2 칸 중 하나 (+z 1 · −z 6 · +x 3 · −x 4 · +y 5 · −y 2) */
+  function dieMesh(s) {
+    const h = s / 2, faces = [
+      [[0, 0, 1], [[-h, 0, h], [h, 0, h], [h, s, h], [-h, s, h]], 0], [[0, 0, -1], [[h, 0, -h], [-h, 0, -h], [-h, s, -h], [h, s, -h]], 5],
+      [[1, 0, 0], [[h, 0, h], [h, 0, -h], [h, s, -h], [h, s, h]], 2], [[-1, 0, 0], [[-h, 0, -h], [-h, 0, h], [-h, s, h], [-h, s, -h]], 3],
+      [[0, 1, 0], [[-h, s, h], [h, s, h], [h, s, -h], [-h, s, -h]], 4], [[0, -1, 0], [[-h, 0, -h], [h, 0, -h], [h, 0, h], [-h, 0, h]], 1],
+    ];
+    const pos = [], nrm = [], uv = [], idx = [];
+    for (const [nv, vs, k] of faces) {
+      const b = pos.length / 3, u0 = (k % 3) / 3, v0 = (k / 3 | 0) / 2;
+      vs.forEach((v) => { pos.push(...v); nrm.push(...nv); });
+      uv.push(u0, v0 + .5, u0 + 1 / 3, v0 + .5, u0 + 1 / 3, v0, u0, v0);
+      idx.push(b, b + 1, b + 2, b, b + 2, b + 3);
+    }
+    return mesh(pos, nrm, uv, idx);
+  }
+  const SEPIA = [150, 138, 116];
+  const photoTex = (sd) => ctex(72, 88, (g, w, h) => {
+    seed = sd;
+    grain(g, w, h, [214, 198, 160], .1, 4, (x, y) => Math.sin(x * .3 + y * .05) * .02);
+    const ix = 7, iy = 7, iw = w - 14, ih = h - 22;   // 아래 여백이 조금 더 넓은 사진 틀
+    const tmp = document.createElement("canvas"); tmp.width = iw; tmp.height = ih;
+    grain(tmp.getContext("2d"), iw, ih, SEPIA, .12, 0, (x, y) => { const dx = (x - iw / 2) / iw, dy = (y - ih / 2) / ih; return -(dx * dx + dy * dy) * .7 + Math.sin(y * .2 + x * .04) * .03; });
+    g.drawImage(tmp, ix, iy);
+    g.fillStyle = "rgba(70,48,26,.35)"; g.fillRect(ix, iy, iw, .6); g.fillRect(ix, iy, .6, ih);   // 틀 안쪽 그늘
+    g.fillStyle = "rgba(240,228,200,.25)"; for (let i = 0; i < 9; i++) g.fillRect(ix + rnd() * iw, iy + rnd() * ih, .6, .6);   // 먼지 · 긁힘
+    const eg = g.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .4, w / 2, h / 2, Math.hypot(w, h) * .55); eg.addColorStop(0, "rgba(90,56,24,0)"); eg.addColorStop(1, "rgba(90,56,24,.45)"); g.fillStyle = eg; g.fillRect(0, 0, w, h);   // 바랜 가장자리
+    g.fillStyle = "rgba(110,72,30,.12)"; for (let i = 0; i < 3; i++) { const x = rnd() * w, y = rnd() * h, r = 3 + rnd() * 5; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }   // 얼룩
+  });
+  const LT = {
+    photo: [photoTex(31), photoTex(57)],
+    // 신분증 카드: 왼쪽 사진 칸 + 기입선 + 붉은 원형 도장
+    card: ctex(104, 72, (g, w, h) => {
+      seed = 83;
+      grain(g, w, h, [216, 200, 160], .1, 3);
+      g.strokeStyle = "rgba(90,60,30,.5)"; g.lineWidth = .6; g.strokeRect(3.5, 3.5, w - 7, h - 7);
+      const tmp = document.createElement("canvas"); tmp.width = 30; tmp.height = 38;
+      grain(tmp.getContext("2d"), 30, 38, SEPIA, .12, 0, (x, y) => -(((x - 15) / 30) ** 2 + ((y - 19) / 38) ** 2));
+      g.drawImage(tmp, 9, 22); g.strokeStyle = "rgba(70,48,26,.6)"; g.strokeRect(8.7, 21.7, 30.6, 38.6);
+      g.font = "8px Galmuri7"; g.textBaseline = "top"; g.textAlign = "left"; g.fillStyle = "#4a2a14"; g.fillText("탐사자 증명", 9, 8);
+      g.fillStyle = "rgba(74,42,20,.5)"; for (const y of [26, 34, 42, 50]) g.fillRect(46, y, w - 56, .5);
+      g.fillStyle = "rgba(74,42,20,.35)"; for (const y of [24, 32, 40]) g.fillRect(46, y - 3, 10 + rnd() * 14, .8);
+      g.save(); g.translate(w - 22, h - 20); g.rotate(-.3); g.strokeStyle = "rgba(168,40,30,.7)"; g.lineWidth = 1;
+      g.beginPath(); g.arc(0, 0, 11, 0, 7); g.stroke(); g.lineWidth = .6; g.beginPath(); g.arc(0, 0, 8, 0, 7); g.stroke();
+      g.fillStyle = "rgba(168,40,30,.7)"; g.fillRect(-5, -.4, 10, .8); g.font = "8px Galmuri7"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("證", 0, -3.6); g.restore();
+    }),
+    // 만년필: 검은 옻칠(세로 결 + 광택 줄) · 금 테
+    lacquer: ctex(16, 16, (g, w, h) => { g.fillStyle = "#1b1512"; g.fillRect(0, 0, w, h); g.fillStyle = "rgba(160,130,110,.35)"; g.fillRect(0, 3, w, 1); g.fillStyle = "rgba(120,90,70,.2)"; g.fillRect(0, 10, w, 1); }),
+    gold: ctex(8, 8, (g, w, h) => { g.fillStyle = "#b8893a"; g.fillRect(0, 0, w, h); g.fillStyle = "#e8c070"; g.fillRect(0, 1, w, 2); }),
+    // 가죽 주머니: 얼룩덜룩한 갈색 + 닳아 밝은 자리
+    pouch: ctex(64, 64, (g, w, h) => {
+      seed = 101;
+      grain(g, w, h, [92, 58, 34], .2, 0, (x, y) => Math.sin(x * .35 + Math.sin(y * .2) * 3) * .1 + Math.sin(y * .5 + x * .1) * .06);
+      g.fillStyle = "rgba(200,150,100,.22)"; for (let i = 0; i < 10; i++) { g.beginPath(); g.ellipse(rnd() * w, rnd() * h, 2 + rnd() * 6, 1 + rnd() * 3, rnd() * 3, 0, 7); g.fill(); }
+      g.fillStyle = "rgba(40,22,10,.3)"; for (let i = 0; i < 14; i++) g.fillRect(rnd() * w, rnd() * h, 4 + rnd() * 10, .7);   // 주름
+    }),
+    pouchIn: tex(8, (g, s) => noise(g, s, [58, 36, 20], .2)),
+    cord: tex(8, (g, s) => { noise(g, s, [176, 128, 80], .15); g.fillStyle = "rgba(60,36,16,.5)"; for (let y = 0; y < s; y += 3) g.fillRect(0, y, s, 1); }),
+    // 주사위 면 3×2 (1 · 2 · 3 / 4 · 5 · 6)
+    die: ctex(96, 64, (g) => {
+      const P = { 1: [[1, 1]], 2: [[0, 0], [2, 2]], 3: [[0, 0], [1, 1], [2, 2]], 4: [[0, 0], [2, 0], [0, 2], [2, 2]], 5: [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]], 6: [[0, 0], [2, 0], [0, 1], [2, 1], [0, 2], [2, 2]] };
+      for (let k = 0; k < 6; k++) {
+        const x0 = (k % 3) * 32, y0 = (k / 3 | 0) * 32, n = [1, 2, 3, 4, 5, 6][k];
+        const gr = g.createRadialGradient(x0 + 16, y0 + 16, 4, x0 + 16, y0 + 16, 22); gr.addColorStop(0, "#efe2c2"); gr.addColorStop(.7, "#e0cfa6"); gr.addColorStop(1, "#a88f62");
+        g.fillStyle = gr; g.fillRect(x0, y0, 32, 32);
+        g.fillStyle = "#2a1a10";
+        for (const [i, j] of P[n]) { g.beginPath(); g.arc(x0 + 8 + i * 8, y0 + 8 + j * 8, n === 1 ? 4 : 3, 0, 7); g.fill(); }
+      }
+    }),
+  };
+  // 만년필 축(아래 = 펜촉 끝, 위 = 뚜껑 끝): 펜촉 · 손잡이 · 몸통 · 뚜껑 + 금 테
+  const PEN = { nib: lathe([[0, 0], [.004, .012], [.0085, .04]], 8), grip: lathe([[.0085, .04], [.0095, .045], [.0105, .09]], 10),
+    ring: lathe([[.0125, 0], [.0128, .002], [.0128, .007], [.0125, .009]], 10), body: lathe([[.0115, .092], [.0125, .1], [.0125, .2]], 10),
+    cap: lathe([[.0135, .2], [.0138, .21], [.0135, .31], [.011, .325], [.004, .332], [0, .333]], 10), clip: box(.004, .003, .1) };
+  // 주머니(옆으로 누운 회전체): 둥근 바닥 → 불룩한 몸 → 끈으로 조인 목 → 벌어진 입구
+  const POUCH = { bag: lathe([[0, 0], [.05, .008], [.09, .03], [.115, .07], [.12, .12], [.11, .17], [.085, .21], [.05, .24], [.036, .255], [.05, .275], [.064, .3]], 14, .08),
+    inside: lathe([[.062, .298], [.035, .28], [0, .265]], 14), knot: lathe([[.038, .244], [.047, .252], [.038, .262]], 14), bead: cyl(.012, .024, 6) };
+  const G_die = dieMesh(.075);
+  const LP = {   // 자리: [x, z, 회전]
+    photo: [[-1.19, -1.44, .16, .004, .36, .44], [-.84, -1.27, -.1, .009, .34, .42]],
+    card: [-1.08, -.96, .1, .014, .38, .26],
+    pen: [-.77, -.86, .76],
+    pouch: [-.95, -.45, -.3],
+    dice: [[-.7, -.36, .4, 0], [-.64, -.22, -.25, 1], [-.79, -.2, .9, 2]],
+  };
+  /** 끈 한 토막: a → b 를 잇는 가는 원기둥 */
+  const G_rope = cyl(1, 1, 5);
+  function rope(a, b, rad = .009) {
+    const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], l = Math.hypot(...d), y = d.map((v) => v / l);
+    let x = [y[2], 0, -y[0]]; const xl = Math.hypot(...x) || 1; x = x.map((v) => v / xl);
+    const z = [x[1] * y[2] - x[2] * y[1], x[2] * y[0] - x[0] * y[2], x[0] * y[1] - x[1] * y[0]];
+    gl.uniformMatrix4fv(U.u_model, false, [...x.map((v) => v * rad), 0, ...d, 0, ...z.map((v) => v * rad), 0, ...a, 1]);
+    gl.uniform1f(U.u_emissive, .22); gl.bindTexture(gl.TEXTURE_2D, LT.cord); drawMesh(G_rope);
+  }
+  function drawLeft() {
+    const fade = Math.min(1, bk.p * 1.8);
+    if (fade >= 1) return;
+    gl.uniform1f(U.u_ghost, fade);
+    const put = (m, t, model, em) => { gl.uniformMatrix4fv(U.u_model, false, model); gl.uniform1f(U.u_emissive, em); gl.bindTexture(gl.TEXTURE_2D, t); drawMesh(m); };
+    // 납작한 종이들 (조금씩 높이를 달리해 겹친 곳이 깜빡이지 않게)
+    const flat = ([x, z, r, y, w, d], t) => drawSlab(chain(M.trs(x, y, z, r), M.T(-w / 2, 0, 0), M.S(w, .004, d)), t, T_kraft, T_kraft, .26);
+    LP.photo.forEach((p, i) => flat(p, LT.photo[i].t));
+    flat(LP.card, LT.card.t);
+    // 만년필: 축을 눕혀 탁자 위에 (반지름만큼 띄움)
+    { const [x, z, r] = LP.pen, base = chain(M.trs(x, .0138 * 1.35, z, r, 1.35), M.RZ(-Math.PI / 2), M.T(0, -.17, 0));
+      for (const [m, t] of [[PEN.nib, LT.gold.t], [PEN.grip, LT.lacquer.t], [PEN.body, LT.lacquer.t], [PEN.cap, LT.lacquer.t]]) put(m, t, base, .1);
+      for (const y of [.088, .195, .24, .3]) put(PEN.ring, LT.gold.t, chain(base, M.T(0, y, 0)), .14);
+      put(PEN.clip, LT.gold.t, chain(base, M.T(-.0135, .275, 0), M.RX(Math.PI / 2)), .14); }
+    // 주머니: 바닥을 깔고 앉아 오른쪽 뒤로 기운 자루. 조인 목에서 끈 두 가닥이 앞으로 늘어져 탁자에 닿음
+    { const [x, z, r] = LP.pouch, base = chain(M.trs(x, .07, z, r, 1.4), M.RZ(-Math.PI / 2 + .4), M.S(.72, 1, 1), M.T(0, -.15, 0));
+      put(POUCH.bag, LT.pouch.t, base, .08); put(POUCH.inside, LT.pouchIn, base, .04); put(POUCH.knot, LT.cord, base, .14);
+      const at = (m, v) => [0, 1, 2].map((i) => m[i] * v[0] + m[4 + i] * v[1] + m[8 + i] * v[2] + m[12 + i]);
+      const neck = at(base, [0, .245, -.04]);
+      for (const [dx, dz] of [[-.13, .17], [-.04, .2]]) {
+        const mid = [neck[0] + dx * .35, .025, neck[2] + dz * .35], end = [neck[0] + dx, .007, neck[2] + dz];
+        rope(neck, mid); rope(mid, end);
+        put(POUCH.bead, LT.cord, M.trs(end[0], 0, end[2], 0), .14);
+      } }
+    // 주사위: 다른 눈이 위로 오게 굴려 둠
+    const roll = [M.T(0, 0, 0), M.RX(Math.PI / 2), M.RZ(Math.PI / 2)];
+    for (const [x, z, r, k] of LP.dice) put(G_die, LT.die.t, chain(M.trs(x, 0, z, r), M.T(0, .0375, 0), roll[k], M.T(0, -.0375, 0)), .12);
+    gl.uniform1f(U.u_ghost, 0);
+  }
   // 픽셀 글꼴이 늦게 오면 표지 · 주머니 · 봉투 글자를 다시 그림
   document.fonts?.load?.("8px Galmuri7").then(() => document.fonts.load("15px Galmuri14")).then(() => {
-    if (!gl.isContextLost()) { BT.cover.paint(); DT.cards.paint(); DT.front.paint(); DT.env.paint(); DT.flap.paint(); scheduleFrame(); }
+    if (!gl.isContextLost()) { BT.cover.paint(); DT.cards.paint(); DT.front.paint(); DT.env.paint(); DT.flap.paint(); LT.card.paint(); scheduleFrame(); }
   }, noop);
   SEAL_IMG.onload = () => { if (!gl.isContextLost()) { DT.flap.paint(); scheduleFrame(); } };
 
@@ -7962,6 +8104,7 @@ void main() {
       drawSlab(m, BT.paper[0].t, BT.paper[1].t, BT.edge, pe);
     }
     drawDesk();
+    drawLeft();
   }
 
 
