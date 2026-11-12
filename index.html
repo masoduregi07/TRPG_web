@@ -2422,7 +2422,9 @@ html.has-3d .topbar { box-shadow: none; }
 @keyframes lb-out { from { translate: 0 60vh; } }   /* 화면 아래에서 위로 올라옴 */
 .due tr[data-room]:hover td, .due tr.asking td { background: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
 .due td.c { position: relative; }
-.lb-ft { margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(90, 60, 30, .3); font-size: 13px; color: #6d5a40; }
+.lb-ft { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 8px; border-top: 1px dashed rgba(90, 60, 30, .3); font-size: 13px; color: #6d5a40; }   /* 왼쪽 안내 한 줄 · 오른쪽 아이콘 줄, 세로 가운데 */
+.lb-ft .error { flex: 1; min-width: 0; min-height: 0; margin: 0; font-size: 12px; line-height: 1.4; }
+.lb-ftrow { order: 1; display: flex; gap: 4px; margin-left: auto; }
 .due-ask { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .2s ease; }
 .due-ask.on { grid-template-rows: 1fr; }
 .due-ask > .in { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 0; overflow: hidden; font: 13px/1.4 var(--font); }
@@ -2435,13 +2437,10 @@ html.has-3d .topbar { box-shadow: none; }
 .due-ask .gp:hover, .due-ask .gp:focus-visible { color: var(--blood); outline: 0; }
 .due-ask.danger .gp.y { color: var(--blood); font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .due-ask { transition: none; } }
-.lb-ft { min-height: 34px; }
-.lb-ft .error { min-height: 0; margin: 0; padding: 8px 110px 0 0; font-size: 12px; }
-.lb-ftrow { position: absolute; right: 10px; bottom: 8px; display: flex; gap: 2px; }   /* 오른쪽 아래 아이콘 줄 (복구 접힘 글과 같은 높이) */
-.lb-ft { position: relative; }
 /* 아이콘(모노톤 18px): 세이브 불러오기 · 폐기. 폐기 모드 = 먹색 칠 + 휴지통 뚜껑 열림, 줄 호버는 붉은 형광펜. 호버하면 위에 꼬리말 */
-.due-ic { position: relative; display: inline-block; width: 30px; height: 30px; padding: 6px; box-sizing: border-box; border: 0; background: none; color: #5a4128; cursor: pointer; }
-.due-ic svg { display: block; width: 18px; height: 18px; }
+.due-ic { --ic: 18px; --ic-hit: 32px; position: relative; display: inline-grid; place-items: center; width: var(--ic-hit); height: var(--ic-hit); padding: 0; box-sizing: border-box; border: 0; background: none; color: #5a4128; cursor: pointer; }
+/* 같은 세트: 16칸 그림을 --ic 크기로, 선은 모두 1.25 · 끝 둥글게 (그림 안 굵기를 SVG마다 따로 적지 않음) */
+.due-ic svg { display: block; width: var(--ic); height: var(--ic); fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
 .due-ic:hover, .due-ic:focus-visible { color: var(--ink); outline: 0; background: rgba(90, 65, 40, .12); }
 .due-del .ic-open, .due-del[aria-pressed="true"] .ic-shut { display: none; }
 .due-del[aria-pressed="true"] .ic-open { display: block; }
@@ -2585,9 +2584,9 @@ html.has-3d .topbar { box-shadow: none; }
       <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td></td><td colspan="2"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div></td></tr></tbody></table>
       <div class="lb-ft">
         <!-- 오른쪽 아래 모노톤 아이콘: 플레이어 사본으로 복구 · 세이브 파일 불러오기 · 시나리오 폐기(누르면 폐기 모드 = 휴지통 뚜껑 열림) -->
-        <div class="lb-ftrow"><label id="recoverBtn" class="due-ic tip" tabindex="0" role="button" data-tip="플레이어 사본으로 복구" aria-label="플레이어 사본으로 복구"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 1.5h6l2.5 2.5v8h-8.5z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M3.5 4v10.5h8" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M7.5 9.2a2.3 2.3 0 1 0 .8-2.6M7.3 5.6v1.9h1.9" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
-          <label class="due-ic tip" tabindex="0" role="button" data-tip="세이브 파일 불러오기" aria-label="세이브 파일 불러오기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4.5v9h13v-7h-6.5l-1.5-2z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 12V7.5M5.8 9.6L8 7.4l2.2 2.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
-          <button id="dueDelBtn" class="due-ic due-del tip" type="button" data-tip="시나리오 폐기" aria-label="시나리오 폐기" aria-pressed="false"><svg class="ic-shut" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M6 4V2.5h4V4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M3.8 4l.8 10h6.8l.8-10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.5 6.5v5M9.5 6.5v5" stroke="currentColor" stroke-width="1"/></svg><svg class="ic-open" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.2 3.6l10.6-2.4M6.3 2.6l-.3-1.3 3.7-.8.3 1.3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M3.8 5.5l.8 8.5h6.8l.8-8.5z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.5 7.5v4.5M9.5 7.5v4.5" stroke="currentColor" stroke-width="1"/></svg></button></div>
+        <div class="lb-ftrow"><label id="recoverBtn" class="due-ic tip" tabindex="0" role="button" data-tip="플레이어 사본으로 복구" aria-label="플레이어 사본으로 복구"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5h5.5l2.5 2.5v7.5H5z"/><path d="M3 5v8.5h7"/><path d="M8 9.6a1.9 1.9 0 1 0 .6-2.2M8.3 5.9v1.6h1.6"/></svg><input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
+          <label class="due-ic tip" tabindex="0" role="button" data-tip="세이브 파일 불러오기" aria-label="세이브 파일 불러오기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3v10h12V5.5H8L6.3 3z"/><path d="M8 11.2V7.6M6.4 9.2L8 7.6l1.6 1.6"/></svg><input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
+          <button id="dueDelBtn" class="due-ic due-del tip" type="button" data-tip="시나리오 폐기" aria-label="시나리오 폐기" aria-pressed="false"><svg class="ic-shut" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M6.3 4.5V3h3.4v1.5"/><path d="M4 4.5l.7 9h6.6l.7-9"/><path d="M6.8 7v4M9.2 7v4"/></svg><svg class="ic-open" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.6 4.2l10.6-2.3M6.2 3.4L6 2.1l3.3-.7.3 1.3"/><path d="M4 6l.7 7.5h6.6L12 6z"/><path d="M6.8 8v3.5M9.2 8v3.5"/></svg></button></div>
         <p id="recoverError" class="error" role="alert"></p>
       </div>
     </div>
@@ -9298,6 +9297,8 @@ const BannerArt = (() => {
     let delMode = false;
     const setDel = (on) => { delMode = on; $("#myTables").classList.toggle("del-mode", on); $("#dueDelBtn").setAttribute("aria-pressed", String(on)); cardAskDone?.(false, true); };
     $("#dueDelBtn").addEventListener("click", () => { setDel(!delMode); Sfx.play("tap"); });
+    // 폐기 모드에서 줄 · 아이콘이 아닌 빈 곳을 누르면 원래대로
+    $("#myTables").addEventListener("click", (e) => { if (delMode && !e.target.closest('tr[data-room], #dueAskRow, .due-ic')) setDel(false); });
     const key = (e) => { if (e.key === "Escape" && open && !cardAskDone && !e.defaultPrevented) { e.preventDefault(); e.stopImmediatePropagation(); if (delMode) setDel(false); else close(); } };
     const away = (e) => { if (open === "list" && !list.contains(e.target) && !e.target.closest?.(".lb-ask, .pask") && !e.target.closest?.('[data-act="pocket"]')) close(); };
     function close() {
