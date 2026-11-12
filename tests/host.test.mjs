@@ -391,3 +391,47 @@ test("NPC 카드: 호출 오류는 실패로 안 적고 1분 뒤 다시, 3번 �
   assert.equal(calls, 3);
   assert.ok(data.game.npcCardFail?.length, "3번 연속 오류면 포기");
 });
+
+test("문답 맴돎: 변화 없는 서술이 네 차례 이어지면 정체시진행에 매듭 안내, 판정이 걸리면 다시 셈 · 최근NPC몸짓 맥락", () => {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {}, aiCall: async () => "{}" });
+  data.phase = "play"; data.game = m.Engine.newState(sc);
+  data.players.p1 = { name: "가", ready: true, character: { name: "한서" } };
+  const npc = sc.npcs[sc.scenes[sc.start].npcs[0]].name;
+  const plan = (over = {}) => ({ narration: `${npc}이 한숨을 쉬었다. "글쎄요."`, answers: [], give: [], take: [], hurt: [], heal: [], blocks: [], newNpcs: [], showHandouts: [], onTrack: true, ...over });
+  const turn = (p) => { g.applyPlan(p); data.game.aiCursor = data.logSeq; };
+  for (let i = 0; i < 3; i++) turn(plan());
+  assert.equal(g.turnContext().ctx.정체시진행, "정상 진행");
+  turn(plan());
+  const { ctx, info } = g.turnContext();
+  assert.match(ctx.정체시진행, /문답만 이어짐/);
+  assert.equal(JSON.stringify(info.npcGestures[npc]), JSON.stringify([["한숨"], ["한숨"], ["한숨"]]), "그 NPC가 나온 최근 서술 3개");
+  assert.equal(JSON.stringify(ctx.최근NPC몸짓[npc]), JSON.stringify(["한숨"]));
+  turn(plan());
+  assert.equal(g.turnContext().ctx.정체시진행, "정상 진행", "안내를 준 뒤에는 다시 셈");
+  for (let i = 0; i < 2; i++) turn(plan());
+  turn(plan({ checks: [{ type: "improv", spec: { skill: "관찰력", reason: "살피기" }, who: "p1", whoName: "한서" }], check: { type: "improv" } }));
+  assert.equal(data.game.loopTurns, 0);
+});
+
+test("askGM: 캐릭터 말을 옮겨 쓴 서술 · 되풀이한 몸짓이면 이유를 붙여 다시 묻고 고친 응답을 씀", async () => {
+  const { g } = table();
+  const replies = [
+    JSON.stringify({ narration: "어두운 예배당 안에서 한진우에게 어두워서 무언가를 하기 어렵다고 말을 건넸다." }),
+    JSON.stringify({ narration: "한진우가 성냥갑을 흔들어 보았다. \"세 개비 남았어요. 아껴 써야겠는데요.\"" }),
+    JSON.stringify({ narration: "한진우는 안경을 고쳐 쓰며 천장을 올려다보았다. \"위에서 뭔가 떨어졌어요.\"" }),
+    JSON.stringify({ narration: "한진우가 어깨에 묻은 것을 손등으로 훔쳤다. \"위에서 뭔가 떨어졌어요. 끈적한데요.\"" }),
+  ];
+  const asked = [];
+  g.aiCall = async (messages) => { asked.push(messages); return replies[asked.length - 1]; };
+  const info = { skills: [], clues: [], checks: [], exits: [], pending: [], pendingOwners: [], chars: [{ pid: "p1", name: "김나윤", player: "가", items: [] }], npcs: [], actors: [], askers: [], order: ["p1"], askOnly: false,
+    handouts: [], npcNames: ["한진우"], gotThisTurn: [], onlyFailedRolls: false, recentText: "", secrets: [], known: "", tone: "prose", askNpc: ["한진우"], npcGestures: { 한진우: [["안경을 고쳐 씀"], []] } };
+  let plan = await g.askGM({ ctx: {}, info, recent: [] });
+  assert.match(asked[1].at(-1).content, /규칙 10/);
+  assert.match(plan.narration, /세 개비/);
+  plan = await g.askGM({ ctx: {}, info, recent: [] });
+  assert.match(asked[3].at(-1).content, /안경을 고쳐 씀/);
+  assert.match(plan.narration, /손등으로/);
+});
