@@ -6903,12 +6903,12 @@ class HostGame {
     }
   }
 
-  /** 묻고 검증: hard 문제가 있으면 이유를 붙여 한 번 더 묻고, 마지막엔 안전한 쪽으로 정리한 계획을 돌려줌 */
+  /** 묻고 검증: hard 문제가 있으면 이유를 붙여 다시 묻고(두 번까지), 마지막(세 번째)엔 안전한 쪽으로 정리한 계획을 돌려줌 */
   async askGM({ ctx, info, recent }, signal = null) {
     const d = this.data;
     const messages = AI.gmMessages(ctx, recent, d.aiStyle);
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const final = attempt === 1;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const final = attempt === 2;
       const text = await this.callAI(messages, signal);
       const parsed = AI.parseGM(text);
       const { plan, issues } = Turn.validate(parsed, info, { final });
