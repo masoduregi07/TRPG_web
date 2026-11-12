@@ -2398,29 +2398,32 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-list[hidden] { display: none; }
 .lb-hd { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 6px; font: 11px/1.4 var(--font); color: #f3e2b5; }
 .lb-hd b { font: 16px/1 "Galmuri9", var(--font); font-weight: 400; }
-.lb-cards { position: relative; outline: 0; margin: 0 0 0 -14px; padding: 2px 0 0 14px;   /* 호버로 왼쪽 10px 빠지는 카드가 안 잘리게 */ list-style: none; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #a08660 transparent; }
-/* 카드 = 예전 대출 카드: 윗줄 제목 + 4자리 번호 + 붉은 선, 아래 칸 줄(상 태 · 대출일 · 플레이어). 주머니 쪽에서 미끄러져 나옴 */
-.lb-card { position: relative; margin-bottom: 8px; padding: 7px 10px 6px; background: #f4ead0; color: var(--ink); font: 11px/1.35 var(--font);
-  box-shadow: 0 -1px 0 rgba(60, 40, 20, .25), 1px 1px 0 rgba(60, 40, 20, .25), 0 4px 6px rgba(30, 15, 3, .35);
-  animation: lb-out .32s cubic-bezier(.2, .7, .3, 1) calc(var(--i, 0) * 35ms) backwards; transition: translate .12s; }
+/* 목록 = 예전 대출기간표: 반납일(남색 도장) · 사건(챕터) · 비고(진행/준비). 줄 누르면 확인 띠, 줄 끝 ✕ = 폐기 */
+.due { position: relative; outline: 0; margin: 0; animation: lb-out .3s cubic-bezier(.2, .7, .3, 1) backwards; padding: 12px 14px 16px; box-sizing: border-box; background: #f6efdc; box-shadow: 1px 2px 0 rgba(60, 40, 20, .3); }
+.due h4 { margin: 0 0 8px; text-align: center; font: 15px/1.4 "Galmuri11", var(--font); letter-spacing: .5em; font-weight: 400; }
+.due table { width: 100%; border-collapse: collapse; table-layout: fixed; font: 12px/26px var(--font); }
+.due th { border: 1px solid #6b5338; font: 10.5px/22px var(--font); color: #5a4630; font-weight: 400; }
+.due .c-d { width: 30%; } .due .c-n { width: 22%; }
+.due td { height: 26px; border-left: 1px solid #6b5338; border-right: 1px solid #6b5338; border-bottom: 1px solid rgba(107, 83, 56, .4); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.due tr:last-child td { border-bottom: 1px solid #6b5338; }
+.due td.n { text-align: left; padding-left: 6px; font-size: 11.5px; }
+.due-scroll { max-height: calc(24px + 9 * 26px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #a08660 transparent; }   /* 9줄 넘으면 표 안에서 스크롤 */
+.due thead th { position: sticky; top: 0; background: #f6efdc; }
+.due tr[data-room] { cursor: pointer; }
+.due tr.front td.n { font-weight: 700; }
+.due tr.hot td { background: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
+.due .st { display: inline-block; padding: 0 5px; border: 1.5px solid #2a3a8a; color: #2a3a8a; font: 11px/16px "Galmuri9", var(--font); rotate: -3deg; }
 @keyframes lb-out { from { translate: var(--from, 0px) 0; opacity: 0; } }
-.lb-card:hover, .lb-card:focus-within, .lb-card.asking { translate: -10px 0; z-index: 2; box-shadow: 0 0 0 2px #a8251a, 0 4px 6px rgba(30, 15, 3, .35); }
-.lb-open { all: unset; display: block; width: 100%; cursor: pointer; }
-.lb-open:focus-visible { outline: 2px dotted #2b1a0c; outline-offset: 2px; }
-.lb-card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 22px 2px 0; margin-bottom: 2px; border-bottom: 2px solid #a8251a; }
-.lb-card .top b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 14px/1.3 "Galmuri14", var(--font); font-weight: 400; }
-.lb-card .no { flex: none; font: 14px/1 "Galmuri9", var(--font); letter-spacing: .05em; }
-.lb-card .r { display: grid; grid-template-columns: 42px 1fr; border-bottom: 1px solid rgba(60, 40, 20, .55); }
-.lb-card .r > span:first-child { padding: 3px 0; border-right: 1px solid rgba(60, 40, 20, .55); font-size: 9.5px; color: #5a4630; }
-.lb-card .r > span + span { padding: 2px 6px; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-card .hw { font: 12px/1.3 "Galmuri9", var(--font); color: #2a3a8a; }
-.lb-del { position: absolute; right: 6px; top: 5px; width: 18px; height: 18px; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
+.due tr[data-room]:hover td, .due tr.asking td { background: linear-gradient(transparent 55%, rgba(240, 200, 80, .5) 55%); }
+.due td.c { position: relative; }
+.lb-del { position: absolute; right: 3px; top: 4px; width: 18px; height: 18px; visibility: hidden; padding: 0; border: 0; background: transparent; color: #8a7a62; cursor: pointer; font: 12px/1 var(--font); }
 .lb-del:hover, .lb-del:focus-visible { color: var(--blood); outline: 0; }
+.due tr:hover .lb-del, .lb-del:focus-visible { visibility: visible; }
 .lb-ft { margin-top: 10px; padding: 10px 12px; background: #efe0b4; font-size: 13px; color: #6d5a40; }
 .lb-ft .recover { margin-top: 8px; }
 .lb-ft .recover summary { cursor: pointer; font-size: 12px; }
 .lb-ft .recover p { margin: 6px 0; }
-@media (prefers-reduced-motion: reduce) { .lb-card { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #lbList .due { animation: none; } }
 /* 카드 확인 쪽지: 고른 카드 바로 위(맨 위 카드면 아래), 한 줄짜리 종이 띠 "「제목」 시나리오를 읽을까? [예 / 아니오]". 카드 뒤에서 위로 슥 (0.22초) */
 .lb-ask { position: absolute; z-index: 4; display: flex; align-items: center; gap: 10px; width: max-content; max-width: 100%; box-sizing: border-box; padding: 7px 10px 7px 12px;
   background: #f6efdc; color: var(--ink); font: 13px/1.4 var(--font); box-shadow: 0 0 0 1px rgba(60, 40, 20, .45), 2px 3px 0 rgba(30, 15, 3, .3); animation: lb-ask-in .22s ease-out; }
@@ -2562,7 +2565,7 @@ html.has-3d .topbar { box-shadow: none; }
   <!-- 이어하기: 주머니를 누르면 대출 카드가 옆으로 쏟아져 테이블 목록 -->
   <section id="lbList" class="lb-list" hidden aria-label="이어하기">
     <div class="lb-hd"><span>탐사자 협회 도서실</span><b id="tableCount">0권</b></div>
-    <ul id="myTables" class="lb-cards" tabindex="-1"></ul>
+    <div id="myTables" class="due" tabindex="-1"><h4>대출기간표</h4><div class="due-scroll"><table><thead><tr><th class="c-d">반납일</th><th>사건</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div></div>
     <div class="lb-ft">
       <label class="pbtn" tabindex="0" role="button">▤ 세이브 파일 불러오기<input id="loadSaveInput" type="file" accept=".json,application/json" hidden /></label>
       <details class="recover">
@@ -9191,14 +9194,14 @@ const BannerArt = (() => {
   function cardAsk(li, text, { danger = false } = {}) {
     cardAskDone?.(false);
     return new Promise((resolve) => {
-      const wrap = li.parentElement, prev = document.activeElement;
+      const wrap = li.closest(".due") ?? li.parentElement, prev = document.activeElement;
       const yes = el("button", { class: "y", type: "button" }, "예"), no = el("button", { type: "button" }, "아니오");
-      const box = el("div", { class: `lb-ask${danger ? " danger" : ""}`, role: "dialog", "aria-label": text, style: `left:${li.offsetLeft}px` },
+      const box = el("div", { class: `lb-ask${danger ? " danger" : ""}`, role: "dialog", "aria-label": text, style: "left:0" },
         el("p", {}, text), el("span", { class: "yn" }, yes, el("i", {}, "/"), no));
       li.classList.add("asking");
       wrap.append(box);
-      const above = li.offsetTop - box.offsetHeight - 4;
-      box.style.top = `${above >= wrap.scrollTop ? above : li.offsetTop + li.offsetHeight + 4}px`;
+      const wr = wrap.getBoundingClientRect(), r = li.getBoundingClientRect(), above = r.top - wr.top - box.offsetHeight - 2;
+      box.style.top = `${above >= 0 ? above : r.bottom - wr.top + 2}px`;
       const away = (e) => { if (!box.contains(e.target)) done(false); };
       const key = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } };
       const done = (v) => {
@@ -9231,13 +9234,15 @@ const BannerArt = (() => {
     const list = app.tables ?? [];
     Scene3D.desk({ count: list.length });
     $("#tableCount").textContent = `${list.length}권`;
-    $("#myTables").replaceChildren(...list.map((t, i) => el("li", { class: "lb-card", "data-room": t.room, style: `--i:${Math.min(i, 8)}` },
-      el("button", { class: "lb-open", type: "button", "aria-label": `${t.title} 이어하기`, on: { click: async (e) => { if (await cardAsk(e.currentTarget.closest(".lb-card"), `「${t.title}」 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); } } },
-        el("div", { class: "top" }, el("b", {}, t.title), el("span", { class: "no" }, cardNo(t.room))),
-        el("div", { class: "r" }, el("span", {}, "상 태"), el("span", {}, `${t.phase === "play" ? "진행 중" : "준비 중"}${t.chapter ? ` · ${t.chapter.n}장 ${t.chapter.title}` : ""}`)),
-        el("div", { class: "r" }, el("span", {}, "대출일"), el("span", { class: "hw" }, `${new Date(t.savedAt).getFullYear()}·${md(t.savedAt)} · ${ago(t.savedAt)}`)),
-        el("div", { class: "r" }, el("span", {}, "플레이어"), el("span", { class: "hw" }, (t.players ?? []).join(", ") || "-"))),
-      el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: (e) => deleteTable(t, e.currentTarget.closest(".lb-card")) } }, "✕"))));
+    const open = async (tr, t) => { if (await cardAsk(tr, `「${t.title}」 시나리오를 읽을까?`)) Book.leave(`room=${t.room}`); };
+    const rows = list.map((t) => el("tr", { "data-room": t.room, tabindex: "0", title: t.chapter ? `${t.title} · ${t.chapter.n}장 ${t.chapter.title}` : t.title,
+      on: { click: (e) => { if (!e.target.closest(".lb-del")) open(e.currentTarget, t); }, keydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) open(e.currentTarget, t); } } },
+      el("td", {}, el("span", { class: "st" }, md(t.savedAt))),
+      el("td", { class: "n" }, t.chapter ? `${t.chapter.n}장 · ${t.chapter.title}` : t.title),
+      el("td", { class: "c" }, t.phase === "play" ? "진행" : "준비",
+        el("button", { class: "lb-del", type: "button", title: "테이블 폐기", "aria-label": `${t.title} 폐기`, on: { click: (e) => deleteTable(t, e.currentTarget.closest("tr")) } }, "✕"))));
+    while (rows.length < 9) rows.push(el("tr", {}, el("td"), el("td"), el("td")));
+    $("#dueRows").replaceChildren(...rows);
     if (!$("#lbList").hidden) Desk.place();
   }
   /* 책 옆 물건: 주머니 → 대출 카드 목록(옆으로 쏟아짐), 봉투 → 초대장. Esc · 바깥 = 닫기 */
