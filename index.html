@@ -9297,6 +9297,8 @@ const BannerArt = (() => {
     let delMode = false;
     const setDel = (on) => { delMode = on; $("#myTables").classList.toggle("del-mode", on); $("#dueDelBtn").setAttribute("aria-pressed", String(on)); cardAskDone?.(false, true); };
     $("#dueDelBtn").addEventListener("click", () => { setDel(!delMode); Sfx.play("tap"); });
+    // 폐기 모드에서 줄 · 아이콘이 아닌 빈 곳을 누르면 원래대로
+    $("#myTables").addEventListener("click", (e) => { if (delMode && !e.target.closest('tr[data-room], #dueAskRow, .due-ic')) setDel(false); });
     const key = (e) => { if (e.key === "Escape" && open && !cardAskDone && !e.defaultPrevented) { e.preventDefault(); e.stopImmediatePropagation(); if (delMode) setDel(false); else close(); } };
     const away = (e) => { if (open === "list" && !list.contains(e.target) && !e.target.closest?.(".lb-ask, .pask") && !e.target.closest?.('[data-act="pocket"]')) close(); };
     function close() {
