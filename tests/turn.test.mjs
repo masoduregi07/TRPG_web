@@ -282,3 +282,19 @@ test("NPC에게 물었는데 대사 없이 몸짓만: 첫 시도 다시 요청, 
   assert.ok(Turn.isQuestion("아는 사람이 아닌거요?") && Turn.isQuestion("왜 알 바가 아니오.") && Turn.isQuestion("그 등대에 누가 사나"));
   assert.ok(!Turn.isQuestion("고맙소.") && !Turn.isQuestion("그물을 살핀다"));
 });
+
+test("문체: 명사로 끝난 문장(바다 · 고요 · 필요)은 어긋난 것으로 안 셈, 서술형 어미는 셈", () => {
+  const m = load();
+  for (const t of ["창밖에는 검은 바다. 파도 소리만 들림.", "등대 안은 고요. 물 떨어지는 소리가 남.", "열쇠가 필요. 문은 굳게 잠겨 있음."]) assert.equal(m.Turn.toneOff(t, "nominal").off, false, t);
+  for (const t of ["문이 열렸다. 안은 어둡다.", "바람이 분다. 길이 멀다.", "누구일까. 여기 있어요."]) assert.equal(m.Turn.toneOff(t, "nominal").off, true, t);
+});
+
+test("판정 결과만 있는 차례: 받은 물건을 살피는 반응은 통과, 건넴을 다시 쓰면 재요청", () => {
+  const m = load();
+  const info = { chars: [{ pid: "a", name: "한서", player: "가", items: ["녹슨 열쇠"] }], actors: [], askers: [], skills: [], clues: [], checks: [], exits: [],
+    rollOnly: true, gotThisTurn: ["녹슨 열쇠"], rollTexts: ["보통 성공 — 어부가 한숨을 쉬더니 녹슨 열쇠를 내밂."], recentText: "", order: ["a"] };
+  const look = m.Turn.validate(m.AI.parseGM(JSON.stringify({ narration: "한서가 손바닥 위의 녹슨 열쇠를 뒤집어 봄. 손잡이에 등대 문양이 희미하게 남아 있음." })), info, {});
+  assert.ok(!look.issues.some((x) => x.hard), JSON.stringify(look.issues));
+  const again = m.Turn.validate(m.AI.parseGM(JSON.stringify({ narration: "바르톨이 녹슨 열쇠를 한서에게 건넴. 바람이 거세짐." })), info, {});
+  assert.ok(again.issues.some((x) => x.hard && /이미 나온 일/.test(x.msg)));
+});

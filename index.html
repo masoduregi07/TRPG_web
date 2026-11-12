@@ -4935,7 +4935,16 @@ const Turn = (() => {
   function toneOff(text, tone) {
     const sents = String(text ?? "").replace(QUOTE_RE, " ").split(/[.!?…。]+|\n+/).map((x) => x.replace(/[\s"'”’」』)\]~-]+$/, "")).filter((x) => /[가-힣]/.test(x) && x.trim().length >= 2);
     const nominal = (ch) => { const c = ch.charCodeAt(0) - 0xac00; return c >= 0 && c < 11172 && c % 28 === 16; };
-    const bad = sents.filter((x) => { const ch = x.at(-1); return tone === "prose" ? nominal(ch) : /[다요까]/.test(ch); }).length;
+    // 서술형 어미만 셈: ~다 (했다 · 한다 · 이다 · 없다 …), ~요 (해요 · 있어요 · 네요 …), ~까 (할까 · 습니까). '바다 · 고요 · 필요' 같은 명사 끝은 뺌
+    const jong = (ch) => { const c = (ch ?? "").charCodeAt(0) - 0xac00; return c >= 0 && c < 11172 ? c % 28 : -1; };
+    const verbal = (x) => {
+      const ch = x.at(-1), pr = x.at(-2) ?? "";
+      if (ch === "다") return [4, 8, 20].includes(jong(pr)) || /[이하되없같않니있싶좋많크작길높낮깊넓춥덥르려쁘]/.test(pr);
+      if (ch === "요") return /[어아여해워와예에네군데지래세걸나죠까]/.test(pr);
+      if (ch === "까") return jong(pr) === 8 || pr === "니";
+      return false;
+    };
+    const bad = sents.filter((x) => (tone === "prose" ? nominal(x.at(-1)) : verbal(x))).length;
     return { bad, total: sents.length, off: bad >= 1 && bad * 2 >= sents.length };
   }
 
@@ -5168,7 +5177,9 @@ const Turn = (() => {
     }
     // ---- 판정 결과만 있는 차례: 결과 글에 이미 나온 일(받은 물건 · 같은 문장)을 다시 서술하지 않음 ----
     if (info.rollOnly && !info.askOnly) {
-      const again = (t) => (info.gotThisTurn ?? []).some((x) => bare(x).length >= 2 && bare(t).includes(bare(x))) || (info.rollTexts ?? []).some((x) => leaks(t, x));
+      // 받은 물건을 살피는 반응은 허용 (규칙 15). 그 물건을 건네거나 받는 일을 다시 쓴 문장만 되풀이로 봄
+      const GIVE_RE = /건네|건넴|건넨|내밀|내밂|내민|넘겨|넘김|넘긴|쥐여|받아|받음|받았|받는|받은|얻|손에 넣|주었|줬|준다|주며|주고/;
+      const again = (t) => (info.gotThisTurn ?? []).some((x) => bare(x).length >= 2 && bare(t).includes(bare(x)) && GIVE_RE.test(String(t).replace(QUOTE_RE, " "))) || (info.rollTexts ?? []).some((x) => leaks(t, x));
       const sentsOf = (t) => String(t ?? "").split(SENT_RE).filter(Boolean);
       const body = [plan.narration, ...plan.blocks.map((b) => b.text)].join("\n");
       if (sentsOf(body).some(again)) {
@@ -5994,6 +6005,7 @@ class HostGame {
   ensureNpcCards() {
     const d = this.data, g = d.game;
     if (d.mode !== "ai" || d.phase !== "play" || !g || g.result || !this.aiCall || !this.aiReady() || this.npcCardJob || this.ai.busy || this.ai.timer) return null;
+    if (Date.now() < (this.npcCardRetryAt ?? 0)) return null;   // 호출 오류 뒤 잠시 쉼
     const ids = Engine.npcCardTodo(this.sc, g).slice(0, 4);
     if (!ids.length) return null;
     const ctrl = new AbortController(); this.npcCardCtrl = ctrl;
@@ -6005,7 +6017,14 @@ class HostGame {
         cards = AI.parseNpcCards(text, ids);
       } catch (e) {
         if (e?.cancelled || e?.name === "AbortError" || ctrl.signal.aborted) return;   // GM 차례에 양보 → 다음에 다시
+        // 호출 자체가 실패(한도 · 시간 초과 · 연결): 실패로 적지 않고 1분 뒤 다시. 3번 연속이면 이 NPC들은 이 판에서 포기
+        if (!(e instanceof SyntaxError) && !/JSON/.test(e?.message ?? "")) {
+          this.npcCardErrs = (this.npcCardErrs ?? 0) + 1;
+          this.npcCardRetryAt = Date.now() + 60_000;
+          if (this.npcCardErrs < 3) return;
+        }
       }
+      this.npcCardErrs = 0;
       if (this.data.game !== g || ctrl.signal.aborted) return;
       for (const id of ids) {
         if (!this.sc.npcs?.[id]) continue;
