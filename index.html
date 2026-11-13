@@ -1017,6 +1017,9 @@ textarea { resize: vertical; margin-top: 8px; }
 .host-wait p { margin: 4px 0; font-size: 12px; line-height: 20px; color: #553a23; }
 .host-wait code { display: inline-block; margin-top: 6px; padding: 2px 8px; border: 1px dashed #8a6a44; font-size: 13px; letter-spacing: 2px; }
 .host-wait .hw-re { margin-top: 12px; font-size: 11px; color: #8a6a44; }
+.host-wait.closed h5 { color: #8e2438; }
+.host-wait .hw-row { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+.host-wait .hw-row .pbtn[hidden] { display: none; }
 #chatForm.stale { opacity: .5; }
 .focus-tag { display: block; margin: 0 0 2px; color: var(--c, var(--blood)); font-family: var(--font); font-size: 12px; font-weight: 700; }
 .entry.ai.focus { margin-top: 4px; }
@@ -2483,6 +2486,8 @@ html.has-3d .topbar { box-shadow: none; }
 .due td.st { padding: 0; }
 .due-st { display: inline-block; padding: 0 4px; font: 11px/15px var(--font); white-space: nowrap; box-shadow: inset 0 0 0 1.5px currentColor; opacity: .9; }
 .due-st.w { color: #9a6a1c; } .due-st.p { color: #2a3a8a; } .due-st.e { color: #a8251a; }
+.due-st.x { color: #6b6256; box-shadow: none; text-decoration: line-through; }   /* 호스트가 지운 테이블 */
+.due tr.closed td:not(.st) { opacity: .55; }
 /* 비고 = 한 칸 안에서 캐릭터 | 챕터를 세로선으로 맞춤 (캐릭터 폭 = 두 표에서 가장 긴 캐릭터 이름 --chw) */
 .due td.c.bg { padding: 0; }
 .due-bg { display: grid; grid-template-columns: var(--chw, 48px) 1px 1fr; align-items: center; height: 26px; }
@@ -2504,7 +2509,7 @@ html.has-3d .topbar { box-shadow: none; }
 @keyframes lb-back { from { translate: 0 60vh; } }   /* 닫을 때 = 같은 움직임을 거꾸로 (아래로 내려감) */
 .lb-list.leaving { pointer-events: none; }
 .lb-list.leaving .due { animation: lb-back .38s cubic-bezier(.2, .75, .3, 1) reverse both; }
-.due { --due-pick: #a8251a; }
+.due { --due-pick: #a8251a; --due-wine: #8e2438; }   /* 경고 · 안내 글 = 와인색 */
 /* 줄 호버 · 물음 열린 줄 = 책갈피 표시(B): 밝은 종이색 + 왼쪽 붉은 띠 4px + 이름 붉은 밑줄 */
 .due tr[data-room]:hover td, .due tr.asking td { background-image: linear-gradient(rgba(255, 250, 235, .95), rgba(255, 250, 235, .95)); }
 .due tr[data-room]:hover td:first-child, .due tr.asking td:first-child { box-shadow: inset 4px 0 0 var(--due-pick); }
@@ -2515,12 +2520,22 @@ html.has-3d .topbar { box-shadow: none; }
 .lb-ftrow { order: 1; display: flex; gap: 4px; margin-left: auto; }
 .due-ask { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .2s ease; }
 .due-ask.on { grid-template-rows: 1fr; }
-.due-ask > .in { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 0; overflow: hidden; font: 13px/1.4 var(--font); }
+.due-ask > .in { display: grid; gap: 4px; min-height: 0; overflow: hidden; font: 13px/1.4 var(--font); }
+.due-ask .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; }   /* 물음이 길면 [ … ]는 다음 줄 오른쪽 */
+.due-ask .more[hidden] { display: none; }
+.due-ask .more { display: grid; gap: 4px; }
+.due-ask .warn { margin: 0; font: 12px/1.5 var(--font); color: var(--due-wine); }
+.due-ask .seat { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; font: 12px/1.5 var(--font); color: #553a23; }
+.due-ask .seat li { display: flex; align-items: center; gap: 4px; }
+.due-ask .seat i { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--pc); }
+.due-ask .seat b { color: var(--pc); font-weight: 400; }
+.due-ask.note p { color: var(--due-wine); }
 .due-ask.on > .in { padding-top: 6px; padding-bottom: 6px; padding-right: 8px; }
 .due tr.ask-row td { height: auto; padding: 0; text-align: left; border-bottom-style: dashed; }
 .due tr.ask-row td + td .in { padding-left: 6px; }   /* 물음 = 이름 칸 글자와 같은 왼쪽 */
 .due-ask p { margin: 0; min-width: 0; word-break: keep-all; }
-.due-ask .yn { flex: none; display: flex; align-items: center; gap: 2px; color: #8a7a62; white-space: nowrap; }
+.due-ask .yn { flex: none; display: flex; align-items: center; gap: 2px; margin-left: auto; color: #8a7a62; white-space: nowrap; }
+.due-ask .yn[hidden] { display: none; }
 .due-ask .gp { position: relative; padding: 2px 8px; border: 0; background: none; color: var(--ink); font: 13px/1.4 var(--font); cursor: pointer; }
 .due-ask .gp:hover, .due-ask .gp:focus-visible { color: var(--blood); outline: 0; }
 .due-ask.danger .gp.y { color: var(--blood); font-weight: 700; }
@@ -2673,7 +2688,7 @@ html.has-3d .topbar { box-shadow: none; }
     <div id="myTables" class="due" tabindex="-1"><h4>시나리오 리스트</h4><div class="due-body">
         <table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-n">비고</th><th class="c-s">상태</th></tr></thead><tbody id="dueRows"></tbody></table></div>
       <!-- 줄을 누르면 그 줄 바로 아래가 늘어나며 물음 한 줄 → 예 / 아니오에 잉크 동그라미 (평소엔 숨겨 둔 줄) -->
-      <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td></td><td colspan="3"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div></td></tr></tbody></table>
+      <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td></td><td colspan="3"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><div class="top"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div><div id="dueAskMore" class="more" hidden></div></div></div></td></tr></tbody></table>
       <div class="lb-ft">
         <!-- 오른쪽 아래 모노톤 아이콘: 플레이어 사본으로 복구 · 세이브 파일 불러오기 · 시나리오 폐기(누르면 폐기 모드 = 휴지통 뚜껑 열림) -->
         <div class="lb-ftrow"><label id="recoverBtn" class="due-ic tip" tabindex="0" role="button" data-tip="플레이어 사본으로 복구" aria-label="플레이어 사본으로 복구"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5h5.5l2.5 2.5v7.5H5z"/><path d="M3 5v8.5h7"/><path d="M8 9.6a1.9 1.9 0 1 0 .6-2.2M8.3 5.9v1.6h1.6"/></svg><input id="recoverInput" type="file" accept=".json,application/json" hidden /></label>
@@ -2822,6 +2837,14 @@ html.has-3d .topbar { box-shadow: none; }
     </div>
   </header>
 
+  <!-- 호스트가 지운 테이블: 다시 들어갈 수 없음 (3D 테이블 위 쪽지) -->
+  <div id="tableClosed" class="host-wait closed" role="status" hidden>
+    <h5>이 테이블은 폐기됐다</h5>
+    <p>호스트가 테이블을 지웠다.</p>
+    <p>이 방에는 다시 들어갈 수 없다.</p>
+    <code id="closedTitle"></code>
+    <div class="hw-row"><button id="closedCopyBtn" class="pbtn" type="button">내 사본 받기</button><button id="closedHomeBtn" class="pbtn" type="button">첫 화면으로</button></div>
+  </div>
   <!-- 호스트 대기: 처음 접속했는데 호스트가 아직 없을 때 (3D 테이블 위 쪽지) -->
   <div id="hostWait" class="host-wait" role="status" hidden>
     <span class="hw-ic"></span>
@@ -7574,7 +7597,7 @@ const Net = (() => {
               try { c.send({ t: "ping", seq: Date.now() }); } catch { lostConnection(c); }
             }, 8000);
           }
-          if (msg?.t === "rejected") { stopped = true; ready = false; stopHeartbeat(); }
+          if (msg?.t === "rejected" || msg?.t === "closed") { stopped = true; ready = false; stopHeartbeat(); clearTimeout(openTimer); }
           onMessage(msg);
         });
         c.on("close", () => {
@@ -7592,7 +7615,7 @@ const Net = (() => {
     };
   }
 
-  /** 방 명단만 묻기 (참가 전). 호스트가 없거나 늦으면 null */
+  /** 방 명단만 묻기 (참가 전). 호스트가 없거나 늦으면 null, 호스트가 지운 방이면 "closed" */
   function peekRoom(room, key, ms = 9000) {
     return new Promise((resolve) => {
       let peer = null, done = false;
@@ -7604,14 +7627,37 @@ const Net = (() => {
         peer.once("open", () => {
           const c = peer.connect(hostPeerId(room), { reliable: true, serialization: "binary" });
           c.on("open", () => { try { c.send({ t: "peek", key }); } catch { end(null); } });
-          c.on("data", (msg) => { if (msg?.t === "roster" && Array.isArray(msg.players)) end(msg.players.slice(0, MAX_PEOPLE)); });
+          c.on("data", (msg) => { if (msg?.t === "closed") end("closed"); else if (msg?.t === "roster" && Array.isArray(msg.players)) end(msg.players.slice(0, MAX_PEOPLE)); });
           c.on("error", () => end(null));
         });
       } catch { end(null); }
     });
   }
 
-  return { startHost, joinRoom, hostPeerId, iceConfig, peekRoom };
+  /** 호스트가 지운 방: 그 방 주소로 대기하다 들어오는 접속(참가 · 명단 미리 보기)에 "closed"로 답하고 끊음.
+   *  주소를 다른 곳(열린 테이블 · 다른 탭의 같은 응답)이 쓰고 있거나 중개 서버가 안 되면 30초 뒤 다시 시도 */
+  function closedBeacon(room) {
+    let peer = null, stopped = false, timer = null;
+    const again = () => { try { peer?.destroy(); } catch {} clearTimeout(timer); if (!stopped) timer = setTimeout(open, 30000); };
+    function open() {
+      if (stopped) return;
+      try { peer = new Peer(hostPeerId(room), { debug: 0, config: iceConfig() }); } catch { return again(); }
+      peer.on("error", (err) => { if (!stopped && !softError(err)) again(); });
+      peer.on("disconnected", () => { try { if (!stopped && !peer.destroyed) peer.reconnect(); } catch {} });
+      peer.on("connection", (conn) => {
+        const bye = setTimeout(() => { try { conn.close(); } catch {} }, 10000);
+        conn.on("data", (msg) => {
+          if (msg?.t !== "join" && msg?.t !== "peek") return;
+          try { conn.send({ t: "closed" }); } catch {}
+          clearTimeout(bye); setTimeout(() => { try { conn.close(); } catch {} }, 600);
+        });
+      });
+    }
+    open();
+    return { stop() { stopped = true; clearTimeout(timer); try { peer?.destroy(); } catch {} } };
+  }
+
+  return { startHost, joinRoom, hostPeerId, iceConfig, peekRoom, closedBeacon };
 })();
 
 /* 삭제된 방 등록부 (server/registry): 호스트가 테이블을 지우면 방 코드를 "삭제됨"으로 적고, 플레이어가 열 때 확인해 자기 기기의 기록을 지움.
@@ -9495,6 +9541,7 @@ const BannerArt = (() => {
     copy: (r) => `trpg:copy:${r}`, draft: (r) => `trpg:draft:${r}`, ai: "trpg:ai", name: "trpg:name",
     aiStyle: "trpg:aiStyle", recentNpc: (r) => `trpg:recentNpc:${r}`, clueKind: (r) => `trpg:clueKind:${r}`, clueOrder: (r) => `trpg:clueOrder:${r}`, clueSeen: (r) => `trpg:clueSeen:${r}`,
     itemSeen: (r) => `trpg:itemSeen:${r}`, regPending: "trpg:regPending",
+    closed: (r) => `trpg:closed:${r}`, tombs: "trpg:closedRooms",
   };
 
   const app = {
@@ -9599,6 +9646,7 @@ const BannerArt = (() => {
     await migrateStorage();
     Scene.fadeInIfNeeded();
     flushRegistry();
+    syncBeacons();
     const room = roomFromHash();
     if (!room) return showHome();
     const save = await DB.get(K.host(room));
@@ -9785,7 +9833,8 @@ const BannerArt = (() => {
         const c = await DB.get(K.copy(room)), sn = c?.snap;
         if (!sn?.scenario) continue;
         const me = (sn.players ?? []).find((p) => p.pid === sn.me), sc = sn.view?.scene;
-        out.push({ room, joined: true, title: sn.scenario.title ?? "제목 없음", savedAt: c.savedAt ?? 0, status: dueStatus(sn.phase, !!sn.result, !!me?.ready),
+        const closed = !!LS.get(K.closed(room));
+        out.push({ room, joined: true, closed, title: sn.scenario.title ?? "제목 없음", savedAt: c.savedAt ?? 0, status: closed ? "x" : dueStatus(sn.phase, !!sn.result, !!me?.ready),
           ch: me?.ready ? me.character?.name ?? null : null, chapter: sc ? { n: sc.n ?? null, title: String(sc.title ?? "") } : null });
       } catch {}
     }
@@ -9833,13 +9882,21 @@ const BannerArt = (() => {
   /* 대출기간표 물음: 고른 줄은 형광펜 그대로, 표 아래가 늘어나며 "「제목」 …?" [예 / 아니오]. 고르면 그 말에 잉크 동그라미 (Esc · 바깥 = 아니오, 동그라미 없이) */
   let cardAskDone = null;
   const stashAsk = () => document.querySelector("#lbList table[hidden] tbody").append($("#dueAskRow"));   // 물음 줄을 숨겨 둔 표로 되돌림
-  function cardAsk(tr, text, { danger = false } = {}) {
+  /** 줄 아래 물음. 고르면 true / false, 고르지 않고 닫으면(Esc · 바깥) null.
+   *  warn · seats = 물음 아래 경고 한 줄 · 앉은 사람, labels = 두 버튼 글(null이면 버튼 없이 안내만), note = 안내 글(와인색) */
+  function cardAsk(tr, text, { danger = false, warn = "", seats = [], labels = ["예", "아니오"], note = false } = {}) {
     cardAskDone?.(false, true);
     return new Promise((resolve) => {
       const box = $("#dueAsk"), btns = [...box.querySelectorAll(".gp")], prev = document.activeElement;
       $("#dueAskText").textContent = text;
       box.classList.toggle("danger", danger);
-      btns.forEach((b) => { b.classList.remove("on", "fresh"); b.querySelector(".ink-circle")?.remove(); });
+      box.classList.toggle("note", note);
+      box.querySelector(".yn").hidden = !labels;
+      btns.forEach((b, i) => { b.classList.remove("on", "fresh"); b.textContent = labels?.[i] ?? ""; });
+      const more = $("#dueAskMore");
+      more.replaceChildren(...(warn ? [el("p", { class: "warn" }, warn)] : []),
+        ...(seats.length ? [el("ul", { class: "seat" }, ...seats.map((x) => el("li", { style: `--pc:${x.color}` }, el("i"), el("b", {}, x.name), ` ${x.char || "작성 중"}`)))] : []));
+      more.hidden = !more.childElementCount;
       tr.classList.add("asking");
       const row = $("#dueAskRow");
       box.classList.remove("on"); tr.after(row); void box.offsetHeight; box.classList.add("on");
@@ -9857,13 +9914,13 @@ const BannerArt = (() => {
           await new Promise((r) => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 520));
         }
         if (!v || quiet) { box.classList.remove("on"); tr.classList.remove("asking"); setTimeout(() => { if (!cardAskDone) stashAsk(); }, 220); prev?.focus?.({ preventScroll: true }); }
-        resolve(v);
+        resolve(quiet ? null : v);
       };
       cardAskDone = done;
       btns.forEach((b) => b.addEventListener("click", pick));
       addEventListener("keydown", key, true);
       setTimeout(() => addEventListener("pointerdown", away, true));   // 지금 누른 클릭은 빼고
-      btns[danger ? 1 : 0].focus({ preventScroll: true });
+      if (labels) btns[danger ? 1 : 0].focus({ preventScroll: true });
     });
   }
   // 대출 카드 번호: 방 코드에서 4자리 (화면 장식 · 같은 방은 늘 같은 번호)
@@ -9900,17 +9957,63 @@ const BannerArt = (() => {
   const ymd = (ts) => { const d = new Date(ts), p = (n) => String(n).padStart(2, "0"); return `${p(d.getFullYear() % 100)}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };   // 목록 날짜 yy-mm-dd (segNum으로 그림)
   const md = (ts) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`; };
   async function deleteTable(t, li = null) {
+    // 다른 탭에서 진행 중이면 그 탭의 자동 저장이 지운 테이블을 되살리므로 막음
+    if (!t.joined && await openElsewhere(t.room)) {
+      const msg = "다른 탭에서 열려 있다. 그 탭을 닫은 뒤 폐기할 수 있다.";
+      if (li) await cardAsk(li, msg, { labels: null, note: true }); else toast(msg);
+      return;
+    }
+    const seats = t.joined ? [] : await seatsOf(t.room);
+    const warn = seats.length ? `플레이어 ${seats.length}명이 앉아 있다. 폐기하면 이 테이블에 다시 들어올 수 없다.` : "";
     const ask = li ? "이 시나리오를 폐기할까?" : `「${t.title}」 기록을 지울까?`;
-    if (!(await (li ? cardAsk(li, ask, { danger: true }) : paperAsk(ask)))) return;
+    if (!(await (li ? cardAsk(li, ask, { danger: true, warn, seats }) : paperAsk(warn ? `${ask} ${warn}` : ask)))) return;
     $("#dueAsk").classList.remove("on"); stashAsk();
-    if (t.joined) { await DB.del(K.copy(t.room)); await loadTables(); return renderTables(); }   // 참가한 테이블 = 내 사본만 지움 (자리는 그대로, 다시 들어가면 새 사본)
+    if (t.joined) { if (t.closed) await forgetRoom(t.room); else await DB.del(K.copy(t.room)); await loadTables(); return renderTables(); }   // 참가한 테이블 = 내 사본만 지움 (자리는 그대로, 다시 들어가면 새 사본)
     try { await HistoryArchive.deleteHostRoom(t.room); }
     catch { return toast('보관 기록 삭제 실패. 테이블은 유지됨.'); }
     await DB.del(K.host(t.room));
     LS.set(K.hostIndex, (LS.get(K.hostIndex) ?? []).filter((x) => x.room !== t.room));
+    closeRoom(t.room);   // 이 방 주소로 들어오는 플레이어에게 "폐기됨"으로 답함 (이 브라우저에서 사이트를 켜 둔 동안, 7일)
     await loadTables(); renderTables();
     // 플레이어(오프라인 포함)가 나중에 열 때 알아채도록 삭제 표시. 못 보내면 다음에 열 때 다시 보냄
     if (Registry.enabled && !(await Registry.markDeleted(t.room))) { LS.set(K.regPending, [...new Set([...(LS.get(K.regPending) ?? []), t.room])]); toast("삭제 표시를 못 보냄. 다음에 열 때 다시 보냄."); }
+  }
+  /** 이 테이블을 지금 다른 탭이 열고 있는지 (호스트 탭 잠금) */
+  async function openElsewhere(room) {
+    try { if (navigator.locks?.query) return (await navigator.locks.query()).held.some((l) => l.name === `trpg-host-${room}`); } catch {}
+    const cur = LS.get(`trpg:hostlock:${room}`);
+    return !!cur && cur.tab !== TAB_ID && Date.now() - cur.at < 6000;
+  }
+  /** 호스트 말고 이 테이블에 앉은 플레이어 (닉네임 · 캐릭터 · 플레이어 색) */
+  async function seatsOf(room) {
+    try {
+      const d = await DB.get(K.host(room));
+      return Object.entries(d?.players ?? {}).map(([pid, p], i) => ({ pid, name: p.name, char: p.ready ? p.character?.name ?? "" : "", color: SPINES[i % SPINES.length] }))
+        .filter((x) => x.pid !== d.hostPid);
+    } catch { return []; }
+  }
+  /* ---- 지운 방 응답 (M2): 지운 방 목록(7일 · 최대 6개)을 이 브라우저에 두고, 사이트를 켜 둔 동안 그 방 주소로 "폐기됨"을 답함 ---- */
+  const TOMB_MS = 7 * 864e5, TOMB_MAX = 6, beacons = new Map();
+  const tombs = () => (LS.get(K.tombs) ?? []).filter((x) => /^[a-z0-9]{10}$/.test(x?.room ?? "") && Date.now() - x.at < TOMB_MS).slice(-TOMB_MAX);
+  function closeRoom(room) { LS.set(K.tombs, [...tombs().filter((x) => x.room !== room), { room, at: Date.now() }].slice(-TOMB_MAX)); syncBeacons(); }
+  function reopenRoom(room) { LS.set(K.tombs, tombs().filter((x) => x.room !== room)); syncBeacons(); }
+  /** 목록대로 응답을 켜고 끔. 같은 방 테이블이 다시 생겼으면(복구 · 세이브 불러오기) 그 방은 목록에서 뺌 */
+  async function syncBeacons() {
+    if (typeof Peer === "undefined") return;
+    const keep = [];
+    for (const x of tombs()) if (!(await DB.get(K.host(x.room)))) keep.push(x);
+    if (keep.length) LS.set(K.tombs, keep); else LS.del(K.tombs);
+    const want = new Set(keep.map((x) => x.room));
+    for (const [room, b] of beacons) if (!want.has(room)) { b.stop(); beacons.delete(room); }
+    for (const room of want) if (!beacons.has(room)) beacons.set(room, Net.closedBeacon(room));
+    clearTimeout(syncBeacons.t);
+    if (beacons.size) syncBeacons.t = setTimeout(syncBeacons, 30000);   // 기한 지남 · 다른 탭에서 복구한 것 반영
+  }
+  addEventListener("storage", (e) => { if (e.key === K.tombs) syncBeacons(); });
+  /** 플레이어 사본 파일로 받기 */
+  async function downloadCopy(room) {
+    const c = await DB.get(K.copy(room));
+    if (c) download(`trpg-내사본-${c.snap?.scenario?.title ?? room}-${today()}.json`, c);
   }
   /** 못 보낸 삭제 표시 다시 보내기 */
   async function flushRegistry() {
@@ -9922,7 +10025,7 @@ const BannerArt = (() => {
   }
   /** 호스트가 지운 테이블: 이 기기에 남은 사본 · 참가 정보 · 보관 기록 · 화면 설정을 지움 */
   async function forgetRoom(room) {
-    for (const k of [K.me(room), K.draft(room), K.recentNpc(room), K.clueKind(room), K.clueOrder(room), K.clueSeen(room), K.itemSeen(room), `trpg:resOpen:${room}`]) LS.del(k);
+    for (const k of [K.me(room), K.draft(room), K.recentNpc(room), K.clueKind(room), K.clueOrder(room), K.clueSeen(room), K.itemSeen(room), K.closed(room), `trpg:resOpen:${room}`]) LS.del(k);
     await DB.del(K.copy(room));
     try { await HistoryArchive.deletePlayerRoom(room); } catch {}
   }
@@ -9961,12 +10064,18 @@ const BannerArt = (() => {
     const open = async (tr, t) => {
       if (cardAskDone && tr.classList.contains("asking")) return;   // 이미 물음이 열린 줄: 그대로 둠 (다른 곳을 누를 때까지 고정)
       if (Desk.delMode) return deleteTable(t, tr);
+      if (t.closed) {   // 호스트가 지운 테이블: 들어가지 않고 사본 받기 · 목록에서 지우기만
+        const v = await cardAsk(tr, "호스트가 테이블을 지웠다. 이 방에는 다시 들어갈 수 없다.", { labels: ["내 사본 받기", "목록에서 지우기"], note: true });
+        if (v === true) return downloadCopy(t.room);
+        if (v === false) { await forgetRoom(t.room); await loadTables(); renderTables(); }
+        return;
+      }
       if (await cardAsk(tr, "이 시나리오를 읽을까?")) Book.leave(`room=${t.room}`);
     };
-    const STAMP = { w: "캐릭터 작성중", p: "진행중", e: "완결" };
+    const STAMP = { w: "캐릭터 작성중", p: "진행중", e: "완결", x: "폐기됨" };
     const chap = (c) => !c ? "" : `${c.n ? `${c.n}장 ` : ""}${[...c.title].length > 4 ? `${[...c.title].slice(0, 4).join("").trimEnd()}…` : c.title}`;   // 챕터 제목은 4자까지
     const full = (c) => !c ? "" : `${c.n ? `${c.n}장 ` : ""}${c.title}`;
-    const row = (t, i) => el("tr", { "data-room": t.room, tabindex: "0", ...(i === 0 ? { class: "recent" } : {}),
+    const row = (t, i) => el("tr", { "data-room": t.room, tabindex: "0", ...(i === 0 || t.closed ? { class: [i === 0 && "recent", t.closed && "closed"].filter(Boolean).join(" ") } : {}),
       on: { click: (e) => open(e.currentTarget, t), keydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) open(e.currentTarget, t); } } },
       ((a) => a ? el("td", { class: "d ago", title: ymd(t.savedAt) }, a) : el("td", { class: "d", "aria-label": ymd(t.savedAt) }, segNum(ymd(t.savedAt))))(i === 0 && agoLabel(t.savedAt)),
       el("td", { class: "n", "data-full": t.title }, ...(t.joined ? [envIcon()] : []), t.title),
@@ -10089,6 +10198,7 @@ const BannerArt = (() => {
     peekTimer = setTimeout(async () => {
       const players = await Net.peekRoom(code, LS.get(K.me(code))?.key ?? "");
       if (peekCode !== code) return;   // 그사이 코드가 바뀜
+      if (players === "closed") { if (LS.get(K.me(code))) LS.set(K.closed(code), Date.now()); drawJoinCard(code, [], "none"); $("#inviteError").textContent = "호스트가 테이블을 지웠다. 이 방에는 들어갈 수 없다."; return; }
       drawJoinCard(code, players ?? [], players ? "ok" : "none");
     }, 400);
   });
@@ -10099,6 +10209,7 @@ const BannerArt = (() => {
     if (btn.disabled) return;
     const code = roomCode($("#joinLinkInput").value.trim());
     if (!code) return ($("#inviteError").textContent = "잘못된 초대 링크.");
+    if (LS.get(K.closed(code))) return ($("#inviteError").textContent = "호스트가 테이블을 지웠다. 이 방에는 들어갈 수 없다.");
     const name = $("#bkJoinName").value.trim();
     // 닉네임으로 바로 자리에 앉음 (이미 앉았던 방이면 그 자리 그대로)
     if (!name && !LS.get(K.me(code))) { $("#inviteError").textContent = "닉네임 입력 필요."; return $("#bkJoinName").focus(); }
@@ -10112,6 +10223,7 @@ const BannerArt = (() => {
       if (await DB.get(K.host(save.roomId)) && !(await paperAsk("같은 테이블이 이미 있음. 세이브로 덮어쓸까?"))) return;
       save.historyGeneration = randomId(16); // 복원된 세이브는 별도 기록 갈래
       if (!(await DB.set(K.host(save.roomId), save))) throw new Error("브라우저 저장 공간 부족.");
+      reopenRoom(save.roomId);
       Book.leave(`room=${save.roomId}`);
     } catch (err) {
       $("#homeError").textContent = err.message;
@@ -10358,6 +10470,7 @@ const BannerArt = (() => {
       if (await DB.get(K.host(data.roomId)) && !(await paperAsk("같은 테이블이 이미 있음. 덮어쓸까?"))) return;
       if (!(await DB.set(K.host(data.roomId), data))) throw new Error("브라우저 저장 공간 부족.");
       LS.set(K.regPending, (LS.get(K.regPending) ?? []).filter((r) => r !== data.roomId));
+      reopenRoom(data.roomId);
       Registry.revive(data.roomId);   // 지웠던 방 코드로 복구한 경우 삭제 표시 해제 (기다리지 않음)
       Book.leave(`room=${data.roomId}`);
     } catch (err) {
@@ -10479,8 +10592,9 @@ const BannerArt = (() => {
     if (!me) return showHome({ invite: room });   // 처음 오는 초대 링크: 첫 화면에 초대장이 열린 채
     if (await Registry.isDeleted(room) === true) {   // 호스트가 지운 테이블: 이 기기의 기록도 지우고 안내
       await forgetRoom(room);
-      return showMessage("삭제된 테이블", "호스트가 이 테이블을 삭제함. 이 기기에 남은 사본 · 참가 정보도 지움.");
+      return showMessage("삭제된 테이블", "호스트가 테이블을 지웠다. 이 기기에 남은 사본과 참가 정보도 지웠다.");
     }
+    if (LS.get(K.closed(room))) return showClosed();   // 지운 테이블로 이미 알려진 방: 접속하지 않음
     // 연결되기 전에도 마지막으로 본 화면을 보여 준다
     const copy = await DB.get(K.copy(room));
     if (copy?.snap) {
@@ -10569,6 +10683,20 @@ const BannerArt = (() => {
     }
     Scene3D.setIdle(!on && !$("#table").hidden);
   }
+  /** 호스트가 지운 테이블: 테이블 화면을 걷고 쪽지만 (사본이 있으면 [내 사본 받기]) */
+  async function showClosed() {
+    const copy = await DB.get(K.copy(app.room));
+    $("#closedTitle").textContent = copy?.snap?.scenario?.title ?? app.room ?? "";
+    $("#closedCopyBtn").hidden = !copy?.snap;
+    show("table");
+    setHostWait(false);
+    setStatus({ level: "bad", text: "폐기된 테이블" });
+    $("#table").classList.add("waiting");
+    $("#tableClosed").hidden = false;
+    Scene3D.setIdle(false);
+  }
+  $("#closedCopyBtn").addEventListener("click", () => downloadCopy(app.room));
+  $("#closedHomeBtn").addEventListener("click", () => { location.hash = ""; });
   /* 연결 전에 보여 주는 마지막 저장본 표시: 띠를 켜고 입력을 잠근다 (실제 스냅샷을 받으면 해제) */
   function setStale(on) {
     app.stale = !!on;
@@ -10644,6 +10772,10 @@ const BannerArt = (() => {
       case "board": keepBottom(() => showBoard(Array.isArray(msg.rows) ? msg.rows : [])); return;
       case "suggesting": app.suggesting = !!msg.on; updateBuilder(); return;
       case "suggestion": applySuggestion(msg.data); return;
+      case "closed":   // 호스트가 지운 테이블 (지운 방 응답)
+        app.net?.stop();
+        if (app.role === "player" && app.room) { LS.set(K.closed(app.room), Date.now()); showClosed(); }
+        return;
       case "rejected":
         app.net?.stop();
         return showMessage("참가 불가", msg.reason ?? "", { retry: /이름|자리/.test(msg.reason ?? "") });
