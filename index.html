@@ -2539,6 +2539,10 @@ html.has-3d .topbar { box-shadow: none; }
 .inv-wrap.out { background: rgba(10, 5, 2, .45); }
 .inv-wrap.out .inv { visibility: visible; animation: inv-out .36s cubic-bezier(.2, .75, .3, 1) backwards; }
 @keyframes inv-out { from { translate: var(--fx, 0) var(--fy, 0); scale: var(--fs, .3); opacity: 0; } 30% { opacity: 1; } }
+/* 닫기(.back): 초대장이 봉투 자리로 작아지며 들어간 뒤 덮개가 닫힘 */
+.inv-wrap.back { background: transparent; pointer-events: none; }
+.inv-wrap.back .inv { visibility: visible; animation: inv-back .3s cubic-bezier(.5, 0, .75, .4) forwards; }
+@keyframes inv-back { 70% { opacity: 1; } to { translate: var(--fx, 0) var(--fy, 0); scale: var(--fs, .3); opacity: 0; } }
 .inv-paper { position: relative; padding: 18px 26px 20px; background: #f6eedb; color: var(--ink); box-shadow: 3px 8px 18px rgba(0, 0, 0, .6); }
 .inv-paper::before { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(30, 22, 16, .75); outline: 1px solid rgba(30, 22, 16, .75); outline-offset: -4px; pointer-events: none; }
 .inv-paper h2 { margin: 0; text-align: center; font: 22px/1.3 "Galmuri14", var(--font); font-weight: 400; color: #8e2438; letter-spacing: .3em; }
@@ -2550,7 +2554,7 @@ html.has-3d .topbar { box-shadow: none; }
 .inv-row input:focus { outline: 0; box-shadow: inset 0 -2px 0 #1e1610; }
 .inv .lend { margin: 8px 0 6px; }
 .inv .error { min-height: 0; margin: 4px 0 0; }
-@media (prefers-reduced-motion: reduce) { .inv-wrap.out .inv { animation: none; } .inv-wrap { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .inv-wrap.out .inv, .inv-wrap.back .inv { animation: none; } .inv-wrap { transition: none; } }
 /* 초대장 안 명단: 그 방에 이미 앉은 플레이어 · 캐릭터 (나는 빼고) */
 .lend .r { display: grid; grid-template-columns: 44px 1fr 1fr; border-bottom: 1px solid rgba(30, 22, 16, .7); font: 11.5px/26px var(--font); }
 .lend .r > span { padding-left: 5px; border-right: 1px solid rgba(30, 22, 16, .7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -9780,8 +9784,16 @@ const BannerArt = (() => {
     function close() {
       if (!open) return;
       cardAskDone?.(false);
-      if (open === "invite") Scene3D.envOpen(false);
-      list.hidden = true; inv.hidden = true; inv.classList.remove("out"); open = ""; setDel(false);
+      // 초대장: 꺼내 놓은 상태면 봉투 자리로 다시 들어간 뒤(0.3초) 덮개가 닫힘
+      if (open === "invite") {
+        const card = inv.querySelector(".inv"), shut = () => { inv.classList.remove("back"); inv.hidden = true; Scene3D.envOpen(false); };
+        if (inv.classList.contains("out") && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          inv.classList.replace("out", "back");
+          let done = false; const fin = () => { if (!done) { done = true; if (inv.classList.contains("back")) shut(); } };
+          card.addEventListener("animationend", fin, { once: true }); setTimeout(fin, 420);
+        } else { inv.classList.remove("out"); shut(); }
+      } else inv.hidden = true;
+      list.hidden = true; open = ""; setDel(false);
       removeEventListener("keydown", key, true); removeEventListener("pointerdown", away, true);
     }
     function show(which) {
@@ -9794,7 +9806,7 @@ const BannerArt = (() => {
         // 3D 봉투 덮개가 먼저 젖혀 열리고 → 초대장이 봉투 자리에서 빠져나와 가운데로
         const r = Book.rect("invite"), card = inv.querySelector(".inv");
         if (r) for (const [k, v] of [["--fx", `${Math.round(r.x + r.w / 2 - innerWidth / 2)}px`], ["--fy", `${Math.round(r.y + r.h / 2 - innerHeight / 2)}px`], ["--fs", Math.min(r.w / 440, .6).toFixed(3)]]) card.style.setProperty(k, v);
-        inv.hidden = false; Sfx.play("page"); $("#bkJoinName").value ||= LS.get(K.name) ?? "";
+        inv.classList.remove("back"); inv.hidden = false; Sfx.play("page"); $("#bkJoinName").value ||= LS.get(K.name) ?? "";
         Scene3D.envOpen(true).then(() => {
           if (open !== "invite") return;
           inv.classList.add("out");
