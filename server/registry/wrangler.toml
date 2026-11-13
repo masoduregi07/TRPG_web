@@ -1,0 +1,8 @@
+name = "trpg-registry"
+main = "index.js"
+compatibility_date = "2026-01-01"
+
+# 아래 id는 `npx wrangler kv namespace create ROOMS` 결과로 바꿈
+[[kv_namespaces]]
+binding = "ROOMS"
+id = "KV_NAMESPACE_ID"
