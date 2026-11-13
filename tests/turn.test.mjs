@@ -433,3 +433,37 @@ test("@NPC 물음에 판정을 걸면 대사 없이 판정 직전까지만 서�
   assert.ok(!withCheck.issues.some((i) => i.hard), JSON.stringify(withCheck.issues));
   assert.ok(run({ narration: "바르톨이 그물에서 눈을 떼지 않음." }, info).issues.some((i) => i.hard && /대사로 대답하지 않음/.test(i.msg)));
 });
+
+test("성역 예배당 기록: 주어 없는 되풀이 · 재촉 반복 · 없는 이름 · 게임 밖 낱말", () => {
+  const info = (over = {}) => base({ chars: [{ pid: "p1", name: "이예준", player: "가", items: [] }], actors: [], order: ["p1"], npcNames: ["로렌스"], tone: "prose",
+    places: ["아치문", "제단", "십자가", "벽의 초상화 액자", "천장 아래"], inputs: ["아니 방금 로렌스씨 머리에 뭔가 떨어졌잖아요. 피라며요."], ...over });
+  const hardOf = (obj, i, final = false) => run(obj, i, final).issues.filter((x) => x.hard).map((x) => x.msg).join("\n");
+  // 주어 없이 캐릭터 말을 옮긴 문장
+  const echo = { narration: '로렌스는 천장을 노려보았다. "진짜 피 같다니까요?" 로렌스의 머리에 떨어진 액체가 피라는 사실을 지적하며 불안감을 내비쳤다.' };
+  assert.match(hardOf(echo, info()), /규칙 10/);
+  assert.equal(run(echo, info(), true).plan.narration, '로렌스는 천장을 노려보았다. "진짜 피 같다니까요?"');
+  assert.match(hardOf({ narration: '로렌스는 고개를 들었다. "피 맞아요." 로렌스의 머리에 떨어진 검붉은 액체의 정체에 대해 거듭 물었다.' }, info()), /규칙 10/);
+  for (const ok of ['로렌스는 이예준의 소매를 붙잡았다. 그리고 낮게 물었다. "들었어요?"', "로렌스가 벽의 얼룩을 가리키며 불안감을 내비쳤다.", "이예준이 로렌스의 어깨를 짚으며 물었다."])
+    assert.doesNotMatch(hardOf({ narration: ok }, info()), /규칙 10/, ok);
+  // 같은 곳을 또 권함
+  const past = { 로렌스: ['"이 제단 쪽이나 벽 쪽을 좀 더 둘러보죠, 네?"', '"얼른 다른 데를 보죠."'] };
+  const nag = { narration: '로렌스는 발을 굴렀다. "얼른 제단 쪽이나 조사해 보자니까요."' };
+  assert.match(hardOf(nag, info({ npcRecent: past })), /로렌스: 제단, 규칙 31/);
+  assert.equal(hardOf(nag, info({ npcRecent: past }), true), "", "마지막 시도는 통과");
+  assert.equal(hardOf(nag, info()), "", "처음 권하는 것은 통과");
+  assert.equal(hardOf(nag, info({ npcRecent: past, inputs: ["제단에 뭐가 있다는 거예요?"] })), "", "캐릭터가 그곳을 물었으면 대답");
+  assert.equal(hardOf({ narration: '로렌스는 숨을 골랐다. "제단은 예전에 향냄새가 났어요."' }, info({ npcRecent: past })), "", "권유가 아니면 통과");
+  // 없는 이름 · 게임 밖 낱말
+  assert.match(hardOf({ narration: '로렌스는 제퍼슨의 말에 걸음을 멈췄다. "침착하긴요."' }, info()), /없는 이름\(제퍼슨\)/);
+  for (const ok of ["로렌스는 이예준의 말에 걸음을 멈췄다.", "로렌스는 예준의 말에 걸음을 멈췄다.", "로렌스는 상대의 말에 걸음을 멈췄다."])
+    assert.doesNotMatch(hardOf({ narration: ok }, info()), /없는 이름/, ok);
+  assert.doesNotMatch(hardOf({ narration: "로렌스는 수도사의 말에 걸음을 멈췄다." }, info({ known: "늙은 수도사가 다가왔다." })), /없는 이름/, "기록에 나온 낱말");
+  assert.match(hardOf({ narration: '로렌스는 벽을 짚었다. "힌트라도 찾아야죠."' }, info()), /게임 밖 낱말\(힌트\)/);
+  assert.equal(JSON.stringify(Turn.gestures("로렌스는 고개를 내저었다.", ["로렌스"], ["이예준"])), JSON.stringify({ 로렌스: ["고개를 저음"] }));
+});
+
+test("지시문: 힌트 한 번 · 실패한 판정 단서 확정 금지 · NPC 도구 · 없는 이름", () => {
+  const sys = AI.gmSystem({ tone: "prose" });
+  for (const re of [/"지금줄힌트"가 있으면 이번 서술에 한 번만/, /NPC\(KPC 포함\)의 입으로도 사실로 확정하지 않는다/, /새로 꺼내 쓰지 않는다/, /없는 사람 이름을 쓰지 않는다/, /소설체 과거형/, /"아직안검"/, /게임 밖 낱말/])
+    assert.match(sys, re);
+});
