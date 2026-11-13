@@ -665,3 +665,19 @@ test("지금줄힌트: 한 단계의 힌트는 한 번만 넘김 · 실패한 �
   assert.match(ck().find((c) => c.id === "zz_spot").단서보호, /확정하지 않음/);
   assert.equal(ck().find((c) => c.id === "zz_san").아직안검, undefined);
 });
+
+test("[패스]: 모두 행동했거나 패스하면 바로 GM 차례, 패스만으론 안 됨", async () => {
+  const t = aiTable(async () => "{}");
+  t.seat("c1", KEY, "가", "한서"); t.seat("c2", KEY2, "나", "도윤");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  t.g.onMessage("c2", { t: "pass" });   // 모으는 중이 아니면 무시
+  assert.equal(t.g.ai.passes.size, 0);
+  t.g.onMessage("c1", { t: "chat", text: "선반을 뒤진다", style: "act" });
+  assert.ok(t.g.ai.timer);
+  assert.equal(t.g.turnComplete(), false);
+  t.g.onMessage("c2", { t: "pass" });
+  assert.equal(t.g.turnComplete(), true);
+  assert.equal(JSON.stringify(t.g.turnBoard().map((r) => r.kind)), JSON.stringify(["행동", "패스"]));
+  assert.ok(t.g.ai.due - Date.now() < 1000, "바로 진행(50ms 안)");
+  t.stop();
+});

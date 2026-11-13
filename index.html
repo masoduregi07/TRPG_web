@@ -5671,7 +5671,7 @@ class HostGame {
     this.histRate = new Map(); // connId -> 보관함 요청 timestamps
     this.suggestAt = new Map();
     this.suggestHistory = new Map(); // 이전 제안과 인적사항이 연달아 겹치지 않도록
-    this.ai = { timer: null, busy: false, again: false, epoch: 0, controller: null };
+    this.ai = { timer: null, busy: false, again: false, epoch: 0, controller: null, passes: new Set() };   // passes = 이번 차례 [패스]한 사람
     this.aiApplying = false;
     this.undo = [];      // AI 차례 직전 상태 (최근 5개, 메모리에만): GM 노트에서 되돌리기
     this.aiNotes = [];   // AI 응답 점검 기록 (최근 8개): GM 노트에 표시
@@ -6004,7 +6004,7 @@ class HostGame {
     this.ai.due = null;
     clearTimeout(this.ai.hold); this.ai.hold = null;   // 밀어붙이기 · 행운 결정 대기도 끊음 (되돌리기 · 강제 이동 뒤 AI가 저절로 돌지 않게)
     this.ai.controller?.abort();
-    this.ai.again = false;
+    this.ai.again = false; this.ai.passes.clear();
     if (discardPending) this.data.game.aiCursor = this.data.logSeq;
     this.broadcast({ t: "gather", ms: 0 });
     this.broadcast({ t: "board", rows: [] });
@@ -6660,6 +6660,13 @@ class HostGame {
         this.queueAI();
         return;
       }
+      case "pass": {
+        // [패스]: 이번 차례는 입력하지 않겠다는 표시. 접속한 모두가 행동했거나 패스했으면 바로 GM 차례
+        if (!play || d.mode !== "ai" || !this.ai.timer || !p.ready || !p.character) return;
+        this.ai.passes.add(pid);
+        if (this.turnComplete()) this.queueAI(true); else this.broadcastBoard();
+        return;
+      }
       case "aiNow": {
         // 행동 모으는 중이면 기다리지 않고 바로 GM 차례. 밀어붙이기 · 행운 결정을 기다리는 중이면 그 대기도 끊음(모두 넘긴 것으로)
         if (!play || d.mode !== "ai" || !(p.ready || host)) return;
@@ -6912,7 +6919,7 @@ class HostGame {
     const need = Object.entries(d.players).filter(([id, q]) => q.ready && q.character && !q.character.dead && !q.character.down && this.online(id) && !(this.isHost(id) && !d.hostPlays)).map(([id]) => id);
     if (!need.length) return false;
     const done = new Set(this.sinceAI().filter((e) => (e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc)) || (e.kind === "roll" && e.result)).map((e) => e.byId));
-    return need.every((id) => done.has(id));
+    return need.every((id) => done.has(id) || this.ai.passes.has(id));   // 행동했거나 [패스]한 사람
   }
   queueAI(now = false) {
     if (this.data.mode !== "ai" || this.data.phase !== "play" || this.data.game?.result) return;
@@ -6958,7 +6965,8 @@ class HostGame {
     const rows = players.map(([id, q]) => {
       const e = [...since].reverse().find((x) => x.byId === id && input(x));
       const first = since.find((x) => x.byId === id && input(x));
-      return { name: q.character.name, seq: first?.seq ?? Infinity, kind: e ? kindOf(e) : "", text: e ? Engine.clip((e.toNpc ? String(e.text).replace(/^@\S+\s*/, "") : e.text ?? e.result ?? "").replace(/^[*＊?？]\s*/, ""), 28) : "", done: !!e };
+      const passed = !e && this.ai.passes.has(id);
+      return { name: q.character.name, seq: first?.seq ?? Infinity, kind: e ? kindOf(e) : passed ? "패스" : "", text: e ? Engine.clip((e.toNpc ? String(e.text).replace(/^@\S+\s*/, "") : e.text ?? e.result ?? "").replace(/^[*＊?？]\s*/, ""), 28) : passed ? "이번 차례는 넘김" : "", done: !!e || passed };
     }).sort((a, b) => a.seq - b.seq);
     return rows.map(({ seq, ...r }) => r);
   }
@@ -7374,7 +7382,7 @@ class HostGame {
       return;
     }
     clearTimeout(this.ai.hold); this.ai.hold = null;
-    this.ai.busy = true;
+    this.ai.busy = true; this.ai.passes.clear();
     this.broadcast({ t: "board", rows: [] });
     const controller = new AbortController();
     this.ai.controller = controller;
@@ -11804,12 +11812,12 @@ const BannerArt = (() => {
       const t = Math.min(100, Math.max(0, (Date.now() - gatherStart) / Math.max(1, end - gatherStart) * 100));
       $("#gatherNow").style.setProperty("--t", `${t.toFixed(1)}%`);
     };
+    // GM만 하는 호스트 = 지금 진행(바로 GM 차례), 플레이어 = 패스(이번 차례 입력 없음, 모두 행동 · 패스하면 바로 진행)
+    const gn = $("#gatherNow"), gmOnly = !!app.snap?.isHost && !app.snap?.hostPlays;
+    gn.textContent = gmOnly ? "지금 진행" : "패스";
+    gn.title = gmOnly ? "행동을 더 기다리지 않고 바로 GM 차례로" : "이번 차례는 입력하지 않는다. 모두 행동하거나 패스하면 바로 진행한다";
+    if (box.hidden) gn.disabled = false;   // 연장돼도 이미 누른 패스는 그대로
     box.hidden = false;
-    // 호스트 = 지금 진행, 플레이어 = 넘기기 (둘 다 기다리지 않고 바로 GM 차례)
-    const gn = $("#gatherNow");
-    gn.textContent = app.snap?.isHost ? "지금 진행" : "넘기기";
-    gn.title = app.snap?.isHost ? "행동을 더 기다리지 않고 바로 GM 차례로" : "더 입력하지 않고 넘겨 바로 GM 차례로";
-    gn.disabled = false;
     tick();
     gatherTimer = setInterval(tick, 250);
   }
@@ -11826,7 +11834,7 @@ const BannerArt = (() => {
         el("span", { class: "tb-text" }, r.done ? String(r.text ?? "") : "아직 입력 없음"))));
     box.hidden = false;
   }
-  $("#gatherNow").addEventListener("click", () => { $("#gatherNow").disabled = true; send({ t: "aiNow" }); });
+  $("#gatherNow").addEventListener("click", () => { $("#gatherNow").disabled = true; send({ t: !!app.snap?.isHost && !app.snap?.hostPlays ? "aiNow" : "pass" }); });
   /* 입력 종류는 앞 글자로: 평소 = 대사 · * = 행동 · ? = GM 질문 · / = 명령 */
   const SAY_MODES = { talk: ["bubble", "대사"], act: ["point", "행동"], ask: ["ask", "질문"], cmd: ["dice", "명령"] };
   const sayModeOf = (t) => t.startsWith("/") ? "cmd" : /^[*＊]/.test(t) ? "act" : /^[?？]/.test(t) ? "ask" : "talk";
