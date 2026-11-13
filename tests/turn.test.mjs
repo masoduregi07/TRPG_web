@@ -467,3 +467,26 @@ test("지시문: 힌트 한 번 · 실패한 판정 단서 확정 금지 · NPC 
   for (const re of [/"지금줄힌트"가 있으면 이번 서술에 한 번만/, /NPC\(KPC 포함\)의 입으로도 사실로 확정하지 않는다/, /새로 꺼내 쓰지 않는다/, /없는 사람 이름을 쓰지 않는다/, /소설체 과거형/, /"아직안검"/, /게임 밖 낱말/])
     assert.match(sys, re);
 });
+
+test("길티마스 재현: 소설체 현재형 문장은 재요청, 마지막은 통과", () => {
+  const info = base({ tone: "prose" });
+  const obj = { narration: "로니는 손바닥을 들어 불빛에 비춰보았다. 손톱 밑이 검붉게 물들어 있고 기괴한 변화가 눈에 들어온다." };
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /현재형/.test(i.msg)));
+  assert.ok(!run(obj, info, true).issues.some((i) => i.hard));
+  assert.ok(!run({ narration: "로니는 손바닥을 들어 불빛에 비춰보았다. 기괴한 변화가 눈에 들어왔다." }, info).issues.some((i) => /현재형/.test(i.msg)));
+});
+
+test("길티마스 재현: 직전 차례 문장을 거의 그대로 되풀이하면 재요청, 마지막은 그 문장 삭제", () => {
+  const info = base({ prevSents: ["손바닥을 들어 불빛에 비춰보자, 손톱 밑이 검붉게 물들어 있고 피부 아래로 무언가 꿈틀거리는 듯한 기괴한 변화가 눈에 들어왔다."] });
+  const obj = { narration: "자신의 손바닥을 불빛에 비춰보자, 손톱 밑이 검붉게 물들어 있고 피부 아래로 무언가 꿈틀거리는 기괴한 변화가 눈에 들어왔다. 창밖에서 바람이 울었다." };
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /직전 서술/.test(i.msg)));
+  const f = run(obj, info, true);
+  assert.ok(!f.issues.some((i) => i.hard));
+  assert.equal(f.plan.narration, "창밖에서 바람이 울었다.");
+});
+
+test("길티마스 재현: NPC가 말만 바꿔 같은 변명을 되풀이하면 재요청", () => {
+  const info = base({ prevQuotes: ["\"우리가 마신 에그노그… 그게 문제야. 나도 교단이 시킨 대로만… 아니, 제발 더 묻지 마!\""] });
+  const obj = { narration: "줄리언은 거친 숨을 내쉬며 고개를 가로저었다. \"…더 이상 묻지 마. 나도 위에서 시킨 대로만 한 것뿐이야!\"" };
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /되풀이/.test(i.msg)));
+});
