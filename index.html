@@ -937,6 +937,68 @@ textarea { resize: vertical; margin-top: 8px; }
 .gm-actions { gap: 8px; margin-top: 6px; }
 .ai-settings[open] summary { margin-bottom: 8px; }
 
+/* GM 노트 = 밝은 종이 수첩 (머리 · 지금 장면 요약 · 색인 탭 3개 · 탭 내용 스크롤 · 아래 [이야기 끝내기]).
+   토큰: 글자 제목 18 · 장면 17 · 본문 14 · 보조 12 / 간격 4 단위, 카드 사이 8 · 묶음 사이 16 / 장부 줄은 첫 화면 테이블 설정과 같은 --lg-* */
+#gmBox.gm {
+  --gn-ink: #3a2412; --gn-sub: #7a5a3a; --gn-line: rgba(90, 60, 30, .35); --gn-dark: #5a3a22; --gn-red: #8e2438; --gn-card: #f6ecd2;
+  --lg-fs-k: 12px; --lg-fs-v: 13px; --lg-kw: 60px; --lg-kh: 20px; --lg-row: 30px; --lg-ctl: 24px; --lg-gap: 8px; --lg-grp: 12px;
+  display: flex; flex-direction: column; gap: 0; padding: 0; overflow: hidden; font-family: var(--font); color: var(--gn-ink);
+  background: radial-gradient(rgba(120, 80, 30, .07) 1px, transparent 1.5px) 0 0 / 5px 5px, #efe3c4;
+  box-shadow: inset 0 0 0 1px rgba(90, 60, 30, .55), var(--outline), var(--drop);
+}
+#gmBox p { margin: 0; }
+#gmBox .gm-head { position: static; flex: none; margin: 0; padding: 14px 16px 10px; align-items: center; background: none; box-shadow: inset 0 -2px 0 var(--gn-dark); }
+#gmBox .gm-head h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; font-weight: 400; color: var(--gn-ink); }
+#gmBox .gm-host { font-size: 11px; line-height: 18px; padding: 0 6px; color: var(--gn-red); background: rgba(142, 36, 56, .1); box-shadow: inset 0 0 0 1px rgba(142, 36, 56, .35); }
+#gmBox .gm-close { color: var(--gn-sub); } #gmBox .gm-close:hover { color: var(--gn-red); }
+.gn-now { flex: none; display: grid; gap: 8px; margin: 12px 12px 0; padding: 10px 12px; background: #e6d6b0; box-shadow: inset 3px 0 0 var(--gn-red); }
+.gn-scene { font-size: 17px; line-height: 1.3; }
+.gn-chips { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+.gn-chips span { font-size: 12px; line-height: 20px; padding: 0 8px; color: var(--gn-dark); background: #efe3c4; box-shadow: inset 0 0 0 1px rgba(90, 60, 30, .45); }
+.gn-chips b { font-weight: 400; color: var(--gn-red); }
+.gn-tabs { flex: none; display: flex; gap: 4px; padding: 12px 12px 0; box-shadow: inset 0 -2px 0 var(--gn-dark); }
+.gn-tabs button { flex: 1 1 auto; border: 0; cursor: pointer; white-space: nowrap; padding: 0 10px; font: 12px/26px var(--font); color: #6a4a30; background: #dccca4;
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 100%, 0 100%); }
+.gn-tabs button:hover { color: var(--gn-ink); }
+.gn-tabs button.on { background: var(--gn-dark); color: #f1e5c2; }
+.gn-tabs button:focus-visible { outline: 2px dashed var(--gn-red); outline-offset: -4px; }
+.gn-body { flex: 1 1 auto; min-height: 0; overflow: auto; display: grid; align-content: start; gap: 16px; padding: 12px; }
+.gn-sec { display: grid; gap: 8px; }
+.gn-sec h5 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; font-weight: 400; color: var(--gn-dark); }
+.gn-sec h5::after { content: ""; flex: 1; border-top: 1px dashed rgba(90, 60, 30, .4); }
+.gn-sec h5 em { font-style: normal; color: var(--gn-red); }
+.gn-it { display: grid; gap: 8px; padding: 10px 12px; font-size: 14px; line-height: 1.5; background: var(--gn-card);
+  box-shadow: inset 3px 0 0 var(--bar, transparent), inset 0 0 0 1px rgba(90, 60, 30, .18); }
+.gn-it.k-scene, .gn-it.k-plain { --bar: #a8946e; } .gn-it.k-npc { --bar: #c27a3a; } .gn-it.k-clue { --bar: #b8483a; } .gn-it.k-check { --bar: #3d5a8a; }
+.gn-it.k-exit { --bar: #3f6b3a; } .gn-it.k-ai { --bar: #3f6b3a; } .gn-it.k-mode { --bar: var(--gn-red); }
+.gn-it.done, .gn-it.locked { opacity: .6; }
+.gn-it.k-cover { justify-items: start; background: repeating-linear-gradient(135deg, rgba(90, 60, 30, .08) 0 6px, transparent 6px 12px), var(--gn-card); }
+.gn-row { display: flex; align-items: center; gap: 12px; } .gn-row.top { align-items: flex-start; }
+.gn-row > p, .gn-row > div { flex: 1; min-width: 0; } .gn-row > .pbtn, .gn-row > .gn-done, .gn-row > .gn-seg { flex: none; }
+.gn-row.sub { padding-left: 28px; }
+.gn-nm { font-size: 14px; } .gn-nm small { margin-left: 6px; font-size: 12px; color: var(--gn-sub); }
+.gn-meta { font-size: 12px; line-height: 1.5; color: var(--gn-sub); } .gn-lbl { font-size: 12px; color: #8e5a22; }
+.gn-meta .ok { font-weight: 400; color: #3f6b3a; } .gn-meta .ng { font-weight: 400; color: var(--gn-red); }
+.gn-no { flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; font-size: 12px; background: var(--gn-red); color: #f6e8d4; }
+.gn-secret { display: flex; align-items: baseline; gap: 6px; padding: 4px 6px; font-size: 12px; line-height: 1.5; color: var(--gn-red); background: rgba(142, 36, 56, .1); }
+.gn-secret span { flex: none; padding: 0 6px; font-size: 11px; line-height: 18px; background: var(--gn-red); color: #f6e8d4; }
+.gn-done { font-size: 12px; color: var(--gn-sub); }
+.gn-dot { display: inline-block; width: 8px; height: 8px; margin-right: 6px; background: #a8946e; } .gn-dot.on { background: #3f6b3a; }
+.gn-seg { display: inline-flex; box-shadow: inset 0 0 0 1px var(--gn-dark); }
+.gn-seg button { border: 0; cursor: pointer; padding: 0 8px; font: 12px/22px var(--font); color: var(--gn-dark); background: none; }
+.gn-seg button.on { background: var(--gn-dark); color: #f1e5c2; }
+.gn-link { justify-self: start; border: 0; padding: 0; cursor: pointer; background: none; font: 12px/1.5 var(--font); color: var(--gn-sub); text-decoration: underline; text-underline-offset: 3px; }
+.gn-link:hover { color: var(--gn-red); }
+#gmBox .gm-hints summary { cursor: pointer; font-size: 12px; color: var(--gn-sub); }
+#gmBox .gm-hints ol, #gmBox .gm-hints ul { font-size: 12px; color: var(--gn-ink); }
+#gmBox .gm-note { font-size: 14px; }
+#gmBox .muted, #gmBox .small.muted { color: var(--gn-sub); }
+#gmBox .gm-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+#gmBox .lg { font-size: 13px; } #gmBox .lg.lg-2 { grid-template-columns: 1fr; }
+#gmBox .gm-actions .btn { padding: 3px 8px; min-height: 0; transform: none; } #gmBox .lg-row select, #gmBox .lg-row input { color: var(--gn-ink); } #gmBox .lg-note { display: none; }
+#gmBox .gm-art .small { font-size: 12px; color: var(--gn-sub); }
+.gn-foot { flex: none; display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; box-shadow: inset 0 2px 0 rgba(90, 60, 30, .35); }
+
 /* 수첩 (기록 · 입력). 오른쪽은 링 제본 자리만큼, 왼쪽은 책갈피 끈 자리만큼만 */
 .log { padding: 16px 44px 12px 48px; gap: 10px; }
 .entry { line-height: 1.6; }
@@ -2512,9 +2574,9 @@ html.has-3d .topbar { box-shadow: none; }
 @keyframes inv-sign { from { stroke-dashoffset: 1; } }
 @media (prefers-reduced-motion: reduce) { .inv-sig.stamped path { animation: none; } }
 /* 기본 UI 버튼 = 종이 박스(크림 바탕 + 진갈색 1px 테 + 1px 그림자, 호버 진갈색 칠) */
-.pbtn, #bkPages .btn { display: inline-flex; align-items: center; justify-content: center; height: auto; padding: 4px 14px 3px; border: 0; cursor: pointer; background: #f2e6c6; color: #5a4128;
+.pbtn, #bkPages .btn, #gmBox .gm-actions .btn { display: inline-flex; align-items: center; justify-content: center; height: auto; padding: 4px 14px 3px; border: 0; cursor: pointer; background: #f2e6c6; color: #5a4128;
   box-shadow: inset 0 0 0 1px #5a4128, 1px 1px 0 rgba(60, 40, 20, .3); font: 12px/1.4 var(--font); letter-spacing: .05em; }
-.pbtn:hover, .pbtn:focus-visible, #bkPages .btn:hover:not(:disabled), #bkPages .btn:focus-visible { background: #5a4128; color: #f3e6c4; outline: 0; transform: none; }
+.pbtn:hover, .pbtn:focus-visible, #bkPages .btn:hover:not(:disabled), #bkPages .btn:focus-visible, #gmBox .gm-actions .btn:hover, #gmBox .gm-actions .btn:focus-visible { background: #5a4128; color: #f3e6c4; outline: 0; transform: none; }
 .pbtn.red { background: #8a2216; color: #f6e7c8; box-shadow: inset 0 0 0 1px #5e140b, 1px 1px 0 rgba(60, 40, 20, .3); }
 .pbtn.red:hover, .pbtn.red:focus-visible { background: #a8291a; color: #fff3dc; }
 .pbtn:active, #bkPages .btn:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: inset 0 0 0 1px #5a4128; }
@@ -12672,65 +12734,124 @@ const BannerArt = (() => {
     return n;
   }
 
-  /* ---------------- GM 패널 ---------------- */
+  /* ---------------- GM 패널 ----------------
+   * 밝은 종이 수첩: 머리(GM 노트 · 호스트 전용) → 지금 장면 요약 → 색인 탭 3개 → 탭 내용(스크롤) → 아래 [이야기 끝내기]
+   * 탭: 장면 · 인물 / 단서 · 판정 · 진행 / AI · 개입. 호스트도 플레이 중이면 앞의 두 탭은 가려 둠 */
+  const GM_TABS = [["scene", "장면 · 인물"], ["flow", "단서 · 판정 · 진행"], ["ai", "AI · 개입"]];
   function renderGM(s) {
-    const gm = s.gm;
-    if (!changed("gm", s.phase, gm, s.hostPlays, s.mode, s.system, s.view?.place ?? null, !!app.gmSpoil, !!s.result)) return;
+    const gm = s.gm, play = s.phase === "play";
+    const tab = GM_TABS.some(([k]) => k === app.gmTab) ? app.gmTab : (app.gmTab = "scene");
+    if (!changed("gm", s.phase, gm, s.hostPlays, s.mode, s.system, s.view?.place ?? null, s.view?.scene?.id ?? null, s.view?.pendingChecks?.length ?? 0, !!app.gmSpoil, !!s.result, tab)) return;
     const box = $("#gmBox");
-    const parts = [el("div", { class: "gm-head" }, el("h3", {}, "GM 노트 ", el("span", { class: "muted small" }, "(나만 보임)")),
-      el("button", { class: "gm-close", type: "button", "aria-label": "GM 노트 닫기", title: "닫기 (Esc)", on: { click: () => { setGmOpen(false); $("#gmTab").focus(); } } }, "×"))];
-    if (s.phase === "play") {
-      const secret = [
-        gm.mainObjective ? el("p", { class: "gm-goal" }, el("b", {}, "스토리 주 목적 "), gm.mainObjective) : null,
-        gm.goal ? el("p", { class: "gm-goal" }, el("b", {}, "사건 목표 "), gm.goal) : null,
-        gm.progressJournal?.length ? el("details", { class: "gm-hints" }, el("summary", { class: "small" }, `진행 기록 ${gm.progressJournal.length}`), el("ol", { class: "small" }, gm.progressJournal.map((x) => el("li", {}, x.text)))) : null,
-        gm.offTrack >= 3 ? el("p", { class: "small" }, el("b", {}, "진행 "), `사건목표에서 ${gm.offTrack}턴째 맴도는 중 · 힌트 단계 올라감`) : null,
-        gm.improv ? el("p", { class: "small" }, el("b", {}, "즉흥 판정 대기 "), `${gm.improv.label} · ${gm.improv.san ? `이성 ${gm.improv.san}` : `${gm.improv.skill} ${gm.improv.difficulty ?? "보통"}`}`) : null,
-        gm.summaries.length ? el("details", { class: "gm-hints" }, el("summary", { class: "small" }, `지금까지의 이야기 (AI 기억) ${gm.summaries.length}`), el("ol", { class: "small" }, gm.summaries.map((x) => el("li", {}, el("b", {}, x.title), ` ${x.text}`)))) : null,
-        gm.places.length ? el("p", { class: "small" }, el("b", {}, "사건 안 장소 "), gm.places.join(" · ")) : null,
-        el("p", { class: "gm-note" }, gm.gmOnly || "(이 사건의 GM 메모 없음)"),
-        gm.hints.length ? el("details", { class: "gm-hints" }, el("summary", { class: "small" }, `막혔을 때 힌트 ${gm.hints.length}단계`), el("ol", { class: "small" }, gm.hints.map((h) => el("li", {}, h)))) : null,
-        gm.canon.length ? el("details", { class: "gm-hints" }, el("summary", { class: "small" }, `고정 사실 ${gm.canon.length}개`), el("ul", { class: "small" }, gm.canon.map((h) => el("li", {}, h)))) : null,
-        ...gm.npcs.map((n) => el("div", { class: "gm-npc" }, el("b", {}, n.name), el("div", { class: "small" }, `성격: ${n.personality}`), n.secret ? el("div", { class: "small secret-text" }, `비밀: ${n.secret}`) : null,
-          n.combat ? el("div", { class: `small gm-fight${n.combat.hp <= 0 ? " down" : ""}` }, el("b", {}, "전투 "), `체력 ${n.combat.hp}/${n.combat.hpMax}${n.combat.hp <= 0 ? " (쓰러짐)" : ""} · ${Object.entries(n.combat.skills).map(([k, v]) => `${k} ${v}`).join(" · ")} · ${n.combat.weapons.join(", ")}${n.combat.armor ? ` · 장갑 ${n.combat.armor}` : ""}`) : null)),
-        el("h4", {}, "단서"),
-        el("ul", { class: "gm-list" }, gm.clues.length ? gm.clues.map((c) => el("li", { class: c.revealed ? "done" : "" },
-          el("div", {}, c.text), el("div", { class: "small muted" }, c.reveal),
-          c.revealed ? el("span", { class: "tag" }, "공개됨") : el("button", { class: "btn tiny", on: { click: () => send({ t: "reveal", clueId: c.id }) } }, "공개"))) : el("li", { class: "muted small" }, "없음")),
-        el("h4", {}, "판정 (난이도)"),
-        el("ul", { class: "gm-list" }, gm.checks.length ? gm.checks.map((c) => el("li", {},
-          el("div", {}, el("b", {}, c.label), c.san ? ` · 이성 ${c.san}` : ` · ${c.skill} ${c.difficulty ?? "보통"}${c.dice ? ` · ${c.dice > 0 ? "보너스" : "페널티"} ${Math.abs(c.dice)}` : ""}`),
-          c.success ? el("div", { class: "small" }, `성공: ${c.success}`) : null,
-          c.fail ? el("div", { class: "small muted" }, `실패: ${c.fail}`) : null,
-          el("button", { class: "btn tiny", on: { click: () => send({ t: "requestCheck", checkId: c.id }) } }, "판정 요청"))) : el("li", { class: "muted small" }, "없음")),
-        el("h4", {}, "다음 사건"),
-        el("ul", { class: "gm-list" }, gm.allExits.length ? gm.allExits.map((x) => el("li", { class: x.open ? "" : "locked" },
-          el("div", {}, `${x.open ? "[열림]" : "[잠김]"} ${x.label} `, el("span", { class: "small muted mono" }, x.when)),
-          x.open ? el("button", { class: "btn tiny", on: { click: () => send({ t: "move", to: x.to }) } }, "이동") : null,
-          el("button", { class: "btn tiny ghost", on: { click: async () => (await paperAsk("조건을 무시하고 이동할까?")) && send({ t: "forceScene", to: x.to }) } }, "강제 이동"))) : el("li", { class: "muted small" }, "없음")),
-        gm.hiddenTiles?.length ? el("h4", {}, "숨은 칸") : null,
-        gm.hiddenTiles?.length ? el("ul", { class: "gm-list" }, gm.hiddenTiles.map((h) => el("li", { class: h.revealed ? "done" : "" },
-          el("div", {}, `${h.name} `, el("span", { class: "small muted" }, `(${h.x},${h.y}) · 플레이어에겐 '${h.disguise}'로 보임`)),
-          h.revealed ? el("span", { class: "tag" }, "공개됨") : el("button", { class: "btn tiny", on: { click: () => send({ t: "revealTile", x: h.x, y: h.y }) } }, "공개")))) : null,
-        el("h4", {}, "플래그"),
-        el("div", { class: "small mono" }, Object.entries(gm.flags).map(([k, v]) => `${k}: ${v ? "✔" : "—"}`).join("   ") || "(없음)")];
-      // 호스트도 플레이 중이면 비밀은 가려 둠 (AI GM이 진행을 전담)
-      if (s.hostPlays && !app.gmSpoil) {
-        parts.push(el("div", { class: "gm-cover" },
-          el("p", {}, "스포일러 가림 · 호스트도 플레이 중"),
-          el("p", { class: "small muted" }, "사건 목표 · NPC 비밀 · 단서 · 판정 난이도가 가려져 있음. 진행은 AI GM이 맡음."),
-          el("button", { class: "btn small", type: "button", on: { click: () => { app.gmSpoil = true; renderGM(app.snap); } } }, "비밀 보기")));
-      } else {
-        parts.push(...secret);
-        if (s.hostPlays) parts.push(el("button", { class: "btn tiny ghost", type: "button", on: { click: () => { app.gmSpoil = false; renderGM(app.snap); } } }, "다시 가리기"));
-      }
+    const keep = box.querySelector(".gn-body")?.dataset.tab === tab ? box.querySelector(".gn-body").scrollTop : 0;
+    const emOpen = !!box.querySelector(".gm-emergency")?.open;
+    const sec = (title, n, ...kids) => el("section", { class: "gn-sec" }, el("h5", {}, title, n != null ? el("em", {}, String(n)) : null), ...kids);
+    const card = (kind, ...kids) => el("div", { class: `gn-it ${kind}` }, ...kids);
+    const row = (...kids) => el("div", { class: "gn-row" }, ...kids);
+    const pb = (label, on, cls = "") => el("button", { class: `pbtn${cls ? ` ${cls}` : ""}`, type: "button", on: { click: on } }, label);
+    const fold = (label, items, tag = "ol") => el("details", { class: "gm-hints" }, el("summary", {}, label), el(tag, {}, items));
+    const head = el("div", { class: "gm-head" }, el("h3", {}, "GM 노트", el("span", { class: "gm-host" }, "호스트 전용")),
+      el("button", { class: "gm-close", type: "button", "aria-label": "GM 노트 닫기", title: "닫기 (Esc)", on: { click: () => { setGmOpen(false); $("#gmTab").focus(); } } }, "×"));
+    const hidden = play && s.hostPlays && !app.gmSpoil;   // 호스트도 플레이 중: 비밀은 가려 둠 (AI GM이 진행을 전담)
+
+    // AI · 개입 탭 (로비에서도 보임)
+    let styleNode = app.gmStyleNode;
+    if (!styleNode) styleNode = app.gmStyleNode = styleForm({ ...gm.aiStyle }, (v) => { LS.set(K.aiStyle, v); send({ t: "setAiStyle", style: v }); }, { ledger: true });
+    const aiTab = [
+      sec("AI GM", null, card("k-ai",
+        row(el("p", {}, el("span", { class: `gn-dot${gm.aiReady ? " on" : ""}` }), gm.aiReady ? "AI 연결됨" : "AI 없음"),
+          pb("연결 설정", (e) => { e.stopPropagation(); openExit(false); openHelp(false); openSound(true); $("#sndAi").open = true; })),
+        styleNode,
+        play && gm.undoable ? row(el("p", {}, "마지막 AI 서술 되돌리기", el("span", { class: "gn-meta" }, ` · ${gm.undoable}번까지`)),
+          pb("되돌리기", async () => (await paperAsk("마지막 AI 서술 직전으로 되돌릴까? 그 뒤 들어온 행동 · 판정도 함께 사라짐.")) && send({ t: "undoAI" }))) : null,
+        gm.aiNotes?.length ? fold(`AI 응답 점검 ${gm.aiNotes.length}`, gm.aiNotes.map((t) => el("li", {}, t)), "ul") : null)),
+      sec("진행 전환", null, card("k-mode",
+        row(el("p", {}, "GM 진행"), el("span", { class: "gn-seg", role: "group", "aria-label": "GM 진행" },
+          ...[["ai", "AI GM"], ["human", "내가 GM"]].map(([m, t]) => el("button", { type: "button", class: s.mode === m ? "on" : "", "aria-pressed": String(s.mode === m),
+            on: { click: () => s.mode !== m && send({ t: "setMode", mode: m }) } }, t)))),
+        play ? emergencyBox() : null,
+        play ? row(el("p", {}, "시나리오 처음부터"), pb("다시", async () => (await paperAsk("시나리오를 처음부터 다시 할까? 캐릭터와 기록은 남고 체력 · 이성 · 행운 · 소지품은 처음으로.")) && send({ t: "reset" }))) : null)),
+    ];
+    if (!play) {
+      box.replaceChildren(head, el("div", { class: "gn-body", "data-tab": "lobby" }, el("p", { class: "gn-meta" }, "모험이 시작되면 장면 · NPC 비밀과 단서 버튼이 여기 표시됨."), ...aiTab));
+      return;
+    }
+
+    // 지금 장면 요약
+    const pend = s.view?.pendingChecks?.length ?? 0, shown = gm.clues.filter((c) => c.revealed).length, nextExit = gm.allExits.find((x) => x.open);
+    const now = el("div", { class: "gn-now" }, el("div", { class: "gn-scene" }, s.view?.scene?.title ?? ""),
+      el("div", { class: "gn-chips" }, el("span", {}, "대기 판정 ", el("b", {}, String(pend))),
+        hidden ? null : el("span", {}, "단서 ", el("b", {}, `${shown}/${gm.clues.length}`)),
+        hidden || !nextExit ? null : el("span", {}, `다음 · ${nextExit.label}`)));
+    const tabs = el("nav", { class: "gn-tabs", role: "tablist", "aria-label": "GM 노트" }, ...GM_TABS.map(([k, t]) => el("button", { type: "button", role: "tab", "aria-selected": String(k === tab), class: k === tab ? "on" : "",
+      on: { click: () => { if (app.gmTab !== k) { app.gmTab = k; renderGM(app.snap); } } } }, t)));
+
+    let body;
+    if (tab !== "ai" && hidden) {
+      body = [card("k-cover", el("p", {}, "스포일러 가림 · 호스트도 플레이 중"),
+        el("p", { class: "gn-meta" }, "사건 목표 · NPC 비밀 · 단서 · 판정 난이도가 가려져 있음. 진행은 AI GM이 맡음."),
+        el("div", {}, pb("비밀 보기", () => { app.gmSpoil = true; renderGM(app.snap); })))];
+    } else if (tab === "scene") {
+      body = [
+        sec("장면", null, card("k-scene",
+          gm.mainObjective ? el("div", {}, el("p", { class: "gn-lbl" }, "스토리 주 목적"), el("p", {}, gm.mainObjective)) : null,
+          gm.goal ? el("div", {}, el("p", { class: "gn-lbl" }, "사건 목표"), el("p", {}, gm.goal)) : null,
+          el("div", {}, el("p", { class: "gn-lbl" }, "이 사건의 GM 메모"), el("p", { class: gm.gmOnly ? "gm-note" : "gn-meta" }, gm.gmOnly || "없음")),
+          gm.offTrack >= 3 ? el("p", { class: "gn-meta" }, `사건 목표에서 ${gm.offTrack}턴째 맴도는 중 · 힌트 단계 올라감`) : null,
+          gm.improv ? el("p", { class: "gn-meta" }, `즉흥 판정 대기 · ${gm.improv.label} · ${gm.improv.san ? `이성 ${gm.improv.san}` : `${gm.improv.skill} ${gm.improv.difficulty ?? "보통"}`}`) : null,
+          gm.places.length ? el("p", { class: "gn-meta" }, `사건 안 장소 · ${gm.places.join(" · ")}`) : null,
+          s.view.place ? gmPlace(s) : null,
+          gm.hints.length ? fold(`막혔을 때 힌트 ${gm.hints.length}단계`, gm.hints.map((h) => el("li", {}, h))) : null,
+          gm.canon.length ? fold(`고정 사실 ${gm.canon.length}개`, gm.canon.map((h) => el("li", {}, h)), "ul") : null,
+          gm.summaries.length ? fold(`지금까지의 이야기 (AI 기억) ${gm.summaries.length}`, gm.summaries.map((x) => el("li", {}, el("b", {}, x.title), ` ${x.text}`))) : null)),
+        sec("인물", gm.npcs.length, ...(gm.npcs.length ? gm.npcs.map((n) => card("k-npc",
+          el("div", { class: "gn-nm" }, n.name),
+          n.personality ? el("p", { class: "gn-meta" }, n.personality) : null,
+          n.secret ? el("p", { class: "gn-secret" }, el("span", {}, "비밀"), n.secret) : null,
+          n.combat ? el("p", { class: `gn-meta gm-fight${n.combat.hp <= 0 ? " down" : ""}` }, `전투 · 체력 ${n.combat.hp}/${n.combat.hpMax}${n.combat.hp <= 0 ? " (쓰러짐)" : ""} · ${Object.entries(n.combat.skills).map(([k, v]) => `${k} ${v}`).join(" · ")} · ${n.combat.weapons.join(", ")}${n.combat.armor ? ` · 장갑 ${n.combat.armor}` : ""}`) : null))
+          : [el("p", { class: "gn-meta" }, "없음")])),
+      ];
+    } else if (tab === "flow") {
+      body = [
+        sec("단서", `${shown}/${gm.clues.length}`, ...(gm.clues.length ? gm.clues.map((c, i) => card(`k-clue${c.revealed ? " done" : ""}`,
+          el("div", { class: "gn-row top" }, el("span", { class: "gn-no" }, String(i + 1)), el("p", {}, c.text)),
+          el("div", { class: "gn-row sub" }, el("p", { class: "gn-meta" }, c.reveal ? `조건 · ${c.reveal}` : ""),
+            c.revealed ? el("span", { class: "gn-done" }, "공개됨") : pb("공개", () => send({ t: "reveal", clueId: c.id })))))
+          : [el("p", { class: "gn-meta" }, "없음")])),
+        sec("판정", gm.checks.length, ...(gm.checks.length ? gm.checks.map((c) => card("k-check",
+          el("div", { class: "gn-row top" }, el("div", {},
+            el("div", { class: "gn-nm" }, c.label, el("small", {}, c.san ? `이성 ${c.san}` : `${c.skill} · ${c.difficulty ?? "보통"}${c.dice ? ` · ${c.dice > 0 ? "보너스" : "페널티"} ${Math.abs(c.dice)}` : ""}`)),
+            c.success ? el("p", { class: "gn-meta" }, el("b", { class: "ok" }, "성공 "), c.success) : null,
+            c.fail ? el("p", { class: "gn-meta" }, el("b", { class: "ng" }, "실패 "), c.fail) : null),
+            pb("요청", () => send({ t: "requestCheck", checkId: c.id })))))
+          : [el("p", { class: "gn-meta" }, "없음")])),
+        sec("진행", null,
+          ...gm.allExits.map((x) => card(`k-exit${x.open ? "" : " locked"}`,
+            el("div", { class: "gn-row top" }, el("div", {}, el("div", { class: "gn-nm" }, x.label), el("p", { class: "gn-meta mono" }, `${x.open ? "열림" : "잠김"} · ${x.when}`)),
+              x.open ? pb("이동", () => send({ t: "move", to: x.to })) : null),
+            el("button", { class: "gn-link", type: "button", on: { click: async () => (await paperAsk("조건을 무시하고 이동할까?")) && send({ t: "forceScene", to: x.to }) } }, "강제 이동"))),
+          ...(gm.hiddenTiles ?? []).map((h) => card(`k-exit${h.revealed ? " done" : ""}`,
+            el("div", { class: "gn-row top" }, el("div", {}, el("div", { class: "gn-nm" }, `숨은 칸 · ${h.name}`), el("p", { class: "gn-meta" }, `(${h.x},${h.y}) · 플레이어에겐 '${h.disguise}'로 보임`)),
+              h.revealed ? el("span", { class: "gn-done" }, "공개됨") : pb("공개", () => send({ t: "revealTile", x: h.x, y: h.y }))))),
+          card("k-plain",
+            el("p", { class: "gn-meta mono" }, `플래그 · ${Object.entries(gm.flags).map(([k, v]) => `${k} ${v ? "켜짐" : "꺼짐"}`).join(" · ") || "없음"}`),
+            gm.progressJournal?.length ? fold(`진행 기록 ${gm.progressJournal.length}`, gm.progressJournal.map((x) => el("li", {}, x.text))) : null)),
+      ];
+    } else body = aiTab;
+    if (tab !== "ai" && !hidden && s.hostPlays) body.push(el("div", {}, el("button", { class: "gn-link", type: "button", on: { click: () => { app.gmSpoil = false; renderGM(app.snap); } } }, "다시 가리기")));
+    const bodyEl = el("div", { class: "gn-body", role: "tabpanel", "data-tab": tab }, ...body.filter(Boolean));
+    const foot = !s.result ? el("div", { class: "gn-foot" }, pb("이야기 끝내기", async () => (await paperAsk("이야기를 여기서 끝내고 결과 정리 화면을 띄울까?")) && send({ t: "finish" }), "red")) : null;
+    box.replaceChildren(head, now, tabs, bodyEl, ...(foot ? [foot] : []));
+    bodyEl.scrollTop = keep;
+
+    function emergencyBox() {
       // 보통은 AI GM이 진행하고, 어긋났을 때에만 호스트가 좁은 범위의 설정을 개입한다.
       const ask = (label, initial = "") => {
         const v = window.prompt(label, initial);
         return v == null ? null : v.trim();
       };
       const emergency = el("details", { class: "gm-hints gm-emergency" },
-        el("summary", { class: "small" }, "긴급 개입 · 호스트 전용"),
+        el("summary", {}, "긴급 개입"),
         el("p", { class: "small muted" }, "진행 중인 사건만 변경합니다. 개입 시 진행 중인 AI 응답은 취소됩니다."),
         el("div", { class: "gm-actions" },
           el("button", { class: "btn tiny", type: "button", on: { click: () => {
@@ -12764,34 +12885,9 @@ const BannerArt = (() => {
           ...Object.entries(gm.flags ?? {}).map(([id, value]) => el("button", { class: "btn tiny ghost", type: "button",
             title: "클릭하면 플래그를 반대로 변경합니다", on: { click: () => send({ t: "emergencyEdit", kind: "flag", id, value: !value }) } },
           `${id}: ${value ? "켜짐" : "꺼짐"}`))));
-      parts.push(emergency);
-      if (s.view.place) parts.push(el("h4", {}, "장면 안 위치"), gmPlace(s));
-    } else {
-      parts.push(el("p", { class: "small muted" }, "모험이 시작되면 장면·NPC 비밀과 단서 버튼이 여기 표시됨."));
+      emergency.open = emOpen;
+      return emergency;
     }
-    parts.push(
-      el("div", { class: "small muted" }, gm.aiReady ? "AI 연결됨" : "AI 없음. 사람 GM으로 진행."),
-      gm.aiNotes?.length ? el("details", { class: "gm-hints" }, el("summary", { class: "small" }, `AI 응답 점검 ${gm.aiNotes.length}`),
-        el("ul", { class: "small" }, gm.aiNotes.map((t) => el("li", {}, t)))) : null,
-      el("div", { class: "gm-actions" },
-        s.phase === "play" && gm.undoable ? el("button", { class: "btn small", type: "button", title: `최근 ${gm.undoable}번까지`,
-          on: { click: async () => (await paperAsk("마지막 AI 서술 직전으로 되돌릴까? 그 뒤 들어온 행동 · 판정도 함께 사라짐.")) && send({ t: "undoAI" }) } }, "마지막 AI 서술 되돌리기") : null,
-        el("button", { class: "btn small", on: { click: () => send({ t: "setMode", mode: s.mode === "ai" ? "human" : "ai" }) } }, s.mode === "ai" ? "내가 GM으로 전환 (비상용)" : "AI GM으로 전환"),
-
-        s.phase === "play" && !s.result ? el("button", { class: "btn small", type: "button", title: "엔딩 전이라도 여기서 끝내고 결과 정리", on: { click: async () => (await paperAsk("이야기를 여기서 끝내고 결과 정리 화면을 띄울까?")) && send({ t: "finish" }) } }, "이야기 끝내기 · 결과 정리") : null,
-        s.phase === "play" ? el("button", { class: "btn small ghost", on: { click: async () => (await paperAsk("시나리오를 처음부터 다시 할까? 캐릭터와 기록은 남고 체력 · 이성 · 행운 · 소지품은 처음으로.")) && send({ t: "reset" }) } }, "시나리오 처음부터") : null));
-
-    // AI 설정은 접어 두고, 열려 있으면 다시 그리지 않는다 (입력 중 초기화 방지)
-    let details = box.querySelector("details.ai-conn");
-    if (!details) {
-      details = el("details", { class: "ai-settings ai-conn" }, el("summary", { class: "small" }, "AI 연결 설정"), aiForm(() => app.game?.pushAll()));
-    }
-    let styleD = box.querySelector("details.ai-style");
-    if (!styleD) {
-      styleD = el("details", { class: "ai-settings ai-style" }, el("summary", { class: "small" }, "AI GM 성향"),
-        styleForm({ ...gm.aiStyle }, (v) => { LS.set(K.aiStyle, v); send({ t: "setAiStyle", style: v }); }));
-    }
-    box.replaceChildren(...parts.filter(Boolean), styleD, details);
   }
 
   /** 초상 맞추기: 끌어서 위치 · 확대/축소 → 112×132로 잘라 돌려줌 (취소하면 null) */
