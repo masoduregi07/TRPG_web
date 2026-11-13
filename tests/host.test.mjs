@@ -378,35 +378,83 @@ test("다인 차례: @NPC 대사 · 판정 굴림을 한 캐릭터의 결과도 
   assert.deepEqual([...t.data.log.filter((e) => e.kind === "ai").slice(-2).map((e) => e.focus)], ["한서", "도윤"]);
 });
 
-test("AI가 쓰는 동안 행운으로 성공하면 실패 서술은 버리고 성공으로 다시 요청", async () => {
-  let release, calls = 0; const asked = [];
-  const t = aiTable(async (msgs) => {
-    calls++; asked.push(msgs[1].content);
-    if (calls === 1) await new Promise((r) => (release = r));
-    return JSON.stringify({ narration: calls === 1 ? "손이 미끄러져 창틀을 놓침." : "창틀을 넘어 안으로 들어섬." });
-  });
+// 행운으로 메울 수 있는 즉흥 판정 실패가 나올 때까지 굴림
+function failUntilRetry(t, pid, conn, skill = "민첩") {
+  const c = t.data.players[pid].character; c.luck = 99; c.chars[skill] = 40;
+  for (let i = 0; i < 300; i++) {
+    t.g.requestImprov({ skill, reason: "창틀 넘기" }, { who: pid, whoName: c.name });
+    t.g.onMessage(conn, { t: "check", checkId: t.data.game.pendingChecks.at(-1).checkId });
+    if (t.data.game.retries?.[pid]?.luckCost > 0) return;
+    t.g.invalidateAI(); t.g.rate.clear(); delete t.data.game.retries?.[pid];
+  }
+  throw new Error("실패가 안 나옴");
+}
+
+test("실패한 사람이 밀어붙이기 · 행운을 고를 때까지 AI GM은 서술하지 않음 → 행운으로 성공하면 성공으로 서술", async () => {
+  let calls = 0; const asked = [];
+  const t = aiTable(async (msgs) => { calls++; asked.push(msgs[1].content); return JSON.stringify({ narration: "창틀을 넘어 안으로 들어섬." }); });
   const pid = t.seat("c1", KEY, "가", "한서");
   t.g.hostAction({ t: "start" }); t.g.invalidateAI();
-  const c = t.data.players[pid].character; c.luck = 99; c.chars["민첩"] = 40;
-  // 즉흥 판정 실패 (행운으로 메울 수 있는 실패)가 나올 때까지
-  for (let i = 0; i < 300; i++) {
-    t.g.requestImprov({ skill: "민첩", reason: "창틀 넘기" }, { who: pid, whoName: "한서" });
-    t.g.onMessage("c1", { t: "check", checkId: t.data.game.pendingChecks.at(-1).checkId });
-    if (t.data.game.retry?.luckCost > 0) break;
-    t.g.invalidateAI(); t.g.rate.clear();
-  }
-  assert.ok(t.data.game.retry?.luckCost > 0);
-  t.stop(); t.g.runAI();
-  await new Promise((r) => setTimeout(r, 10));
-  t.g.rate.clear();
-  t.g.onMessage("c1", { t: "luck" });
-  release();
-  for (let i = 0; i < 50 && calls < 2; i++) await new Promise((r) => setTimeout(r, 10));
-  t.stop(); if (!t.data.log.some((e) => e.kind === "ai")) await t.g.runAI();
-  const ai = t.data.log.filter((e) => e.kind === "ai").map((e) => e.text);
-  assert.ok(!ai.some((x) => x.includes("미끄러져")), "실패 서술은 적용 안 함");
-  assert.ok(ai.some((x) => x.includes("들어섬")));
-  assert.match(asked[1], /행운 \d+ 써서 성공/, "다시 요청할 땐 성공으로 알림");
+  failUntilRetry(t, pid, "c1");
+  t.stop(); await new Promise((r) => setTimeout(r, 20)); calls = 0; asked.length = 0;
+  await t.g.runAI();
+  assert.equal(calls, 0, "고르는 중엔 AI 요청 안 함");
+  assert.ok(t.g.ai.hold, "다시 볼 타이머");
+  t.g.rate.clear(); t.g.onMessage("c1", { t: "luck" });
+  clearTimeout(t.g.ai.hold); t.g.ai.hold = null; t.stop();
+  await t.g.runAI();
+  assert.equal(calls, 1);
+  assert.match(asked[0], /행운 \d+ 써서 성공/);
+  assert.equal(Object.keys(t.data.game.retries).length, 0);
+});
+
+test("밀어붙이기 대기: 30초 지나면 넘긴 것으로 보고 서술 · 접속이 끊긴 사람은 기다리지 않음", async () => {
+  let calls = 0;
+  const t = aiTable(async () => { calls++; return JSON.stringify({ narration: "창틀에서 미끄러짐." }); });
+  const pid = t.seat("c1", KEY, "가", "한서");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  failUntilRetry(t, pid, "c1");
+  t.data.game.retries[pid].at -= t.m.HostGame.RETRY_WAIT + 1;   // 시간 다 됨
+  t.stop(); await new Promise((r) => setTimeout(r, 20)); calls = 0;
+  await t.g.runAI();
+  assert.equal(calls, 1);
+  assert.equal(t.data.game.retries[pid], undefined);
+  // 끊긴 사람: 기회는 남지만 기다리지 않음
+  t.g.invalidateAI(); t.g.rate.clear();
+  failUntilRetry(t, pid, "c1");
+  t.g.online = () => false;
+  assert.equal(t.g.retryHold(), 0);
+  assert.ok(t.data.game.retries[pid]);
+  clearTimeout(t.g.ai.hold); t.stop();
+});
+
+test("밀어붙이기 기회는 사람마다: 남이 굴려도 내 기회는 남고, 같은 판정을 남이 성공하면 끝", () => {
+  const t = aiTable(async () => "{}");
+  const a = t.seat("c1", KEY, "가", "한서"), b = t.seat("c2", KEY2, "나", "도윤");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  failUntilRetry(t, a, "c1");
+  const before = t.data.game.retries[a];
+  t.g.rate.clear(); t.g.requestImprov({ skill: "민첩", reason: "뛰어넘기" }, { who: b, whoName: "도윤" });
+  t.g.onMessage("c2", { t: "check", checkId: t.data.game.pendingChecks.at(-1).checkId });
+  assert.equal(t.data.game.retries[a], before, "남의 굴림은 내 기회를 안 지움");
+  // 시나리오 판정을 a가 실패 → b가 같은 판정 성공하면 a의 기회는 끝
+  t.data.game.retries = { [a]: { pid: a, spec: { label: "x" }, checkId: "chk1", rollId: "r", pushable: true, luckCost: 0, at: Date.now() } };
+  t.g.dropRetriesFor("chk1");
+  assert.equal(Object.keys(t.data.game.retries).length, 0);
+  t.stop();
+});
+
+test("예전 저장본의 game.retry는 사람별 retries로 옮김", () => {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  data.game = m.Engine.newState(sc);
+  data.game.retry = { pid: "p1", spec: { label: "x" }, checkId: null, rollId: "r", pushable: true, luckCost: 3 };
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {} });
+  assert.equal(data.game.retry, undefined);
+  assert.equal(data.game.retries.p1.luckCost, 3);
+  assert.ok(data.game.retries.p1.at > 0);
+  clearTimeout(g.ai.timer);
 });
 
 test("NPC 카드: 호출 오류는 실패로 안 적고 1분 뒤 다시, 3번 연속이면 포기", async () => {
