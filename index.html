@@ -2483,7 +2483,8 @@ html.has-3d .topbar { box-shadow: none; }
 .due table { width: 100%; border-collapse: collapse; table-layout: fixed; font: 12px/26px var(--font); }
 .due th { border: 1px solid #6b5338; font: 10.5px/22px var(--font); color: #5a4630; font-weight: 400; }
 .due .c-d { width: 68px; } .due .c-s { width: 84px; } .due .c-n { width: var(--bgw, 168px); }   /* 날짜 = 타자 글씨 "yy년mm/dd" 폭, 상태 = 도장, 비고 = 캐릭터 | 챕터 (폭은 글자에 맞춰 JS가 잼) */
-.due td.d { font: 12px/26px "GalmuriMono11", var(--font); color: #2a3a8a; }
+.due td.d { font: 12px/26px var(--font); color: #2a3a8a; }
+.due td.d .seg { display: block; margin: auto; overflow: visible; fill: currentColor; stroke: currentColor; }   /* 날짜 = 잉크 7세그먼트 (segNum) */
 /* 참가한 테이블(위) · 내 테이블(아래) 두 표. 머리 글은 참가한 테이블이 있을 때만 */
 .due-cap { margin: 0 0 4px; font: 12px/1.4 var(--font); color: var(--ink); }
 .due-cap.j { color: #8e2438; }
@@ -2695,8 +2696,8 @@ html.has-3d .topbar { box-shadow: none; }
   </nav>
   <!-- 이어하기: 주머니를 누르면 대출 카드가 옆으로 쏟아져 테이블 목록 -->
   <section id="lbList" class="lb-list" hidden aria-label="이어하기">
-    <div id="myTables" class="due" tabindex="-1"><h4>시나리오 리스트</h4><div class="due-body"><div id="dueJoin" hidden><p class="due-cap j">참가한 테이블</p><table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-s">상태</th><th class="c-n">비고</th></tr></thead><tbody id="dueJoinRows"></tbody></table><p class="due-cap">내 테이블</p></div>
-        <table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-s">상태</th><th class="c-n">비고</th></tr></thead><tbody id="dueRows"></tbody></table></div>
+    <div id="myTables" class="due" tabindex="-1"><h4>시나리오 리스트</h4><div class="due-body"><div id="dueJoin" hidden><p class="due-cap j">참가한 테이블</p><table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-n">비고</th><th class="c-s">상태</th></tr></thead><tbody id="dueJoinRows"></tbody></table><p class="due-cap">내 테이블</p></div>
+        <table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-n">비고</th><th class="c-s">상태</th></tr></thead><tbody id="dueRows"></tbody></table></div>
       <!-- 줄을 누르면 그 줄 바로 아래가 늘어나며 물음 한 줄 → 예 / 아니오에 잉크 동그라미 (평소엔 숨겨 둔 줄) -->
       <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td></td><td colspan="3"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div></td></tr></tbody></table>
       <div class="lb-ft">
@@ -9794,7 +9795,21 @@ const BannerArt = (() => {
   }
   // 대출 카드 번호: 방 코드에서 4자리 (화면 장식 · 같은 방은 늘 같은 번호)
   const cardNo = (room) => String([...String(room)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 9000, 7) + 1000);
-  const ymd = (ts) => { const d = new Date(ts), p = (n) => String(n).padStart(2, "0"); return `${p(d.getFullYear() % 100)}년${p(d.getMonth() + 1)}/${p(d.getDate())}`; };   // 목록 날짜 (타자 글씨)
+  /** 목록 날짜 = 잉크로 찍은 7세그먼트 숫자 (켜진 획만, 색 = 글자색). 글자 5×9 단위 · 살짝 기울임 */
+  function segNum(str, u = 1.1) {
+    const SEG = { 0: "abcdef", 1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc", 5: "afgcd", 6: "afgedc", 7: "abc", 8: "abcdefg", 9: "abcfgd" };
+    const R = { a: [1, 0, 3, 1], b: [4, 1, 1, 3], c: [4, 5, 1, 3], d: [1, 8, 3, 1], e: [0, 5, 1, 3], f: [0, 1, 1, 3], g: [1, 4, 3, 1] };
+    let x = 0, out = "";
+    for (const ch of str) {
+      if (ch === "/") { out += `<path d="M${x + 3.2 * u} ${.3 * u}L${x + .6 * u} ${8.7 * u}"/>`; x += 4.2 * u; continue; }
+      for (const k of SEG[ch] ?? "") { const [rx, ry, w, h] = R[k]; out += `<rect x="${x + rx * u + .15}" y="${ry * u + .15}" width="${w * u - .3}" height="${h * u - .3}"/>`; }
+      x += 6 * u;
+    }
+    const W = x - u, H = 9 * u, t = document.createElement("template");
+    t.innerHTML = `<svg class="seg" width="${(W + 2).toFixed(1)}" height="${H.toFixed(1)}" viewBox="-1 0 ${(W + 2).toFixed(1)} ${H.toFixed(1)}" aria-hidden="true"><g transform="skewX(-8)" transform-origin="0 ${H.toFixed(1)}" stroke-width="${(u * .9).toFixed(2)}">${out}</g></svg>`;
+    return t.content.firstChild;
+  }
+  const ymd = (ts) => { const d = new Date(ts), p = (n) => String(n).padStart(2, "0"); return `${p(d.getFullYear() % 100)}/${p(d.getMonth() + 1)}/${p(d.getDate())}`; };   // 목록 날짜 yy/mm/dd (segNum으로 그림)
   const md = (ts) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`; };
   async function deleteTable(t, li = null) {
     const ask = li ? "이 시나리오를 폐기할까?" : `「${t.title}」 기록을 지울까?`;
@@ -9849,11 +9864,11 @@ const BannerArt = (() => {
     const full = (c) => !c ? "" : `${c.n ? `${c.n}장 ` : ""}${c.title}`;
     const row = (t) => el("tr", { "data-room": t.room, tabindex: "0",
       on: { click: (e) => open(e.currentTarget, t), keydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) open(e.currentTarget, t); } } },
-      el("td", { class: "d" }, ymd(t.savedAt)),
+      el("td", { class: "d", "aria-label": ymd(t.savedAt) }, segNum(ymd(t.savedAt))),
       el("td", { class: "n", "data-full": t.title }, t.title),
-      el("td", { class: "st" }, el("span", { class: `due-st ${t.status ?? "w"}` }, STAMP[t.status ?? "w"])),
       el("td", { class: "c bg" }, el("div", { class: "due-bg" },
-        el("span", { class: t.ch ? "ch" : "ch none" }, t.ch ?? "—"), el("i"), el("span", { class: "cp", "data-full": full(t.chapter) }, chap(t.chapter)))));
+        el("span", { class: t.ch ? "ch" : "ch none" }, t.ch ?? "—"), el("i"), el("span", { class: "cp", "data-full": full(t.chapter) }, chap(t.chapter)))),
+      el("td", { class: "st" }, el("span", { class: `due-st ${t.status ?? "w"}` }, STAMP[t.status ?? "w"])));
     const blank = () => el("tr", {}, el("td"), el("td"), el("td"), el("td"));
     const joined = app.joined ?? [], jrows = joined.map(row), rows = list.map(row);
     while (rows.length < Math.max(3, 9 - (joined.length ? joined.length + 2 : 0))) rows.push(blank());
