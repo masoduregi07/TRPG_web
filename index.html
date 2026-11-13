@@ -4485,8 +4485,9 @@ const HistoryArchive = (() => {
       return WebFeatures.merge(entries, [...(pending.get(scope)?.values() ?? [])]);
     } catch (e) { emit(scope, false); throw e; }
   }
-  async function deleteHostRoom(room) {
-    const matches = scope => scope.startsWith(`${room}:`) && scope.endsWith(':host');
+  const deleteHostRoom = room => deleteScopes(scope => scope.startsWith(`${room}:`) && scope.endsWith(':host'));
+  const deletePlayerRoom = room => deleteScopes(scope => scope.startsWith(`${room}:`) && scope.includes(':player:'));
+  async function deleteScopes(matches) {
     await Promise.all([...queues].filter(([scope]) => matches(scope)).map(([,p]) => p));
     const db = await open();
     await new Promise((resolve,reject) => {
@@ -4496,7 +4497,7 @@ const HistoryArchive = (() => {
     });
     for (const scope of pending.keys()) if(matches(scope)){pending.delete(scope);queues.delete(scope);}
   }
-  return { put, flush, read, deleteHostRoom, pending: scope => [...(pending.get(scope)?.values() ?? [])] };
+  return { put, flush, read, deleteHostRoom, deletePlayerRoom, pending: scope => [...(pending.get(scope)?.values() ?? [])] };
 })();
 
 // 사용량은 API 응답의 실제 usage만 합산한다. 키·요청 본문은 저장하지 않는다.
@@ -7613,6 +7614,31 @@ const Net = (() => {
   return { startHost, joinRoom, hostPeerId, iceConfig, peekRoom };
 })();
 
+/* 삭제된 방 등록부 (server/registry): 호스트가 테이블을 지우면 방 코드를 "삭제됨"으로 적고, 플레이어가 열 때 확인해 자기 기기의 기록을 지움.
+ * 주소가 비어 있으면 꺼짐. 확인에 실패하면 null(모름) → 아무것도 지우지 않음 */
+const REGISTRY_URL = "";
+const Registry = (() => {
+  let base = REGISTRY_URL;
+  const valid = (room) => !!base && /^[a-z0-9]{10}$/.test(String(room));
+  async function call(method, room, ms) {
+    const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), ms);
+    try {
+      const res = await fetch(`${base.replace(/\/$/, "")}/deleted/${room}`, { method, signal: ctrl.signal });
+      return res.ok ? await res.json().catch(() => ({})) : null;
+    } catch { return null; } finally { clearTimeout(timer); }
+  }
+  return {
+    setBase(url) { base = String(url ?? ""); },
+    get enabled() { return !!base; },
+    /** true = 삭제됨, false = 아님, null = 모름 (꺼짐 · 오프라인 · 오류) */
+    async isDeleted(room, ms = 2500) { if (!valid(room)) return null; const r = await call("GET", room, ms); return typeof r?.deleted === "boolean" ? r.deleted : null; },
+    /** 삭제 표시. 성공하면 true */
+    async markDeleted(room, ms = 6000) { return valid(room) ? !!(await call("POST", room, ms)) : false; },
+    /** 삭제 표시 해제 (같은 방 코드로 복구할 때). 성공하면 true */
+    async revive(room, ms = 6000) { return valid(room) ? !!(await call("DELETE", room, ms)) : false; },
+  };
+})();
+
 
 /* ==================================================================
  * 배경 3D 오두막 + 첫 화면 책 메뉴 (의존성 없는 WebGL)
@@ -9468,7 +9494,7 @@ const BannerArt = (() => {
     host: (r) => `trpg:host:${r}`, hostIndex: "trpg:hostIndex", me: (r) => `trpg:me:${r}`,
     copy: (r) => `trpg:copy:${r}`, draft: (r) => `trpg:draft:${r}`, ai: "trpg:ai", name: "trpg:name",
     aiStyle: "trpg:aiStyle", recentNpc: (r) => `trpg:recentNpc:${r}`, clueKind: (r) => `trpg:clueKind:${r}`, clueOrder: (r) => `trpg:clueOrder:${r}`, clueSeen: (r) => `trpg:clueSeen:${r}`,
-    itemSeen: (r) => `trpg:itemSeen:${r}`,
+    itemSeen: (r) => `trpg:itemSeen:${r}`, regPending: "trpg:regPending",
   };
 
   const app = {
@@ -9572,6 +9598,7 @@ const BannerArt = (() => {
     }
     await migrateStorage();
     Scene.fadeInIfNeeded();
+    flushRegistry();
     const room = roomFromHash();
     if (!room) return showHome();
     const save = await DB.get(K.host(room));
@@ -9882,6 +9909,22 @@ const BannerArt = (() => {
     await DB.del(K.host(t.room));
     LS.set(K.hostIndex, (LS.get(K.hostIndex) ?? []).filter((x) => x.room !== t.room));
     await loadTables(); renderTables();
+    // 플레이어(오프라인 포함)가 나중에 열 때 알아채도록 삭제 표시. 못 보내면 다음에 열 때 다시 보냄
+    if (Registry.enabled && !(await Registry.markDeleted(t.room))) { LS.set(K.regPending, [...new Set([...(LS.get(K.regPending) ?? []), t.room])]); toast("삭제 표시를 못 보냄. 다음에 열 때 다시 보냄."); }
+  }
+  /** 못 보낸 삭제 표시 다시 보내기 */
+  async function flushRegistry() {
+    const queue = LS.get(K.regPending) ?? [];
+    if (!queue.length || !Registry.enabled) return;
+    const left = [];
+    for (const room of queue) if (!(await Registry.markDeleted(room))) left.push(room);
+    if (left.length) LS.set(K.regPending, left); else LS.del(K.regPending);
+  }
+  /** 호스트가 지운 테이블: 이 기기에 남은 사본 · 참가 정보 · 보관 기록 · 화면 설정을 지움 */
+  async function forgetRoom(room) {
+    for (const k of [K.me(room), K.draft(room), K.recentNpc(room), K.clueKind(room), K.clueOrder(room), K.clueSeen(room), K.itemSeen(room), `trpg:resOpen:${room}`]) LS.del(k);
+    await DB.del(K.copy(room));
+    try { await HistoryArchive.deletePlayerRoom(room); } catch {}
   }
   /** 비고 칸 폭: 캐릭터 = 두 표에서 가장 긴 캐릭터 이름(안 줄임) · 챕터 = 가장 긴 줄인 챕터. 이름 칸이 96px보다 좁아지면 캐릭터 칸을 줄임 */
   function fitDueCols(all) {
@@ -10314,6 +10357,8 @@ const BannerArt = (() => {
       const data = HostGame.fromPlayerCopy(copy, sc, randomId(24));
       if (await DB.get(K.host(data.roomId)) && !(await paperAsk("같은 테이블이 이미 있음. 덮어쓸까?"))) return;
       if (!(await DB.set(K.host(data.roomId), data))) throw new Error("브라우저 저장 공간 부족.");
+      LS.set(K.regPending, (LS.get(K.regPending) ?? []).filter((r) => r !== data.roomId));
+      Registry.revive(data.roomId);   // 지웠던 방 코드로 복구한 경우 삭제 표시 해제 (기다리지 않음)
       Book.leave(`room=${data.roomId}`);
     } catch (err) {
       $("#recoverError").textContent = `복구 실패: ${err.message}`;
@@ -10432,6 +10477,10 @@ const BannerArt = (() => {
     app.room = room;
     const me = LS.get(K.me(room));
     if (!me) return showHome({ invite: room });   // 처음 오는 초대 링크: 첫 화면에 초대장이 열린 채
+    if (await Registry.isDeleted(room) === true) {   // 호스트가 지운 테이블: 이 기기의 기록도 지우고 안내
+      await forgetRoom(room);
+      return showMessage("삭제된 테이블", "호스트가 이 테이블을 삭제함. 이 기기에 남은 사본 · 참가 정보도 지움.");
+    }
     // 연결되기 전에도 마지막으로 본 화면을 보여 준다
     const copy = await DB.get(K.copy(room));
     if (copy?.snap) {
