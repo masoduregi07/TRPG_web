@@ -11805,7 +11805,11 @@ const BannerArt = (() => {
       $("#gatherNow").style.setProperty("--t", `${t.toFixed(1)}%`);
     };
     box.hidden = false;
-    $("#gatherNow").disabled = false;
+    // 호스트 = 지금 진행, 플레이어 = 넘기기 (둘 다 기다리지 않고 바로 GM 차례)
+    const gn = $("#gatherNow");
+    gn.textContent = app.snap?.isHost ? "지금 진행" : "넘기기";
+    gn.title = app.snap?.isHost ? "행동을 더 기다리지 않고 바로 GM 차례로" : "더 입력하지 않고 넘겨 바로 GM 차례로";
+    gn.disabled = false;
     tick();
     gatherTimer = setInterval(tick, 250);
   }
