@@ -40,7 +40,7 @@
 - 한 파일: CSS + JS 인라인. 외부(CDN, 버전 고정 + SRI): PeerJS 1.5.5, js-yaml 4.3.2. Galmuri 2.40.3은 저장소 `fonts/`(woff2 6개: 14 · 11 · 11 Bold · 9 · 7 · Mono11, OFL 라이선스 동봉)를 `<style>` 맨 위 @font-face로 씀(GitHub `quiple/galmuri` 태그 v2.40.3의 dist). 올릴 때는 `npm pack 패키지@버전` → dist 파일 `openssl dgst -sha384 -binary | openssl base64 -A`로 integrity 갱신
 - 호스트 브라우저가 서버(`HostGame`), 플레이어는 PeerJS로 접속(`Net`). 호스트 ID `trpgtable-v1-<room>-host`
 - 모듈: `Rules`(CoC 7e) · `Engine`(시나리오 검증/상태/뷰) · `AI`(호출·프롬프트·parseGM) · `Turn`(AI 응답 검증) · `WebFeatures`(단서 표시 등)
-- AI 흐름: `queueAI`(8초 모음, 입력마다 +5초 연장, 최대 20초) → `runAI` → `turnContext` → `askGM` → `Turn.validate` → `applyPlan`
+- AI 흐름: `queueAI`(30초 모음, 입력마다 +5초 연장, 최대 75초) → `runAI` → `turnContext` → `askGM` → `Turn.validate` → `applyPlan`
 - AI GM 응답이 출력 한도에서 잘리면 1,200 → 2,400 → 4,000 토큰으로 즉시 다시 요청하고, 출력 잘림은 일반 연결 오류 재시도 횟수에 넣지 않음
 - 접속: 플레이어가 연결되면 `join`(키 · 닉네임 · APP_BUILD) → 호스트 `hello`. APP_BUILD 10 (10 = 참가 전 명단 미리 보기 `peek` 추가, 8은 잠깐 쓴 서명 방식, 섞이면 버전 다름 안내). 참가 화면은 코드만으로 `Net.peekRoom` → 호스트가 `join` 대신 `peek`{key}를 받으면 `rosterPreview(key)`(이름 · 캐릭터 이름 · GM · 작성 중 · 접속, 물어본 사람 자리 제외, 키·비밀 없음)를 `roster`로 답하고 0.6초 뒤 끊음. 호스트가 없거나 9초 넘으면 빈 카드
 - 전송: 플레이어가 `serialization: "binary"`로 접속(호스트는 따라감) → 16KB 넘는 메시지(최근 기록 300개 · 보관함 쪽 · 그림)를 PeerJS가 조각으로 나눠 보냄. json은 16,300바이트 넘으면 못 보내고 error → 예전엔 호스트가 그 플레이어를 끊음. 보낼 때 `wire()`(JSON 왕복)로 undefined 칸 제거·Infinity→null. `message-too-big`·`not-open-yet` 오류는 끊김으로 안 봄. 보관함 요청(`history`)은 입력 횟수 제한과 따로 셈(5초 30회)

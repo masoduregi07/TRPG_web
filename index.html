@@ -5637,7 +5637,7 @@ class HostGame {
     this.onSave = opts.onSave ?? (() => {});    // 상태가 바뀔 때마다 (자동 저장)
     this.aiCall = opts.aiCall ?? null;          // async (messages, {maxTokens}) => text
     this.aiReady = opts.aiReady ?? (() => !!this.aiCall);
-    this.aiDebounceMs = opts.aiDebounceMs ?? globalThis.TRPG_AI_WAIT_MS ?? 8000;   // 첫 행동 뒤 모으는 시간 (이후 행동마다 연장, 최대 aiDebounceMs×2.5)
+    this.aiDebounceMs = opts.aiDebounceMs ?? globalThis.TRPG_AI_WAIT_MS ?? 30000;   // 첫 행동 뒤 모으는 시간 (이후 행동마다 연장, 최대 aiDebounceMs×2.5)
     // 예전 저장본의 AI 그림 정리 (그림 생성 기능 없음)
     delete data.images;
     delete data.aiUsage;   // 예전 자체 하루 한도 (없앰)
