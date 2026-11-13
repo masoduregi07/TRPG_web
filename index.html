@@ -1983,7 +1983,7 @@ html.has-3d .topbar { box-shadow: none; }
 /* 판정 알림(D2): 크림 말풍선 + 남색 2px 테 + 입력칸을 가리키는 꼬리. 다른 사람 차례 = 갈색, 실패 후 선택 = 붉은색 */
 /* 기록 칸 위쪽에 떠 있음(자리 차지 안 함, 최근 기록이 있는 아래쪽은 안 가림): 한 줄 */
 .ck-tips { position: absolute; z-index: 6; left: calc(var(--cover) + 48px); right: calc(var(--cover) + 44px); top: calc(var(--cover) + 12px);
-  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 12px; pointer-events: none; }
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; pointer-events: none; }
 .ck-tips[hidden] { display: none; }
 /* 판정 알림 = 끈 달린 종이 꼬리표(A): 왼쪽 뾰족 + 끈 구멍 + 끈, 아래 2px 색 줄. 색 = 내 차례 짙은 갈색 · 실패 붉은색 · 남의 차례 회갈.
    라벨(판정 · 즉흥 · 이성 · 실패) = 같은 색으로 칠한 칸 + 크림 굵은 글씨. [굴림] = 같은 색 칠한 종이 박스 */
@@ -2006,6 +2006,14 @@ html.has-3d .topbar { box-shadow: none; }
 .ck-tip .pbtn.go { color: #f6edd6; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .35), 1px 1px 0 rgba(60, 40, 20, .3); }
 .ck-tip .pbtn.go:hover, .ck-tip .pbtn.go:focus-visible { background: #6b4a30; }
 .ck-tip.flash { animation: ck-flash .9s; }
+/* 남의 차례(M1) = 내 꼬리표 아래 줄의 작은 점선 칩: 플레이어 색 점 + 플레이어 색 이름, 칩 사이 8px */
+.ck-others { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+.ck-tip.wait { clip-path: none; gap: 6px; padding: 3px 8px; background: #f6edd6; box-shadow: inset 0 0 0 1px rgba(90, 65, 40, .35); }
+.ck-tip.wait::before { position: static; flex: none; margin: 0; width: 8px; height: 8px; background: var(--pc); box-shadow: none; }
+.ck-tip.wait::after { display: none; }
+.ck-tip.wait .ck-k { padding: 0; font-size: 12px; color: #8a7a62; background: none; }
+.ck-tip.wait b { font-size: 12px; color: #5a4630; }
+.ck-tip.wait .ck-who { font-weight: 700; color: var(--pc); }
 @keyframes ck-in { from { opacity: 0; transform: translateY(8px); } }
 @keyframes ck-flash { 30% { filter: brightness(1.15); } }
 @media (prefers-reduced-motion: reduce) { .ck-tip, .ck-tip.flash { animation: none; } }
@@ -10968,6 +10976,12 @@ const BannerArt = (() => {
     updateScrollArrows();
     updateRail();
   }
+  /* 판정 알림이 떠 있는 동안만 기록 칸 위쪽을 알림 높이만큼 비움 (서술을 가리지 않게) */
+  new ResizeObserver(() => {
+    const h = $("#ckTips").hidden ? 0 : $("#ckTips").offsetHeight;
+    const m = h ? `calc(var(--cover) + ${h + 12}px)` : "";
+    if (logBox.style.marginTop !== m) keepBottom(() => { logBox.style.marginTop = m; updateRail(); });
+  }).observe($("#ckTips"));
   /* 책갈피 리본 스크롤바: 손잡이 최소 64px, 끌기 · 레일 누르면 그 자리로 */
   const rail = $("#logRail"), thumb = rail.firstElementChild;
   let railGeo = "";
@@ -12925,15 +12939,17 @@ const BannerArt = (() => {
         s.retry.push ? el("button", { class: "pbtn", type: "button", title: "한 번 더 굴림. 또 실패하면 대가가 따름", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
         s.retry.cost > 0 ? el("button", { class: "pbtn", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null,
         el("button", { class: "pbtn", type: "button", title: "밀어붙이거나 행운을 쓰지 않음 (30초가 지나도 넘긴 것으로 봄)", on: { click: () => send({ t: "skipRetry" }) } }, "넘기기")));
-      // 한 줄로: 내 차례 → (실패) → 남의 차례
+      // 내 차례 → (실패) → 아래 줄에 남의 차례 칩
+      const others = [];
       for (const pc of [...pendingMe, ...pendingChecks.filter((x) => !isMine(x))]) {
         const mine = isMine(pc);
-        tips.push(el("div", { class: `ck-tip${mine ? "" : " wait"}`, "data-label": pc.label },
+        (mine ? tips : others).push(el("div", { class: `ck-tip${mine ? "" : " wait"}`, "data-label": pc.label, style: mine ? null : `--pc:${pc.who ? spineOf(pc.who) : "#8a7a62"}` },
           el("span", { class: "ck-k" }, pc.san ? "이성" : pc.improv ? "즉흥" : "판정"), el("b", {}, pc.label),
-          mine ? el("span", { class: "ck-t" }, [pc.skill || pc.san ? tagOf(pc) : "", pc.whoName && pc.who !== s.me ? pc.whoName : ""].filter(Boolean).join(" · ")) : el("span", { class: "ck-t" }, `${pc.whoName} 차례`),
+          mine ? el("span", { class: "ck-t" }, [pc.skill || pc.san ? tagOf(pc) : "", pc.whoName && pc.who !== s.me ? pc.whoName : ""].filter(Boolean).join(" · ")) : el("span", { class: "ck-t" }, el("span", { class: "ck-who" }, pc.whoName), " 차례"),
           mine ? el("button", { class: "pbtn go", type: "button", on: { click: () => send({ t: "check", checkId: pc.checkId }) } }, iconSvg("die_line"), "굴림") : null));
       }
-      tips.splice(pendingMe.length, 0, ...fail);
+      tips.push(...fail);
+      if (others.length) tips.push(el("div", { class: "ck-others" }, ...others));
       const box = $("#ckTips"); box.hidden = !tips.length; box.replaceChildren(...tips);
       if (s.retry) helpOnce(s.retry.push ? ["push", ...(s.retry.cost > 0 ? ["luck"] : [])] : ["luck"]);   // 처음 실패했을 때 밀어붙이기 · 행운 쪽지
     }
