@@ -9801,11 +9801,12 @@ const BannerArt = (() => {
     const R = { a: [1, 0, 3, 1], b: [4, 1, 1, 3], c: [4, 5, 1, 3], d: [1, 8, 3, 1], e: [0, 5, 1, 3], f: [0, 1, 1, 3], g: [1, 4, 3, 1] };
     let x = 0, out = "";
     for (const ch of str) {
-      if (ch === "/") { out += `<path d="M${x + 3.2 * u} ${.3 * u}L${x + .6 * u} ${8.7 * u}"/>`; x += 4.2 * u; continue; }
-      for (const k of SEG[ch] ?? "") { const [rx, ry, w, h] = R[k]; out += `<rect x="${x + rx * u + .15}" y="${ry * u + .15}" width="${w * u - .3}" height="${h * u - .3}"/>`; }
-      x += 6 * u;
+      if (ch === "/") { out += `<path d="M${x + 2.6 * u} ${.6 * u}L${x + .4 * u} ${8.4 * u}"/>`; x += 4.2 * u; continue; }   // 빗금: 앞뒤 숫자와 틈을 같게
+      const one = ch === "1", ox = one ? -3.6 * u : 0;   // 1은 오른쪽 획만이라 좁은 글자로 (틈이 한쪽만 벌어지지 않게)
+      for (const k of SEG[ch] ?? "") { const [rx, ry, w, h] = R[k]; out += `<rect x="${x + ox + rx * u + .15}" y="${ry * u + .15}" width="${w * u - .3}" height="${h * u - .3}"/>`; }
+      x += one ? 2.6 * u : 6.6 * u;   // 글자 사이 틈 1.6칸
     }
-    const W = x - u, H = 9 * u, t = document.createElement("template");
+    const W = x - 1.6 * u, H = 9 * u, t = document.createElement("template");
     t.innerHTML = `<svg class="seg" width="${(W + 2).toFixed(1)}" height="${H.toFixed(1)}" viewBox="-1 0 ${(W + 2).toFixed(1)} ${H.toFixed(1)}" aria-hidden="true"><g transform="skewX(-8)" transform-origin="0 ${H.toFixed(1)}" stroke-width="${(u * .9).toFixed(2)}">${out}</g></svg>`;
     return t.content.firstChild;
   }
