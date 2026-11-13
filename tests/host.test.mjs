@@ -567,3 +567,69 @@ test("askGM: 두 번 잇달아 캐릭터 말만 옮겨 쓰면 세 번째 응답�
   assert.equal(n, 3);
   assert.match(plan.narration, /세 개비/);
 });
+
+test("직전 AI 서술이 다음 차례의 직전NPC대사 · 최근NPC대사 · 몸짓에 들어감", async () => {
+  let reply = "";
+  const t = aiTable(async () => reply);
+  t.seat("c1", KEY, "가", "한서");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  t.g.onMessage("c1", { t: "chat", text: "@바르톨 그날 밤에 누굴 봤습니까?", style: "talk" }); t.stop();
+  reply = JSON.stringify({ narration: '바르톨이 한숨을 쉼. "그날 밤엔 아무도 못 봤소, 정말이오."' });
+  await t.g.runAI();
+  t.g.onMessage("c1", { t: "chat", text: "@바르톨 정말입니까?", style: "talk" }); t.stop();
+  const { info, ctx } = t.g.turnContext();
+  assert.equal(JSON.stringify(info.prevQuotes), JSON.stringify(['"그날 밤엔 아무도 못 봤소, 정말이오."']));
+  assert.match(info.prevNarration, /한숨/);
+  assert.equal(JSON.stringify(info.npcRecent.바르톨), JSON.stringify(['"그날 밤엔 아무도 못 봤소, 정말이오."']));
+  assert.equal(JSON.stringify(info.npcGestures.바르톨), JSON.stringify([["한숨"]]));
+  assert.equal(JSON.stringify(info.npcRecentBy.바르톨.map((x) => x.by)), JSON.stringify([["한서"]]), "이번 차례 물음은 지난 대사의 질문자에 안 섞임");
+  assert.ok(ctx.직전NPC대사 && ctx.최근NPC대사 && ctx.최근NPC몸짓);
+  // 같은 대사를 되풀이하면 다시 요청
+  reply = JSON.stringify({ narration: '바르톨이 그물을 내려놓음. "그날 밤엔 아무도 못 봤소, 정말이오."' });
+  const calls = []; t.g.aiCall = async (m) => { calls.push(m.length); return reply; };
+  await t.g.runAI();
+  assert.ok(calls.length > 1, "직전 대사 되풀이 → 재요청");
+});
+
+test("되돌리기 · 진행 전환 뒤엔 밀어붙이기 대기 타이머가 AI를 다시 돌리지 않음", async () => {
+  let n = 0;
+  const t = aiTable(async (msgs) => { if (/게임 마스터/.test(msgs[0].content)) n++; return JSON.stringify({ narration: "바람이 붊." }); });
+  t.seat("c1", KEY, "가", "한서");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  t.data.game.retries = { x: { pid: "x", at: Date.now(), spec: {} } }; t.data.game.retryFrom = Date.now();
+  t.g.conns.set("x", "cx");
+  await t.g.runAI();
+  assert.ok(t.g.ai.hold, "결정 대기 중");
+  t.g.invalidateAI();
+  assert.equal(t.g.ai.hold, null);
+  t.data.mode = "human";
+  await t.g.runAI();
+  assert.equal(n, 0, "사람 GM 모드에선 AI를 부르지 않음");
+});
+
+test("장면을 옮기는 차례에도 피해가 적용됨", () => {
+  const t = aiTable(async () => "{}");
+  const pid = t.seat("c1", KEY, "가", "한서");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  const c = t.data.players[pid].character, hp = c.hp;
+  const s = t.m.Engine.sceneOf(t.sc, t.data.game);
+  const exit = (s.exits ?? [])[0]; exit.when = "always";
+  t.g.applyPlan({ narration: "한서가 돌에 맞은 채 달아남.", arrival: "새 장소에 도착함.", move: exit.to, answers: [], give: [], take: [], heal: [], blocks: [], newNpcs: [], showHandouts: [],
+    hurt: [{ kind: "char", pid, id: null, name: c.name, dice: "1", db: "0", by: "돌" }] });
+  assert.equal(t.data.game.currentScene, exit.to);
+  assert.equal(c.hp, hp - 1);
+});
+
+test("직전NPC대사: 여러 명 결과 블록으로 나뉜 직전 차례의 대사를 모두 봄", async () => {
+  let reply = "";
+  const t = aiTable(async () => reply);
+  t.seat("c1", KEY, "가", "한서"); t.seat("c2", KEY2, "나", "도윤");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  t.g.onMessage("c1", { t: "chat", text: "@바르톨 그날 밤에 누굴 봤습니까?", style: "talk" });
+  t.g.onMessage("c2", { t: "chat", text: "선반을 뒤진다", style: "act" }); t.stop();
+  reply = JSON.stringify({ narration: "", results: [{ who: "한서", text: '바르톨이 고개를 저음. "그날 밤엔 아무도 못 봤소."' }, { who: "도윤", text: "먼지 쌓인 장부가 드러남." }] });
+  await t.g.runAI();
+  const { info } = t.g.turnContext();
+  assert.equal(JSON.stringify(info.prevQuotes), JSON.stringify(['"그날 밤엔 아무도 못 봤소."']));
+  assert.match(info.prevNarration, /^바르톨이 고개를 저음/);
+});
