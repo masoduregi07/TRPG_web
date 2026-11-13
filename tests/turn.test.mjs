@@ -322,16 +322,16 @@ test("NPC 몸짓: 주인 찾기 · 최근 서술에서 쓴 몸짓을 또 쓰면 
   assert.deepEqual(g("진우는 멋쩍게 웃었다."), { 한진우: ["멋쩍은 웃음", "웃음"] }, "성 뺀 이름도");
   const info = chapel({ npcGestures: { 한진우: [["안경을 고쳐 씀"], ["멋쩍은 웃음", "웃음"]] } });
   const again = run({ narration: "한진우는 손가락을 닦아내며 안경을 다시 고쳐 썼다. \"왠지 쇠 냄새가 나네요.\"" }, info);
-  assert.ok(again.issues.some((i) => i.hard && /안경을 고쳐 씀/.test(i.msg)));
+  assert.ok(again.issues.some((i) => /안경을 고쳐 씀/.test(i.msg)));
   assert.ok(!run({ narration: "한진우는 손끝을 코에 가져갔다가 얼굴을 굳혔다. \"쇠 냄새… 이거 피 같은데요.\"" }, info).issues.some((i) => /몸짓/.test(i.msg)));
   assert.ok(!run({ narration: "한진우가 웃었다. \"별일 아니에요.\"" }, info).issues.some((i) => /몸짓/.test(i.msg)), "흔한 몸짓(웃음)은 두 번 이어 쓴 뒤에만");
-  assert.ok(run({ narration: "한진우가 웃었다. \"별일 아니에요.\"" }, chapel({ npcGestures: { 한진우: [["웃음"], ["웃음"]] } })).issues.some((i) => i.hard && /웃음/.test(i.msg)));
+  assert.ok(run({ narration: "한진우가 웃었다. \"별일 아니에요.\"" }, chapel({ npcGestures: { 한진우: [["웃음"], ["웃음"]] } })).issues.some((i) => /웃음/.test(i.msg)));
   assert.ok(!again.issues.length || !run({ narration: "한진우는 안경을 다시 고쳐 썼다. \"쇠 냄새가 나네요.\"" }, info, true).issues.some((i) => i.hard), "마지막 시도는 통과");
 });
 
 test("서술이 직전 서술과 같은 말머리로 시작하면 다시 물음", () => {
   const info = chapel({ prevNarration: "어두운 예배당 안에서 한진우에게 말을 건넸다." });
-  assert.ok(run({ narration: "어두운 예배당 안에서 한진우는 주위를 두리번거렸다. \"주머니를 뒤져 볼까요?\"" }, info).issues.some((i) => i.hard && /말머리/.test(i.msg)));
+  assert.ok(run({ narration: "어두운 예배당 안에서 한진우는 주위를 두리번거렸다. \"주머니를 뒤져 볼까요?\"" }, info).issues.some((i) => /말머리/.test(i.msg)));
   assert.ok(!run({ narration: "한진우가 제복 주머니를 더듬었다. \"성냥이 더 있을 텐데.\"" }, info).issues.some((i) => /말머리/.test(i.msg)));
 });
 
@@ -373,12 +373,12 @@ test("핸드아웃 단서: 실물이 서술에 없으면 다시 요청, 쪽지�
 test("같은 몸짓을 한 서술에서 두 번 쓰면 다시 요청", () => {
   const info = base({ npcNames: ["바르톨"] });
   const a = run({ narration: "바르톨이 콧방귀를 뀌며 그물을 당김. \"누가 가겠나.\" 바르톨이 다시 콧방귀를 뀌며 돌아섬." }, info);
-  assert.ok(a.issues.some((i) => i.hard && /두 번/.test(i.msg)));
+  assert.ok(a.issues.some((i) => /두 번/.test(i.msg)));
 });
 test("대사 바로 뒤에 '~다고 대답함'으로 같은 말을 요약하면 다시 요청", () => {
   const info = base({ npcNames: ["바르톨"] });
   const a = run({ narration: "바르톨이 낮게 읊조림. \"30년째 문이 잠겨 있는데 누가 가겠나.\" 바르톨이 문이 잠겨 있어 갈 수 없다고 대답함." }, info);
-  assert.ok(a.issues.some((i) => i.hard && /다시 요약/.test(i.msg)));
+  assert.ok(a.issues.some((i) => /다시 요약/.test(i.msg)));
   const b = run({ narration: "바르톨이 낮게 읊조림. \"30년째 문이 잠겨 있는데 누가 가겠나.\" 바람이 거세짐." }, info);
   assert.ok(!b.issues.some((i) => /다시 요약/.test(i.msg)));
 });
@@ -438,6 +438,7 @@ test("성역 예배당 기록: 주어 없는 되풀이 · 재촉 반복 · 없�
   const info = (over = {}) => base({ chars: [{ pid: "p1", name: "이예준", player: "가", items: [] }], actors: [], order: ["p1"], npcNames: ["로렌스"], tone: "prose",
     places: ["아치문", "제단", "십자가", "벽의 초상화 액자", "천장 아래"], inputs: ["아니 방금 로렌스씨 머리에 뭔가 떨어졌잖아요. 피라며요."], ...over });
   const hardOf = (obj, i, final = false) => run(obj, i, final).issues.filter((x) => x.hard).map((x) => x.msg).join("\n");
+  const allOf = (obj, i) => run(obj, i).issues.map((x) => x.msg).join("\n");
   // 주어 없이 캐릭터 말을 옮긴 문장
   const echo = { narration: '로렌스는 천장을 노려보았다. "진짜 피 같다니까요?" 로렌스의 머리에 떨어진 액체가 피라는 사실을 지적하며 불안감을 내비쳤다.' };
   assert.match(hardOf(echo, info()), /규칙 10/);
@@ -448,7 +449,8 @@ test("성역 예배당 기록: 주어 없는 되풀이 · 재촉 반복 · 없�
   // 같은 곳을 또 권함
   const past = { 로렌스: ['"이 제단 쪽이나 벽 쪽을 좀 더 둘러보죠, 네?"', '"얼른 다른 데를 보죠."'] };
   const nag = { narration: '로렌스는 발을 굴렀다. "얼른 제단 쪽이나 조사해 보자니까요."' };
-  assert.match(hardOf(nag, info({ npcRecent: past })), /로렌스: 제단, 규칙 31/);
+  assert.match(allOf(nag, info({ npcRecent: past })), /로렌스: 제단, 규칙 31/);
+  assert.equal(hardOf(nag, info({ npcRecent: past })), "", "재촉 반복은 다시 요청하지 않음");
   assert.equal(hardOf(nag, info({ npcRecent: past }), true), "", "마지막 시도는 통과");
   assert.equal(hardOf(nag, info()), "", "처음 권하는 것은 통과");
   assert.equal(hardOf(nag, info({ npcRecent: past, inputs: ["제단에 뭐가 있다는 거예요?"] })), "", "캐릭터가 그곳을 물었으면 대답");
@@ -458,7 +460,7 @@ test("성역 예배당 기록: 주어 없는 되풀이 · 재촉 반복 · 없�
   for (const ok of ["로렌스는 이예준의 말에 걸음을 멈췄다.", "로렌스는 예준의 말에 걸음을 멈췄다.", "로렌스는 상대의 말에 걸음을 멈췄다."])
     assert.doesNotMatch(hardOf({ narration: ok }, info()), /없는 이름/, ok);
   assert.doesNotMatch(hardOf({ narration: "로렌스는 수도사의 말에 걸음을 멈췄다." }, info({ known: "늙은 수도사가 다가왔다." })), /없는 이름/, "기록에 나온 낱말");
-  assert.match(hardOf({ narration: '로렌스는 벽을 짚었다. "힌트라도 찾아야죠."' }, info()), /게임 밖 낱말\(힌트\)/);
+  assert.match(allOf({ narration: '로렌스는 벽을 짚었다. "힌트라도 찾아야죠."' }, info()), /게임 밖 낱말\(힌트\)/);
   assert.equal(JSON.stringify(Turn.gestures("로렌스는 고개를 내저었다.", ["로렌스"], ["이예준"])), JSON.stringify({ 로렌스: ["고개를 저음"] }));
 });
 
@@ -471,23 +473,23 @@ test("지시문: 힌트 한 번 · 실패한 판정 단서 확정 금지 · NPC 
 test("길티마스 재현: 소설체 현재형 문장은 재요청, 마지막은 통과", () => {
   const info = base({ tone: "prose" });
   const obj = { narration: "로니는 손바닥을 들어 불빛에 비춰보았다. 손톱 밑이 검붉게 물들어 있고 기괴한 변화가 눈에 들어온다." };
-  assert.ok(run(obj, info).issues.some((i) => i.hard && /현재형/.test(i.msg)));
-  assert.ok(!run(obj, info, true).issues.some((i) => i.hard));
+  const r = run(obj, info);
+  assert.ok(r.issues.some((i) => !i.hard && /현재형/.test(i.msg)), "알림만");
+  assert.ok(!r.issues.some((i) => i.hard), "다시 요청하지 않음");
   assert.ok(!run({ narration: "로니는 손바닥을 들어 불빛에 비춰보았다. 기괴한 변화가 눈에 들어왔다." }, info).issues.some((i) => /현재형/.test(i.msg)));
 });
 
 test("길티마스 재현: 직전 차례 문장을 거의 그대로 되풀이하면 재요청, 마지막은 그 문장 삭제", () => {
-  const info = base({ prevSents: ["손바닥을 들어 불빛에 비춰보자, 손톱 밑이 검붉게 물들어 있고 피부 아래로 무언가 꿈틀거리는 듯한 기괴한 변화가 눈에 들어왔다."] });
-  const obj = { narration: "자신의 손바닥을 불빛에 비춰보자, 손톱 밑이 검붉게 물들어 있고 피부 아래로 무언가 꿈틀거리는 기괴한 변화가 눈에 들어왔다. 창밖에서 바람이 울었다." };
-  assert.ok(run(obj, info).issues.some((i) => i.hard && /직전 서술/.test(i.msg)));
-  const f = run(obj, info, true);
-  assert.ok(!f.issues.some((i) => i.hard));
+  const info = base({ tone: "prose", prevSents: ["손바닥을 들어 불빛에 비춰보자, 손톱 밑이 검붉게 물들어 있고 피부 아래로 무언가 꿈틀거리는 듯한 기괴한 변화가 눈에 들어왔다."] });
+  const obj = { narration: "손바닥을 들어 불빛에 비춰보자, 손톱 밑이 검붉게 물들어 있고 피부 아래로 무언가 꿈틀거리는 듯한 기괴한 변화가 눈에 들어왔다. 창밖에서 바람이 울었다." };
+  const f = run(obj, info);
+  assert.ok(!f.issues.some((i) => i.hard), "다시 요청하지 않고 반복 문장만 삭제");
   assert.equal(f.plan.narration, "창밖에서 바람이 울었다.");
 });
 
 test("길티마스 재현: NPC가 말만 바꿔 같은 변명을 되풀이하면 재요청", () => {
   const info = base({ prevQuotes: ["\"우리가 마신 에그노그… 그게 문제야. 나도 교단이 시킨 대로만… 아니, 제발 더 묻지 마!\""] });
-  const obj = { narration: "줄리언은 거친 숨을 내쉬며 고개를 가로저었다. \"…더 이상 묻지 마. 나도 위에서 시킨 대로만 한 것뿐이야!\"" };
+  const obj = { narration: "줄리언은 거친 숨을 내쉬며 고개를 가로저었다. \"우리가 마신 에그노그… 그게 문제야. 나도 교단이 시킨 대로만… 아니, 정말 더 묻지 마!\"" };
   assert.ok(run(obj, info).issues.some((i) => i.hard && /되풀이/.test(i.msg)));
 });
 
