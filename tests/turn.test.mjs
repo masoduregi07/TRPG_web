@@ -389,3 +389,47 @@ test("판정 누락: 행동한 캐릭터가 이미 실패한 판정은 다시 �
   const b = run({ narration: "바르톨은 대꾸 없이 그물만 손질함." }, base({ actTexts: ["어부를 설득한다"], openChecks: [{ id: "k1", label: "어부 설득하기", failedPids: [] }] }));
   assert.ok(b.issues.some((i) => /가능한판정/.test(i.msg)));
 });
+
+test("이미 실패 · 성공한 판정을 같은 캐릭터에게 다시 걸지 않음 (규칙 16)", () => {
+  const obj = { narration: "한서가 선반을 다시 살핌.", request_check: { id: "k1", who: "한서" } };
+  const failed = base({ checkTries: [{ id: "k1", passed: false, failedPids: ["p1"] }] });
+  const a = run(obj, failed);
+  assert.ok(a.issues.some((i) => i.hard && /이미 실패/.test(i.msg)));
+  assert.equal(a.plan.check, null);
+  const b = run(obj, failed, true);
+  assert.ok(!b.issues.some((i) => i.hard), "마지막은 판정만 빼고 통과");
+  assert.equal(b.plan.checks.length, 0);
+  // 실패하지 않은 다른 캐릭터에게는 그대로
+  const two = base({ chars: [{ pid: "p1", name: "한서", player: "가", items: [] }, { pid: "p2", name: "민준", player: "나", items: [] }], checkTries: [{ id: "k1", passed: false, failedPids: ["p1"] }] });
+  assert.equal(run({ narration: "민준이 선반을 살핌.", request_check: { id: "k1", who: "민준" } }, two).plan.check?.who, "p2");
+  const passed = run(obj, base({ checkTries: [{ id: "k1", passed: true, failedPids: [] }] }));
+  assert.equal(passed.plan.check, null, "이미 성공한 판정");
+  assert.ok(!passed.issues.some((i) => i.hard));
+});
+
+test("전원 실패 단서 무시는 판정 결과만 있는 차례에만", () => {
+  const obj = { narration: "한서가 벽장을 뒤짐. 판자 뒤에 오래된 항해 일지가 숨겨져 있음.", reveal_clue: "c1" };
+  assert.equal(run(obj, base({ onlyFailedRolls: true, rollOnly: true })).plan.clue, null);
+  assert.equal(run(obj, base({ onlyFailedRolls: true, rollOnly: false })).plan.clue, "c1", "같은 차례에 행동이 있으면 공개조건의 다른 길일 수 있음");
+});
+
+test("narration이 글이 아니어도 답변 · 결과가 있으면 읽음", () => {
+  const p = AI.parseGM(JSON.stringify({ narration: ["x"], answers: [{ to: "한서", text: "문은 잠겨 있음." }] }));
+  assert.equal(p.ok, true);
+  assert.equal(p.res.narration, "");
+});
+
+test("지시문: 규칙끼리 어긋나지 않게 예외를 적음", () => {
+  const sys = AI.gmSystem();
+  assert.match(sys, /"실패한사람"이면 16번대로 다시 걸지 않고/);
+  assert.match(sys, /34번의 소지품 바로잡기 give_item만 예외/);
+  assert.match(sys, /19번 지금줄힌트 · 20번 정체시진행은 예외/);
+  for (let n = 1; n <= 39; n++) assert.ok(sys.includes(`\n${n}. `), `규칙 ${n}번`);
+});
+
+test("@NPC 물음에 판정을 걸면 대사 없이 판정 직전까지만 서술해도 됨 (규칙 8 · 13)", () => {
+  const info = base({ npcNames: ["바르톨"], askNpc: ["바르톨"], actors: [], turnPids: ["p1"] });
+  const withCheck = run({ narration: "바르톨이 그물에서 눈을 떼지 않음.", request_check: { id: "k1", who: "한서" } }, info);
+  assert.ok(!withCheck.issues.some((i) => i.hard), JSON.stringify(withCheck.issues));
+  assert.ok(run({ narration: "바르톨이 그물에서 눈을 떼지 않음." }, info).issues.some((i) => i.hard && /대사로 대답하지 않음/.test(i.msg)));
+});
