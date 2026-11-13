@@ -414,7 +414,7 @@ test("밀어붙이기 대기: 30초 지나면 넘긴 것으로 보고 서술 · 
   const pid = t.seat("c1", KEY, "가", "한서");
   t.g.hostAction({ t: "start" }); t.g.invalidateAI();
   failUntilRetry(t, pid, "c1");
-  t.data.game.retries[pid].at -= t.m.HostGame.RETRY_WAIT + 1;   // 시간 다 됨
+  t.data.game.retryFrom -= t.m.HostGame.RETRY_WAIT + 1;   // 시간 다 됨
   t.stop(); await new Promise((r) => setTimeout(r, 20)); calls = 0;
   await t.g.runAI();
   assert.equal(calls, 1);
@@ -461,6 +461,25 @@ test("밀어붙이기 기회는 사람마다: 남이 굴려도 내 기회는 남
   t.g.dropRetriesFor("chk1");
   assert.equal(Object.keys(t.data.game.retries).length, 0);
   t.stop();
+});
+
+test("대기 창은 차례마다 하나: 뒤에 실패한 사람도 첫 실패 시각 기준으로 함께 끝남 · 서술하면 창도 끝", async () => {
+  const t = aiTable(async () => JSON.stringify({ narration: "창틀에서 미끄러짐." }));
+  const a = t.seat("c1", KEY, "가", "한서"), b = t.seat("c2", KEY2, "나", "도윤");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  failUntilRetry(t, a, "c1");
+  const from = t.data.game.retryFrom;
+  assert.ok(from > 0);
+  t.data.game.retryFrom = from - 20000;   // 20초 지난 뒤 b가 실패
+  t.g.rate.clear(); failUntilRetry(t, b, "c2");
+  assert.equal(t.data.game.retryFrom, from - 20000, "창이 늘지 않음");
+  const hold = t.g.retryHold();
+  assert.ok(hold > 0 && hold <= t.m.HostGame.RETRY_WAIT - 20000 + 50, `남은 대기 ${hold}`);
+  t.data.game.retryFrom -= t.m.HostGame.RETRY_WAIT;
+  assert.equal(t.g.retryHold(), 0);
+  assert.equal(Object.keys(t.data.game.retries).length, 0, "둘 다 넘긴 것으로");
+  assert.equal(t.data.game.retryFrom, undefined);
+  clearTimeout(t.g.ai.hold); clearTimeout(t.g.ai.timer); t.stop();
 });
 
 test("예전 저장본의 game.retry는 사람별 retries로 옮김", () => {
