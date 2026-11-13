@@ -2484,7 +2484,7 @@ html.has-3d .topbar { box-shadow: none; }
 .due th { border: 1px solid #6b5338; font: 10.5px/22px var(--font); color: #5a4630; font-weight: 400; }
 .due .c-d { width: 68px; } .due .c-s { width: 84px; } .due .c-n { width: var(--bgw, 168px); }   /* 날짜 = 타자 글씨 "yy년mm/dd" 폭, 상태 = 도장, 비고 = 캐릭터 | 챕터 (폭은 글자에 맞춰 JS가 잼) */
 .due td.d { font: 12px/26px var(--font); color: #2a3a8a; }
-.due td.d .seg { display: block; margin: auto; overflow: visible; fill: currentColor; stroke: currentColor; }   /* 날짜 = 잉크 7세그먼트 (segNum) */
+.due td.d .seg { display: block; margin: auto; overflow: visible; fill: currentColor; }   /* 날짜 = 잉크 7세그먼트 (segNum) */
 /* 참가한 테이블(위) · 내 테이블(아래) 두 표. 머리 글은 참가한 테이블이 있을 때만 */
 .due-cap { margin: 0 0 4px; font: 12px/1.4 var(--font); color: var(--ink); }
 .due-cap.j { color: #8e2438; }
@@ -2513,6 +2513,9 @@ html.has-3d .topbar { box-shadow: none; }
 .due tr.front td.n { font-weight: 700; }
 .due td.c { padding: 0 6px; font-size: 12px; color: #5a4630; }   /* 비고 = 지금 챕터 (도장 없음) */
 @keyframes lb-out { from { translate: 0 60vh; } }   /* 화면 아래에서 위로 올라옴 */
+@keyframes lb-back { from { translate: 0 60vh; } }   /* 닫을 때 = 같은 움직임을 거꾸로 (아래로 내려감) */
+.lb-list.leaving { pointer-events: none; }
+.lb-list.leaving .due { animation: lb-back .38s cubic-bezier(.2, .75, .3, 1) reverse both; }
 .due { --due-pick: #a8251a; }
 /* 줄 호버 · 물음 열린 줄 = 책갈피 표시(B): 밝은 종이색 + 왼쪽 붉은 띠 4px + 이름 붉은 밑줄 */
 .due tr[data-room]:hover td, .due tr.asking td { background-image: linear-gradient(rgba(255, 250, 235, .95), rgba(255, 250, 235, .95)); }
@@ -9796,18 +9799,21 @@ const BannerArt = (() => {
   // 대출 카드 번호: 방 코드에서 4자리 (화면 장식 · 같은 방은 늘 같은 번호)
   const cardNo = (room) => String([...String(room)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 9000, 7) + 1000);
   /** 목록 날짜 = 잉크로 찍은 7세그먼트 숫자 (켜진 획만, 색 = 글자색). 글자 5×9 단위 · 살짝 기울임 */
-  function segNum(str, u = 1.1) {
+  function segNum(str, u = 1.1, T = .85) {   // T = 획 굵기(칸)
     const SEG = { 0: "abcdef", 1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc", 5: "afgcd", 6: "afgedc", 7: "abc", 8: "abcdefg", 9: "abcfgd" };
-    const R = { a: [1, 0, 3, 1], b: [4, 1, 1, 3], c: [4, 5, 1, 3], d: [1, 8, 3, 1], e: [0, 5, 1, 3], f: [0, 1, 1, 3], g: [1, 4, 3, 1] };
+    const g = .12, H = 9, W = 5, m = (H - T) / 2, hw = W - 2 * T - 2 * g;   // 글자 5×9칸, 획 사이 틈 g
+    const R = { a: [T + g, 0, hw, T], g: [T + g, m, hw, T], d: [T + g, H - T, hw, T],
+      f: [0, T / 2 + g, T, H / 2 - T / 2 - 2 * g], e: [0, H / 2 + g, T, H / 2 - T / 2 - 2 * g], b: [W - T, T / 2 + g, T, H / 2 - T / 2 - 2 * g], c: [W - T, H / 2 + g, T, H / 2 - T / 2 - 2 * g] };
     let x = 0, out = "";
+    const r = (rx, ry, w, h) => `<rect x="${(x + rx * u).toFixed(2)}" y="${(ry * u).toFixed(2)}" width="${(w * u).toFixed(2)}" height="${(h * u).toFixed(2)}"/>`;
     for (const ch of str) {
-      if (ch === "-") { out += `<rect x="${x + .15}" y="${4 * u + .15}" width="${2.4 * u}" height="${u - .3}"/>`; x += 4 * u; continue; }   // 구분 = 짧은 가운데 획 (1과 헷갈리지 않게)
-      const one = ch === "1", ox = one ? -3.6 * u : 0;   // 1은 오른쪽 획만이라 좁은 글자로 (틈이 한쪽만 벌어지지 않게)
-      for (const k of SEG[ch] ?? "") { const [rx, ry, w, h] = R[k]; out += `<rect x="${x + ox + rx * u + .15}" y="${ry * u + .15}" width="${w * u - .3}" height="${h * u - .3}"/>`; }
-      x += one ? 2.6 * u : 6.6 * u;   // 글자 사이 틈 1.6칸
+      if (ch === "-") { out += r(0, m, 2.4, T); x += 4 * u; continue; }   // 구분 = 짧은 가운데 획 (1과 헷갈리지 않게)
+      const one = ch === "1";   // 1은 오른쪽 획만이라 좁은 글자로 (틈이 한쪽만 벌어지지 않게)
+      for (const k of SEG[ch] ?? "") { const [rx, ry, w, h] = R[k]; out += r(one ? rx - (W - T) : rx, ry, w, h); }
+      x += (one ? T + 1.6 : 6.6) * u;   // 글자 사이 틈 1.6칸
     }
-    const W = x - 1.6 * u, H = 9 * u, t = document.createElement("template");
-    t.innerHTML = `<svg class="seg" width="${(W + 2).toFixed(1)}" height="${H.toFixed(1)}" viewBox="-1 0 ${(W + 2).toFixed(1)} ${H.toFixed(1)}" aria-hidden="true"><g transform="skewX(-8)" transform-origin="0 ${H.toFixed(1)}" stroke-width="${(u * .9).toFixed(2)}">${out}</g></svg>`;
+    const SW = x - 1.6 * u, SH = H * u, t = document.createElement("template");
+    t.innerHTML = `<svg class="seg" width="${(SW + 2).toFixed(1)}" height="${SH.toFixed(1)}" viewBox="-1 0 ${(SW + 2).toFixed(1)} ${SH.toFixed(1)}" aria-hidden="true"><g transform="skewX(-8)" transform-origin="0 ${SH.toFixed(1)}">${out}</g></svg>`;
     return t.content.firstChild;
   }
   const ymd = (ts) => { const d = new Date(ts), p = (n) => String(n).padStart(2, "0"); return `${p(d.getFullYear() % 100)}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };   // 목록 날짜 yy-mm-dd (segNum으로 그림)
@@ -9909,7 +9915,15 @@ const BannerArt = (() => {
           card.addEventListener("animationend", fin, { once: true }); setTimeout(fin, 420);
         } else { inv.classList.remove("out"); shut(); }
       } else inv.hidden = true;
-      list.hidden = true; open = ""; setDel(false);
+      // 시나리오 리스트: 올라올 때와 정확히 반대로 아래로 내려간 뒤 숨김
+      list.querySelector(".due-tip")?.remove();
+      if (open === "list" && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        list.classList.add("leaving");
+        let done = false; const fin = () => { if (!done) { done = true; if (list.classList.contains("leaving")) { list.classList.remove("leaving"); list.hidden = true; } } };
+        const sheet = $("#myTables"), end = (e) => { if (e.target === sheet) { sheet.removeEventListener("animationend", end); fin(); } };
+        sheet.addEventListener("animationend", end); setTimeout(() => { sheet.removeEventListener("animationend", end); fin(); }, 460);
+      } else list.hidden = true;
+      open = ""; setDel(false);
       removeEventListener("keydown", key, true); removeEventListener("pointerdown", away, true);
     }
     function show(which) {
@@ -9917,7 +9931,7 @@ const BannerArt = (() => {
       close();
       Book.close();
       open = which;
-      if (which === "list") { place(); list.hidden = false; Sfx.play("page"); $("#myTables").focus({ preventScroll: true }); }
+      if (which === "list") { list.classList.remove("leaving"); place(); list.hidden = false; Sfx.play("page"); $("#myTables").focus({ preventScroll: true }); }
       else {
         // 3D 봉투 덮개가 먼저 젖혀 열리고 → 초대장이 봉투 자리에서 빠져나와 가운데로
         const r = Book.rect("invite"), card = inv.querySelector(".inv");
