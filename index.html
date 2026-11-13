@@ -4800,7 +4800,7 @@ const AI = (() => {
 
 ― KPC (일행과 함께 다니는 NPC)
 30. 'KPC'라는 자리표시자가 등장하면 시나리오 분위기 · 관계에 어울리는 실제 NPC 이름, 외모와 성격을 정해 등장시키고 new_npcs에 {"id":"kpc","name":"실제 이름","look":"외모","personality":"성격","voice":"말투·말버릇"}를 보낸다. 이 인물의 원래 비밀과 역할은 변경하지 않는다.
-31. "역할"이 일행의 동료인 동안 KPC는 안내 방송이 아니라 일행의 한 사람으로 연기한다 (25번의 말투 기본값보다 이 규칙이 우선). 자기 생각 · 추측 · 감정 · 기억(배경과 이 장소에 얽힌 일) · 제안을 말하고, 질문을 받으면 "모르겠다"로 끝내지 않고 짐작이나 의견, 느낀 점을 덧붙인다. 놀림 · 핀잔에는 성격대로 받아친다. 짐작의 근거는 시나리오 소개 · 이미 공개된 단서 · 자기 배경과 기억 · 그 세계에 떠도는 소문까지이며, 짐작은 틀리거나 반쯤만 맞아도 된다. 지켜야 하는 것은 "아직공개안된단서" · "GM전용메모" · 비밀을 사실로 확정해 말하지 않는 것뿐이다. "더 조사해 보자 · 둘러보자"로 대답을 넘기거나 같은 곳을 보자고 권하는 것은 한 번까지만 한다 (캐릭터가 따르지 않으면 재촉하지 않고 그 까닭을 묻거나 다른 이야기로). 짐작이 "실패한사람"이 있는 판정의 단서에 닿으면 16번대로 확정하지 않는다. 캐릭터의 행동은 정하지 않는다.
+31. "역할"이 일행의 동료인 동안 KPC는 안내 방송이 아니라 일행의 한 사람으로 연기한다 (25번의 말투 기본값보다 이 규칙이 우선). 자기 생각 · 추측 · 감정 · 기억(배경과 이 장소에 얽힌 일) · 제안을 말하고, 질문을 받으면 "모르겠다"로 끝내지 않고 짐작이나 의견, 느낀 점을 덧붙인다. 놀림 · 핀잔에는 성격대로 받아친다. 짐작의 근거는 시나리오 소개 · 이미 공개된 단서 · 자기 배경과 기억 · 그 세계에 떠도는 소문까지이며, 짐작은 틀리거나 반쯤만 맞아도 된다. 지켜야 하는 것은 "아직공개안된단서" · "GM전용메모" · 비밀을 사실로 확정해 말하지 않는 것뿐이다. 비밀이 있는 인물(KPC 포함)은 몰리거나 겁에 질려도 부인 · 화두 돌리기 · 말 끊기로 버티며, 자기 소속 · 정체 · 계획의 이름(교단 · 의식 · 위의 지시 등)을 캐릭터가 묻거나 공개조건이 채워지기 전에 스스로 입에 올리지 않는다. "더 조사해 보자 · 둘러보자"로 대답을 넘기거나 같은 곳을 보자고 권하는 것은 한 번까지만 한다 (캐릭터가 따르지 않으면 재촉하지 않고 그 까닭을 묻거나 다른 이야기로). 짐작이 "실패한사람"이 있는 판정의 단서에 닿으면 16번대로 확정하지 않는다. 캐릭터의 행동은 정하지 않는다.
 32. KPC는 일행과 함께 움직이므로 사건이 바뀌어도 "등장NPC"에 있다. 시나리오의 흐름이나 서술에서 KPC가 분명히 일행을 떠나면(죽음 · 끌려감 · 홀로 남음 · 다른 길로 감 · 배신이나 정체가 드러나 적 · 다른 편이 됨 등) kpc_away를 true로, 다시 합류하면 false로 한다. 그 밖에는 null. 떠난 동안("KPC상태")은 KPC를 그 자리에 있는 것처럼 서술하지 않고, 시나리오가 그 사건에 둔 경우에만 그 자리의 일반 NPC(25~28번, KPC의 비밀 · 시나리오상 역할대로)로 등장시킨다. KPC가 일반 NPC가 되는 것은 시나리오의 흐름이나 그에 준하는 서술이 있을 때만이며, 이유 없이 일행에서 빼지 않는다.
 
 ― 물건
@@ -5378,6 +5378,27 @@ const Turn = (() => {
       if (t.off) (final ? soft : hard)(info.tone === "prose" ? `문체: 소설체(~했다)로 끝맺기. "~함 · ~음"으로 끝난 문장 ${t.bad}개` : `문체: 명사형(~함 · ~됨 · ~음)으로 끝맺기. "~다 · ~요"로 끝난 문장 ${t.bad}개 (따옴표 속 NPC 대사는 예외)`);
     }
 
+    // ---- 소설체 현재형 혼입 (규칙 37): "~들어온다 · ~한다"로 끝난 서술 문장 (대사 제외). 마지막 시도면 그대로 ----
+    if (info.tone === "prose") {
+      const pres = String([plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).join("\n")).replace(QUOTE_RE, " ").split(SENT_RE).map((x) => x.replace(/[\s"'”’」』)\]~.!?…。-]+$/, "")).filter((x) => /[가-힣]다$/.test(x) && (/는다$/.test(x) || ((x.at(-2)?.charCodeAt(0) - 0xac00) % 28 === 4 && x.at(-2) >= "가" && x.at(-2) <= "힣")));
+      if (pres.length) (final ? soft : hard)(`문체: 소설체는 과거형(~했다)으로 통일. 현재형으로 끝난 문장 ${pres.length}개 (예: 「${pres[0].slice(-24)}」, 규칙 37)`);
+    }
+    // ---- 직전 차례 서술의 문장을 거의 그대로 되풀이 (규칙 10 · 28). 마지막 시도면 그 문장만 뺌 ----
+    if ((info.prevSents ?? []).length) {
+      const dupOf = (x) => x.length >= 10 && info.prevSents.some((p) => shows(x, p) >= 0.7 && shows(p, x) >= 0.55);
+      const sentsN = (t) => String(t ?? "").replace(QUOTE_RE, " ").split(SENT_RE).map((x) => x.trim()).filter(Boolean);
+      const hit = sentsN([plan.narration, plan.arrival].filter(Boolean).join("\n")).filter(dupOf);
+      if (hit.length) {
+        if (!final) hard(`직전 서술의 문장을 거의 그대로 되풀이함 (「${hit[0].slice(0, 30)}…」). 이미 쓴 묘사는 반복하지 말고 이번 입력의 새 결과로`);
+        else {
+          const cut = (t) => String(t ?? "").split(SENT_RE).filter((x) => !dupOf(String(x).replace(QUOTE_RE, " ").trim())).join(" ").trim();
+          const nar = plan.blocks.length ? plan.blocks.map((b) => ({ ...b, text: cut(b.text) })).filter((b) => b.text) : null;
+          const narration = nar ? nar.map((b) => b.text).join("\n") : cut(plan.narration), arrival = plan.arrival ? cut(plan.arrival) || null : null;
+          if (narration || arrival || plan.answers.length) { soft("직전 서술을 되풀이한 문장 삭제"); if (nar) plan.blocks = nar; plan.narration = narration; plan.arrival = arrival; }
+        }
+      }
+    }
+
     // ---- 입력 없는 캐릭터를 주어로 행동 · 감정을 정한 문장 (규칙 11). 마지막 시도면 그 문장만 뺌 ----
     {
       const acted = new Set([...(info.order ?? []), ...info.actors.map((a) => a.pid), ...(info.askers ?? []).map((a) => a.pid)]);
@@ -5427,7 +5448,8 @@ const Turn = (() => {
     {
       const quotes = (t) => String(t ?? "").match(QUOTE_RE) ?? [];
       const now = quotes([plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).join("\n"));
-      const again = now.some((q) => norm(q).length >= 8 && (info.prevQuotes ?? []).some((p) => shows(q, p) >= 0.6));
+      const lcs = (a, b) => { let best = 0, prev = new Array(b.length + 1).fill(0); for (let i = 1; i <= a.length; i++) { const cur = new Array(b.length + 1).fill(0); for (let j = 1; j <= b.length; j++) if (a[i - 1] === b[j - 1]) { cur[j] = prev[j - 1] + 1; if (cur[j] > best) best = cur[j]; } prev = cur; } return best; };
+      const again = now.some((q) => norm(q).length >= 8 && (info.prevQuotes ?? []).some((p) => shows(q, p) >= 0.6 || (norm(p).length >= 8 && lcs(norm(q), norm(p)) >= 5)));
       if (again) (final ? soft : hard)("NPC가 직전에 한 대사(직전NPC대사)를 거의 그대로 되풀이함. 캐릭터가 건넨 말에 먼저 반응하고 새 말 · 행동으로 이음");
       // 서술이 직전 서술과 같은 말머리로 시작 (예: 잇달아 "어두운 예배당 안에서 …")
       const head = (t) => norm(String(t ?? "").replace(QUOTE_RE, " ").trim().split(/\s+/).slice(0, 3).join(""));
@@ -7116,6 +7138,8 @@ class HostGame {
         return o;
       })(),
       prevNarration: String(lastGm[0]?.text ?? "").slice(0, 200),
+      // 직전 GM 차례 서술의 따옴표 밖 문장 (다음 서술이 같은 문장을 거의 그대로 되풀이하는지)
+      prevSents: lastGm.map((e) => String(e.text ?? "").replace(/"[^"]*"|“[^”]*”|「[^」]*」/g, " ")).join("\n").split(/(?<=[.!?…。])\s+|\n+/).map((x) => x.trim()).filter((x) => x.length >= 10),
       // 직전 GM 서술의 따옴표 대사 (NPC가 같은 말을 되풀이하는지)
       prevQuotes: lastGm.map((e) => e.text ?? "").join("\n").match(/"[^"]{4,}"|“[^”]{4,}”|「[^」]{4,}」/g) ?? [],
       gotThisTurn: since.filter((e) => e.kind === "system" && (e.item ? e.gain : /「(.+)」 얻음$/.test(e.text ?? ""))).map((e) => e.item ?? /「(.+)」 얻음$/.exec(e.text)[1]),
@@ -11693,7 +11717,7 @@ const BannerArt = (() => {
     const pid = e.focusId, mine = !!pid && pid === app.snap?.me;
     const color = pid && app.snap?.players.some((p) => p.pid === pid) ? spineOf(pid) : "#8a1c14";
     const mineIn = (table.inputs ?? []).filter((n) => n.dataset.by === pid);
-    const quote = mineIn.map((n) => n.querySelector(".text")?.textContent ?? "").filter(Boolean).join(" / ");
+    const quote = mineIn.map((n) => (n.querySelector(".text")?.textContent ?? "").trim().replace(/^[「“"]\s*([\s\S]*?)\s*[」”"]$/, "$1")).filter(Boolean).join(" / ");
     for (const n of mineIn) n.classList.add("in-res");
     const row = el("div", { class: `tr-row${mine ? " mine" : ""}${openSet().has(e.id) ? " open" : ""}`, style: `--c:${color}`, "data-id": e.id, "data-pid": pid ?? null },
       el("span", { class: "tr-name" }, e.focus),
