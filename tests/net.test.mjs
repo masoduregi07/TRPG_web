@@ -180,3 +180,35 @@ test("보관함 요청은 입력 횟수 제한과 따로 셈", () => {
   assert.equal(closed, false);
   assert.equal((g.rate.get("c1") ?? []).length, 0);
 });
+
+test("지운 방 응답: 참가 · 명단 미리 보기에 closed로 답하고, 플레이어는 재접속을 멈춤", async () => {
+  const { Peer } = fakeNet();
+  let connects = 0;
+  class P2 extends Peer { connect(id, o) { connects++; return super.connect(id, o); } }
+  const m = load({ Peer: P2 });
+  const b = m.Net.closedBeacon("room000001");
+  await wait();
+  assert.equal(await m.Net.peekRoom("room000001", KEY, 500), "closed");
+  const got = [];
+  const p = m.Net.joinRoom("room000001", { key: KEY, name: "가", onMessage: (x) => got.push(x.t), onStatus: () => {} });
+  await wait(80);
+  assert.deepEqual(got, ["closed"]);
+  const n = connects;
+  await wait(3300);
+  assert.equal(connects, n, "closed 뒤 다시 접속하지 않음");
+  p.stop(); b.stop();
+});
+
+test("지운 방 응답은 같은 방 테이블이 열려 있으면 비켜 줌", async () => {
+  const { Peer, peers } = fakeNet();
+  const m = load({ Peer });
+  const { h } = host(m, Peer);
+  await wait();
+  const hostPeer = peers.get(m.Net.hostPeerId("room000001"));
+  const b = m.Net.closedBeacon("room000001");
+  await wait();
+  assert.equal(peers.get(m.Net.hostPeerId("room000001")), hostPeer, "열린 테이블이 주소를 그대로 씀");
+  const players = await m.Net.peekRoom("room000001", KEY, 500);
+  assert.ok(Array.isArray(players), "명단이 옴 (closed 아님)");
+  b.stop(); h.stop();
+});
