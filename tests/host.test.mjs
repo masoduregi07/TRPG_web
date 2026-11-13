@@ -633,3 +633,35 @@ test("직전NPC대사: 여러 명 결과 블록으로 나뉜 직전 차례의 �
   assert.equal(JSON.stringify(info.prevQuotes), JSON.stringify(['"그날 밤엔 아무도 못 봤소."']));
   assert.match(info.prevNarration, /^바르톨이 고개를 저음/);
 });
+
+test("지금줄힌트: 한 단계의 힌트는 한 번만 넘김 · 실패한 판정의 단서보호 · 아직 안 건 이성 판정 표시", () => {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const s0 = sc.scenes[sc.start];
+  s0.hints = ["첫 힌트", "둘째 힌트"];
+  s0.clues = [...(s0.clues ?? []), { id: "zz_clue", text: "천장의 액체는 검붉은 피다", reveal: "판정 성공" }];
+  s0.checks = [...(s0.checks ?? []), { id: "zz_spot", label: "천장 살피기", skill: "관찰력", success: { text: "보임", reveal: "zz_clue" }, fail: { text: "안 보임" } }, { id: "zz_san", label: "피를 뒤집어쓴 모습", san: "0/1", success: { text: "" }, fail: { text: "" } }];
+  const data = m.HostGame.create({ roomId: "room000002", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {}, aiCall: async () => "{}" });
+  data.phase = "play"; data.game = m.Engine.newState(sc);
+  data.players.p1 = { name: "가", ready: true, character: { name: "한서" } };
+  const plan = (over = {}) => ({ narration: "바람이 불었다.", answers: [], give: [], take: [], hurt: [], heal: [], blocks: [], newNpcs: [], showHandouts: [], onTrack: false, ...over });
+  const turn = (p) => { g.applyPlan(p); data.game.aiCursor = data.logSeq; };
+  for (let i = 0; i < 3; i++) turn(plan());
+  assert.match(g.turnContext().ctx.지금줄힌트, /첫 힌트/);
+  assert.match(g.turnContext().ctx.지금줄힌트, /첫 힌트/, "맥락을 다시 만들어도 그대로 (서술 전)");
+  turn(plan());
+  assert.equal(g.turnContext().ctx.지금줄힌트, undefined, "넘긴 단계는 다시 안 넘김");
+  turn(plan()); turn(plan());
+  assert.match(g.turnContext().ctx.지금줄힌트, /둘째 힌트/, "다음 단계는 넘김");
+  turn(plan({ onTrack: true }));
+  for (let i = 0; i < 3; i++) turn(plan());
+  assert.match(g.turnContext().ctx.지금줄힌트, /첫 힌트/, "다시 맴돌면 처음부터");
+  // 판정 표시
+  const ck = () => g.turnContext().ctx.가능한판정;
+  assert.equal(ck().find((c) => c.id === "zz_san").아직안검, true);
+  assert.equal(ck().find((c) => c.id === "zz_spot").단서보호, undefined);
+  data.game.checkAttempts.push({ checkId: "zz_spot", pid: "p1", ok: false }, { checkId: "zz_san", pid: "p1", ok: true });
+  assert.match(ck().find((c) => c.id === "zz_spot").단서보호, /확정하지 않음/);
+  assert.equal(ck().find((c) => c.id === "zz_san").아직안검, undefined);
+});
