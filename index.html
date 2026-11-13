@@ -2710,7 +2710,7 @@ html.has-3d .topbar { box-shadow: none; }
           <div id="joinRows"></div>
         </div>
         <div class="inv-foot">
-          <label class="inv-fld"><span class="inv-k">닉네임</span><input id="bkJoinName" maxlength="16" placeholder="이름을 적어 주세요" autocomplete="nickname" /></label>
+          <label class="inv-fld"><span class="inv-k">닉네임</span><input id="bkJoinName" maxlength="16" placeholder="이름을 적는다" autocomplete="nickname" /></label>
           <button id="joinLinkBtn" class="pbtn inv-join" type="button">참가하기</button>
         </div>
         <p id="inviteError" class="error" role="alert"></p>
@@ -2789,7 +2789,7 @@ html.has-3d .topbar { box-shadow: none; }
           <h4 class="hp-title">판정 도움말</h4>
           <section class="hp-sec" data-help="levels">
             <b>성공 단계</b>
-            <p>d100을 굴려 <em>목표치</em>(기능 수치) 이하면 성공. 낮게 나올수록 좋음.</p>
+            <p>d100을 굴려 <em>목표치</em>(기능 수치) 이하면 성공이다. 낮게 나올수록 좋다.</p>
             <ul class="hp-levels">
               <li><span>보통 성공</span>목표치 이하</li>
               <li><span>어려운 성공</span>목표치의 1/2 이하</li>
@@ -2797,15 +2797,15 @@ html.has-3d .topbar { box-shadow: none; }
               <li><span>대성공</span>01</li>
               <li><span>대실패</span>100 (목표치 50 미만이면 96~100)</li>
             </ul>
-            <p class="hp-note">난이도가 '어려움'이면 어려운 성공 이상, '극단'이면 극단적 성공이 나와야 통과.</p>
+            <p class="hp-note">난이도가 '어려움'이면 어려운 성공 이상, '극단'이면 극단적 성공이 나와야 통과한다.</p>
           </section>
           <section class="hp-sec" data-help="push">
             <b>밀어붙이기</b>
-            <p>실패한 판정을 한 번 더 굴림. 다시 실패하면 GM이 더 나쁜 대가를 줌. 대실패 · 이미 밀어붙인 판정은 불가.</p>
+            <p>실패한 판정을 한 번 더 굴린다. 다시 실패하면 GM이 더 나쁜 대가를 준다. 대실패 · 이미 밀어붙인 판정은 밀어붙일 수 없다.</p>
           </section>
           <section class="hp-sec" data-help="luck">
             <b>행운 쓰기</b>
-            <p>실패했을 때 모자란 만큼 행운을 깎아 성공으로 바꿈. 예: 목표치 40에 47이 나오면 행운 7. 행운 · 이성 판정에는 못 씀. 줄어든 행운은 잘 돌아오지 않음.</p>
+            <p>실패했을 때 모자란 만큼 행운을 깎아 성공으로 바꾼다. 예: 목표치 40에 47이 나오면 행운 7. 행운 · 이성 판정에는 쓸 수 없다. 줄어든 행운은 잘 돌아오지 않는다.</p>
           </section>
           <label class="snd-chk hp-toggle"><input id="helpTips" type="checkbox" /> 진행 중 도움말 쪽지 보기</label>
         </div>
@@ -2848,9 +2848,9 @@ html.has-3d .topbar { box-shadow: none; }
   <!-- 호스트 대기: 처음 접속했는데 호스트가 아직 없을 때 (3D 테이블 위 쪽지) -->
   <div id="hostWait" class="host-wait" role="status" hidden>
     <span class="hw-ic"></span>
-    <h5>테이블이 아직 열리지 않음</h5>
-    <p>호스트가 방을 열면 바로 이어짐.</p>
-    <p>호스트에게 이 방 주소가 열려 있는지 확인.</p>
+    <h5>테이블이 아직 열리지 않았다</h5>
+    <p>호스트가 방을 열면 바로 이어진다.</p>
+    <p>호스트에게 이 방 주소가 열려 있는지 확인한다.</p>
     <code id="hostWaitRoom"></code>
     <div class="hw-re">호스트 찾는 중… 3초마다 다시 시도</div>
   </div>
@@ -2901,7 +2901,7 @@ html.has-3d .topbar { box-shadow: none; }
       <button id="logBottom" class="log-bottom" type="button" hidden aria-label="채팅 최신 기록으로 이동" title="맨 아래"><svg class="jump-ic" viewBox="0 0 9 8" width="18" height="16" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true" focusable="false"><rect x="1" y="0" width="1" height="1"/><rect x="2" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="7" y="0" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/><rect x="1" y="4" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="7" y="4" width="1" height="1"/><rect x="2" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="3" y="6" width="1" height="1"/><rect x="4" y="6" width="1" height="1"/><rect x="5" y="6" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/></svg><span id="logUnread" class="jump-badge" hidden></span></button>
       <div id="turnBoard" class="turn-board" hidden></div>
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="gather-now" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
-      <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면입니다. 호스트와 연결되면 최신 상태로 바뀝니다.</div>
+      <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면이다. 호스트와 연결되면 최신 상태로 바뀐다.</div>
       <div id="turnStatus" class="turn-status" hidden><span id="thinking" hidden>GM이 숨을 고르는 중…</span><span id="typingPresence" hidden aria-live="polite"></span></div>
       <div id="npcPick" class="npc-pick" role="listbox" aria-label="말 걸 NPC" hidden></div>
       <!-- 판정 알림: 입력칸을 가리키는 말풍선 (굴릴 때까지 유지, 점선 손잡이로 좌우 이동) -->
@@ -2949,7 +2949,7 @@ html.has-3d .topbar { box-shadow: none; }
 
 <dialog id="historyDialog" aria-labelledby="historyTitle">
   <div class="archive-head"><h2 id="historyTitle">기록 보관함 <small id="historyCount"></small></h2>
-    <div class="hist-btns"><button id="historyMore" type="button" title="기록 칸은 최근 300개까지만 보임 · 그보다 이전 기록을 불러옴">↥ 이전 기록</button><button id="historySync" type="button" title="호스트가 보관한 공개 기록 전체를 받아옴 (비밀 기록은 본인·호스트만)">⇣ 전체 받기</button><button id="historyExport" type="button" title="내 보관 기록을 파일로 저장">⇩ 내보내기</button></div>
+    <div class="hist-btns"><button id="historyMore" type="button" title="기록 칸은 최근 300개까지만 보인다. 그보다 이전 기록을 불러온다.">↥ 이전 기록</button><button id="historySync" type="button" title="호스트가 보관한 공개 기록 전체를 받아온다 (비밀 기록은 본인과 호스트만)">⇣ 전체 받기</button><button id="historyExport" type="button" title="내 보관 기록을 파일로 저장">⇩ 내보내기</button></div>
     <button id="historyClose" class="hist-x" type="button" aria-label="닫기">×</button></div>
   <p id="historyStatus" class="hist-warn" role="status"></p><p id="historyMessage" class="hist-msg" role="status"></p>
   <div class="hist-body"><div id="historyList"></div><nav id="historyToc" aria-label="장면 목차"></nav></div>
@@ -2976,7 +2976,7 @@ html.has-3d .topbar { box-shadow: none; }
   <span class="hm-pin" aria-hidden="true"></span>
   <b class="hm-title"></b>
   <div class="hm-body"></div>
-  <div class="hm-act"><button id="helpMemoOff" class="hm-off" type="button">도움말 끄기</button><button id="helpMemoOk" class="btn tiny" type="button">알겠음</button></div>
+  <div class="hm-act"><button id="helpMemoOff" class="hm-off" type="button">도움말 끄기</button><button id="helpMemoOk" class="btn tiny" type="button">알겠다</button></div>
 </aside>
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" integrity="sha384-x0YgkOr/3UOZP2CRDxGW9e0Q+2Qjyr3uJrm4xU32Y7ZCNAo7Cc7bjhrZMi/dwczu" crossorigin="anonymous"></script>
@@ -3454,8 +3454,8 @@ const Rules = (() => {
   function validateCoc(sc, raw, rolled, clip) {
     const r = cocRules(sc, clip);
     const name = clip(raw?.name, 16);
-    if (!name) return { ok: false, error: "캐릭터 이름 입력 필요." };
-    if (!rolled?.chars) return { ok: false, error: "특성치 굴림 먼저." };
+    if (!name) return { ok: false, error: "캐릭터 이름을 입력해야 한다." };
+    if (!rolled?.chars) return { ok: false, error: "특성치를 먼저 굴려야 한다." };
     const occ = r.backgrounds.find((b) => b.name === raw?.background) ?? null;
     // 시나리오 목록에 없는 자유 직업은 특화 기능을 제한하지 않음.
     const customOccupation = clip(raw?.background, 30);
@@ -3467,7 +3467,7 @@ const Rules = (() => {
       if (v) alloc[k] = v;
     }
     const L = left(r, chars, occ, alloc);
-    if (L.int < 0) return { ok: false, error: "기능 포인트 초과." };
+    if (L.int < 0) return { ok: false, error: "기능 포인트를 넘었다." };
     const skills = Object.fromEntries(r.skills.map((k) => [k, skillBase(k, chars) + (alloc[k] ?? 0)]));
     const dv = derived(r, chars);
     return {
@@ -3775,47 +3775,47 @@ const Engine = (() => {
   /** 로직에서 배열·객체로 가정하는 필드를 먼저 확인하여 잘못된 YAML도 안전하게 오류로 돌린다. */
   function scenarioShapeErrors(sc) {
     const errors = [];
-    if (!isRecord(sc)) return ["시나리오가 비었거나 형식 오류."];
+    if (!isRecord(sc)) return ["시나리오가 비었거나 형식이 틀렸다."];
     const scenes = sc.scenes ?? sc.events;
-    if (!isRecord(scenes)) return ["scenes/events(사건 목록)는 객체여야 함."];
-    if (Object.keys(scenes).length > 300) errors.push("사건은 최대 300개까지 지원.");
-    if (sc.npcs != null && !isRecord(sc.npcs)) errors.push("npcs는 NPC별 객체여야 함.");
-    if (sc.flags != null && !isRecord(sc.flags)) errors.push("flags는 객체여야 함.");
-    if (sc.character != null && !isRecord(sc.character)) errors.push("character는 객체여야 함.");
-    if (sc.deviation != null && !isRecord(sc.deviation)) errors.push("deviation은 객체여야 함.");
-    if (sc.deviation?.hooks != null && !Array.isArray(sc.deviation.hooks)) errors.push("deviation.hooks는 목록이어야 함.");
+    if (!isRecord(scenes)) return ["scenes/events(사건 목록)는 객체여야 한다."];
+    if (Object.keys(scenes).length > 300) errors.push("사건은 300개까지만 쓸 수 있다.");
+    if (sc.npcs != null && !isRecord(sc.npcs)) errors.push("npcs는 NPC별 객체여야 한다.");
+    if (sc.flags != null && !isRecord(sc.flags)) errors.push("flags는 객체여야 한다.");
+    if (sc.character != null && !isRecord(sc.character)) errors.push("character는 객체여야 한다.");
+    if (sc.deviation != null && !isRecord(sc.deviation)) errors.push("deviation은 객체여야 한다.");
+    if (sc.deviation?.hooks != null && !Array.isArray(sc.deviation.hooks)) errors.push("deviation.hooks는 목록이어야 한다.");
     const character = sc.character;
     if (isRecord(character)) {
       for (const k of ["skills", "stats", "occupations", "backgrounds"]) {
-        if (character[k] != null && !Array.isArray(character[k])) errors.push(`character.${k}는 목록이어야 함.`);
+        if (character[k] != null && !Array.isArray(character[k])) errors.push(`character.${k}는 목록이어야 한다.`);
       }
       const occs = Array.isArray(character.occupations) ? character.occupations : Array.isArray(character.backgrounds) ? character.backgrounds : [];
       for (const o of occs) {
-        if (!isRecord(o)) { errors.push("직업 항목은 객체여야 함."); continue; }
-        for (const k of ["skills", "items"]) if (o[k] != null && !Array.isArray(o[k])) errors.push(`직업 ${o.name ?? "(이름 없음)"}: ${k}는 목록이어야 함.`);
+        if (!isRecord(o)) { errors.push("직업 항목은 객체여야 한다."); continue; }
+        for (const k of ["skills", "items"]) if (o[k] != null && !Array.isArray(o[k])) errors.push(`직업 ${o.name ?? "(이름 없음)"}: ${k}는 목록이어야 한다.`);
       }
     }
     for (const [id, s] of Object.entries(scenes)) {
-      if (!isRecord(s)) { errors.push(`${id}: 사건은 객체여야 함.`); continue; }
+      if (!isRecord(s)) { errors.push(`${id}: 사건은 객체여야 한다.`); continue; }
       for (const k of ["exits", "next", "checks", "clues", "npcs", "places", "hints"]) {
-        if (s[k] != null && !Array.isArray(s[k])) errors.push(`${id}: ${k}는 목록이어야 함.`);
+        if (s[k] != null && !Array.isArray(s[k])) errors.push(`${id}: ${k}는 목록이어야 한다.`);
       }
-      for (const k of ["legend", "hidden"]) if (s[k] != null && !isRecord(s[k])) errors.push(`${id}: ${k}는 객체여야 함.`);
+      for (const k of ["legend", "hidden"]) if (s[k] != null && !isRecord(s[k])) errors.push(`${id}: ${k}는 객체여야 한다.`);
       for (const [k, list] of [["exits", s.exits], ["next", s.next], ["checks", s.checks], ["clues", s.clues]]) {
         if (!Array.isArray(list)) continue;
-        if (list.length > 1000) errors.push(`${id}: ${k}는 최대 1000개까지 지원.`);
+        if (list.length > 1000) errors.push(`${id}: ${k}는 1000개까지만 쓸 수 있다.`);
         for (const item of list) {
           if (k === "next" && typeof item === "string") continue;
-          if (!isRecord(item)) { errors.push(`${id}: ${k}의 항목은 객체여야 함.`); break; }
+          if (!isRecord(item)) { errors.push(`${id}: ${k}의 항목은 객체여야 한다.`); break; }
           if (k === "checks") for (const res of ["success", "fail"]) {
-            if (item[res] != null && !isRecord(item[res])) errors.push(`${id}/${item.id ?? "판정"}: ${res}는 객체여야 함.`);
+            if (item[res] != null && !isRecord(item[res])) errors.push(`${id}/${item.id ?? "판정"}: ${res}는 객체여야 한다.`);
           }
         }
       }
     }
     if (sc.npcs && isRecord(sc.npcs)) {
-      if (Object.keys(sc.npcs).length > 500) errors.push("NPC는 최대 500명까지 지원.");
-      for (const [id, n] of Object.entries(sc.npcs)) if (!isRecord(n)) errors.push(`NPC ${id}: 객체여야 함.`);
+      if (Object.keys(sc.npcs).length > 500) errors.push("NPC는 500명까지만 쓸 수 있다.");
+      for (const [id, n] of Object.entries(sc.npcs)) if (!isRecord(n)) errors.push(`NPC ${id}: 객체여야 한다.`);
     }
     // YAML 앵커의 순환 구조, 지나친 중첩·크기로 인한 오류와 브라우저 멈춤을 방지한다.
     const seen = new WeakSet(), ancestors = new WeakSet(), stack = [{ value: sc, depth: 0 }];
@@ -3826,20 +3826,20 @@ const Engine = (() => {
       if (typeof value === "string") {
         chars += value.length;
         const maxText = value.startsWith("data:image/") ? 2_000_000 : 100_000;
-        if (value.length > maxText) errors.push(`시나리오 데이터가 너무 큼: 한 문자열이 ${maxText.toLocaleString()}자 초과.`);
+        if (value.length > maxText) errors.push(`시나리오 데이터가 너무 크다: 한 문자열이 ${maxText.toLocaleString()}자를 넘었다.`);
       } else if (value && typeof value === "object") {
-        if (ancestors.has(value)) { errors.push("YAML 순환 참조는 지원하지 않음."); break; }
+        if (ancestors.has(value)) { errors.push("YAML 순환 참조는 쓸 수 없다."); break; }
         if (seen.has(value)) continue; // YAML 앵커로 같은 객체를 재사용하는 것은 허용
         seen.add(value);
         ancestors.add(value);
         stack.push({ value, depth, leave: true });
-        if (depth > 24) { errors.push("시나리오 데이터가 너무 깊음: 최대 24단계."); break; }
+        if (depth > 24) { errors.push("시나리오 데이터가 너무 깊다: 24단계까지만 된다."); break; }
         const vals = Object.values(value);
         nodes += vals.length;
-        if (vals.length > 2000 || nodes > 50_000) { errors.push("시나리오 데이터가 너무 큼: 항목 수 제한 초과."); break; }
+        if (vals.length > 2000 || nodes > 50_000) { errors.push("시나리오 데이터가 너무 크다: 항목 수 제한을 넘었다."); break; }
         for (const v of vals) stack.push({ value: v, depth: depth + 1 });
       }
-      if (chars > 3_000_000) { errors.push("시나리오 데이터가 너무 큼: 텍스트 최대 300만 자."); break; }
+      if (chars > 3_000_000) { errors.push("시나리오 데이터가 너무 크다: 텍스트는 300만 자까지만 된다."); break; }
     }
     return errors;
   }
@@ -3862,118 +3862,118 @@ const Engine = (() => {
     const shape = scenarioShapeErrors(sc);
     if (shape.length) return { errors: shape, warnings };
     normalize(sc);
-    if (!sc.title) errors.push("title(제목) 없음.");
-    if (!sc.scenes || typeof sc.scenes !== "object") return { errors: [...errors, "events(사건 목록) 없음."], warnings };
-    if (sc.synopsis != null && (typeof sc.synopsis !== "string" || sc.synopsis.length > 600)) errors.push("synopsis(시작 전 소개)는 600자 이하의 글.");
-    if (sc.objective != null && (typeof sc.objective !== "string" || sc.objective.length > 600)) errors.push("objective(스토리 주 목적)는 600자 이하의 글.");
-    if (sc.canon != null && (!Array.isArray(sc.canon) || sc.canon.some((x) => typeof x !== "string"))) errors.push("canon(고정 사실)은 글 목록이어야 함.");
+    if (!sc.title) errors.push("title(제목)이 없다.");
+    if (!sc.scenes || typeof sc.scenes !== "object") return { errors: [...errors, "events(사건 목록)가 없다."], warnings };
+    if (sc.synopsis != null && (typeof sc.synopsis !== "string" || sc.synopsis.length > 600)) errors.push("synopsis(시작 전 소개)는 600자 이하의 글이어야 한다.");
+    if (sc.objective != null && (typeof sc.objective !== "string" || sc.objective.length > 600)) errors.push("objective(스토리 주 목적)는 600자 이하의 글이어야 한다.");
+    if (sc.canon != null && (!Array.isArray(sc.canon) || sc.canon.some((x) => typeof x !== "string"))) errors.push("canon(고정 사실)은 글 목록이어야 한다.");
     const allClues = new Set(), allChecks = new Set();
     for (const [sid, s] of Object.entries(sc.scenes)) {
       // 단서·판정 id는 시나리오 전체에서 유일해야 한다 (조건 clue()/check()가 전역으로 찾음)
-      for (const c of s?.clues ?? []) { if (c?.id && allClues.has(c.id)) errors.push(`${sid}: 단서 id '${c.id}'이(가) 다른 사건과 겹침. 시나리오 전체에서 유일해야 함.`); allClues.add(c?.id); }
-      for (const c of s?.checks ?? []) { if (c?.id && allChecks.has(c.id)) errors.push(`${sid}: 판정 id '${c.id}'이(가) 다른 사건과 겹침. 시나리오 전체에서 유일해야 함.`); allChecks.add(c?.id); }
+      for (const c of s?.clues ?? []) { if (c?.id && allClues.has(c.id)) errors.push(`${sid}: 단서 id '${c.id}'이(가) 다른 사건과 겹친다. 시나리오 전체에서 하나뿐이어야 한다.`); allClues.add(c?.id); }
+      for (const c of s?.checks ?? []) { if (c?.id && allChecks.has(c.id)) errors.push(`${sid}: 판정 id '${c.id}'이(가) 다른 사건과 겹친다. 시나리오 전체에서 하나뿐이어야 한다.`); allChecks.add(c?.id); }
     }
     // id는 영문·숫자·한글·_·- 만 (공백이나 괄호 · & 가 있으면 조건식이 깨짐)
     const badId = (v) => typeof v === "string" && !/^[\w\-가-힣]+$/.test(v);
     for (const [sid, s] of Object.entries(sc.scenes)) {
-      if (badId(sid)) errors.push(`${sid}: 사건 id는 글자·숫자·_·-만 사용.`);
-      for (const c of s?.clues ?? []) if (badId(c?.id)) errors.push(`${sid}: 단서 id '${c.id}'는 글자·숫자·_·-만 사용.`);
-      for (const c of s?.checks ?? []) if (badId(c?.id)) errors.push(`${sid}: 판정 id '${c.id}'는 글자·숫자·_·-만 사용.`);
+      if (badId(sid)) errors.push(`${sid}: 사건 id는 글자·숫자·_·-만 쓸 수 있다.`);
+      for (const c of s?.clues ?? []) if (badId(c?.id)) errors.push(`${sid}: 단서 id '${c.id}'는 글자·숫자·_·-만 쓸 수 있다.`);
+      for (const c of s?.checks ?? []) if (badId(c?.id)) errors.push(`${sid}: 판정 id '${c.id}'는 글자·숫자·_·-만 쓸 수 있다.`);
     }
     // 단서가 어떤 판정에서도 공개되지 않으면 얻을 방법이 없음 (setFlag는 단서 공개 시에만 켜짐)
     const revealable = new Set();
     for (const s of Object.values(sc.scenes)) for (const c of s?.checks ?? []) if (c?.success?.reveal) revealable.add(c.success.reveal);
-    for (const [sid, s] of Object.entries(sc.scenes)) for (const c of s?.clues ?? []) if (c?.id && !revealable.has(c.id)) warnings.push(`${sid}: 단서 '${c.id}'을(를) 공개하는 판정이 없음 (AI GM이 직접 공개하는 경우만 얻을 수 있음).`);
+    for (const [sid, s] of Object.entries(sc.scenes)) for (const c of s?.clues ?? []) if (c?.id && !revealable.has(c.id)) warnings.push(`${sid}: 단서 '${c.id}'을(를) 공개하는 판정이 없다 (AI GM이 직접 공개할 때만 얻을 수 있다).`);
     // 선언되지 않은 플래그: 조건에서 읽는데 시작 flags 나 단서 setFlag 어디서도 정의하지 않음
     const declared = new Set(Object.keys(sc.flags ?? {}));
     for (const s of Object.values(sc.scenes)) for (const c of s?.clues ?? []) if (c?.setFlag) declared.add(c.setFlag);
     for (const s of Object.values(sc.scenes)) for (const c of s?.checks ?? []) if (c?.success?.setFlag) declared.add(c.success.setFlag);
     // 핸드아웃: handouts: { id: { title, kind: letter·news·note·photo, text, image, to: all·finder } }, 단서에 handout: id
-    if (sc.handouts != null && !isRecord(sc.handouts)) errors.push("handouts는 { id: { title, text 또는 image } } 형식.");
+    if (sc.handouts != null && !isRecord(sc.handouts)) errors.push("handouts는 { id: { title, text 또는 image } } 형식이어야 한다.");
     const hos = isRecord(sc.handouts) ? sc.handouts : {}, usedHo = new Set();
     for (const [hid, h] of Object.entries(hos)) {
-      if (badId(hid)) errors.push(`핸드아웃 id '${hid}'는 글자·숫자·_·-만 사용.`);
-      if (!isRecord(h) || typeof h.title !== "string" || !h.title.trim()) { errors.push(`핸드아웃 ${hid}: title 필요.`); continue; }
+      if (badId(hid)) errors.push(`핸드아웃 id '${hid}'는 글자·숫자·_·-만 쓸 수 있다.`);
+      if (!isRecord(h) || typeof h.title !== "string" || !h.title.trim()) { errors.push(`핸드아웃 ${hid}: title이 있어야 한다.`); continue; }
       if (h.kind === "map") {
         const [W, H] = mapSizeOf(h);
         if (h.size != null && !(Array.isArray(h.size) && h.size.length === 2 && h.size.every((n) => +n >= 4 && +n <= 60))) errors.push(`핸드아웃 ${hid}: size는 [가로, 세로] 칸 (4~60).`);
-        if (!Array.isArray(h.rooms) || !h.rooms.length) errors.push(`핸드아웃 ${hid}: 지도(map)는 rooms 목록 필요 ({ name, at: [x, y, w, h] }).`);
+        if (!Array.isArray(h.rooms) || !h.rooms.length) errors.push(`핸드아웃 ${hid}: 지도(map)는 rooms 목록이 있어야 한다 ({ name, at: [x, y, w, h] }).`);
         else for (const r of h.rooms) {
-          if (!r || typeof r.name !== "string" || !Array.isArray(r.at) || r.at.length !== 4 || !r.at.every((n) => Number.isFinite(+n))) { errors.push(`핸드아웃 ${hid}: 방은 { name, at: [x, y, w, h] } 형식.`); continue; }
+          if (!r || typeof r.name !== "string" || !Array.isArray(r.at) || r.at.length !== 4 || !r.at.every((n) => Number.isFinite(+n))) { errors.push(`핸드아웃 ${hid}: 방은 { name, at: [x, y, w, h] } 형식이어야 한다.`); continue; }
           const [x, y, w, hh] = r.at.map(Number);
-          if (x < 0 || y < 0 || w <= 0 || hh <= 0 || x + w > W || y + hh > H) errors.push(`핸드아웃 ${hid}: 방 '${r.name}'이(가) 지도(${W}×${H}) 밖으로 나감.`);
+          if (x < 0 || y < 0 || w <= 0 || hh <= 0 || x + w > W || y + hh > H) errors.push(`핸드아웃 ${hid}: 방 '${r.name}'이(가) 지도(${W}×${H}) 밖으로 나간다.`);
         }
-      } else if (h.text == null && h.image == null) errors.push(`핸드아웃 ${hid}: text나 image 중 하나는 필요.`);
-      if (h.text != null && typeof h.text !== "string") errors.push(`핸드아웃 ${hid}: text는 글이어야 함.`);
-      if (h.image != null && !isImageURL(h.image)) errors.push(`핸드아웃 ${hid}: image는 https:// 주소나 data:image/ 형식.`);
-      else if (isPlainHttp(h.image)) warnings.push(`핸드아웃 ${hid}: image가 http:// 주소. https 페이지에서는 안 보일 수 있음 → https:// 권장.`);
+      } else if (h.text == null && h.image == null) errors.push(`핸드아웃 ${hid}: text나 image 중 하나는 있어야 한다.`);
+      if (h.text != null && typeof h.text !== "string") errors.push(`핸드아웃 ${hid}: text는 글이어야 한다.`);
+      if (h.image != null && !isImageURL(h.image)) errors.push(`핸드아웃 ${hid}: image는 https:// 주소나 data:image/ 형식이어야 한다.`);
+      else if (isPlainHttp(h.image)) warnings.push(`핸드아웃 ${hid}: image가 http:// 주소다. https 페이지에서는 안 보일 수 있다 → https:// 주소를 권한다.`);
       else if (typeof h.image === "string" && h.image.startsWith("data:") && h.image.length > HANDOUT_IMG_MAX) errors.push(`핸드아웃 ${hid}: 그림이 너무 큼 (data: ${Math.round(HANDOUT_IMG_MAX / 1000)}KB 이하).`);
       if (h.kind != null && !HANDOUT_KINDS.includes(h.kind)) errors.push(`핸드아웃 ${hid}: kind는 ${HANDOUT_KINDS.join(" / ")}.`);
       if (h.to != null && !["all", "finder"].includes(h.to)) errors.push(`핸드아웃 ${hid}: to(공개 범위)는 all(전원) / finder(발견한 캐릭터).`);
     }
     for (const [sid, s] of Object.entries(sc.scenes)) for (const c of s?.clues ?? []) if (c?.handout != null) {
-      if (!hos[c.handout]) errors.push(`${sid}: 단서 '${c.id}'의 핸드아웃 '${c.handout}'이(가) 없음.`);
+      if (!hos[c.handout]) errors.push(`${sid}: 단서 '${c.id}'의 핸드아웃 '${c.handout}'이(가) 없다.`);
       else usedHo.add(c.handout);
     }
-    for (const hid of Object.keys(hos)) if (!usedHo.has(hid)) warnings.push(`핸드아웃 '${hid}'을(를) 거는 단서가 없음 (단서에 handout: ${hid}).`);
-    if (!sc.scenes[sc.start]) errors.push(`start 장면 '${sc.start}'이(가) 없음.`);
-    if (sc.bgm != null && !isAudioURL(sc.bgm)) errors.push("bgm(배경음)은 https:// 음원 주소여야 함.");
-    if (sc.system != null && String(sc.system).toLowerCase() !== "coc7") errors.push("system(룰)은 coc7만 지원 (d20 간이 룰은 삭제됨).");
+    for (const hid of Object.keys(hos)) if (!usedHo.has(hid)) warnings.push(`핸드아웃 '${hid}'을(를) 거는 단서가 없다 (단서에 handout: ${hid}).`);
+    if (!sc.scenes[sc.start]) errors.push(`start 장면 '${sc.start}'이(가) 없다.`);
+    if (sc.bgm != null && !isAudioURL(sc.bgm)) errors.push("bgm(배경음)은 https:// 음원 주소여야 한다.");
+    if (sc.system != null && String(sc.system).toLowerCase() !== "coc7") errors.push("system(룰)은 coc7만 된다 (d20 간이 룰은 없앴다).");
 
     // 이름에 직업·수식어가 섞였는지 (예: "늙은 어부 바르톨" → name: 바르톨, job: 늙은 어부)
     for (const [id, n] of Object.entries(sc.npcs ?? {})) {
       const nm = isRecord(n) && typeof n.name === "string" ? n.name.trim() : "", job = isRecord(n) && typeof n.job === "string" ? n.job.trim() : "";
-      if (/\s/.test(nm) && (!job || nm.includes(job))) warnings.push(`NPC ${id}: 이름 '${nm}'에 직업·수식어가 섞인 듯. name은 부르는 이름만, 직업·수식어는 job에.`);
+      if (/\s/.test(nm) && (!job || nm.includes(job))) warnings.push(`NPC ${id}: 이름 '${nm}'에 직업·수식어가 섞인 것 같다. name에는 부르는 이름만, 직업·수식어는 job에 쓴다.`);
     }
     // 전투 NPC: combat: { hp, 근접전, 회피, 무기: "단검 1d4+2" 또는 목록, db, 장갑 }
     for (const [nid, n] of Object.entries(sc.npcs ?? {})) {
       if (!n || typeof n !== "object" || n.combat == null) continue;
       const cb = Rules.npcCombat(n);
-      if (!cb) { errors.push(`NPC ${nid}: combat은 { hp, 기능: 수치, 무기 } 형식.`); continue; }
+      if (!cb) { errors.push(`NPC ${nid}: combat은 { hp, 기능: 수치, 무기 } 형식이어야 한다.`); continue; }
       if (!(cb.hp >= 1 && cb.hp <= 99)) errors.push(`NPC ${nid}: combat.hp는 1~99.`);
-      if (!cb.weapons.length) warnings.push(`NPC ${nid}: 무기 없음 (맨손이면 "주먹 1d3+DB").`);
-      for (const w of cb.weapons) if (!Rules.parseDamage(w.dmg, cb.db)) errors.push(`NPC ${nid}: 무기 '${w.name}'의 피해 식 '${w.dmg}' 해석 불가 (예: 1d4+2, 1d3+DB).`);
-      if (!Rules.parseDamage(cb.db, "0")) errors.push(`NPC ${nid}: db(피해 보너스)는 0 · -1 · 1d4 같은 식.`);
-      if (!Object.keys(cb.skills).length) warnings.push(`NPC ${nid}: 전투 기능 수치 없음 (근접전 · 회피 등).`);
+      if (!cb.weapons.length) warnings.push(`NPC ${nid}: 무기가 없다 (맨손이면 "주먹 1d3+DB").`);
+      for (const w of cb.weapons) if (!Rules.parseDamage(w.dmg, cb.db)) errors.push(`NPC ${nid}: 무기 '${w.name}'의 피해 식 '${w.dmg}' 해석할 수 없다 (예: 1d4+2, 1d3+DB).`);
+      if (!Rules.parseDamage(cb.db, "0")) errors.push(`NPC ${nid}: db(피해 보너스)는 0 · -1 · 1d4 같은 식이어야 한다.`);
+      if (!Object.keys(cb.skills).length) warnings.push(`NPC ${nid}: 전투 기능 수치가 없다 (근접전 · 회피 등).`);
     }
     for (const [id, s] of Object.entries(sc.scenes)) {
       if (!s || typeof s !== "object") { errors.push(`${id}: 장면 형식 오류`); continue; }
-      if (!s.description) errors.push(`${id}: intro(도입 묘사) 없음.`);
-      for (const k of ["places", "hints"]) if (s[k] != null && (!Array.isArray(s[k]) || s[k].some((x) => typeof x !== "string"))) errors.push(`${id}: ${k}는 글 목록이어야 함.`);
-      if (s.goal != null && typeof s.goal !== "string") errors.push(`${id}: goal(사건 목표)은 글이어야 함.`);
-      if (s.image != null && !isImageURL(s.image)) errors.push(`${id}: image는 https:// 주소나 data:image/ 형식이어야 함.`);
-      else if (isPlainHttp(s.image)) warnings.push(`${id}: image가 http:// 주소. https 페이지에서는 안 보일 수 있음 → https:// 권장.`);
+      if (!s.description) errors.push(`${id}: intro(도입 묘사)가 없다.`);
+      for (const k of ["places", "hints"]) if (s[k] != null && (!Array.isArray(s[k]) || s[k].some((x) => typeof x !== "string"))) errors.push(`${id}: ${k}는 글 목록이어야 한다.`);
+      if (s.goal != null && typeof s.goal !== "string") errors.push(`${id}: goal(사건 목표)은 글이어야 한다.`);
+      if (s.image != null && !isImageURL(s.image)) errors.push(`${id}: image는 https:// 주소나 data:image/ 형식이어야 한다.`);
+      else if (isPlainHttp(s.image)) warnings.push(`${id}: image가 http:// 주소다. https 페이지에서는 안 보일 수 있다 → https:// 주소를 권한다.`);
       if (s.bgm != null && s.bgm !== "none" && s.bgm !== false && !isAudioURL(s.bgm)) errors.push(`${id}: bgm은 https:// 음원 주소 또는 none.`);
       const clueIds = new Set((s.clues ?? []).map((c) => c?.id));
-      for (const c of s.clues ?? []) if (!c?.id || !c?.text) errors.push(`${id}: 단서에 id/text 필요.`);
+      for (const c of s.clues ?? []) if (!c?.id || !c?.text) errors.push(`${id}: 단서에 id와 text가 있어야 한다.`);
       for (const ex of s.exits ?? []) {
-        if (!sc.scenes[ex?.to]) errors.push(`${id}: 다음 사건 '${ex?.to}'이(가) 없음.`);
+        if (!sc.scenes[ex?.to]) errors.push(`${id}: 다음 사건 '${ex?.to}'이(가) 없다.`);
         const cl = parseCond(ex?.when);
-        if (!cl) errors.push(`${id}: 조건 '${condText(ex?.when)}'을(를) 해석 불가. (always / flag(x) / not_flag(x) / clue(단서) / check(판정))`);
+        if (!cl) errors.push(`${id}: 조건 '${condText(ex?.when)}'을(를) 해석할 수 없다. (always / flag(x) / not_flag(x) / clue(단서) / check(판정))`);
         else for (const c of cl) {
-          if (c.type === "clue" && !allClues.has(c.name)) errors.push(`${id}: 조건의 단서 '${c.name}'이(가) 없음.`);
-          if (c.type === "check" && !allChecks.has(c.name)) errors.push(`${id}: 조건의 판정 '${c.name}'이(가) 없음.`);
-          if ((c.type === "flag" || c.type === "not_flag") && !declared.has(c.name)) warnings.push(`${id}: 조건의 플래그 '${c.name}'을(를) 정의하는 곳이 없음 (flags 또는 단서 setFlag).`);
+          if (c.type === "clue" && !allClues.has(c.name)) errors.push(`${id}: 조건의 단서 '${c.name}'이(가) 없다.`);
+          if (c.type === "check" && !allChecks.has(c.name)) errors.push(`${id}: 조건의 판정 '${c.name}'이(가) 없다.`);
+          if ((c.type === "flag" || c.type === "not_flag") && !declared.has(c.name)) warnings.push(`${id}: 조건의 플래그 '${c.name}'을(를) 정의하는 곳이 없다 (flags 또는 단서 setFlag).`);
         }
       }
       for (const c of s.checks ?? []) {
-        if (!c?.id || !(c?.skill || c?.san)) { errors.push(`${id}: 판정에 id와 skill(기능) 또는 san(이성 손실) 필요.`); continue; }
-        if (c.difficulty != null && !Rules.normDiff(c.difficulty)) errors.push(`${id}/${c.id}: difficulty는 보통 / 어려움 / 극단.`);
+        if (!c?.id || !(c?.skill || c?.san)) { errors.push(`${id}: 판정에 id와 skill(기능) 또는 san(이성 손실)이 있어야 한다.`); continue; }
+        if (c.difficulty != null && !Rules.normDiff(c.difficulty)) errors.push(`${id}/${c.id}: difficulty는 보통 / 어려움 / 극단 중 하나다.`);
         if (c.san != null && !Rules.validLoss(c.san)) errors.push(`${id}/${c.id}: san은 "성공 손실/실패 손실" (예: 0/1d6).`);
         if (c.dice != null && !(Number.isInteger(c.dice) && Math.abs(c.dice) <= 2)) errors.push(`${id}/${c.id}: dice는 -2~2 (보너스 +, 페널티 −).`);
-        if (c.dc != null) warnings.push(`${id}/${c.id}: dc(d20 난이도)는 쓰지 않음. difficulty(보통/어려움/극단)로 지정.`);
+        if (c.dc != null) warnings.push(`${id}/${c.id}: dc(d20 난이도)는 쓰지 않는다. difficulty(보통/어려움/극단)로 정한다.`);
         const failOnly = ["reveal", "setFlag", "give"].filter((k) => c.fail?.[k] != null);
-        if (failOnly.length) warnings.push(`${id}/${c.id}: fail의 ${failOnly.join(" · ")}는 적용 안 됨 (성공에서만). 실패 대가는 text · take · go로.`);
+        if (failOnly.length) warnings.push(`${id}/${c.id}: fail의 ${failOnly.join(" · ")}는 적용되지 않는다 (성공에서만). 실패 대가는 text · take · go로 쓴다.`);
         for (const o of [c.success, c.fail]) {
           if (!o) continue;
-          if (o.go && !sc.scenes[o.go]) errors.push(`${id}/${c.id}: 이동 대상 '${o.go}'이(가) 없음.`);
-          if (o.reveal && !clueIds.has(o.reveal)) errors.push(`${id}/${c.id}: 공개할 단서 '${o.reveal}'이(가) 이 장면에 없음.`);
-          for (const k of ["give", "take"]) if (o[k] != null && !(typeof o[k] === "string" || (Array.isArray(o[k]) && o[k].every((x) => typeof x === "string")))) errors.push(`${id}/${c.id}: ${k}는 물건 이름(글) 또는 그 목록.`);
+          if (o.go && !sc.scenes[o.go]) errors.push(`${id}/${c.id}: 이동 대상 '${o.go}'이(가) 없다.`);
+          if (o.reveal && !clueIds.has(o.reveal)) errors.push(`${id}/${c.id}: 공개할 단서 '${o.reveal}'이(가) 이 장면에 없다.`);
+          for (const k of ["give", "take"]) if (o[k] != null && !(typeof o[k] === "string" || (Array.isArray(o[k]) && o[k].every((x) => typeof x === "string")))) errors.push(`${id}/${c.id}: ${k}는 물건 이름(글) 또는 그 목록이어야 한다.`);
         }
       }
-      for (const n of s.npcs ?? []) if (!sc.npcs?.[n]) errors.push(`${id}: NPC '${n}' 정의 없음.`);
+      for (const n of s.npcs ?? []) if (!sc.npcs?.[n]) errors.push(`${id}: NPC '${n}' 정의가 없다.`);
       const out = (s.exits ?? []).length || (s.checks ?? []).some((c) => c?.success?.go || c?.fail?.go);
-      if (!out && !s.ending) warnings.push(`${id}: 다음 사건도 ending 표시도 없음.`);
+      if (!out && !s.ending) warnings.push(`${id}: 다음 사건도 ending 표시도 없다.`);
     }
 
     if (sc.scenes[sc.start]) {
@@ -3990,8 +3990,8 @@ const Engine = (() => {
 
     // 캐릭터 규칙
     const r = charRules(sc);
-    if (!r.skills.length) warnings.push("기능 없음. character.skills나 판정 skill 추가 필요.");
-    for (const o of sc.character?.occupations ?? sc.character?.backgrounds ?? []) for (const k of o?.skills ?? []) if (!r.skills.includes(String(k))) warnings.push(`직업 '${o.name}'의 기능 '${k}'는 기능 목록에 없음.`);
+    if (!r.skills.length) warnings.push("기능이 없다. character.skills나 판정 skill을 더해야 한다.");
+    for (const o of sc.character?.occupations ?? sc.character?.backgrounds ?? []) for (const k of o?.skills ?? []) if (!r.skills.includes(String(k))) warnings.push(`직업 '${o.name}'의 기능 '${k}'는 기능 목록에 없다.`);
     // 장면맵
     if (typeof Maps !== "undefined") {
       const mv = Maps.validate(sc);
@@ -4271,23 +4271,23 @@ const Maps = (() => {
     const warnings = [];
     for (const [id, s] of Object.entries(sc.scenes ?? {})) {
       if (s?.map == null) continue;
-      if (typeof s.map !== "string") { errors.push(`${id}: map은 여러 줄 글자여야 함.`); continue; }
+      if (typeof s.map !== "string") { errors.push(`${id}: map은 여러 줄 글자여야 한다.`); continue; }
       const m = parse(s);
-      if (!m || !m.h) { errors.push(`${id}: map이 비었음.`); continue; }
-      if (m.w > MAX_W || m.h > MAX_H) errors.push(`${id}: map이 너무 큼. 최대 ${MAX_W}×${MAX_H}.`);
-      for (const k of Object.keys(m.legend)) if ([...k].length !== 1) errors.push(`${id}: legend 키 '${k}'는 글자 하나여야 함.`);
+      if (!m || !m.h) { errors.push(`${id}: map이 비었다.`); continue; }
+      if (m.w > MAX_W || m.h > MAX_H) errors.push(`${id}: map이 너무 크다. 최대 ${MAX_W}×${MAX_H}.`);
+      for (const k of Object.keys(m.legend)) if ([...k].length !== 1) errors.push(`${id}: legend 키 '${k}'는 글자 하나여야 한다.`);
       const unknown = new Set();
       m.rows.forEach((r) => r.forEach((c) => { if (isObject(c) && !(c in m.legend)) unknown.add(c); }));
-      if (unknown.size) warnings.push(`${id}: legend에 없는 글자 ${[...unknown].join(" ")} → 이름 없는 물체로 표시.`);
+      if (unknown.size) warnings.push(`${id}: legend에 없는 글자 ${[...unknown].join(" ")} → 이름 없는 물체로 보인다.`);
       for (const [k, v] of Object.entries(s.hidden ?? {})) {
         const mm = /^\s*(\d+)\s*,\s*(\d+)\s*$/.exec(k);
-        if (!mm) { errors.push(`${id}: hidden 좌표 '${k}' 형식 오류. 예: "8,4"`); continue; }
-        if (+mm[1] >= m.w || +mm[2] >= m.h) errors.push(`${id}: hidden 좌표 '${k}'가 지도 밖.`);
-        if (!(String(v ?? ".").slice(0, 1) in TILES)) errors.push(`${id}: hidden '${k}'의 위장 글자는 기본 타일(# . = + ~)이어야 함.`);
+        if (!mm) { errors.push(`${id}: hidden 좌표 '${k}' 형식이 틀렸다. 예: "8,4"`); continue; }
+        if (+mm[1] >= m.w || +mm[2] >= m.h) errors.push(`${id}: hidden 좌표 '${k}'가 지도 밖이다.`);
+        if (!(String(v ?? ".").slice(0, 1) in TILES)) errors.push(`${id}: hidden '${k}'의 위장 글자는 기본 타일(# . = + ~)이어야 한다.`);
       }
       const floor = m.rows.some((r) => r.some((c) => walkable(c)));
-      if (!floor) errors.push(`${id}: 걸을 수 있는 칸이 없음.`);
-      if (!m.spawns.length) warnings.push(`${id}: 시작 위치 S 없음 → 첫 바닥 칸에서 시작.`);
+      if (!floor) errors.push(`${id}: 걸을 수 있는 칸이 없다.`);
+      if (!m.spawns.length) warnings.push(`${id}: 시작 위치 S가 없다 → 첫 바닥 칸에서 시작한다.`);
     }
     return { errors, warnings };
   }
@@ -4435,7 +4435,7 @@ const WebFeatures = (() => {
   }
   function endpoint(value) {
     const u = new URL(String(value).trim());
-    if (!['https:', 'http:'].includes(u.protocol) || u.username || u.password || u.search || u.hash) throw new Error('API 주소는 인증 정보·쿼리 없는 HTTP(S) 주소여야 함.');
+    if (!['https:', 'http:'].includes(u.protocol) || u.username || u.password || u.search || u.hash) throw new Error('API 주소는 인증 정보·쿼리 없는 HTTP(S) 주소여야 한다.');
     return u.href.replace(/\/+$/, '');
   }
   const credentialId = (provider, url) => `${provider}|${endpoint(url)}`;
@@ -4466,12 +4466,12 @@ const HistoryArchive = (() => {
   let opening;
   const queues = new Map(), pending = new Map();
   const open = () => (opening ??= new Promise((resolve, reject) => {
-    if (!globalThis.indexedDB) return reject(new Error('장기 보관에는 IndexedDB가 필요함.'));
+    if (!globalThis.indexedDB) return reject(new Error('장기 보관에는 IndexedDB가 필요하다.'));
     const r = indexedDB.open('trpg-history', 1);
     r.onupgradeneeded = () => { const s = r.result.createObjectStore('entries', { keyPath: ['scope', 'id'] }); s.createIndex('scope', 'scope'); };
     r.onsuccess = () => { const db = r.result; db.onversionchange = () => { db.close(); opening = null; }; resolve(db); };
     r.onerror = () => { opening = null; reject(r.error); };
-    r.onblocked = () => { opening = null; reject(new Error('장기 보관 DB가 다른 탭에 의해 잠김.')); };
+    r.onblocked = () => { opening = null; reject(new Error('장기 보관 DB를 다른 탭이 잠그고 있다.')); };
   }));
   function emit(scope, ok) { globalThis.dispatchEvent(new CustomEvent('trpg-history-status', { detail: { scope, ok } })); }
   function stash(scope, entries) {
@@ -4584,11 +4584,11 @@ const AI = (() => {
     custom: { label: "직접 입력 (OpenAI 호환)", baseURL: "", needsKey: false },
   };
 
-  const TIRED = "AI GM이 지친 모양입니다.";
+  const TIRED = "AI GM이 지친 모양이다.";
   const ready = (cfg) => !!(cfg && cfg.baseURL && cfg.model && (cfg.apiKey || !PRESETS[cfg.provider]?.needsKey));
 
   async function call(cfg, messages, { maxTokens = 700, timeout = 90_000, signal = null, strictLength = false } = {}) {
-    if (!ready(cfg)) throw new Error("AI 설정 미완료.");
+    if (!ready(cfg)) throw new Error("AI 설정을 마치지 않았다.");
     if (signal?.aborted) { const e = new Error("AI 요청 취소됨."); e.cancelled = true; throw e; }
     const startedAt = performance.now(); let responseUsage = null, responseOK = false;
     const ctrl = new AbortController();
@@ -4619,7 +4619,7 @@ const AI = (() => {
       } catch (e) {
         // fetch 자체가 실패한 경우만 연결 실패 (코드 오류의 TypeError는 그대로 올림)
         if (e?.name === "AbortError") throw e;
-        const err = new Error(location.protocol === "file:" ? "AI 서버 연결 실패. 내 PC 파일(file://)로 열면 막히는 경우가 많음 → 올린 주소(https)로 열기." : "AI 서버 연결 실패. API 주소 · 브라우저 호출 허용(CORS) · 네트워크 확인.");
+        const err = new Error(location.protocol === "file:" ? "AI 서버에 연결하지 못했다. 내 PC 파일(file://)로 열면 막히는 경우가 많다 → 올린 주소(https)로 연다." : "AI 서버에 연결하지 못했다. API 주소 · 브라우저 호출 허용(CORS) · 네트워크를 확인한다.");
         err.network = true; throw err;
       }
       if (!res.ok) {
@@ -4627,38 +4627,38 @@ const AI = (() => {
         let why = "";
         try { const b = await res.text(); try { const j = JSON.parse(b); why = j?.error?.message ?? j?.error ?? j?.message ?? b; } catch { why = b; } } catch {}
         why = String(typeof why === "string" ? why : JSON.stringify(why)).replace(/\s+/g, " ").slice(0, 180);
-        let hint = { 401: "API 키 오류.", 403: "API 키 오류 또는 이 모델 사용 권한 없음.", 404: "모델 이름이나 API 주소 확인.", 413: "요청이 너무 큼 (무료 요금제의 분당 처리량보다 큰 요청일 수 있음).", 429: TIRED }[res.status] ?? "AI 서버 오류.";
-        if (/api[ _-]?key/i.test(why)) hint = "API 키 오류: 이 공급자의 키가 맞는지, 끝까지 복사됐는지 확인.";   // 예: Gemini는 400으로 알려 줌
-        else if (/model/i.test(why) && /(not found|does not exist|decommission|deprecat|invalid)/i.test(why)) hint = "모델 이름 확인 (없거나 종료된 모델).";
+        let hint = { 401: "API 키가 틀렸다.", 403: "API 키가 틀렸거나 이 모델을 쓸 권한이 없다.", 404: "모델 이름이나 API 주소를 확인한다.", 413: "요청이 너무 크다 (무료 요금제의 분당 처리량보다 큰 요청일 수 있다).", 429: TIRED }[res.status] ?? "AI 서버 오류다.";
+        if (/api[ _-]?key/i.test(why)) hint = "API 키가 틀렸다: 이 공급자의 키가 맞는지, 끝까지 복사됐는지 확인한다.";   // 예: Gemini는 400으로 알려 줌
+        else if (/model/i.test(why) && /(not found|does not exist|decommission|deprecat|invalid)/i.test(why)) hint = "모델 이름을 확인한다 (없거나 종료된 모델).";
         // AI 서비스 자체의 사용 한도 초과 (429 · 할당량 소진) → "AI GM이 지친 모양입니다."
         if (res.status === 429 || /quota|rate.?limit|resource.?exhausted|too many requests/i.test(why)) { const err = new Error(TIRED); err.tired = true; throw err; }
         // 서버가 잠깐 붐빔 · 일시 장애 (503 high demand · overloaded · 500 · 502 · 504) → 다시 시도하면 대부분 됨
         if ([500, 502, 503, 504, 529].includes(res.status) || /unavailable|overloaded|high demand|try again later/i.test(why)) {
-          const err = new Error(`AI 서버가 잠시 붐빔 (HTTP ${res.status}). 보통 몇 초~몇 분 안에 풀림.`); err.busy = true; err.status = res.status; throw err;
+          const err = new Error(`AI 서버가 잠시 붐빈다 (HTTP ${res.status}). 보통 몇 초~몇 분 안에 풀린다.`); err.busy = true; err.status = res.status; throw err;
         }
         if (/모델 이름/.test(hint)) { const ids = await listModels(cfg).catch(() => []); if (ids.length) hint += ` 사용 가능: ${ids.slice(0, 8).join(", ")}${ids.length > 8 ? " …" : ""}`; }
         throw new Error(`${hint} (HTTP ${res.status})${why ? ` · ${why}` : ""}`);
       }
       let data;
       try { data = await res.json(); }
-      catch (e) { if (e?.name === "AbortError") throw e; const err = new Error("AI 응답이 JSON 형식이 아님. API 주소가 OpenAI 호환(/chat/completions)인지 확인."); err.badResponse = true; throw err; }
+      catch (e) { if (e?.name === "AbortError") throw e; const err = new Error("AI 응답이 JSON 형식이 아니다. API 주소가 OpenAI 호환(/chat/completions)인지 확인한다."); err.badResponse = true; throw err; }
       responseUsage = data?.usage ?? null;
       const choice = data?.choices?.[0];
       const text = choice?.message?.content;
       if (typeof text !== "string" || !text.trim()) {
         // 생각하는(추론형) 모델이 출력 한도를 생각에 다 써 버린 경우가 흔함
         if (choice?.finish_reason === "length" || choice?.message?.reasoning || choice?.message?.reasoning_content)
-          throw new Error("출력 한도 안에 답을 못 냄. 생각하는(추론형) 모델이면 생각에 한도를 다 쓴 것. 추론 없는 모델 권장.");
-        throw new Error(`AI 응답이 비어 있음${choice?.finish_reason ? ` (종료 이유: ${choice.finish_reason})` : ""}.`);
+          throw new Error("출력 한도 안에 답을 내지 못했다. 생각하는(추론형) 모델이면 생각에 한도를 다 쓴 것이다. 추론 없는 모델을 권한다.");
+        throw new Error(`AI 응답이 비었다${choice?.finish_reason ? ` (종료 이유: ${choice.finish_reason})` : ""}.`);
       }
       // 출력 한도에 걸려 잘린 답: strictLength면 오류로 알려 호출한 쪽이 한도를 늘려 다시 묻게 함
-      if (strictLength && choice?.finish_reason === "length") { const err = new Error("AI 응답이 출력 한도에서 잘림."); err.truncated = true; throw err; }
+      if (strictLength && choice?.finish_reason === "length") { const err = new Error("AI 응답이 출력 한도에서 잘렸다."); err.truncated = true; throw err; }
       responseOK = true;
       return text;
     } catch (e) {
       if (e.name === "AbortError") {
         if (signal?.aborted) { const cancelled = new Error("AI 요청 취소됨."); cancelled.cancelled = true; throw cancelled; }
-        const err = new Error("AI 응답 시간 초과."); err.timeout = true; throw err;
+        const err = new Error("AI 응답 시간이 지났다."); err.timeout = true; throw err;
       }
       throw e;
     } finally {
@@ -4691,7 +4691,7 @@ const AI = (() => {
         const again = e.busy || e.network || e.timeout;
         const left = budget - (Date.now() - t0) / 1000;
         if (!again || i >= waits.length || left < waits[i] + (e.timeout ? timeout : 5)) {
-          if (e.busy) e.message = `AI 서버가 붐벼서 ${i + 1}번 시도했지만 실패 (HTTP ${e.status}). 몇 분 뒤 다시 하거나, 설정에서 다른 모델로 바꿔 보기.`;
+          if (e.busy) e.message = `AI 서버가 붐벼서 ${i + 1}번 시도했지만 실패했다 (HTTP ${e.status}). 몇 분 뒤 다시 하거나, 설정에서 다른 모델로 바꿔 본다.`;
           throw e;
         }
         onWait(waits[i], i + 1, waits.length);
@@ -5642,7 +5642,7 @@ class HostGame {
   /** 저장 형식 진입점. v2 이상을 도입할 때 버전별 변환은 이곳에서 순서대로 수행한다. */
   static migrateSave(obj) {
     const v = obj?.v ?? 1; // 기존 초기 저장본의 버전 누락은 v1로 취급
-    if (v !== 1) throw new Error(`지원하지 않는 세이브 버전: ${String(v).slice(0, 20)}. 원본 파일은 변경되지 않음.`);
+    if (v !== 1) throw new Error(`지원하지 않는 세이브 버전이다: ${String(v).slice(0, 20)}. 원본 파일은 바뀌지 않는다.`);
     obj.v = 1;
     obj.log ??= [];
     delete obj.banned; delete obj.bannedNames;   // 없앤 추방 기능의 목록
@@ -5674,46 +5674,46 @@ class HostGame {
   }
   static checkSave(obj) {
     if (obj?.kind !== "trpg-host-save" || !obj.scenario || !obj.game || !obj.players || !obj.hostPid) {
-      throw new Error("호스트 세이브 파일 아님.");
+      throw new Error("호스트 세이브 파일이 아니다.");
     }
-    if (!/^[a-z0-9]{10}$/.test(obj.roomId ?? "")) throw new Error("세이브의 테이블 코드가 잘못됨.");
+    if (!/^[a-z0-9]{10}$/.test(obj.roomId ?? "")) throw new Error("세이브의 테이블 코드가 잘못됐다.");
     if (!obj.players || typeof obj.players !== "object" || Array.isArray(obj.players) ||
-        !obj.players[obj.hostPid] || Object.keys(obj.players).length > MAX_PEOPLE) throw new Error("세이브의 플레이어 목록이 손상됨.");
+        !obj.players[obj.hostPid] || Object.keys(obj.players).length > MAX_PEOPLE) throw new Error("세이브의 플레이어 목록이 손상됐다.");
     for (const p of Object.values(obj.players)) {
       if (!p || typeof p !== "object" || typeof p.name !== "string" ||
-          (p.character != null && (typeof p.character !== "object" || Array.isArray(p.character)))) throw new Error("세이브의 캐릭터 정보가 손상됨.");
+          (p.character != null && (typeof p.character !== "object" || Array.isArray(p.character)))) throw new Error("세이브의 캐릭터 정보가 손상됐다.");
     }
     if (!obj.game || typeof obj.game !== "object" || Array.isArray(obj.game) ||
         typeof obj.game.currentScene !== "string" ||
         !obj.game.flags || typeof obj.game.flags !== "object" || Array.isArray(obj.game.flags) ||
-        !Array.isArray(obj.game.revealedClues)) throw new Error("세이브의 진행 상태가 손상됨.");
-    if (obj.phase !== "lobby" && obj.phase !== "play") throw new Error("세이브의 진행 단계가 잘못됨.");
+        !Array.isArray(obj.game.revealedClues)) throw new Error("세이브의 진행 상태가 손상됐다.");
+    if (obj.phase !== "lobby" && obj.phase !== "play") throw new Error("세이브의 진행 단계가 잘못됐다.");
     if (obj.log != null && (!Array.isArray(obj.log) || obj.log.length > LOG_LIMIT ||
-        obj.log.some((e) => !e || typeof e !== "object" || typeof e.kind !== "string"))) throw new Error("세이브의 기록 목록이 손상됨.");
+        obj.log.some((e) => !e || typeof e !== "object" || typeof e.kind !== "string"))) throw new Error("세이브의 기록 목록이 손상됐다.");
     const { errors } = Engine.validateScenario(obj.scenario);
-    if (errors.length) throw new Error("세이브 속 시나리오 손상됨.");
-    if (!obj.scenario.scenes[obj.game.currentScene]) throw new Error("세이브의 현재 장면이 시나리오에 없음.");
-    if (obj.history != null && (!Array.isArray(obj.history) || obj.history.some(e => !e || typeof e !== 'object' || typeof e.kind !== 'string'))) throw new Error('보관 기록 손상됨.');
-    if (obj.archivePending != null && (!Array.isArray(obj.archivePending) || obj.archivePending.some(e => !e || typeof e !== 'object' || typeof e.kind !== 'string'))) throw new Error('보관 대기 기록 손상됨.');
-    if (obj.historyCuts != null && (!Array.isArray(obj.historyCuts) || obj.historyCuts.some(c => !c || !Number.isSafeInteger(c.after) || !Number.isSafeInteger(c.through) || c.after < 0 || c.through < c.after))) throw new Error('기록 되돌림 정보 손상됨.');
-    if (obj.historyGeneration != null && !/^[a-z0-9]{16}$/.test(obj.historyGeneration)) throw new Error('기록 버전 정보 손상됨.');
+    if (errors.length) throw new Error("세이브 속 시나리오가 손상됐다.");
+    if (!obj.scenario.scenes[obj.game.currentScene]) throw new Error("세이브의 현재 장면이 시나리오에 없다.");
+    if (obj.history != null && (!Array.isArray(obj.history) || obj.history.some(e => !e || typeof e !== 'object' || typeof e.kind !== 'string'))) throw new Error('보관 기록이 손상됐다.');
+    if (obj.archivePending != null && (!Array.isArray(obj.archivePending) || obj.archivePending.some(e => !e || typeof e !== 'object' || typeof e.kind !== 'string'))) throw new Error('보관 대기 기록이 손상됐다.');
+    if (obj.historyCuts != null && (!Array.isArray(obj.historyCuts) || obj.historyCuts.some(c => !c || !Number.isSafeInteger(c.after) || !Number.isSafeInteger(c.through) || c.after < 0 || c.through < c.after))) throw new Error('기록 되돌림 정보가 손상됐다.');
+    if (obj.historyGeneration != null && !/^[a-z0-9]{16}$/.test(obj.historyGeneration)) throw new Error('기록 버전 정보가 손상됐다.');
     return HostGame.migrateSave(obj);
   }
 
   /** 호스트 데이터를 잃었을 때: 시나리오 + 플레이어 사본으로 복구 */
   static fromPlayerCopy(copy, scenario, hostKey) {
     const snap = copy?.snap;
-    if (copy?.kind !== "trpg-player-copy" || !snap) throw new Error("플레이어 사본 파일 아님.");
-    if ((copy.v ?? 1) !== 1) throw new Error("지원하지 않는 플레이어 사본 버전.");
+    if (copy?.kind !== "trpg-player-copy" || !snap) throw new Error("플레이어 사본 파일이 아니다.");
+    if ((copy.v ?? 1) !== 1) throw new Error("지원하지 않는 플레이어 사본 버전이다.");
     if (!/^[a-z0-9]{10}$/.test(snap.roomId ?? "") || typeof snap.hostPid !== "string" ||
         !Array.isArray(snap.players) || snap.players.length > MAX_PEOPLE ||
-        (copy.log != null && (!Array.isArray(copy.log) || copy.log.length > 5000))) throw new Error("플레이어 사본의 데이터가 손상됨.");
-    for (const p of snap.players) if (!p || typeof p.pid !== "string" || typeof p.name !== "string") throw new Error("플레이어 사본의 참가자 정보가 손상됨.");
+        (copy.log != null && (!Array.isArray(copy.log) || copy.log.length > 5000))) throw new Error("플레이어 사본의 데이터가 손상됐다.");
+    for (const p of snap.players) if (!p || typeof p.pid !== "string" || typeof p.name !== "string") throw new Error("플레이어 사본의 참가자 정보가 손상됐다.");
     const rec = snap.recovery ?? {};
     if (!rec || typeof rec !== "object" || Array.isArray(rec) ||
         (rec.flags != null && (typeof rec.flags !== "object" || Array.isArray(rec.flags))) ||
         (rec.visited != null && !Array.isArray(rec.visited)) ||
-        (rec.revealed != null && !Array.isArray(rec.revealed))) throw new Error("플레이어 사본의 복구 정보가 손상됨.");
+        (rec.revealed != null && !Array.isArray(rec.revealed))) throw new Error("플레이어 사본의 복구 정보가 손상됐다.");
     const game = Engine.newState(scenario);
     if (rec.sceneId && scenario.scenes[rec.sceneId]) game.currentScene = rec.sceneId;
     Object.assign(game.flags, rec.flags ?? {});
@@ -5744,10 +5744,10 @@ class HostGame {
         portraits[p.pid] = { src, at: Number(m[2]) };
       }
     }
-    if (!players[snap.hostPid]) throw new Error("사본에 호스트 정보 없음.");
-    for (const entries of [copy.history,copy.archivePending]) if(entries != null && (!Array.isArray(entries) || entries.some(e=>!e || typeof e !== 'object' || typeof e.kind !== 'string'))) throw new Error('사본 보관 기록 손상됨.');
+    if (!players[snap.hostPid]) throw new Error("사본에 호스트 정보가 없다.");
+    for (const entries of [copy.history,copy.archivePending]) if(entries != null && (!Array.isArray(entries) || entries.some(e=>!e || typeof e !== 'object' || typeof e.kind !== 'string'))) throw new Error('사본 보관 기록이 손상됐다.');
     const historyCuts = copy.historyCuts ?? [];
-    if(!Array.isArray(historyCuts) || historyCuts.some(c=>!c || !Number.isSafeInteger(c.after) || !Number.isSafeInteger(c.through) || c.after < 0 || c.through < c.after)) throw new Error('사본 기록 되돌림 정보 손상됨.');
+    if(!Array.isArray(historyCuts) || historyCuts.some(c=>!c || !Number.isSafeInteger(c.after) || !Number.isSafeInteger(c.through) || c.after < 0 || c.through < c.after)) throw new Error('사본 기록 되돌림 정보가 손상됐다.');
     const history = WebFeatures.merge(WebFeatures.merge(copy.history ?? [],copy.archivePending ?? []),copy.log ?? [],historyCuts);
     let logSeq=0; for(const e of history) {if(!Number.isSafeInteger(e.seq) || e.seq<=logSeq)e.seq=logSeq+1;logSeq=e.seq;}
     for(const c of historyCuts)logSeq=Math.max(logSeq,c.through);
@@ -6035,7 +6035,7 @@ class HostGame {
     const rollOf = (r) => ({ expr: "1d100", rolls: [r.value], mod: 0, total: r.value });
     if (spec.san) {
       // 이성 판정: d100 ≤ 현재 이성. 성공/실패에 따라 이성 손실 (대실패면 최대 손실)
-      if (!c) return this.notice(pid, "이성 판정은 캐릭터만.");
+      if (!c) return this.notice(pid, "이성 판정은 캐릭터만 굴릴 수 있다.");
       const [sOk, sFail] = Rules.lossParts(spec.san) ?? ["0", "1"];
       const r = Rules.resolve(Engine.randInt, c.san, "보통", 0);
       const loss = r.ok ? Rules.lossRoll(sOk, Engine.randInt) : Rules.lossRoll(sFail, Engine.randInt, r.lv.code === "fumble");
@@ -6358,10 +6358,10 @@ class HostGame {
   }
   onConnect(connId, meta) {
     const d = this.data;
-    if (meta?.build !== APP_BUILD) return { ok: false, reason: "게임 버전이 다름. 최신 파일로 갱신 후 강력 새로고침해 다시 접속하세요." };
+    if (meta?.build !== APP_BUILD) return { ok: false, reason: "게임 버전이 다르다. 최신 파일로 강력 새로고침한 뒤 다시 접속한다." };
     const key = String(meta?.key ?? "");
     const name = Engine.clip(meta?.name, 16);
-    if (!/^[a-z0-9]{16,64}$/.test(key)) return { ok: false, reason: "잘못된 접속 정보." };
+    if (!/^[a-z0-9]{16,64}$/.test(key)) return { ok: false, reason: "접속 정보가 잘못됐다." };
 
     let isNew = false;
     let pid = Object.keys(d.players).find((id) => d.players[id].key === key && !this.isHost(id));
@@ -6374,8 +6374,8 @@ class HostGame {
       const old = this.conns.get(pid);
       if (old != null && old !== connId) { this.connPid.delete(old); this.transport.close(old); }
     } else {
-      if (!name) return { ok: false, reason: "닉네임 입력 필요." };
-      if (Object.keys(d.players).length >= MAX_PEOPLE) return { ok: false, reason: `자리 없음. (최대 ${MAX_PEOPLE}명)` };
+      if (!name) return { ok: false, reason: "닉네임을 입력해야 한다." };
+      if (Object.keys(d.players).length >= MAX_PEOPLE) return { ok: false, reason: `자리가 없다. (최대 ${MAX_PEOPLE}명)` };
       let unique = name;
       for (let i = 2; Object.values(d.players).some((p) => p.name === unique); i++) unique = `${name.slice(0, 14)}${i}`;
       pid = randomPid();
@@ -6424,7 +6424,7 @@ class HostGame {
     catch (e) {
       // 잘못된 원격 메시지 하나가 호스트의 나머지 연결과 진행을 멈추게 하지 않는다.
       console.warn("[TRPG] 잘못된 참가자 메시지", msg.t, e);
-      this.notice(pid, "요청을 처리하지 못함. 입력 형식을 확인해 주세요.");
+      this.notice(pid, "요청을 처리하지 못했다. 입력 형식을 확인한다.");
     }
   }
 
@@ -6441,7 +6441,7 @@ class HostGame {
       const page = WebFeatures.page(entries, { pid, host: this.isHost(pid), before, limit: 100, cuts: this.data.historyCuts, merged: true });
       // 읽기를 기다리는 동안 퇴장한 참가자에게는 전송하지 않는다.
       if (this.online(pid)) this.emit(pid, {t:'historyPage',requestId:msg.requestId,...page,cuts:this.data.historyCuts,generation:this.data.historyGeneration});
-    } catch { this.emit(pid,{t:'historyPage',requestId:msg.requestId,error:'장기 보관소 읽기 실패. 호스트에서 백업 상태 확인 필요.'}); }
+    } catch { this.emit(pid,{t:'historyPage',requestId:msg.requestId,error:'장기 보관소를 읽지 못했다. 호스트에서 백업 상태를 확인해야 한다.'}); }
   }
 
   /* ---------------- 메시지 처리 ---------------- */
@@ -6461,9 +6461,9 @@ class HostGame {
       case "rollChars": {
         // CoC: 특성치 · 행운은 호스트가 굴림 (처음 + 다시 굴리기 rerolls번)
         if (p.ready) return;
-        if (d.phase === "play" && p.character) return this.notice(pid, "진행 중엔 다시 굴릴 수 없음.");
+        if (d.phase === "play" && p.character) return this.notice(pid, "진행 중엔 다시 굴릴 수 없다.");
         const lim = Engine.charRules(this.sc).rerolls + 1, used = p.cocRoll?.n ?? 0;
-        if (used >= lim) return this.notice(pid, `특성치 굴림은 ${lim}번까지.`);
+        if (used >= lim) return this.notice(pid, `특성치는 ${lim}번까지 굴릴 수 있다.`);
         p.cocRoll = { ...Rules.rollChars(Engine.randInt), n: used + 1, left: lim - used - 1 };
         this.pushAll(); this.save();
         return;
@@ -6472,8 +6472,8 @@ class HostGame {
         const r = Engine.validateCharacter(this.sc, msg.character, { rolled: p.cocRoll });
         if (!r.ok) return this.notice(pid, r.error);
         const nm = Turn.bare(r.character.name);
-        if (Object.entries(d.players).some(([id, q]) => id !== pid && q.character && Turn.bare(q.character.name) === nm)) return this.notice(pid, "같은 이름의 캐릭터가 이미 있음. 다른 이름으로.");
-        if (Object.values(this.sc.npcs ?? {}).some((n) => Turn.bare(n?.name) === nm)) return this.notice(pid, "NPC와 같은 이름. 다른 이름으로.");
+        if (Object.entries(d.players).some(([id, q]) => id !== pid && q.character && Turn.bare(q.character.name) === nm)) return this.notice(pid, "같은 이름의 캐릭터가 이미 있다. 다른 이름을 쓴다.");
+        if (Object.values(this.sc.npcs ?? {}).some((n) => Turn.bare(n?.name) === nm)) return this.notice(pid, "NPC와 이름이 같다. 다른 이름을 쓴다.");
         if (d.phase === "play" && p.character?.items) { r.character.items = p.character.items; if (p.character.itemInfo) r.character.itemInfo = p.character.itemInfo; }   // 진행 중 얻은 소지품 유지
         if (d.phase === "play" && p.character) for (const k of ["hp", "san", "luck", "mp", "madness"]) if (p.character[k] != null && k in r.character) r.character[k] = p.character[k];   // 진행 중 상태 유지
         p.character = r.character;
@@ -6483,7 +6483,7 @@ class HostGame {
         return;
       }
       case "ready": {
-        if (!p.character) return this.notice(pid, "캐릭터 저장 먼저.");
+        if (!p.character) return this.notice(pid, "캐릭터를 먼저 저장해야 한다.");
         const was = p.ready;
         p.ready = !!msg.ready;
         if (p.ready && !was) {
@@ -6496,7 +6496,7 @@ class HostGame {
       case "suggest": return void this.suggestCharacter(pid, Engine.clip(msg.concept, 200));
       case "portrait": {
         // 내 초상 올리기·지우기 (작게 줄인 그림만)
-        if (msg.src && (!Engine.isImageURL(msg.src) || !String(msg.src).startsWith("data:image/") || msg.src.length > PORTRAIT_MAX)) return this.notice(pid, "초상 형식·용량 오류.");
+        if (msg.src && (!Engine.isImageURL(msg.src) || !String(msg.src).startsWith("data:image/") || msg.src.length > PORTRAIT_MAX)) return this.notice(pid, "초상 형식이나 용량이 맞지 않는다.");
         return this.setPortrait(pid, msg.src || null);
       }
       case "hp": {
@@ -6505,7 +6505,7 @@ class HostGame {
         if (!target?.character) return;
         const key = ["hp", "san", "luck", "mp"].includes(msg.key) ? msg.key : "hp";
         const NM = { hp: "HP", san: "이성", luck: "행운", mp: "MP" };
-        if (!host && String(msg.pid) !== pid) return this.notice(pid, `남의 ${NM[key]}는 GM만 변경 가능.`);
+        if (!host && String(msg.pid) !== pid) return this.notice(pid, `남의 ${NM[key]}는 GM만 바꿀 수 있다.`);
         const c = target.character, max = c[`${key}Max`];
         if (c[key] == null || max == null) return;
         const delta = Math.max(-50, Math.min(50, Math.trunc(Number(msg.delta) || 0)));
@@ -6548,14 +6548,14 @@ class HostGame {
         if (!play) return;
         const checkId = String(msg.checkId), waiting = Engine.pendingList(d.game);
         const pc = waiting.find((x) => x.checkId === checkId && (!x.who || x.who === pid || !this.online(x.who)));
-        if (!pc && waiting.some((x) => x.checkId === checkId)) return this.notice(pid, "다른 캐릭터의 대기 판정.");
+        if (!pc && waiting.some((x) => x.checkId === checkId)) return this.notice(pid, "다른 캐릭터의 대기 판정이다.");
         const improv = !!pc?.improv;
         const check = improv ? null : Engine.findCheck(this.sc, d.game, String(msg.checkId));
-        if (!improv && !check) return this.notice(pid, "지금은 불가능한 판정.");
+        if (!improv && !check) return this.notice(pid, "지금은 할 수 없는 판정이다.");
         const gmOnly = this.isHost(pid) && !d.hostPlays;
-        if (!gmOnly && !(p.character && p.ready)) return this.notice(pid, "캐릭터 준비 먼저.");
+        if (!gmOnly && !(p.character && p.ready)) return this.notice(pid, "캐릭터를 먼저 준비해야 한다.");
         if (check && !gmOnly && !Engine.canTryCheck(d.game, check.id, pid, !!check.san) && !pc)
-          return this.notice(pid, "이미 시도했거나 성공해 해결된 판정. 다른 캐릭터의 시도를 기다리세요.");
+          return this.notice(pid, "이미 시도했거나 성공해 해결된 판정이다. 다른 캐릭터의 시도를 기다린다.");
         // 요청된 판정은 그 주인만 굴림 (주인이 접속해 있지 않으면 누구나)
         // 새로 굴리면 내 밀어붙이기 · 행운 기회는 끝. AI GM은 사람마다 따로라 남의 기회는 그대로, 사람 GM은 예전처럼 모두 끝
         if (d.mode === "ai") delete this.retries()[pid]; else d.game.retries = {};
@@ -6579,7 +6579,7 @@ class HostGame {
         if (!r) return;
         const check = r.checkId ? Engine.findCheck(this.sc, d.game, r.checkId) : null;
         delete this.retries()[pid];
-        if (r.checkId && (!check || (!check.san && d.game.passedChecks?.includes(r.checkId)))) { this.notice(pid, "이미 해결된 판정."); return this.pushAll(); }
+        if (r.checkId && (!check || (!check.san && d.game.passedChecks?.includes(r.checkId)))) { this.notice(pid, "이미 해결된 판정이다."); return this.pushAll(); }
         const c = p.character;
         if (msg.t === "push") {
           if (!r.pushable) return;
@@ -6587,7 +6587,7 @@ class HostGame {
           this.resolveCheck(pid, r.spec, check, false, { pushed: true });
           return;
         }
-        if (!(r.luckCost > 0) || c.luck < r.luckCost) return this.notice(pid, "행운 부족.");
+        if (!(r.luckCost > 0) || c.luck < r.luckCost) return this.notice(pid, "행운이 모자라다.");
         c.luck -= r.luckCost;
         this.addLog({ kind: "system", text: `${c.name}: 행운 ${r.luckCost} 사용 → ${r.spec.label} 성공 (남은 행운 ${c.luck})`, ...(r.rollId ? { luckFor: r.rollId, luckCost: r.luckCost } : {}) });
         if (check) { this.applyCheckResult(pid, check, true, false); if (!check.san) this.dropRetriesFor(check.id); }
@@ -6604,10 +6604,10 @@ class HostGame {
       }
       case "move": {
         if (!play) return;
-        if (d.mode === "human" && !this.isHost(pid)) return this.notice(pid, "이동은 GM이 결정함.");
-        if (!Engine.move(this.sc, d.game, String(msg.to))) return this.notice(pid, "지금은 갈 수 없음.");
+        if (d.mode === "human" && !this.isHost(pid)) return this.notice(pid, "이동은 GM이 정한다.");
+        if (!Engine.move(this.sc, d.game, String(msg.to))) return this.notice(pid, "지금은 갈 수 없다.");
         this.invalidateAI();
-        this.addLog({ kind: "system", text: `${this.speaker(pid)}, 일행을 이끎.` });
+        this.addLog({ kind: "system", text: `${this.speaker(pid)}, 일행을 이끈다.` });
         this.logScene(); d.game.aiCursor = d.logSeq; this.pushAll(); this.queueAI();
         return;
       }
@@ -6618,17 +6618,17 @@ class HostGame {
     switch (msg.t) {
       case "emergencyEdit": {
         if (!play) return;
-        if (!Engine.emergencyEdit(this.sc, d.game, msg)) return this.notice(pid, "긴급 개입 항목 또는 값이 올바르지 않음.");
+        if (!Engine.emergencyEdit(this.sc, d.game, msg)) return this.notice(pid, "긴급 개입 항목 또는 값이 올바르지 않다.");
         this.invalidateAI();
         this.note(`호스트 긴급 개입: ${String(msg.kind).slice(0, 30)}`);
-        this.addLog({ kind: "system", text: `호스트가 시나리오 설정을 조정함 (${String(msg.kind).slice(0, 30)}).` });
+        this.addLog({ kind: "system", text: `호스트가 시나리오 설정을 고쳤다 (${String(msg.kind).slice(0, 30)}).` });
         this.pushAll();
         return;
       }
       case "emergencyNarrate": {
         if (!play) return;
         const body = Engine.clip(msg.text, 1200);
-        if (!body) return this.notice(pid, "서술을 입력해 주세요.");
+        if (!body) return this.notice(pid, "서술을 입력해야 한다.");
         this.invalidateAI();
         this.addLog({ kind: "gm", by: "GM", text: body });
         this.pushAll();
@@ -6637,8 +6637,8 @@ class HostGame {
       case "start": {
         if (d.phase !== "lobby") return;
         const readyCount = Object.entries(d.players).filter(([id, q]) => q.ready && (!this.isHost(id) || d.hostPlays)).length;
-        if (!readyCount) return this.notice(pid, "준비된 캐릭터 없음.");
-        if (d.hostPlays && !d.players[d.hostPid].ready) return this.notice(pid, "호스트 캐릭터도 준비 완료 필요.");
+        if (!readyCount) return this.notice(pid, "준비된 캐릭터가 없다.");
+        if (d.hostPlays && !d.players[d.hostPid].ready) return this.notice(pid, "호스트 캐릭터도 준비를 마쳐야 한다.");
         d.phase = "play";
         d.game.startedAt = Date.now();
         this.addLog({ kind: "system", text: `모험 시작. ${this.sc.title}` });
@@ -6674,10 +6674,10 @@ class HostGame {
       }
       case "setHostPlays": {
         // 호스트가 GM만 할지, 캐릭터를 만들어 함께 플레이할지 (모험 시작 전만)
-        if (d.phase !== "lobby") return this.notice(pid, "모험 시작 전에만 변경 가능.");
+        if (d.phase !== "lobby") return this.notice(pid, "모험 시작 전에만 바꿀 수 있다.");
         d.hostPlays = !!msg.on;
         if (!d.hostPlays) { const me = d.players[d.hostPid]; if (me) me.ready = false; }
-        this.addLog({ kind: "system", text: d.hostPlays ? "호스트도 캐릭터로 참여." : "호스트는 GM만 맡음." });
+        this.addLog({ kind: "system", text: d.hostPlays ? "호스트도 캐릭터로 참여한다." : "호스트는 GM만 맡는다." });
         return this.pushAll();
       }
       case "leavePlace": { this.leavePlace(); return this.pushAll(); }
@@ -6708,7 +6708,7 @@ class HostGame {
           c.items = [...(bgs.find((b) => b.name === c.background)?.items ?? [])];  // 직업 · 배경의 시작 소지품
           c.itemInfo = Object.fromEntries(c.items.map((x) => [x, { scene: "시작 소지품" }]));
         }
-        this.addLog({ kind: "system", text: "시나리오 처음부터 재시작. 체력 · 이성 · 행운 · 소지품도 처음으로." });
+        this.addLog({ kind: "system", text: "시나리오를 처음부터 다시 시작한다. 체력 · 이성 · 행운 · 소지품도 처음으로 돌아간다." });
         if (d.phase === "play") this.logScene();
         d.game.aiCursor = d.logSeq;
         this.broadcast({ t: "gather", ms: 0 });
@@ -6729,17 +6729,17 @@ class HostGame {
         if (!d.game?.result) return;
         this.invalidateAI();
         d.game.result = null;
-        this.addLog({ kind: "system", text: "결과 정리를 닫고 이야기를 이어 감." });
+        this.addLog({ kind: "system", text: "결과 정리를 닫고 이야기를 이어 간다." });
         return this.pushAll();
       }
       case "undoAI": {
         // 마지막 AI 차례 직전으로 (그 뒤 입력도 함께 사라짐)
         const last = this.undo.pop();
-        if (!last) return this.notice(pid, "되돌릴 AI 차례 없음.");
+        if (!last) return this.notice(pid, "되돌릴 AI 차례가 없다.");
         this.invalidateAI({ discardPending: false });
         this.restore(last.cp);
         this.note(`되돌림: ${last.label}`);
-        this.addLog({ kind: "system", text: "GM: 마지막 AI 서술을 되돌림." });
+        this.addLog({ kind: "system", text: "GM이 마지막 AI 서술을 되돌렸다." });
         this.broadcast({ t: "gather", ms: 0 });
         this.broadcast({ t: "board", rows: [] });
         return this.pushAll();
@@ -6750,7 +6750,7 @@ class HostGame {
   chat(pid, text, host, msg = {}) {
     if (!text) return;
     // 진행 중 합류해 기록지를 쓰는 중이면 (캐릭터 준비 전) 입력 무시
-    if (this.data.phase === "play" && !host && !this.data.players[pid]?.ready) return this.notice(pid, "캐릭터 준비 완료 후 입력 가능.");
+    if (this.data.phase === "play" && !host && !this.data.players[pid]?.ready) return this.notice(pid, "캐릭터 준비를 마친 뒤 입력할 수 있다.");
     const by = this.speaker(pid);
     const m = /^\/(\w+)\s*([\s\S]*)$/.exec(text);
     if (m) {
@@ -6767,7 +6767,7 @@ class HostGame {
       }
       if (cmd === "ooc") { if (rest) this.addLog({ kind: "ooc", byId: pid, by: this.data.players[pid].name, text: rest }); return; }
       if (cmd === "gm") {
-        if (!host) return this.notice(pid, "/gm 은 호스트 전용.");
+        if (!host) return this.notice(pid, "/gm 은 호스트만 쓸 수 있다.");
         if (rest) this.addLog({ kind: "gm", byId: pid, by: "GM", text: rest });
         return;
       }
@@ -6775,7 +6775,7 @@ class HostGame {
     }
     const style = ["talk", "act", "ask"].includes(msg?.style) ? msg.style : "act";
     const me = this.data.players[pid]?.character;
-    if (this.data.phase === "play" && style !== "ask" && me && (me.dead || me.down) && this.data.players[pid].ready) return this.notice(pid, me.dead ? "사망한 캐릭터는 행동할 수 없음. 질문(?)·/ooc 가능." : `${me.down} 상태. 깨어나기 전엔 행동할 수 없음.`);
+    if (this.data.phase === "play" && style !== "ask" && me && (me.dead || me.down) && this.data.players[pid].ready) return this.notice(pid, me.dead ? "사망한 캐릭터는 행동할 수 없다. 질문(?)과 /ooc는 할 수 있다." : `${me.down} 상태다. 깨어나기 전엔 행동할 수 없다.`);
     // 장면에 실제로 등장한 NPC를 @이름으로 지목한 대사만 NPC 대화 차례로 처리한다.
     const sceneNpcNames = this.data.phase === "play" && style === "talk"
       ? (Engine.sceneOf(this.sc, this.data.game).npcs ?? []).map((id) => this.sc.npcs?.[id]?.name).filter(Boolean).sort((a, b) => b.length - a.length)
@@ -6789,9 +6789,9 @@ class HostGame {
 
   /* ---------------- AI: 캐릭터 제안 ---------------- */
   async suggestCharacter(pid, concept) {
-    if (!this.aiReady()) return this.notice(pid, "AI 없음. 직접 제작 필요.");
+    if (!this.aiReady()) return this.notice(pid, "AI가 없다. 직접 만들어야 한다.");
     const last = this.suggestAt.get(pid) ?? 0;
-    if (Date.now() - last < 8000) return this.notice(pid, "제안은 8초에 한 번.");
+    if (Date.now() - last < 8000) return this.notice(pid, "제안은 8초에 한 번만 된다.");
     this.suggestAt.set(pid, Date.now());
     this.emit(pid, { t: "suggesting", on: true });
     try {
@@ -6807,7 +6807,7 @@ class HostGame {
       this.suggestHistory.set(pid, identity);
       this.emit(pid, { t: "suggestion", data: r.character });
     } catch (e) {
-      this.notice(pid, `제안 실패. ${e.message}`);
+      this.notice(pid, `제안에 실패했다. ${e.message}`);
     } finally {
       this.emit(pid, { t: "suggesting", on: false });
     }
@@ -7108,7 +7108,7 @@ class HostGame {
           }
           throw e;
         }
-        const fatal = e.cancelled || signal?.aborted || e.tired || /HTTP (40[0-4])|API 키|모델 이름|설정 미완료/.test(e.message);
+        const fatal = e.cancelled || signal?.aborted || e.tired || /HTTP (40[0-4])|API 키|모델 이름|AI 설정을 마치지/.test(e.message);
         // 서버 붐빔(503 등)은 조금 더 기다려 두 번까지 다시, 그 밖의 실패는 한 번
         if (fatal || retries >= (e.busy ? 2 : 1)) throw e;
         this.note(`AI 호출 실패 → 다시 시도 (${Engine.clip(e.message, 60)})`);
@@ -7286,7 +7286,7 @@ class HostGame {
     if (!this.aiReady()) {
       if (!this.ai.warned) {
         this.ai.warned = true;
-        this.addLog({ kind: "system", text: "AI 없음. 호스트가 /gm 으로 서술." });
+        this.addLog({ kind: "system", text: "AI가 없다. 호스트가 /gm 으로 서술한다." });
       }
       return;
     }
@@ -7320,7 +7320,7 @@ class HostGame {
       if (stale()) return; // 이전 장면/세션을 바탕으로 만든 결과는 절대 적용하지 않음
       // 기다리는 동안 판정이 끝나 상태가 바뀜 → 이 응답은 굴리기 전 상황 기준이므로 버리고 새 상황으로 다시
       if (rollSig() !== sig0) { this.note("AI 응답 대기 중 판정 결과가 나옴 → 응답 버리고 다시 요청"); this.ai.again = true; return; }
-      if (!plan) { this.addLog({ kind: "system", text: "AI GM 응답이 비어 있음. 다시 행동하거나 /gm 으로 진행." }); return; }
+      if (!plan) { this.addLog({ kind: "system", text: "AI GM 응답이 비었다. 다시 행동하거나 /gm 으로 진행한다." }); return; }
       const label = Engine.clip(plan.narration || plan.answers[0]?.text || plan.arrival || "", 24);
       try {
         const cp = this.transaction(() => {
@@ -7335,13 +7335,13 @@ class HostGame {
         this.undo = this.undo.slice(-5);
       } catch (e) {
         this.note(`적용 중 오류 → 이전 상태로 복구 (${Engine.clip(e.message, 60)})`);
-        this.addLog({ kind: "system", text: "AI GM 응답을 적용하지 못해 이전 상태로 되돌림. 다시 행동하거나 /gm 으로 진행." });
+        this.addLog({ kind: "system", text: "AI GM 응답을 적용하지 못해 이전 상태로 되돌렸다. 다시 행동하거나 /gm 으로 진행한다." });
         console.error(e);
       }
       this.pushAll();
     } catch (e) {
       // AI 서비스 사용 한도 초과 (예: Gemini 무료 한도) → 짧게만 알림
-      if (!stale() && !e.cancelled) this.addLog({ kind: "system", text: e.tired ? e.message : `AI GM 응답 실패. ${e.message} 다시 행동하거나 /gm 으로 진행.` });
+      if (!stale() && !e.cancelled) this.addLog({ kind: "system", text: e.tired ? e.message : `AI GM 응답에 실패했다. ${e.message} 다시 행동하거나 /gm 으로 진행한다.` });
     } finally {
       if (this.ai.controller === controller) this.ai.controller = null;
       this.ai.busy = false;
@@ -7418,10 +7418,10 @@ const Net = (() => {
       onStatus({ level: "wait", text: "연결 준비 중…" });
       peer = new Peer(hostPeerId(room), { debug: 0, config: iceConfig() });
 
-      peer.on("open", () => { opened = true; backoff = 2000; onStatus({ level: "ok", text: "테이블 열림. 접속 가능." }); });
+      peer.on("open", () => { opened = true; backoff = 2000; onStatus({ level: "ok", text: "테이블이 열렸다. 접속할 수 있다." }); });
       peer.on("disconnected", () => {
         if (stopped) return;
-        onStatus({ level: "wait", text: "중개 서버 재연결 중… 접속한 친구는 계속 진행 가능." });
+        onStatus({ level: "wait", text: "중개 서버에 다시 연결하는 중… 접속한 친구는 계속 진행할 수 있다." });
         reconnectLater();
       });
       peer.on("error", (err) => {
@@ -7429,13 +7429,13 @@ const Net = (() => {
         if (err.type === "unavailable-id") {
           // 방금 닫은 이전 창의 연결이 아직 정리되지 않음 → 잠시 후 같은 ID로 재시도
           if (opened && !peer.destroyed) return reconnectLater();
-          return retry(4000, { level: "wait", text: "이전 연결 정리 대기 중… 곧 복귀." });
+          return retry(4000, { level: "wait", text: "이전 연결을 정리하는 중… 곧 돌아온다." });
         }
         if (["network", "server-error", "socket-error", "socket-closed"].includes(err.type)) {
-          if (opened && !peer.destroyed) { onStatus({ level: "bad", text: "중개 서버 연결 실패. 접속한 친구는 계속 진행 가능. 재시도 중…" }); return reconnectLater(); }
-          return retry(5000, { level: "bad", text: "중개 서버 연결 실패. 재시도 중…" });
+          if (opened && !peer.destroyed) { onStatus({ level: "bad", text: "중개 서버에 연결하지 못했다. 접속한 친구는 계속 진행할 수 있다. 다시 시도하는 중…" }); return reconnectLater(); }
+          return retry(5000, { level: "bad", text: "중개 서버에 연결하지 못했다. 다시 시도하는 중…" });
         }
-        if (err.type === "browser-incompatible") return onStatus({ level: "bad", text: "이 브라우저는 P2P 미지원." });
+        if (err.type === "browser-incompatible") return onStatus({ level: "bad", text: "이 브라우저는 P2P를 지원하지 않는다." });
         console.warn("[peer]", err.type, err.message);
       });
 
@@ -7525,7 +7525,7 @@ const Net = (() => {
       timer = setTimeout(connect, ms);
     }
 
-    function lostConnection(c, reason = "호스트 연결 끊김. 재연결 중…") {
+    function lostConnection(c, reason = "호스트와 연결이 끊겼다. 다시 연결하는 중…") {
       if (stopped || conn !== c) return;
       conn = null; ready = false; stopHeartbeat();
       onStatus({ level: "wait", text: reason });
@@ -7545,16 +7545,16 @@ const Net = (() => {
       peer.on("error", (err) => {
         if (stopped) return;
         if (err.type === "peer-unavailable") {
-          onStatus({ level: "wait", text: everConnected ? "호스트 부재. 돌아오면 바로 이어짐…" : "호스트 찾는 중… 테이블이 열려 있는지 확인 필요." });
+          onStatus({ level: "wait", text: everConnected ? "호스트가 자리를 비웠다. 돌아오면 바로 이어진다." : "호스트를 찾는 중… 테이블이 열려 있는지 확인해야 한다." });
           return schedule(3000);
         }
         if (live()) return console.warn("[peer]", err.type, err.message);   // 호스트와의 P2P는 살아 있음 → 그대로 진행
         if (["network", "server-error", "socket-error", "socket-closed"].includes(err.type)) {
-          onStatus({ level: "bad", text: "중개 서버 연결 실패. 재시도 중…" });
+          onStatus({ level: "bad", text: "중개 서버에 연결하지 못했다. 다시 시도하는 중…" });
           try { peer.destroy(); } catch {}
           return schedule(5000);
         }
-        if (err.type === "browser-incompatible") return onStatus({ level: "bad", text: "이 브라우저는 P2P 미지원." });
+        if (err.type === "browser-incompatible") return onStatus({ level: "bad", text: "이 브라우저는 P2P를 지원하지 않는다." });
         console.warn("[peer]", err.type, err.message);
         schedule(4000);
       });
@@ -7584,7 +7584,7 @@ const Net = (() => {
           if (msg?.t === "hello") {
             if (msg.build !== APP_BUILD) {
               stopped = true; ready = false; stopHeartbeat();
-              onStatus({ level: "bad", text: "호스트가 이전 버전 게임을 실행 중. 호스트 새로고침 필요." });
+              onStatus({ level: "bad", text: "호스트가 이전 버전 게임을 실행 중이다. 호스트가 새로고침해야 한다." });
               onMessage({ t: "updateRequired" });
               try { c.close(); } catch {}
               return;
@@ -7593,7 +7593,7 @@ const Net = (() => {
             stopHeartbeat();
             heartbeat = setInterval(() => {
               if (!ready || conn !== c || stopped) return;
-              if (Date.now() - lastReceived > 24000) return lostConnection(c, "응답 없음. 자동 재연결 중…");
+              if (Date.now() - lastReceived > 24000) return lostConnection(c, "응답이 없다. 자동으로 다시 연결하는 중…");
               try { c.send({ t: "ping", seq: Date.now() }); } catch { lostConnection(c); }
             }, 8000);
           }
@@ -9492,7 +9492,7 @@ const BannerArt = (() => {
         const t = db.transaction(STORE, mode), req = fn(t.objectStore(STORE));
         t.oncomplete = () => ok(req.result);
         t.onerror = () => no(t.error);
-        t.onabort = () => no(t.error ?? new Error("저장 취소됨"));
+        t.onabort = () => no(t.error ?? new Error("저장이 취소됐다"));
       });
     }
     /** IndexedDB 자체를 못 열면 이후로는 localStorage만 씀 (용량 부족은 그대로 실패로 알림) */
@@ -9625,11 +9625,11 @@ const BannerArt = (() => {
     return new Promise((res, rej) => {
       const f = input.files?.[0];
       input.value = "";
-      if (!f) return rej(new Error("파일 없음."));
-      if (f.size > 3_000_000) return rej(new Error("파일이 너무 큼. 3MB 이하만 가능."));
+      if (!f) return rej(new Error("파일이 없다."));
+      if (f.size > 3_000_000) return rej(new Error("파일이 너무 크다. 3MB 이하만 된다."));
       const r = new FileReader();
       r.onload = () => res(String(r.result));
-      r.onerror = () => rej(new Error("파일 읽기 실패."));
+      r.onerror = () => rej(new Error("파일을 읽지 못했다."));
       r.readAsText(f, "utf-8");
     });
   }
@@ -9641,7 +9641,7 @@ const BannerArt = (() => {
   /* ---------------- 시작 ---------------- */
   async function route() {
     if (typeof Peer === "undefined" || typeof jsyaml === "undefined") {
-      return showMessage("불러오기 실패", "PeerJS, js-yaml 불러오기 실패. 인터넷 확인 후 새로고침 필요.");
+      return showMessage("불러오기 실패", "PeerJS, js-yaml을 불러오지 못했다. 인터넷을 확인하고 새로고침해야 한다.");
     }
     await migrateStorage();
     Scene.fadeInIfNeeded();
@@ -9970,13 +9970,13 @@ const BannerArt = (() => {
     $("#dueAsk").classList.remove("on"); stashAsk();
     if (t.joined) { if (t.closed) await forgetRoom(t.room); else await DB.del(K.copy(t.room)); await loadTables(); return renderTables(); }   // 참가한 테이블 = 내 사본만 지움 (자리는 그대로, 다시 들어가면 새 사본)
     try { await HistoryArchive.deleteHostRoom(t.room); }
-    catch { return toast('보관 기록 삭제 실패. 테이블은 유지됨.'); }
+    catch { return toast('보관 기록을 지우지 못했다. 테이블은 그대로 남는다.'); }
     await DB.del(K.host(t.room));
     LS.set(K.hostIndex, (LS.get(K.hostIndex) ?? []).filter((x) => x.room !== t.room));
     closeRoom(t.room);   // 이 방 주소로 들어오는 플레이어에게 "폐기됨"으로 답함 (이 브라우저에서 사이트를 켜 둔 동안, 7일)
     await loadTables(); renderTables();
     // 플레이어(오프라인 포함)가 나중에 열 때 알아채도록 삭제 표시. 못 보내면 다음에 열 때 다시 보냄
-    if (Registry.enabled && !(await Registry.markDeleted(t.room))) { LS.set(K.regPending, [...new Set([...(LS.get(K.regPending) ?? []), t.room])]); toast("삭제 표시를 못 보냄. 다음에 열 때 다시 보냄."); }
+    if (Registry.enabled && !(await Registry.markDeleted(t.room))) { LS.set(K.regPending, [...new Set([...(LS.get(K.regPending) ?? []), t.room])]); toast("삭제 표시를 보내지 못했다. 다음에 열 때 다시 보낸다."); }
   }
   /** 이 테이블을 지금 다른 탭이 열고 있는지 (호스트 탭 잠금) */
   async function openElsewhere(room) {
@@ -10208,11 +10208,11 @@ const BannerArt = (() => {
     const btn = $("#joinLinkBtn");
     if (btn.disabled) return;
     const code = roomCode($("#joinLinkInput").value.trim());
-    if (!code) return ($("#inviteError").textContent = "잘못된 초대 링크.");
+    if (!code) return ($("#inviteError").textContent = "초대 링크가 잘못됐다.");
     if (LS.get(K.closed(code))) return ($("#inviteError").textContent = "호스트가 테이블을 지웠다. 이 방에는 들어갈 수 없다.");
     const name = $("#bkJoinName").value.trim();
     // 닉네임으로 바로 자리에 앉음 (이미 앉았던 방이면 그 자리 그대로)
-    if (!name && !LS.get(K.me(code))) { $("#inviteError").textContent = "닉네임 입력 필요."; return $("#bkJoinName").focus(); }
+    if (!name && !LS.get(K.me(code))) { $("#inviteError").textContent = "닉네임을 입력해야 한다."; return $("#bkJoinName").focus(); }
     if (name) { LS.set(K.name, name); if (!LS.get(K.me(code))) LS.set(K.me(code), { key: randomId(24), name }); }
     btn.disabled = true; Sfx.play("tap");
     Book.leave(`room=${code}`);
@@ -10220,9 +10220,9 @@ const BannerArt = (() => {
   $("#loadSaveInput").addEventListener("change", async (e) => {
     try {
       const save = HostGame.checkSave(JSON.parse(await readFile(e.target)));
-      if (await DB.get(K.host(save.roomId)) && !(await paperAsk("같은 테이블이 이미 있음. 세이브로 덮어쓸까?"))) return;
+      if (await DB.get(K.host(save.roomId)) && !(await paperAsk("같은 테이블이 이미 있다. 세이브로 덮어쓸까?"))) return;
       save.historyGeneration = randomId(16); // 복원된 세이브는 별도 기록 갈래
-      if (!(await DB.set(K.host(save.roomId), save))) throw new Error("브라우저 저장 공간 부족.");
+      if (!(await DB.set(K.host(save.roomId), save))) throw new Error("브라우저 저장 공간이 모자라다.");
       reopenRoom(save.roomId);
       Book.leave(`room=${save.roomId}`);
     } catch (err) {
@@ -10253,12 +10253,12 @@ const BannerArt = (() => {
         const address = WebFeatures.endpoint(url.value);
         let previous = ''; try { previous = WebFeatures.endpoint(cfg.baseURL); } catch {}
         if (address !== previous) {
-          if (!(await paperAsk(`API 주소를 ${address} 로 바꿀까? 기존 키는 넘기지 않음. 새 주소용 키를 다시 넣어야 함.`))) { url.value = cfg.baseURL; return false; }
+          if (!(await paperAsk(`API 주소를 ${address} 로 바꿀까? 기존 키는 넘기지 않는다. 새 주소용 키를 다시 넣어야 한다.`))) { url.value = cfg.baseURL; return false; }
           key.value = ''; remember.checked = false;
-          result.textContent = '주소 변경됨. 새 주소용 API 키 재입력 필요.';
+          result.textContent = '주소를 바꿨다. 새 주소용 API 키를 다시 넣어야 한다.';
         }
         cfg = {provider:provider.value,baseURL:address,model:model.value.trim(),apiKey:key.value.trim(),remember:remember.checked};
-        if (!AICredentials.save(cfg)) result.textContent = '설정 저장 실패. 저장 공간·브라우저 설정 확인.';
+        if (!AICredentials.save(cfg)) result.textContent = '설정을 저장하지 못했다. 저장 공간과 브라우저 설정을 확인한다.';
         onChange?.(); return true;
       } catch(e) { result.textContent=e.message; return false; }
     }
@@ -10266,7 +10266,7 @@ const BannerArt = (() => {
       AICredentials.select(provider.value);
       cfg = AICredentials.load(provider.value,AI.PRESETS);
       url.value=cfg.baseURL; model.value=cfg.model ?? ''; key.value=cfg.apiKey; remember.checked=cfg.remember;
-      result.textContent='선택한 공급자의 설정을 불러옴.'; onChange?.();
+      result.textContent='선택한 공급자의 설정을 불러왔다.'; onChange?.();
     });
     for (const input of [url,key,model,remember]) input.addEventListener('change',persist);
     const test = el('button',{class:'btn small',type:'button',on:{click:async()=>{
@@ -10284,14 +10284,14 @@ const BannerArt = (() => {
         el('details',{class:'lg-fold'},el('summary',{},el('span',{class:'lg-k'},'고급'),el('span',{class:'lg-sum'},'API 주소 · 키 기억 · 사용량')),
           el('div',{class:'lg-sub'},row('API 주소',url),
             el('label',{class:'lg-row'},el('span',{class:'lg-k'},'키 기억'),el('span',{class:'lg-ck'},remember,el('i')),el('span',{class:'small'},'이 브라우저에 키 기억 (선택)')),
-            el('p',{class:'small muted'},'기본: 이 탭을 닫을 때까지 사용. 기억을 선택하면 브라우저에 키를 저장함. 공급자·주소별로 분리하며 친구에게 전송하지 않음.'),
+            el('p',{class:'small muted'},'기본: 이 탭을 닫을 때까지 쓴다. 기억을 고르면 브라우저에 키를 저장한다. 공급자·주소별로 따로 두며 친구에게 보내지 않는다.'),
             usagePanel())));
     }
     return el('div',{class:'ai-grid'},
       el('label',{class:'field'},el('span',{},'공급자'),provider),el('label',{class:'field'},el('span',{},'모델'),model,models),
       el('label',{class:'field full'},el('span',{},'API 주소'),url),el('label',{class:'field full'},el('span',{},'API 키'),key),
       el('label',{class:'full small'},remember,' 이 브라우저에 키 기억 (선택 사항)'),
-      el('p',{class:'full small muted'},'기본: 이 탭을 닫을 때까지 사용. 기억을 선택하면 브라우저에 키를 저장함. 공급자·주소별로 분리하며 친구에게 전송하지 않음.'),
+      el('p',{class:'full small muted'},'기본: 이 탭을 닫을 때까지 쓴다. 기억을 고르면 브라우저에 키를 저장한다. 공급자·주소별로 따로 두며 친구에게 보내지 않는다.'),
       el('div',{class:'full row'},test,result),compact ? null : el('div',{class:'full'},usagePanel()));
   }
 
@@ -10314,7 +10314,7 @@ const BannerArt = (() => {
       sel("mood", "분위기", [["default", "기본"], ["horror", "공포"], ["adventure", "모험"], ["comic", "코믹"]]),
       sel("npcVoice", "NPC 연기", [["plain", "담백하게"], ["vivid", "생생하게"]]),
       el("label", { class: "lg-row" }, el("span", { class: "lg-k" }, "피할 소재"), avoid),
-      el("p", { class: "small muted lg-note" }, "서술 분량은 평소 기준. 사건 전환 · 단서 공개 · 대성공/대실패 · 결말은 자동으로 더 길게. 게임 중 GM 노트에서 바꿀 수 있음."));
+      el("p", { class: "small muted lg-note" }, "서술 분량은 평소 기준이다. 사건 전환 · 단서 공개 · 대성공/대실패 · 결말은 저절로 더 길어진다. 게임 중 GM 노트에서 바꿀 수 있다."));
     return el("div", { class: "ai-grid" },
       sel("tone", "문체", [["nominal", "명사형 (~함, ~됨)"], ["prose", "소설체 (~했다)"]]),
       sel("length", "서술 분량", [["normal", "보통"], ["short", "짧게"], ["long", "길게"]]),
@@ -10323,7 +10323,7 @@ const BannerArt = (() => {
       sel("improv", "즉흥 판정", [["normal", "보통"], ["low", "적게"], ["high", "자주"]]),
       sel("npcVoice", "NPC 연기", [["plain", "담백하게"], ["vivid", "생생하게"]]),
       el("label", { class: "field full" }, el("span", {}, "피할 소재"), avoid),
-      el("p", { class: "full muted small" }, "서술 분량은 평소 기준. 사건 전환 · 단서 공개 · 대성공/대실패 · 결말은 자동으로 더 길게. 게임 중 GM 노트에서 바꿀 수 있음."));
+      el("p", { class: "full muted small" }, "서술 분량은 평소 기준이다. 사건 전환 · 단서 공개 · 대성공/대실패 · 결말은 저절로 더 길어진다. 게임 중 GM 노트에서 바꿀 수 있다."));
   }
 
   /* ---------------- 호스트 설정 ---------------- */
@@ -10380,7 +10380,7 @@ const BannerArt = (() => {
 
   /** 시나리오 글 → { sc, errors, warnings } (해석 실패면 fatal) */
   function checkScenario(text) {
-    if (text.length > 3_000_000) return { fatal: "시나리오 입력이 너무 큼. 최대 300만 자까지 지원." };
+    if (text.length > 3_000_000) return { fatal: "시나리오 입력이 너무 크다. 300만 자까지만 된다." };
     try {
       const sc = jsyaml.load(text);
       if (sc && typeof sc === "object" && !Array.isArray(sc) && !sc.system) sc.system = "coc7";
@@ -10404,7 +10404,7 @@ const BannerArt = (() => {
     const intro = typeof sc?.synopsis === "string" && sc.synopsis.trim() ? sc.synopsis : typeof sc?.summary === "string" ? sc.summary : "";
     const jobs = (() => { try { return validScenario ? Engine.charRules(validScenario).backgrounds.length : 0; } catch { return 0; } })();
     $("#scLabel").replaceChildren(...(!has
-      ? [el("div", { class: "ev-k" }, "비어 있음"), el("div", { class: "ev-syn" }, "파일을 불러오거나 샘플을 고름.")]
+      ? [el("div", { class: "ev-k" }, "비어 있음"), el("div", { class: "ev-syn" }, "파일을 불러오거나 샘플을 고른다.")]
       : [el("div", { class: "ev-k" }, "CoC 7판 · 사건 기록"), el("div", { class: "ev-t" }, title || "(제목 없음)"),
         intro ? el("div", { class: "ev-syn" }, intro) : null,
         el("div", { class: "ev-meta" }, el("span", {}, `최대 ${MAX_PEOPLE}명`), jobs ? el("span", {}, `직업 ${jobs}`) : null)]));
@@ -10417,11 +10417,11 @@ const BannerArt = (() => {
     if (!text.trim()) { lastCheck = null; status.replaceChildren(); box.replaceChildren(); drawEnvelope(); return null; }
     const c = lastCheck = checkScenario(text);
     if (c.fatal) {
-      status.replaceChildren(el("span", { class: "bad" }, "열 수 없음"));
+      status.replaceChildren(el("span", { class: "bad" }, "열 수 없다"));
       box.replaceChildren(el("p", { class: "err" }, c.fatal));
     } else {
       // 경고 · 오류 내용은 봉인과 상관없이 보임
-      status.replaceChildren(c.errors.length ? el("span", { class: "bad" }, `오류 ${c.errors.length} · 수정해야 열림`) : el("span", { class: "ok" }, "✓ 열 수 있음"),
+      status.replaceChildren(c.errors.length ? el("span", { class: "bad" }, `오류 ${c.errors.length} · 고쳐야 열린다`) : el("span", { class: "ok" }, "✓ 열 수 있다"),
         c.warnings.length ? el("span", { class: "wn" }, ` · 경고 ${c.warnings.length}`) : null);
       box.replaceChildren(...c.errors.map((e) => el("p", { class: "err" }, e)), ...c.warnings.map((w) => el("p", { class: "warn" }, w)));
       if (!c.errors.length) { validScenario = c.sc; $("#openTableBtn").disabled = false; }
@@ -10432,7 +10432,7 @@ const BannerArt = (() => {
 
   function hostOptions() {
     const name = $("#hostNameInput").value.trim();
-    if (!name) { $("#setupError").textContent = "닉네임 입력 필요."; $("#hostNameInput").focus(); return null; }
+    if (!name) { $("#setupError").textContent = "닉네임을 입력해야 한다."; $("#hostNameInput").focus(); return null; }
     LS.set(K.name, name);
     return { name, mode: document.querySelector('input[name="mode"]:checked').value, hostPlays: $("#hostPlaysInput").checked, aiStyle: LS.get(K.aiStyle) ?? {} };
   }
@@ -10444,7 +10444,7 @@ const BannerArt = (() => {
     if (!sc || !o) return;
     const room = randomId(10);
     const data = HostGame.create({ roomId: room, hostName: o.name, hostKey: randomId(24), hostPlays: o.hostPlays, mode: o.mode, scenario: sc, aiStyle: o.aiStyle });
-    if (!(await DB.set(K.host(room), data))) return ($("#setupError").textContent = "브라우저 저장 공간 부족.");
+    if (!(await DB.set(K.host(room), data))) return ($("#setupError").textContent = "브라우저 저장 공간이 모자라다.");
     // 날인란에 도장이 쾅 → 방으로
     const btn = $("#openTableBtn");
     btn.classList.add("stamped"); btn.disabled = true; Sfx.play("stamp");
@@ -10456,19 +10456,19 @@ const BannerArt = (() => {
   // 복구 아이콘: 책에 넣은 시나리오가 없으면 파일 고르기 전에 막고 안내
   $("#recoverBtn").addEventListener("click", (e) => {
     if (e.target.id === "recoverInput" || validScenario || (setupReady && validate())) return ($("#recoverError").textContent = "");
-    e.preventDefault(); $("#recoverError").textContent = "복구 실패: 책(새 테이블)에 같은 시나리오를 넣고 검사 통과 먼저.";
+    e.preventDefault(); $("#recoverError").textContent = "복구 실패: 책(새 테이블)에 같은 시나리오를 넣고 먼저 검사를 통과해야 한다.";
   });
   $("#recoverInput").addEventListener("change", async (e) => {
     try {
       $("#recoverError").textContent = "";
       const sc = validScenario ?? validate();
-      if (!sc) throw new Error("책(새 테이블)에 같은 시나리오를 넣고 검사 통과 먼저.");
+      if (!sc) throw new Error("책(새 테이블)에 같은 시나리오를 넣고 먼저 검사를 통과해야 한다.");
       const copy = JSON.parse(await readFile(e.target));
       if (copy?.snap?.scenario?.title && copy.snap.scenario.title !== sc.title &&
           !(await paperAsk(`사본은 「${copy.snap.scenario.title}」, 넣은 시나리오는 「${sc.title}」. 계속할까?`))) return;
       const data = HostGame.fromPlayerCopy(copy, sc, randomId(24));
-      if (await DB.get(K.host(data.roomId)) && !(await paperAsk("같은 테이블이 이미 있음. 덮어쓸까?"))) return;
-      if (!(await DB.set(K.host(data.roomId), data))) throw new Error("브라우저 저장 공간 부족.");
+      if (await DB.get(K.host(data.roomId)) && !(await paperAsk("같은 테이블이 이미 있다. 덮어쓸까?"))) return;
+      if (!(await DB.set(K.host(data.roomId), data))) throw new Error("브라우저 저장 공간이 모자라다.");
       LS.set(K.regPending, (LS.get(K.regPending) ?? []).filter((r) => r !== data.roomId));
       reopenRoom(data.roomId);
       Registry.revive(data.roomId);   // 지웠던 방 코드로 복구한 경우 삭제 표시 해제 (기다리지 않음)
@@ -10493,8 +10493,8 @@ const BannerArt = (() => {
       if (!(await DB.set(K.host(d.roomId), d))) {
         // 저장 공간 부족 → 저장용 사본만 축소. 실행 중인 원본 기록은 절대 지우지 않는다.
         const compact = { ...d, log: d.log.slice(-600) };
-        if (!(await DB.set(K.host(d.roomId), compact))) toast("⚠ 저장 실패. '테이블 저장'으로 백업 필요.");
-        else toast("⚠ 저장 공간 부족: 오래된 기록은 자동 저장본에서 생략됨. 전체 기록은 수동 백업 권장.", { ms: 5000 });
+        if (!(await DB.set(K.host(d.roomId), compact))) toast("⚠ 저장하지 못했다. '테이블 저장'으로 백업해야 한다.");
+        else toast("⚠ 저장 공간이 모자라다: 오래된 기록은 자동 저장본에서 빠졌다. 전체 기록은 직접 백업하길 권한다.", { ms: 5000 });
       }
     })();
     try { await saving; } finally {
@@ -10537,7 +10537,7 @@ const BannerArt = (() => {
   async function startHost(room, data) {
     try { HostGame.checkSave(data); } catch (err) { return showMessage("테이블 열기 실패", err.message); }
     if (!(await takeHostLock(room))) {
-      return showMessage("이미 열려 있음", "다른 탭에서 진행 중. 그 탭을 쓰거나, 닫고 새로고침.");
+      return showMessage("이미 열려 있다", "다른 탭에서 진행 중이다. 그 탭을 쓰거나, 닫고 새로고침한다.");
     }
     app.role = "host";
     app.room = room;
@@ -10631,7 +10631,7 @@ const BannerArt = (() => {
     clearTimeout(copyTimer);
     copyTimer = null;
     if (app.role !== "player" || !app.snap) return;
-    if (!(await DB.set(K.copy(app.room), makeCopy())) && !(await DB.set(K.copy(app.room), makeCopy(200, false)))) { archiveOK = false; updateHistoryStatus(); toast("사본 저장 실패. 보관함에서 내보내기 필요."); }
+    if (!(await DB.set(K.copy(app.room), makeCopy())) && !(await DB.set(K.copy(app.room), makeCopy(200, false)))) { archiveOK = false; updateHistoryStatus(); toast("사본을 저장하지 못했다. 보관함에서 내보내야 한다."); }
   }
   function scheduleCopy() { if (!copyTimer) copyTimer = setTimeout(flushCopy, 800); }
 
@@ -10639,7 +10639,7 @@ const BannerArt = (() => {
   function send(msg) {
     if (app.role === "host") { app.game.hostAction(msg); return true; }
     if (app.net?.send(msg)) return true;
-    toast("호스트 연결 끊김. 재연결 후 다시 전송.");
+    toast("호스트와 연결이 끊겼다. 다시 연결되면 다시 보낸다.");
     return false;
   }
 
@@ -10712,7 +10712,7 @@ const BannerArt = (() => {
   function handleMsg(msg) {
     switch (msg?.t) {
       case "hello": app.me = msg.pid; return;
-      case "updateRequired": return showMessage("호스트 버전이 오래됨", "호스트에게 게임 페이지를 강력 새로고침하고 기존 테이블을 다시 열어 달라고 요청하세요. 플레이어도 새로고침하면 기존 캐릭터로 재접속합니다.");
+      case "updateRequired": return showMessage("호스트 버전이 오래됐다", "호스트에게 게임 페이지를 강력 새로고침하고 기존 테이블을 다시 열어 달라고 한다. 플레이어도 새로고침하면 기존 캐릭터로 다시 접속한다.");
       case "historyPage": acceptHistory(msg); return;
       case "loginit": {
         adoptHistoryGeneration(msg.generation);
@@ -10801,7 +10801,7 @@ const BannerArt = (() => {
     if (!next || next === historyGeneration) return;
     historyGeneration = next; historyCuts = []; app.log = []; historyShown = [];
     historyBefore = Infinity; historyMore = true; historyTotal = null;
-    for (const request of historyRequests.values()) {clearTimeout(request.timer);request.reject(new Error('테이블 복원됨. 보관함을 다시 열어 주세요.'));}
+    for (const request of historyRequests.values()) {clearTimeout(request.timer);request.reject(new Error('테이블을 복원했다. 보관함을 다시 연다.'));}
     historyRequests.clear();
   }
   function rememberHistory(entries) {
@@ -10815,7 +10815,7 @@ const BannerArt = (() => {
   function updateHistoryStatus() {
     $('#recentInfo').textContent = `최근 기록 ${Math.min(app.log.length, 300)}개 · ${archiveOK ? '이전 기록은 별도 보관' : '장기 보관 실패 · 백업 필요'}`;
     $('#historyCount').textContent = `${historyTotal ?? historyShown.length}개`;
-    $('#historyStatus').textContent = archiveOK ? '' : '저장 실패 · 브라우저를 닫기 전 내보내기 필요';
+    $('#historyStatus').textContent = archiveOK ? '' : '저장하지 못했다. 브라우저를 닫기 전에 내보내야 한다.';
     $('#historyMore').disabled = historyBusy || (!historyMore && historyShown.length <= historyDisplayLimit);
     $('#historySync').disabled = historyBusy;
     $('#historyExport').disabled = historyBusy;
@@ -10823,11 +10823,11 @@ const BannerArt = (() => {
   function requestHistory(before = Infinity) {
     return new Promise((resolve, reject) => {
       const requestId = randomId(16);
-      const timer = setTimeout(() => { historyRequests.delete(requestId); reject(new Error('호스트 기록 응답 없음. 연결 후 다시 시도.')); }, 12000);
+      const timer = setTimeout(() => { historyRequests.delete(requestId); reject(new Error('호스트가 기록 요청에 답하지 않았다. 연결된 뒤 다시 시도한다.')); }, 12000);
       historyRequests.set(requestId, { resolve, reject, timer });
       if (!send({ t: 'history', requestId, before: Number.isFinite(before) ? before : null })) {
         clearTimeout(timer); historyRequests.delete(requestId);
-        reject(new Error('호스트와 연결되지 않아 기록을 불러올 수 없음.'));
+        reject(new Error('호스트와 연결되지 않아 기록을 불러올 수 없다.'));
       }
     });
   }
@@ -10835,7 +10835,7 @@ const BannerArt = (() => {
     const req = historyRequests.get(msg.requestId); if (!req) return;
     clearTimeout(req.timer); historyRequests.delete(msg.requestId);
     if (msg.error) req.reject(new Error(msg.error));
-    else if(msg.generation && msg.generation !== historyGeneration) req.reject(new Error('기록 버전이 변경됨. 다시 연결해 주세요.'));
+    else if(msg.generation && msg.generation !== historyGeneration) req.reject(new Error('기록 버전이 바뀌었다. 다시 연결한다.'));
     else req.resolve(msg);
   }
   function drawHistory() {
@@ -10857,7 +10857,7 @@ const BannerArt = (() => {
       list.append(el('div', { class: `he k-${e.item ? 'item' : place ? 'place' : e.kind}${e.kind === 'roll' && e.result ? (e.ok ? ' ok' : ' fail') : ''}`, style: pc ? `--c:${pc}` : null },
         who ? el('span', { class: 'hw' }, who) : null, el('span', { class: 'hx' }, body), e.secret ? el('span', { class: 'hs' }, '비밀') : null, el('span', { class: 'ht' }, hm(e.at))));
     }
-    if (!historyShown.length) list.append(el('p', { class:'muted' }, '보관된 기록 없음.'));
+    if (!historyShown.length) list.append(el('p', { class:'muted' }, '보관된 기록이 없다.'));
     // 오른쪽 장면 목차: 누르면 그 장면으로, 스크롤하면 보는 장면 표시
     if (marks.some((m) => m.node)) marks.forEach((m, k) => toc.append(el('a', { on: { click: () => list.scrollTo({ top: m.node ? m.node.offsetTop - 6 : 0, behavior: 'smooth' }) } },
       el('span', {}, String(k).padStart(2, '0')), m.title, el('em', {}, String(m.n)))));
@@ -10881,7 +10881,7 @@ const BannerArt = (() => {
         if (all && more) await new Promise(r => setTimeout(r, 250));
       } while (all && more && historyDialog.open && epoch === historyEpoch);
       if (epoch !== historyEpoch || !historyDialog.open) return false;
-      $('#historyMessage').textContent = historyMore ? '과거 기록을 더 불러올 수 있음.' : '호스트가 보관한 공개 권한 내 전체 기록을 불러옴.';
+      $('#historyMessage').textContent = historyMore ? '과거 기록을 더 불러올 수 있다.' : '호스트가 보관한 공개 권한 내 전체 기록을 불러왔다.';
       return !historyMore;
     } catch (e) {
       if (epoch === historyEpoch) $('#historyMessage').textContent = e.message;
@@ -10902,7 +10902,7 @@ const BannerArt = (() => {
       const local = await HistoryArchive.read(archiveScope());
       if (epoch !== historyEpoch || !historyDialog.open) return;
       if (historyBefore === Infinity) { historyShown = WebFeatures.merge(local, app.log, historyCuts); drawHistory(); }
-    } catch { if (epoch === historyEpoch) $('#historyMessage').textContent = '장기 보관소 읽기 실패. 현재 메모리 기록만 표시.'; }
+    } catch { if (epoch === historyEpoch) $('#historyMessage').textContent = '장기 보관소를 읽지 못했다. 지금 메모리에 있는 기록만 보인다.'; }
     if (historyBefore === Infinity && historyMore) await loadHistory(false, epoch);
   });
   $('#historyMore').addEventListener('click', () => {
@@ -10925,13 +10925,13 @@ const BannerArt = (() => {
     historyDialog.close();
     let local = [];
     try { local = await HistoryArchive.read(scope); }
-    catch { complete = false; toast('장기 보관소 읽기 실패. 현재 불러온 기록만 저장.'); }
+    catch { complete = false; toast('장기 보관소를 읽지 못했다. 지금 불러온 기록만 저장한다.'); }
     const entries = WebFeatures.merge(local, WebFeatures.merge(pending, WebFeatures.merge(shown, recent)), cuts);
     try {
       await downloadArchive(`trpg-보관기록-${complete ? '전체' : '부분'}-${room}-${today()}.json`,
         { kind:'trpg-history', v:1, roomId:room, savedAt:Date.now(), scope:'이 사용자의 공개 권한 내 보관 기록', complete, entries });
       toast(`기록 ${entries.length}개 파일 저장${complete ? '' : ' · 로컬 보관분'}.`);
-    } catch { toast('기록 다운로드 실패. 보관함에서 다시 시도.'); }
+    } catch { toast('기록을 받지 못했다. 보관함에서 다시 시도한다.'); }
   });
 
   function usagePanel() {
@@ -10942,10 +10942,10 @@ const BannerArt = (() => {
     const rows = AIUsage.rows(), body = box.querySelector('.usage-content');
     const total = rows.reduce((a,r) => { for (const k of ['requests','success','failed','input','output','unknown','ms']) a[k] += r[k] ?? 0; return a; }, {requests:0,success:0,failed:0,input:0,output:0,unknown:0,ms:0});
     body.replaceChildren(...[el('p', { class:'small' }, `요청 ${total.requests}회 · 성공 ${total.success} · 실패 ${total.failed} · 입력 ${total.input.toLocaleString()} / 출력 ${total.output.toLocaleString()} 토큰`),
-      el('p', { class:'small muted' }, `토큰 미제공 ${total.unknown}회 · 평균 응답 ${(total.ms / Math.max(1,total.requests) / 1000).toFixed(1)}초. 연결 테스트·재시도 포함. 공급자 청구액과 다를 수 있음.`),
+      el('p', { class:'small muted' }, `토큰 미제공 ${total.unknown}회 · 평균 응답 ${(total.ms / Math.max(1,total.requests) / 1000).toFixed(1)}초. 연결 테스트·재시도를 포함한다. 공급자 청구액과 다를 수 있다.`),
       ...rows.map(r => el('div', {class:'small usage-row'}, `${r.day} · ${r.provider} / ${r.model} · ${r.requests}회 · 입력 ${r.input} / 출력 ${r.output} · 실패 ${r.failed}`)),
-      !rows.length ? el('p',{class:'small muted'},'집계 시작 후 요청 없음.') : null,
-      !AIUsage.saved() ? el('p',{class:'error'},'사용량 저장 실패. 현재 탭에서만 집계 중.') : null].filter(Boolean));   // null을 넣으면 "null" 글자가 찍힘
+      !rows.length ? el('p',{class:'small muted'},'집계를 시작한 뒤 요청이 없다.') : null,
+      !AIUsage.saved() ? el('p',{class:'error'},'사용량을 저장하지 못했다. 지금 탭에서만 센다.') : null].filter(Boolean));   // null을 넣으면 "null" 글자가 찍힘
   }
   addEventListener('trpg-usage', () => document.querySelectorAll('.usage-panel').forEach(paintUsage));
 
@@ -10979,7 +10979,7 @@ const BannerArt = (() => {
     }
     const setKinds=(id,list)=>{const m=LS.get(K.clueKind(app.room))??{};if(list===null)delete m[id];else m[id]=list;LS.set(K.clueKind(app.room),m);if(app.snap?.view)renderNotebook(app.snap.view);};
     if (!rows.some((r)=>r.c.id===selClue)) selClue = null;
-    if(!shown.length){box.append(el('li',{class:'muted small'},v.clues.length?'이 분류로 체크한 단서 없음.':'공개된 단서 없음.'));}
+    if(!shown.length){box.append(el('li',{class:'muted small'},v.clues.length?'이 분류로 체크한 단서가 없다.':'공개된 단서가 없다.'));}
     // 사건 순서 = 처음 단서를 찾은 순서
     const scenes = [];
     for (const r of rows) if (!scenes.some((x)=>x.id===r.scene)) scenes.push({ id:r.scene, title:r.c.sceneTitle ?? '기타' });
@@ -11752,7 +11752,7 @@ const BannerArt = (() => {
   const SAY_MODES = { talk: ["bubble", "대사"], act: ["point", "행동"], ask: ["ask", "질문"], cmd: ["dice", "명령"] };
   const sayModeOf = (t) => t.startsWith("/") ? "cmd" : /^[*＊]/.test(t) ? "act" : /^[?？]/.test(t) ? "ask" : "talk";
   // 앞 글자만 친 상태면 그 종류의 예시를 흐리게 보여 줌 (평소 대사 예시는 입력칸 안내 글)
-  const SAY_GHOST = { act: "캐릭터의 행동을 선언. ex) 열쇠를 줍는다.", ask: "GM에게 궁금한 점을 물어보기" };
+  const SAY_GHOST = { act: "캐릭터의 행동을 선언한다. ex) 열쇠를 줍는다.", ask: "GM에게 궁금한 점을 물어보기" };
   function showSayMode() {
     const raw = $("#chatInput").value, mode = sayModeOf(raw.trimStart());
     // @NPC 라벨은 대사 탭에서만: 행동 · 질문 · 주사위로 바꾸면 라벨이 사라짐
@@ -12100,7 +12100,7 @@ const BannerArt = (() => {
       const bb = document.getElementById("builderBox");
       if (bb && meBox.contains(bb)) { bb.hidden = true; document.querySelector(".side").append(bb); }
       meBox.replaceChildren(...(gmOnly
-        ? [el("div", { class: "t-plate gm-only" }, "지금은 GM만 맡음"), el("button", { class: "btn small", type: "button", on: { click: () => send({ t: "setHostPlays", on: true }) } }, "나도 캐릭터 만들기")]
+        ? [el("div", { class: "t-plate gm-only" }, "지금은 GM만 맡는다"), el("button", { class: "btn small", type: "button", on: { click: () => send({ t: "setHostPlays", on: true }) } }, "나도 캐릭터 만들기")]
         : me ? [seatPlate(s, me), foldedRecord(s, me)] : []));
       if (me && !gmOnly && me.ready && app.wasWriting) meBox.querySelector(".folded-card")?.classList.add("just-folded");
     }
@@ -12301,7 +12301,7 @@ const BannerArt = (() => {
     setTimeout(() => { Sfx.play("stamp"); sheet.classList.remove("thud"); void sheet.offsetWidth; sheet.classList.add("thud"); }, 230);
     setTimeout(() => { Sfx.play("page"); sheet.classList.add("folding"); }, 620);   // 반으로 접힘
     setTimeout(send2, 1050);
-    setTimeout(() => { if (st.isConnected) unstamp("작성 완료가 접수되지 않음."); }, 2600);   // 응답이 없으면 원래대로
+    setTimeout(() => { if (st.isConnected) unstamp("작성 완료가 접수되지 않았다."); }, 2600);   // 응답이 없으면 원래대로
   }
   /* 작성 중인 내 시트: 평소엔 책 아래 끝까지 내려가 있음. 마우스를 올리거나 · 쓰는 중이거나 · 시트를 눌렀으면 올라와 고정
    * 테이블(시트 밖)을 누르면 다시 스르륵 내려감 */
@@ -12341,7 +12341,7 @@ const BannerArt = (() => {
     box.dataset.key = key;
     const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 30;
     box.replaceChildren(...(list.length ? list.map((m) => el("p", { class: "lc-line" }, el("b", { style: `color:${s.players.some((p) => p.pid === m.pid) ? spineOf(m.pid) : "#7a6548"}` }, m.name), m.text))
-      : [el("p", { class: "lc-empty" }, "아직 조용함")]));
+      : [el("p", { class: "lc-empty" }, "아직 조용하다")]));
     if (atEnd || list.at(-1)?.pid === s.me) box.scrollTop = box.scrollHeight;
   }
   $("#lcForm").addEventListener("submit", (e) => {
@@ -12493,7 +12493,7 @@ const BannerArt = (() => {
     const skillRows = el("div", { class: "coc-skills" }), pointsEl = el("div", { class: "points" });
     const STEP = 5;
     function randomAlloc() {
-      const R = app.snap.myRoll; if (!R) return toast("특성치 굴림 먼저.");
+      const R = app.snap.myRoll; if (!R) return toast("특성치를 먼저 굴려야 한다.");
       d.alloc = Rules.randomAllocation(rules, R.chars, occ(), Engine.randInt); saveDraft(); refreshCoc();
       skillDice.classList.remove("rolling"); void skillDice.offsetWidth; skillDice.classList.add("rolling");
     }
@@ -12519,7 +12519,7 @@ const BannerArt = (() => {
     }
     function refreshCoc() {
       const R = app.snap?.myRoll, chars = R?.chars ?? null;
-      if (chars && fitAlloc(chars)) { saveDraft(); toast("포인트가 줄어 기능 배분을 맞춤."); }
+      if (chars && fitAlloc(chars)) { saveDraft(); toast("포인트가 줄어 기능 배분을 맞췄다."); }
       // 신체 능력 (근력 · 건강 · 크기 · 민첩) / 지적 능력 (외모 · 지능 · 정신력 · 교육) — 아이콘 · 이름 · 점선 · 값
       const line = (ico, k, v, title) => el("span", { class: "cc", title }, iconSvg(ico), el("i", {}, k), el("span", { class: "dots" }), el("b", {}, v));
       charGrid.replaceChildren(...[["신체 능력", Rules.CHARS.slice(0, 4)], ["지적 능력", Rules.CHARS.slice(4)]].map(([t, L]) =>
@@ -12537,7 +12537,7 @@ const BannerArt = (() => {
         derivedEl.style.setProperty("--n", D.length);
         derivedEl.replaceChildren(...D.map(([ico, k, v]) => el("span", { class: "cc" }, iconSvg(ico), el("i", {}, k), el("span", { class: "dots" }), el("b", {}, String(v)))),
           ...(rules.combat ? [el("span", { class: "db-line" }, "피해 보너스 ", el("b", {}, dv.db === "0" ? "0" : /^-/.test(dv.db) ? dv.db : `+${dv.db}`), " · 체구 ", el("b", {}, String(dv.build)))] : []));
-      } else derivedEl.replaceChildren(el("span", { class: "hint" }, "주사위를 눌러 특성치 · 행운 굴림"));
+      } else derivedEl.replaceChildren(el("span", { class: "hint" }, "주사위를 눌러 특성치 · 행운을 굴린다"));
       rollBtn.querySelector(".ic-tip").textContent = "굴리기";
       rollBtn.disabled = leftN <= 0;
       rollBtn.classList.toggle("spent", leftN <= 0);
@@ -12545,7 +12545,7 @@ const BannerArt = (() => {
       skillDice.hidden = !R;   // 기능 랜덤 배분은 특성치를 한 번이라도 굴린 뒤에
       // 기능 포인트
       const o = occ(), L = chars ? Rules.left(rules, chars, o, d.alloc) : null;
-      pointsEl.replaceChildren(...(L ? ["직업 ", el("b", {}, String(L.occ)), ` / ${L.pools.occ} · 관심 `, el("b", { class: L.int < 0 ? "over" : "" }, String(L.int)), ` / ${L.pools.int}`] : ["특성치를 굴리면 포인트가 생김"]));
+      pointsEl.replaceChildren(...(L ? ["직업 ", el("b", {}, String(L.occ)), ` / ${L.pools.occ} · 관심 `, el("b", { class: L.int < 0 ? "over" : "" }, String(L.int)), ` / ${L.pools.int}`] : ["특성치를 굴리면 포인트가 생긴다"]));
       const oSk = L?.occSkills ?? [];
       skillRows.replaceChildren(...rules.skills.map((k) => {
         const base = Rules.skillBase(k, chars ?? {}), a = d.alloc[k] ?? 0, isOcc = oSk.includes(k);
@@ -12565,9 +12565,9 @@ const BannerArt = (() => {
     fate.addEventListener("toggle", () => { if (fateInit) { fateInit = false; if (fate.open) return; } Sfx.play("page"); if (fate.open) sugInput.focus(); });
     const readyBtn = el("button", { class: "btn primary", id: "readyBtn", on: { click: () => {
       const R = app.snap?.myRoll;
-      if (!R) return toast("특성치 굴림 먼저.");
+      if (!R) return toast("특성치를 먼저 굴려야 한다.");
       if (fitAlloc(R.chars)) { saveDraft(); refreshCoc(); }
-      if (Rules.left(rules, R.chars, occ(), d.alloc).int < 0) return toast("기능 포인트 초과. 다시 배분.");
+      if (Rules.left(rules, R.chars, occ(), d.alloc).int < 0) return toast("기능 포인트를 넘었다. 다시 나눠야 한다.");
       CharacterProfiles.save(d);
       stampThenSend(() => send({ t: "char", character: d, ready: true }));
     } } }, "준비 완료");
@@ -12575,12 +12575,12 @@ const BannerArt = (() => {
     function loadProfile(profileName) {
       const profile = CharacterProfiles.list().find((p) => p.name === profileName);
       const next = CharacterProfiles.restore(profile, rules);
-      if (!next) return toast("불러올 캐릭터를 선택하세요.");
+      if (!next) return toast("불러올 캐릭터를 고른다.");
       Object.assign(d, next);
       name.value = d.name; age.value = d.age; gender.value = d.gender;
       concept.value = d.concept; goal.value = d.goal ?? ""; goalSync(); bg.value = d.background; hook.value = d.hook; look.value = d.look;
       if (app.snap?.myRoll) fitAlloc(app.snap.myRoll.chars);
-      saveDraft(); refreshCoc(); toast("캐릭터 서식 불러옴. 특성치는 이번 방 주사위를 사용.");
+      saveDraft(); refreshCoc(); toast("캐릭터 서식을 불러왔다. 특성치는 이번 방 주사위를 쓴다.");
     }
     const profilePop = el("div", { class: "pf-pop", role: "listbox", "aria-label": "보관한 탐사자", hidden: true });
     const closeProfiles = () => { profilePop.hidden = true; profileLoad.setAttribute("aria-expanded", "false"); };
@@ -12588,12 +12588,12 @@ const BannerArt = (() => {
       const list = CharacterProfiles.list();
       profilePop.replaceChildren(el("div", { class: "pf-h" }, "보관한 탐사자"),
         ...(list.length ? list.slice().reverse().map((p) => el("button", { type: "button", class: "pf-r", role: "option", on: { click: () => { closeProfiles(); loadProfile(p.name); } } },
-          el("span", {}, p.name), el("small", {}, p.background || "-"))) : [el("div", { class: "pf-empty" }, "보관한 서식 없음")]));
+          el("span", {}, p.name), el("small", {}, p.background || "-"))) : [el("div", { class: "pf-empty" }, "보관한 서식이 없다")]));
       profilePop.hidden = false; profileLoad.setAttribute("aria-expanded", "true");
     }
     const profileSave = icBtn("button", "pf-btn", "pf_in", "서식 저장", { type: "button", on: { click: () => {
-      if (!CharacterProfiles.save(d)) return toast("캐릭터 이름을 먼저 입력하세요.");
-      toast("캐릭터 서식 보관됨.");
+      if (!CharacterProfiles.save(d)) return toast("캐릭터 이름을 먼저 입력해야 한다.");
+      toast("캐릭터 서식을 보관했다.");
     } } });
     const profileLoad = icBtn("button", "pf-btn", "pf_out", "불러오기", { type: "button", "aria-haspopup": "listbox", "aria-expanded": "false", on: { click: () => profilePop.hidden ? openProfiles() : closeProfiles() } });
     const profileBox = el("span", { class: "pf-icons" }, profileSave, profileLoad, profilePop);
@@ -12606,7 +12606,7 @@ const BannerArt = (() => {
     name.classList.add("id-name");
     $("#builderBox").replaceChildren(el("section", { class: "panel builder coc-builder" },
       el("div", { class: "kicker" }, "탐사자 만들기", profileBox),
-      s.phase === "play" ? el("p", { class: "muted small" }, "모험 진행 중. 완성하면 바로 합류.") : null,
+      s.phase === "play" ? el("p", { class: "muted small" }, "모험이 진행 중이다. 완성하면 바로 합류한다.") : null,
       el("div", { class: "b-left" },
         el("div", { class: "id-block" },
           el("div", { class: "f-portrait" }, el("div", { class: "portrait-row" }, photoBox, el("span", { class: "portrait-acts" }, clearPicBtn))),
@@ -12925,9 +12925,9 @@ const BannerArt = (() => {
 
   /* ---------------- 초보자 도움말: 오른쪽 메모 쪽지 (처음 들어올 때 · 처음 실패했을 때) ---------------- */
   const HELP = {
-    levels: { t: "성공 단계", b: "d100을 굴려 목표치(기능 수치) 이하면 성공. 목표치의 1/2 이하는 어려운 성공, 1/5 이하는 극단적 성공. 판정 난이도가 '어려움'이면 어려운 성공 이상이 나와야 통과." },
-    push: { t: "밀어붙이기", b: "실패한 판정을 한 번 더 굴림. 다시 실패하면 GM이 더 나쁜 대가를 줌. 꼭 성공해야 할 때만. 대실패 · 이미 밀어붙인 판정은 불가." },
-    luck: { t: "행운 쓰기", b: "실패했을 때 모자란 만큼 행운을 깎아 성공으로 바꿈 (예: 목표치 40에 47 → 행운 7). 행운 · 이성 판정에는 못 씀. 행운은 잘 돌아오지 않으니 아껴 씀." },
+    levels: { t: "성공 단계", b: "d100을 굴려 목표치(기능 수치) 이하면 성공이다. 목표치의 1/2 이하는 어려운 성공, 1/5 이하는 극단적 성공이다. 판정 난이도가 '어려움'이면 어려운 성공 이상이 나와야 통과한다." },
+    push: { t: "밀어붙이기", b: "실패한 판정을 한 번 더 굴린다. 다시 실패하면 GM이 더 나쁜 대가를 준다. 꼭 성공해야 할 때만 쓴다. 대실패 · 이미 밀어붙인 판정은 밀어붙일 수 없다." },
+    luck: { t: "행운 쓰기", b: "실패했을 때 모자란 만큼 행운을 깎아 성공으로 바꾼다 (예: 목표치 40에 47 → 행운 7). 행운 · 이성 판정에는 쓸 수 없다. 행운은 잘 돌아오지 않으니 아껴 쓴다." },
   };
   const helpPref = () => LS.get("trpg-help") ?? {};
   const helpOff = () => helpPref().off === true;
@@ -12956,7 +12956,7 @@ const BannerArt = (() => {
     m.dataset.k = k;
     m.querySelector(".hm-title").replaceChildren(h.t, total > 1 ? el("small", {}, ` ${n}/${total}`) : "");
     m.querySelector(".hm-body").textContent = h.b;
-    $("#helpMemoOk").textContent = helpQ.length ? "다음" : "알겠음";
+    $("#helpMemoOk").textContent = helpQ.length ? "다음" : "알겠다";
     m.classList.remove("in"); void m.offsetWidth; m.classList.add("in");
     m.hidden = false; Sfx.play("page");
   }
@@ -12966,7 +12966,7 @@ const BannerArt = (() => {
     if (off) { helpQ = []; clearTimeout(helpTimer); nextHelp(); }
   }
   $("#helpMemoOk").addEventListener("click", nextHelp);
-  $("#helpMemoOff").addEventListener("click", () => { setHelpOff(true); toast("도움말 쪽지 끔. 오른쪽 위 도움말에서 다시 켬."); });
+  $("#helpMemoOff").addEventListener("click", () => { setHelpOff(true); toast("도움말 쪽지를 껐다. 오른쪽 위 도움말에서 다시 켠다."); });
   function openHelp(open) {
     $("#helpPop").hidden = !open;
     $("#helpBtn").setAttribute("aria-expanded", String(open));
@@ -13025,7 +13025,7 @@ const BannerArt = (() => {
             el("dt", {}, "행운"), el("dd", {}, String(c.luck), c.luckStart != null && c.luckStart !== c.luck ? el("small", {}, ` (처음 ${c.luckStart})`) : "")),
           c.madHistory.length ? el("div", { class: "ec-mad" }, el("b", {}, "광기 이력 "), c.madHistory.map((m) => `${m.type} · ${m.scene}`).join(" → ")) : null,
           el("div", { class: "ec-items" }, el("b", {}, "소지품 "), c.items.join(" · ") || "—"),
-          el("ul", { class: "ec-key" }, ...(c.key.length ? c.key.map((k) => el("li", { class: k.mad ? "mad" : k.hurt ? "hurt" : "" }, el("small", {}, k.scene), k.text)) : [el("li", { class: "muted" }, "기록된 큰 사건 없음")]),
+          el("ul", { class: "ec-key" }, ...(c.key.length ? c.key.map((k) => el("li", { class: k.mad ? "mad" : k.hurt ? "hurt" : "" }, el("small", {}, k.scene), k.text)) : [el("li", { class: "muted" }, "기록된 큰 사건이 없다")]),
             c.key.length > 4 ? el("li", { class: "ec-more" }, `＋${c.key.length - 4}건 더`) : null)),
         el("span", { class: "ec-open", "aria-hidden": "true" }, "[자세히 보기]"));
     }));
@@ -13064,11 +13064,11 @@ const BannerArt = (() => {
       characters: s.players.filter((p) => p.ready && p.character).map((p) => ({ player: p.name, character: p.character })),
       log: app.log.filter((e) => e.kind !== "ooc"),
     });
-    toast("기록 저장됨");
+    toast("기록을 저장했다");
     setTimeout(leaveTable, 700);
   }
   $("#endClose").addEventListener("click", () => { app.endHidden = app.snap?.result?.at ?? null; render(); });
-  $("#endResume").addEventListener("click", () => { paperAsk("결말을 취소하고 이야기를 계속할까? 모두의 결과 화면이 닫힘.").then((y) => y && send({ t: "unfinish" })); });
+  $("#endResume").addEventListener("click", () => { paperAsk("결말을 취소하고 이야기를 계속할까? 모두의 결과 화면이 닫힌다.").then((y) => y && send({ t: "unfinish" })); });
 
   function renderPlay(s) {
     const v = s.view;
@@ -13106,9 +13106,9 @@ const BannerArt = (() => {
       // 판정 알림: 대기 판정 · 방금 실패한 판정(밀어붙이기 · 행운)을 입력칸 위 말풍선으로. 굴리거나 GM이 서술하면 사라짐
       const tips = [], fail = [];
       if (s.retry) fail.push(el("div", { class: "ck-tip fail", style: `--dur:${Math.max(0, app.retryEnd - Date.now())}ms` }, el("span", { class: "ck-k" }, "실패"), el("b", {}, s.retry.label),
-        s.retry.push ? el("button", { class: "pbtn", type: "button", title: "한 번 더 굴림. 또 실패하면 대가가 따름", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
+        s.retry.push ? el("button", { class: "pbtn", type: "button", title: "한 번 더 굴린다. 또 실패하면 대가가 따른다", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
         s.retry.cost > 0 ? el("button", { class: "pbtn", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null,
-        el("button", { class: "pbtn", type: "button", title: "밀어붙이거나 행운을 쓰지 않음 (30초가 지나도 넘긴 것으로 봄)", on: { click: () => send({ t: "skipRetry" }) } }, "넘기기")));
+        el("button", { class: "pbtn", type: "button", title: "밀어붙이거나 행운을 쓰지 않는다 (30초가 지나도 넘긴 것으로 본다)", on: { click: () => send({ t: "skipRetry" }) } }, "넘기기")));
       // 내 차례 → (실패) → 아래 줄에 남의 차례 칩
       const others = [];
       for (const pc of [...pendingMe, ...pendingChecks.filter((x) => !isMine(x))]) {
@@ -13204,17 +13204,17 @@ const BannerArt = (() => {
           pb("연결 설정", (e) => { e.stopPropagation(); openExit(false); openHelp(false); openSound(true); $("#sndAi").open = true; })),
         styleNode,
         play && gm.undoable ? row(el("p", {}, "마지막 AI 서술 되돌리기", el("span", { class: "gn-meta" }, ` · ${gm.undoable}번까지`)),
-          pb("되돌리기", async () => (await paperAsk("마지막 AI 서술 직전으로 되돌릴까? 그 뒤 들어온 행동 · 판정도 함께 사라짐.")) && send({ t: "undoAI" }))) : null,
+          pb("되돌리기", async () => (await paperAsk("마지막 AI 서술 직전으로 되돌릴까? 그 뒤 들어온 행동 · 판정도 함께 사라진다.")) && send({ t: "undoAI" }))) : null,
         gm.aiNotes?.length ? fold(`AI 응답 점검 ${gm.aiNotes.length}`, gm.aiNotes.map((t) => el("li", {}, t)), "ul") : null)),
       sec("진행 전환", null, card("k-mode",
         row(el("p", {}, "GM 진행"), el("span", { class: "gn-seg", role: "group", "aria-label": "GM 진행" },
           ...[["ai", "AI GM"], ["human", "내가 GM"]].map(([m, t]) => el("button", { type: "button", class: s.mode === m ? "on" : "", "aria-pressed": String(s.mode === m),
             on: { click: () => s.mode !== m && send({ t: "setMode", mode: m }) } }, t)))),
         play ? emergencyBox() : null,
-        play ? row(el("p", {}, "시나리오 처음부터"), pb("다시", async () => (await paperAsk("시나리오를 처음부터 다시 할까? 캐릭터와 기록은 남고 체력 · 이성 · 행운 · 소지품은 처음으로.")) && send({ t: "reset" }))) : null)),
+        play ? row(el("p", {}, "시나리오 처음부터"), pb("다시", async () => (await paperAsk("시나리오를 처음부터 다시 할까? 캐릭터와 기록은 남고 체력 · 이성 · 행운 · 소지품은 처음으로 돌아간다.")) && send({ t: "reset" }))) : null)),
     ];
     if (!play) {
-      box.replaceChildren(head, el("div", { class: "gn-body", "data-tab": "lobby" }, el("p", { class: "gn-meta" }, "모험이 시작되면 장면 · NPC 비밀과 단서 버튼이 여기 표시됨."), ...aiTab));
+      box.replaceChildren(head, el("div", { class: "gn-body", "data-tab": "lobby" }, el("p", { class: "gn-meta" }, "모험이 시작되면 장면 · NPC 비밀과 단서 버튼이 여기 보인다."), ...aiTab));
       return;
     }
 
@@ -13230,7 +13230,7 @@ const BannerArt = (() => {
     let body;
     if (tab !== "ai" && hidden) {
       body = [card("k-cover", el("p", {}, "스포일러 가림 · 호스트도 플레이 중"),
-        el("p", { class: "gn-meta" }, "사건 목표 · NPC 비밀 · 단서 · 판정 난이도가 가려져 있음. 진행은 AI GM이 맡음."),
+        el("p", { class: "gn-meta" }, "사건 목표 · NPC 비밀 · 단서 · 판정 난이도가 가려져 있다. 진행은 AI GM이 맡는다."),
         el("div", {}, pb("비밀 보기", () => { app.gmSpoil = true; renderGM(app.snap); })))];
     } else if (tab === "scene") {
       body = [
@@ -13272,7 +13272,7 @@ const BannerArt = (() => {
               x.open ? pb("이동", () => send({ t: "move", to: x.to })) : null),
             el("button", { class: "gn-link", type: "button", on: { click: async () => (await paperAsk("조건을 무시하고 이동할까?")) && send({ t: "forceScene", to: x.to }) } }, "강제 이동"))),
           ...(gm.hiddenTiles ?? []).map((h) => card(`k-exit${h.revealed ? " done" : ""}`,
-            el("div", { class: "gn-row top" }, el("div", {}, el("div", { class: "gn-nm" }, `숨은 칸 · ${h.name}`), el("p", { class: "gn-meta" }, `(${h.x},${h.y}) · 플레이어에겐 '${h.disguise}'로 보임`)),
+            el("div", { class: "gn-row top" }, el("div", {}, el("div", { class: "gn-nm" }, `숨은 칸 · ${h.name}`), el("p", { class: "gn-meta" }, `(${h.x},${h.y}) · 플레이어에겐 '${h.disguise}'로 보인다`)),
               h.revealed ? el("span", { class: "gn-done" }, "공개됨") : pb("공개", () => send({ t: "revealTile", x: h.x, y: h.y }))))),
           card("k-plain",
             el("p", { class: "gn-meta mono" }, `플래그 · ${Object.entries(gm.flags).map(([k, v]) => `${k} ${v ? "켜짐" : "꺼짐"}`).join(" · ") || "없음"}`),
@@ -13293,7 +13293,7 @@ const BannerArt = (() => {
       };
       const emergency = el("details", { class: "gm-hints gm-emergency" },
         el("summary", {}, "긴급 개입"),
-        el("p", { class: "small muted" }, "진행 중인 사건만 변경합니다. 개입 시 진행 중인 AI 응답은 취소됩니다."),
+        el("p", { class: "small muted" }, "진행 중인 사건만 바꾼다. 개입하면 진행 중인 AI 응답은 취소된다."),
         el("div", { class: "gm-actions" },
           el("button", { class: "btn tiny", type: "button", on: { click: () => {
             const text = ask("플레이어에게 보일 GM 서술"); if (text) send({ t: "emergencyNarrate", text });
@@ -13324,7 +13324,7 @@ const BannerArt = (() => {
           } } }, "단서 추가/수정")),
         el("div", { class: "gm-actions" },
           ...Object.entries(gm.flags ?? {}).map(([id, value]) => el("button", { class: "btn tiny ghost", type: "button",
-            title: "클릭하면 플래그를 반대로 변경합니다", on: { click: () => send({ t: "emergencyEdit", kind: "flag", id, value: !value }) } },
+            title: "누르면 플래그를 반대로 바꾼다", on: { click: () => send({ t: "emergencyEdit", kind: "flag", id, value: !value }) } },
           `${id}: ${value ? "켜짐" : "꺼짐"}`))));
       emergency.open = emOpen;
       return emergency;
@@ -13335,7 +13335,7 @@ const BannerArt = (() => {
   function editPortrait(src) {
     return new Promise((resolve) => {
       const im = new Image();
-      im.onerror = () => { toast("그림을 읽을 수 없음."); resolve(null); };
+      im.onerror = () => { toast("그림을 읽을 수 없다."); resolve(null); };
       im.onload = () => {
         const FW = 224, FH = 264, OW = 112, OH = 132;   // 편집 틀 = 결과의 2배
         const iw = im.naturalWidth, ih = im.naturalHeight, s0 = Math.max(FW / iw, FH / ih);
@@ -13364,7 +13364,7 @@ const BannerArt = (() => {
           const k = OW / FW, sc = s0 * z * k;
           g.drawImage(im, x * k, y * k, iw * sc, ih * sc);
           for (const q of [.85, .72, .6]) { const out = c.toDataURL("image/jpeg", q); if (out.length <= 70_000) return close(out); }
-          toast("사진이 너무 큼."); close(null);
+          toast("사진이 너무 크다."); close(null);
         };
         dlg.append(el("div", { class: "pe-title" }, "사진 맞추기"), frame,
           el("div", { class: "pe-zoom" }, el("span", { "aria-hidden": "true" }, "－"), zoom, el("span", { "aria-hidden": "true" }, "＋")),
@@ -13392,9 +13392,9 @@ const BannerArt = (() => {
     e.preventDefault(); setPortraitFrom(f);
   });
   const readFileAsDataURL = (f) => new Promise((ok, no) => {
-    if (!f) return no(new Error("파일 없음."));
+    if (!f) return no(new Error("파일이 없다."));
     if (f.size > 15 * 1024 * 1024) return no(new Error("파일이 너무 큼 (15MB 이하)."));
-    const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => no(new Error("읽기 실패.")); r.readAsDataURL(f);
+    const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => no(new Error("읽지 못했다.")); r.readAsDataURL(f);
   });
   /** GM 노트: 장면 안 위치 (AI GM이 정한 새 장소) */
   function gmPlace(s) {
@@ -13697,7 +13697,7 @@ const BannerArt = (() => {
     try {
       await navigator.clipboard.writeText(link);
       btn.classList.add("copied");
-      setIcon(btn, "invite", "초대 링크 복사됨 · 붙여넣어 보내면 됨");
+      setIcon(btn, "invite", "초대 링크를 복사했다. 붙여넣어 보내면 된다.");
       clearTimeout(copiedTimer);
       copiedTimer = setTimeout(() => { btn.classList.remove("copied"); setIcon(btn, "invite", "초대 링크 복사"); }, 1800);
     } catch { prompt("이 링크를 친구에게 전송", link); }
@@ -13710,14 +13710,14 @@ const BannerArt = (() => {
         download(`trpg-세이브-${app.game.data.scenario.title}-${today()}.json`, { ...app.game.data, history });
       } catch {
         download(`trpg-최근세이브-${today()}.json`, app.game.data);
-        toast('장기 보관소 읽기 실패. 최근 세이브만 내보냄.');
+        toast('장기 보관소를 읽지 못했다. 최근 세이브만 내보낸다.');
       }
     } else {
       flushCopy();
       if (app.snap) {
         const copy=makeCopy();
         try {copy.history=WebFeatures.merge(await HistoryArchive.read(archiveScope()),copy.log,historyCuts);}
-        catch {copy.history=WebFeatures.merge(HistoryArchive.pending(archiveScope()),copy.log,historyCuts);toast('보관소 읽기 실패. 현재·대기 기록만 내보냄.');}
+        catch {copy.history=WebFeatures.merge(HistoryArchive.pending(archiveScope()),copy.log,historyCuts);toast('보관소를 읽지 못했다. 지금 기록과 대기 기록만 내보낸다.');}
         download(`trpg-내사본-${app.snap.scenario.title ?? app.room}-${today()}.json`,copy);
       }
     }
@@ -13751,7 +13751,7 @@ const BannerArt = (() => {
       n.addEventListener("change", () => { const v = { ...(LS.get("trpg:ice") ?? {}), [k]: n.value.trim() }; if (v.urls) LS.set("trpg:ice", v); else LS.del("trpg:ice"); });
       return el("label", { class: "field" }, el("span", {}, label), n); };
     return el("div", { class: "ai-grid" }, f("urls", "TURN 주소", "text", "turn:주소:3478"), f("username", "아이디"), f("credential", "비밀번호", "password"),
-      el("p", { class: "small muted" }, "다음 연결부터 적용."));
+      el("p", { class: "small muted" }, "다음 연결부터 적용된다."));
   }
   function openSound(open) {
     $("#soundPop").hidden = !open;
@@ -13769,8 +13769,8 @@ const BannerArt = (() => {
   $("#soundBtn").addEventListener("click", (e) => { e.stopPropagation(); openExit(false); openHelp(false); openSound($("#soundPop").hidden); });
   $("#soundPop").addEventListener("click", (e) => e.stopPropagation());
   async function copyRoomCode() {
-    if (!/^[a-z0-9]{10}$/.test(app.room ?? "")) return toast("현재 방 코드가 없음.");
-    try { await navigator.clipboard.writeText(app.room); toast("방 코드 복사됨."); }
+    if (!/^[a-z0-9]{10}$/.test(app.room ?? "")) return toast("지금 방 코드가 없다.");
+    try { await navigator.clipboard.writeText(app.room); toast("방 코드를 복사했다."); }
     catch { toast(`방 코드: ${app.room}`); }
   }
   $("#connLamp").addEventListener("click", copyRoomCode);

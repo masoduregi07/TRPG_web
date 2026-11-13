@@ -22,7 +22,7 @@ test("AI.call: 정상 응답", async () => {
 
 test("AI.call: fetch 실패만 연결 실패로", async () => {
   const { AI } = load({ fetch: async () => { throw new TypeError("Failed to fetch"); } });
-  await assert.rejects(AI.call(cfg, msgs), (e) => e.network === true && /연결 실패/.test(e.message));
+  await assert.rejects(AI.call(cfg, msgs), (e) => e.network === true && /연결하지 못했다/.test(e.message));
 });
 
 test("AI.call: JSON 아닌 응답", async () => {
