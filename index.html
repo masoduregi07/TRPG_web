@@ -2549,9 +2549,9 @@ html.has-3d .topbar { box-shadow: none; }
 .inv-sub { margin: 2px 0 10px; text-align: center; font: 11px/1.4 "Galmuri9", var(--font); color: #7a5a3a; }
 .inv-row { display: grid; grid-template-columns: 70px 1fr; align-items: center; min-height: 38px; cursor: text; }
 .inv-row > span { font: 12.5px/1.4 var(--font); }
-.inv-row input { height: 30px; padding: 0 4px; border: 0; border-bottom: 1px solid #1e1610; border-radius: 0; box-shadow: none; background: transparent; font: 15px/1.4 "Galmuri9", var(--font); color: #8e2438; }
-.inv-row input::placeholder { color: #cfa8b0; }
-.inv-row input:focus { outline: 0; box-shadow: inset 0 -2px 0 #1e1610; }
+.inv-row input, .inv-fld input { height: 30px; padding: 0 4px; border: 0; border-bottom: 1px solid #1e1610; border-radius: 0; box-shadow: none; background: transparent; font: 15px/1.4 "Galmuri9", var(--font); color: #8e2438; }
+.inv-row input::placeholder, .inv-fld input::placeholder { color: #cfa8b0; }
+.inv-row input:focus, .inv-fld input:focus { outline: 0; box-shadow: inset 0 -2px 0 #1e1610; }
 .inv .lend { margin: 8px 0 6px; }
 .inv .error { min-height: 0; margin: 4px 0 0; }
 @media (prefers-reduced-motion: reduce) { .inv-wrap.out .inv, .inv-wrap.back .inv { animation: none; } .inv-wrap { transition: none; } }
@@ -2566,14 +2566,18 @@ html.has-3d .topbar { box-shadow: none; }
 .lend .r.in > span:not(:first-child) { clip-path: inset(0 100% 0 0); animation: lend-write .5s steps(8) var(--d, 0s) forwards; }
 @keyframes lend-write { to { clip-path: inset(0 0 0 0); } }
 @media (prefers-reduced-motion: reduce) { .lend .r.in > span:not(:first-child) { animation: none; clip-path: none; } }
-/* 닉네임 줄 끝 서명 "참가하기": 누르면 붓선이 다시 그어지며 와인색 → 0.38초 뒤 입장 */
-.inv-name { display: flex; align-items: center; gap: 16px; min-width: 0; }
-.inv-name input { flex: 1; min-width: 0; }
-.inv-sig { position: relative; flex: none; display: grid; place-items: center; height: 30px; padding: 0 6px; border: 0; background: none; box-shadow: none; cursor: pointer; font: 19px/1 "Galmuri14", var(--font); color: #1e1610; transform: skewX(-14deg) rotate(-4deg); }
-.inv-sig svg { position: absolute; left: -2px; right: -2px; bottom: -2px; width: calc(100% + 4px); height: 10px; overflow: visible; }
+/* 아래 줄 = 서명란: 왼쪽 닉네임 기입선 · 오른쪽 "서명" 점선 칸 안의 기울인 "참가하기". 누르면 붓선이 다시 그어지며 와인색 → 0.38초 뒤 입장 */
+.inv-foot { display: grid; grid-template-columns: 1fr 132px; align-items: end; gap: 16px; margin-top: 12px; }
+.inv-fld { display: grid; gap: 4px; min-width: 0; }
+.inv-k { font: 11px/1.4 var(--font); color: #7a5a3a; }
+.inv-fld input { height: 40px; }   /* 서명 칸과 같은 높이 → 두 라벨 · 밑선이 한 줄에 */
+.inv-sig { display: grid; place-items: center; height: 40px; padding: 0; border: 0; cursor: pointer; background: none; color: #1e1610;
+  box-shadow: inset 0 0 0 1px rgba(30, 22, 16, .55); outline: 1px dashed rgba(30, 22, 16, .6); outline-offset: -4px; }
+.inv-sig b { position: relative; font: 19px/1 "Galmuri14", var(--font); font-weight: 400; transform: skewX(-14deg) rotate(-4deg); }
+.inv-sig svg { position: absolute; left: -4px; right: -4px; bottom: -6px; width: calc(100% + 8px); height: 10px; overflow: visible; }
 .inv-sig path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; vector-effect: non-scaling-stroke; stroke-dasharray: 1; }
-.inv-sig:hover, .inv-sig:focus-visible, .inv-sig.stamped { color: #8e2438; outline: 0; }
-.inv-sig:focus-visible { text-decoration: underline dotted 1px; text-underline-offset: 4px; }
+.inv-sig:hover, .inv-sig:focus-visible, .inv-sig.stamped { color: #8e2438; background: rgba(142, 36, 56, .06); }
+.inv-sig:focus-visible { box-shadow: inset 0 0 0 2px #8e2438; }
 .inv-sig.stamped path { animation: inv-sign .3s ease-out; }
 @keyframes inv-sign { from { stroke-dashoffset: 1; } }
 @media (prefers-reduced-motion: reduce) { .inv-sig.stamped path { animation: none; } }
@@ -2687,7 +2691,10 @@ html.has-3d .topbar { box-shadow: none; }
           <div class="r h"><span>No</span><span>플레이어</span><span>캐릭터</span></div>
           <div id="joinRows"></div>
         </div>
-        <div class="inv-row"><span>닉네임</span><span class="inv-name"><input id="bkJoinName" maxlength="16" placeholder="이름을 적어 주세요" autocomplete="nickname" /><button id="joinLinkBtn" class="inv-sig" type="button">참가하기<svg viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M2 9 C 20 3, 40 13, 62 7 S 100 2, 118 8" /></svg></button></span></div>
+        <div class="inv-foot">
+          <label class="inv-fld"><span class="inv-k">닉네임</span><input id="bkJoinName" maxlength="16" placeholder="이름을 적어 주세요" autocomplete="nickname" /></label>
+          <div class="inv-fld"><span class="inv-k" aria-hidden="true">서명</span><button id="joinLinkBtn" class="inv-sig" type="button"><b>참가하기<svg viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M2 9 C 20 3, 40 13, 62 7 S 100 2, 118 8" /></svg></b></button></div>
+        </div>
         <p id="inviteError" class="error" role="alert"></p>
       </div>
     </div>
