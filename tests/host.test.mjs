@@ -428,6 +428,25 @@ test("밀어붙이기 대기: 30초 지나면 넘긴 것으로 보고 서술 · 
   clearTimeout(t.g.ai.hold); t.stop();
 });
 
+test("[넘기기] · [지금 진행]: 밀어붙이기 대기를 끝내고 바로 서술", async () => {
+  let calls = 0;
+  const t = aiTable(async () => { calls++; return JSON.stringify({ narration: "창틀에서 미끄러짐." }); });
+  const pid = t.seat("c1", KEY, "가", "한서");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  failUntilRetry(t, pid, "c1");
+  t.g.rate.clear(); t.g.onMessage("c1", { t: "skipRetry" });
+  assert.equal(t.data.game.retries[pid], undefined, "넘기면 기회 끝");
+  // 다시 실패 → 대기 중에 [지금 진행]
+  t.g.invalidateAI(); t.g.rate.clear();
+  failUntilRetry(t, pid, "c1");
+  t.stop(); await t.g.runAI();
+  assert.ok(t.g.ai.hold);
+  t.g.rate.clear(); t.g.onMessage("c1", { t: "aiNow" });
+  assert.equal(t.g.ai.hold, null);
+  assert.equal(Object.keys(t.data.game.retries).length, 0);
+  clearTimeout(t.g.ai.timer); t.g.ai.timer = null;
+});
+
 test("밀어붙이기 기회는 사람마다: 남이 굴려도 내 기회는 남고, 같은 판정을 남이 성공하면 끝", () => {
   const t = aiTable(async () => "{}");
   const a = t.seat("c1", KEY, "가", "한서"), b = t.seat("c2", KEY2, "나", "도윤");

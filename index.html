@@ -6552,6 +6552,13 @@ class HostGame {
         this.resolveCheck(pid, spec, check, gmOnly);
         return;
       }
+      case "skipRetry": {
+        // [넘기기]: 밀어붙이기 · 행운을 안 씀 → 내 기회 끝, AI GM은 기다리지 않고 진행
+        if (!play || !this.retries()[pid]) return;
+        delete this.retries()[pid];
+        this.pushAll(); this.queueAI();
+        return;
+      }
       case "push": case "luck": {
         // CoC: 실패한 판정을 밀어붙이거나 (한 번 더, 또 실패하면 대가) 행운을 써서 성공으로
         const r = play ? this.retries()[pid] : null;
@@ -6575,8 +6582,10 @@ class HostGame {
         return;
       }
       case "aiNow": {
-        // 행동 모으는 중이면 기다리지 않고 바로 GM 차례
-        if (play && d.mode === "ai" && this.ai.timer && (p.ready || host)) this.queueAI(true);
+        // 행동 모으는 중이면 기다리지 않고 바로 GM 차례. 밀어붙이기 · 행운 결정을 기다리는 중이면 그 대기도 끊음(모두 넘긴 것으로)
+        if (!play || d.mode !== "ai" || !(p.ready || host)) return;
+        if (this.ai.hold) { clearTimeout(this.ai.hold); this.ai.hold = null; d.game.retries = {}; this.pushAll(); this.queueAI(true); return; }
+        if (this.ai.timer) this.queueAI(true);
         return;
       }
       case "move": {
@@ -12904,7 +12913,8 @@ const BannerArt = (() => {
       const tips = [], fail = [];
       if (s.retry) fail.push(el("div", { class: "ck-tip fail" }, el("span", { class: "ck-k" }, "실패"), el("b", {}, s.retry.label),
         s.retry.push ? el("button", { class: "pbtn", type: "button", title: "한 번 더 굴림. 또 실패하면 대가가 따름", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
-        s.retry.cost > 0 ? el("button", { class: "pbtn", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null));
+        s.retry.cost > 0 ? el("button", { class: "pbtn", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null,
+        el("button", { class: "pbtn", type: "button", title: "밀어붙이거나 행운을 쓰지 않음 (30초가 지나도 넘긴 것으로 봄)", on: { click: () => send({ t: "skipRetry" }) } }, "넘기기")));
       // 한 줄로: 내 차례 → (실패) → 남의 차례
       for (const pc of [...pendingMe, ...pendingChecks.filter((x) => !isMine(x))]) {
         const mine = isMine(pc);
