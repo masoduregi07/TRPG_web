@@ -1983,22 +1983,39 @@ html.has-3d .topbar { box-shadow: none; }
 /* 판정 알림(D2): 크림 말풍선 + 남색 2px 테 + 입력칸을 가리키는 꼬리. 다른 사람 차례 = 갈색, 실패 후 선택 = 붉은색 */
 /* 기록 칸 위쪽에 떠 있음(자리 차지 안 함, 최근 기록이 있는 아래쪽은 안 가림): 한 줄 */
 .ck-tips { position: absolute; z-index: 6; left: calc(var(--cover) + 48px); right: calc(var(--cover) + 44px); top: calc(var(--cover) + 12px);
-  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 12px; pointer-events: none; }
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; pointer-events: none; }
 .ck-tips[hidden] { display: none; }
-.ck-tip { --c: #2a3550; position: relative; display: flex; align-items: center; gap: 9px; max-width: 100%; pointer-events: auto; padding: 6px 6px 6px 10px;
-  font-family: var(--font); color: #2a2018; background: #f4ecd8; box-shadow: 0 0 0 2px var(--c), 3px 4px 0 2px rgba(0, 0, 0, .28); animation: ck-in .22s ease-out; }
-.ck-tip.wait { --c: #7a6548; }
+/* 판정 알림 = 끈 달린 종이 꼬리표(A): 왼쪽 뾰족 + 끈 구멍 + 끈, 아래 2px 색 줄. 색 = 내 차례 짙은 갈색 · 실패 붉은색 · 남의 차례 회갈.
+   라벨(판정 · 즉흥 · 이성 · 실패) = 같은 색으로 칠한 칸 + 크림 굵은 글씨. [굴림] = 같은 색 칠한 종이 박스 */
+.ck-tip { --c: #4a3220; position: relative; display: flex; align-items: center; gap: 8px; max-width: 100%; pointer-events: auto; padding: 6px 8px 6px 26px;
+  font-family: var(--font); color: #2a2018; background: linear-gradient(var(--c), var(--c)) 0 100% / 100% 2px no-repeat, #f6edd6;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%, -20px 50%); animation: ck-in .22s ease-out; }
+.ck-tip::before { content: ""; position: absolute; left: 10px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #efe3c4; box-shadow: inset 0 0 0 1px rgba(90, 65, 40, .55); }
+.ck-tip::after { content: ""; position: absolute; left: -10px; top: 50%; width: 22px; height: 1.5px; background: #8a6a44; transform: rotate(-18deg); transform-origin: right; }
+.ck-tip.wait { --c: #8a7a62; }
 .ck-tip.fail { --c: #a5321e; }
-.ck-k { flex: none; padding: 1px 6px 0; font-size: 11px; color: #f4ecd8; background: var(--c); }
+/* 실패 꼬리표: 아래 색 줄이 남은 결정 시간만큼 줄어듦 (다 줄면 넘긴 것으로) */
+.ck-tip.fail { background: linear-gradient(var(--c), var(--c)) 0 100% / 100% 2px no-repeat, linear-gradient(rgba(165, 50, 30, .22), rgba(165, 50, 30, .22)) 0 100% / 100% 2px no-repeat, #f6edd6;
+  animation: ck-in .22s ease-out, ck-drain var(--dur, 30s) linear forwards; }
+@keyframes ck-drain { to { background-size: 0 2px, 100% 2px, auto; } }
+.ck-k { flex: none; padding: 1px 6px 0; font-size: 12px; font-weight: 700; color: #f6edd6; background: var(--c); }
 .ck-tip b { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 15px; font-weight: 400; }
 .ck-tip .ck-t { flex: none; font-size: 12px; color: #553a23; white-space: nowrap; }
-.ck-tip .pbtn { flex: none; gap: 5px; padding: 3px 9px; }
+.ck-tip .pbtn { flex: none; gap: 4px; padding: 3px 9px; }
 .ck-tip .pbtn .ic-svg { width: 16px; height: 16px; }
-.ck-tip .pbtn.navy { color: #f4ecd8; background: #2a3550; box-shadow: inset 0 0 0 1px #1a2238, 1px 1px 0 rgba(60, 40, 20, .3); }
-.ck-tip .pbtn.navy:hover, .ck-tip .pbtn.navy:focus-visible { background: #3a4a70; }
+.ck-tip .pbtn.go { color: #f6edd6; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .35), 1px 1px 0 rgba(60, 40, 20, .3); }
+.ck-tip .pbtn.go:hover, .ck-tip .pbtn.go:focus-visible { background: #6b4a30; }
 .ck-tip.flash { animation: ck-flash .9s; }
+/* 남의 차례(M1) = 내 꼬리표 아래 줄의 작은 점선 칩: 플레이어 색 점 + 플레이어 색 이름, 칩 사이 8px */
+.ck-others { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+.ck-tip.wait { clip-path: none; gap: 6px; padding: 3px 8px; background: #f6edd6; box-shadow: inset 0 0 0 1px rgba(90, 65, 40, .35); }
+.ck-tip.wait::before { position: static; flex: none; margin: 0; width: 8px; height: 8px; background: var(--pc); box-shadow: none; }
+.ck-tip.wait::after { display: none; }
+.ck-tip.wait .ck-k { padding: 0; font-size: 12px; color: #8a7a62; background: none; }
+.ck-tip.wait b { font-size: 12px; color: #5a4630; }
+.ck-tip.wait .ck-who { font-weight: 700; color: var(--pc); }
 @keyframes ck-in { from { opacity: 0; transform: translateY(8px); } }
-@keyframes ck-flash { 30% { box-shadow: 0 0 0 4px var(--c), 3px 4px 0 2px rgba(0, 0, 0, .28); } }
+@keyframes ck-flash { 30% { filter: brightness(1.15); } }
 @media (prefers-reduced-motion: reduce) { .ck-tip, .ck-tip.flash { animation: none; } }
 .ho-float.top { z-index: 96; }
 .ho-float { position: fixed; z-index: 95; left: 40px; top: 80px; min-width: 120px; min-height: 80px; max-width: 92vw; max-height: 88vh; overflow: hidden; cursor: move;
@@ -5559,6 +5576,7 @@ function randomId(len = 10) {
 }
 
 class HostGame {
+  static get RETRY_WAIT() { return globalThis.TRPG_RETRY_WAIT_MS ?? 30000; }   // 실패 뒤 밀어붙이기 · 행운 결정 대기 (ms)
   constructor(data, opts) {
     this.data = data;
     Engine.ensureKpc(data.scenario);
@@ -5574,6 +5592,7 @@ class HostGame {
       data.game.aiCursor = [...(data.log ?? [])].reverse().find((e) => e.kind === "ai")?.seq ?? 0;
     }
     Engine.pendingList(data.game); // 구 버전 단일 판정 복원
+    if (data.game) { const g = data.game; g.retries ??= {}; if (g.retry) { if (g.retry.pid) g.retries[g.retry.pid] = { at: Date.now(), ...g.retry }; delete g.retry; } }
     this.archiveEntry = opts.archiveEntry ?? (() => {});
     this.readHistory = opts.readHistory ?? (async () => this.data.log);
     this.data.historyCuts ??= [];
@@ -5779,6 +5798,30 @@ class HostGame {
     return p.character && p.ready ? p.character.name : p.name;
   }
   save() { this.data.savedAt = Date.now(); this.onSave(this.data); }
+  /** 실패 뒤 밀어붙이기 · 행운 기회 = 사람마다 따로 (game.retries[pid]). 예전 저장본의 하나짜리 game.retry는 옮겨 담음 */
+  retries() {
+    const g = this.data.game;
+    g.retries ??= {};
+    if (g.retry) { if (g.retry.pid) g.retries[g.retry.pid] = { at: Date.now(), ...g.retry }; delete g.retry; }
+    if (!Object.keys(g.retries).length) delete g.retryFrom;   // 대기 창은 기회가 남아 있는 동안만
+    return g.retries;
+  }
+  dropRetriesFor(checkId) { const rs = this.retries(); for (const [pid, r] of Object.entries(rs)) if (r.checkId === checkId) delete rs[pid]; }
+  /** 기회가 끝나는 시각: 대기 창 하나(game.retryFrom = 이번 차례 첫 실패)로 모두 함께 끝남 → 실패가 이어져도 대기가 늘지 않음 */
+  retryEnd(r) { return (this.data.game.retryFrom ?? r.at ?? 0) + HostGame.RETRY_WAIT; }
+  /** AI GM은 실패한 사람이 밀어붙이기 · 행운을 고를 때까지(최대 RETRY_WAIT) 서술을 미룸.
+   *  남은 대기 ms를 돌려줌(0 = 기다릴 것 없음). 시간이 지난 기회는 넘긴 것으로 보고 지움. 접속이 끊긴 사람은 기다리지 않음(기회는 남김) */
+  retryHold() {
+    const rs = this.retries(), now = Date.now();
+    let wait = 0, dropped = false;
+    for (const [pid, r] of Object.entries(rs)) {
+      const left = this.retryEnd(r) - now;
+      if (left <= 0) { delete rs[pid]; dropped = true; continue; }
+      if (this.online(pid)) wait = Math.max(wait, left);
+    }
+    if (dropped) { this.save(); this.pushAll(); }
+    return wait;
+  }
 
   emit(pid, msg) {
     if (this.isHost(pid)) return this.onLocal(msg);
@@ -5812,7 +5855,7 @@ class HostGame {
     const g = this.data.game;
     g.place = null;   // 사건이 바뀌면 사건 본래 장소로
     g.offTrack = 0;
-    g.retry = null;   // 사건이 바뀌면 밀어붙이기 · 행운 기회 끝
+    g.retries = {}; delete g.retry;   // 사건이 바뀌면 밀어붙이기 · 행운 기회 끝 (모두)
     Maps.enterScene(g);
     this.syncTokens();
     const s = Engine.sceneOf(this.sc, g);
@@ -6039,8 +6082,10 @@ class HostGame {
     // 실패 뒤 기회: 밀어붙이기 (한 번 · 대실패 · 사건 이동 제외) / 행운 쓰기 (모자란 만큼, 행운 · 이성 판정 제외)
     if (!r.ok && c && !pushed && r.lv.code !== "fumble" && !res?.moved) {
       const luckCost = Rules.isLuck(spec.skill) ? 0 : r.roll.value - r.thr;
-      d.game.retry = { pid, spec, checkId: check?.id ?? null, rollId: rollE.id, pushable: true, luckCost: luckCost > 0 && luckCost <= c.luck ? luckCost : 0 };
+      const rs = this.retries(); if (!Object.keys(rs).length) d.game.retryFrom = Date.now();   // 이번 차례 첫 실패부터 대기 창 시작
+      rs[pid] = { pid, spec, checkId: check?.id ?? null, rollId: rollE.id, pushable: true, luckCost: luckCost > 0 && luckCost <= c.luck ? luckCost : 0, at: Date.now() };
     }
+    if (r.ok && check?.id && !check.san) this.dropRetriesFor(check.id);   // 같은 판정을 누가 해결했으면 다른 사람의 다시 굴릴 이유도 끝
     this.pushAll(); this.queueAI();
   }
   /** 즉흥 판정 요청: 능력치 목록 안의 기능만, 난이도는 범위 안으로 */
@@ -6149,7 +6194,7 @@ class HostGame {
       lobbyChat: d.phase === "lobby" ? (d.lobbyChat ?? []).slice(-60) : [],
       system: "coc7",
       myRoll: d.players[pid]?.cocRoll ? { ...d.players[pid].cocRoll } : null,   // CoC: 호스트가 굴린 내 특성치 · 행운
-      retry: d.game?.retry?.pid === pid ? { label: d.game.retry.spec.label, cost: d.game.retry.luckCost, luck: d.players[pid]?.character?.luck ?? 0, push: !!d.game.retry.pushable } : null,
+      retry: ((r) => r ? { label: r.spec.label, cost: r.luckCost, luck: d.players[pid]?.character?.luck ?? 0, push: !!r.pushable, left: Math.max(0, this.retryEnd(r) - Date.now()) } : null)(d.game ? this.retries()[pid] : null),
       players: Object.entries(d.players).map(([id, p]) => ({
         pid: id, name: p.name, isHost: !!p.isHost, online: this.online(id), ready: !!p.ready,
         character: p.character && id !== pid && !this.isHost(pid) ? (({ goal, secret, ...c }) => c)(p.character) : p.character,   // 남의 목표·비밀은 안 보냄
@@ -6514,7 +6559,8 @@ class HostGame {
         if (check && !gmOnly && !Engine.canTryCheck(d.game, check.id, pid, !!check.san) && !pc)
           return this.notice(pid, "이미 시도했거나 성공해 해결된 판정. 다른 캐릭터의 시도를 기다리세요.");
         // 요청된 판정은 그 주인만 굴림 (주인이 접속해 있지 않으면 누구나)
-        d.game.retry = null;
+        // 새로 굴리면 내 밀어붙이기 · 행운 기회는 끝. AI GM은 사람마다 따로라 남의 기회는 그대로, 사람 GM은 예전처럼 모두 끝
+        if (d.mode === "ai") delete this.retries()[pid]; else d.game.retries = {};
         if (pc) Engine.takePending(d.game, checkId, pid, (who) => this.online(who));
         const spec = improv
           ? { label: pc.label, skill: pc.skill, difficulty: pc.improv.difficulty, dice: pc.improv.dice, san: pc.improv.san, improv: true }
@@ -6522,13 +6568,20 @@ class HostGame {
         this.resolveCheck(pid, spec, check, gmOnly);
         return;
       }
+      case "skipRetry": {
+        // [넘기기]: 밀어붙이기 · 행운을 안 씀 → 내 기회 끝, AI GM은 기다리지 않고 진행
+        if (!play || !this.retries()[pid]) return;
+        delete this.retries()[pid];
+        this.pushAll(); this.queueAI();
+        return;
+      }
       case "push": case "luck": {
         // CoC: 실패한 판정을 밀어붙이거나 (한 번 더, 또 실패하면 대가) 행운을 써서 성공으로
-        const r = d.game?.retry;
-        if (!play || !r || r.pid !== pid) return;
+        const r = play ? this.retries()[pid] : null;
+        if (!r) return;
         const check = r.checkId ? Engine.findCheck(this.sc, d.game, r.checkId) : null;
-        if (r.checkId && !check) { d.game.retry = null; return this.pushAll(); }
-        d.game.retry = null;
+        delete this.retries()[pid];
+        if (r.checkId && (!check || (!check.san && d.game.passedChecks?.includes(r.checkId)))) { this.notice(pid, "이미 해결된 판정."); return this.pushAll(); }
         const c = p.character;
         if (msg.t === "push") {
           if (!r.pushable) return;
@@ -6539,14 +6592,16 @@ class HostGame {
         if (!(r.luckCost > 0) || c.luck < r.luckCost) return this.notice(pid, "행운 부족.");
         c.luck -= r.luckCost;
         this.addLog({ kind: "system", text: `${c.name}: 행운 ${r.luckCost} 사용 → ${r.spec.label} 성공 (남은 행운 ${c.luck})`, ...(r.rollId ? { luckFor: r.rollId, luckCost: r.luckCost } : {}) });
-        if (check) this.applyCheckResult(pid, check, true, false);
+        if (check) { this.applyCheckResult(pid, check, true, false); if (!check.san) this.dropRetriesFor(check.id); }
         this.pushAll();
         this.queueAI();
         return;
       }
       case "aiNow": {
-        // 행동 모으는 중이면 기다리지 않고 바로 GM 차례
-        if (play && d.mode === "ai" && this.ai.timer && (p.ready || host)) this.queueAI(true);
+        // 행동 모으는 중이면 기다리지 않고 바로 GM 차례. 밀어붙이기 · 행운 결정을 기다리는 중이면 그 대기도 끊음(모두 넘긴 것으로)
+        if (!play || d.mode !== "ai" || !(p.ready || host)) return;
+        if (this.ai.hold) { clearTimeout(this.ai.hold); this.ai.hold = null; d.game.retries = {}; this.pushAll(); this.queueAI(true); return; }
+        if (this.ai.timer) this.queueAI(true);
         return;
       }
       case "move": {
@@ -7097,7 +7152,7 @@ class HostGame {
       const targetScene = plan.move && this.sc.scenes[plan.move] ? plan.move : d.game.currentScene;
       Engine.registerNpc(this.sc, targetScene, npc);
     }
-    d.game.retry = null;   // GM이 결과를 서술했으면 밀어붙이기 · 행운 기회 끝
+    d.game.retries = {};   // GM이 결과를 서술했으면 밀어붙이기 · 행운 기회 끝 (모두)
     const clue = plan.clue ? Engine.revealClue(this.sc, d.game, plan.clue) : null;
     // 바로 앞 서술 · 답변에 단서 글이 이미 거의 다 나왔으면(두 글자 조각 60% 이상) 기록에선 한 줄로 접음(told)
     const told = () => clue && Turn.shows([plan.narration, plan.arrival, ...(plan.answers ?? []).map((a) => a.text)].filter(Boolean).join(" "), clue.text) >= .6;
@@ -7222,6 +7277,15 @@ class HostGame {
       }
       return;
     }
+    // 실패한 사람이 밀어붙이기 · 행운을 고르는 중이면 서술을 미룸 (AI 요청 자체를 시작하지 않음 → 응답 버리기 · 재요청 줄임)
+    const hold = this.retryHold();
+    if (hold > 0) {
+      if (!this.ai.hold) this.broadcast({ t: "gather", ms: hold });
+      clearTimeout(this.ai.hold);
+      this.ai.hold = setTimeout(() => { this.ai.hold = null; this.runAI(); }, Math.min(hold, 1000) + 20);   // 1초마다 다시 봄 (접속 끊김 · 결정)
+      return;
+    }
+    clearTimeout(this.ai.hold); this.ai.hold = null;
     this.ai.busy = true;
     this.broadcast({ t: "board", rows: [] });
     const controller = new AbortController();
@@ -7229,7 +7293,7 @@ class HostGame {
     const epoch = this.ai.epoch, game = this.data.game, scene = game.currentScene;
     let context, batchEndSeq;
     // 판정 결과가 상태를 바꿨는지 (AI가 생각하는 동안 굴림 · 행운 사용). 글 입력은 다음 차례로 넘어가므로 셈하지 않음
-    const rollSig = () => JSON.stringify([game.passedChecks, game.triedChecks, game.revealedClues.length, game.flags, Engine.pendingList(game).map((p) => p.checkId), game.retry?.rollId ?? null]);
+    const rollSig = () => JSON.stringify([game.passedChecks, game.triedChecks, game.revealedClues.length, game.flags, Engine.pendingList(game).map((p) => p.checkId), Object.values(game.retries ?? {}).map((r) => r.rollId)]);
     const sig0 = rollSig();
     const stale = () => controller.signal.aborted || epoch !== this.ai.epoch ||
       this.data.game !== game || game.currentScene !== scene || game.result ||
@@ -10353,7 +10417,7 @@ const BannerArt = (() => {
     app.game.sendInit(data.hostPid);
     app.net = Net.startHost(room, { getGame: () => app.game, onStatus: setStatus });
     // 호스트 새로고침/복귀 시: 처리되지 않은 행동·질문이 남아 있으면 AI 차례를 다시 예약
-    if (data.mode === "ai" && data.phase === "play" && app.game.sinceAI().some((e) => e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc))) {
+    if (data.mode === "ai" && data.phase === "play" && (app.game.sinceAI().some((e) => e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc)) || Object.keys(app.game.retries()).length)) {
       app.game.queueAI();
     }
     flushHostSave();
@@ -10912,6 +10976,12 @@ const BannerArt = (() => {
     updateScrollArrows();
     updateRail();
   }
+  /* 판정 알림이 떠 있는 동안만 기록 칸 위쪽을 알림 높이만큼 비움 (서술을 가리지 않게) */
+  new ResizeObserver(() => {
+    const h = $("#ckTips").hidden ? 0 : $("#ckTips").offsetHeight;
+    const m = h ? `calc(var(--cover) + ${h + 12}px)` : "";
+    if (logBox.style.marginTop !== m) keepBottom(() => { logBox.style.marginTop = m; updateRail(); });
+  }).observe($("#ckTips"));
   /* 책갈피 리본 스크롤바: 손잡이 최소 64px, 끌기 · 레일 누르면 그 자리로 */
   const rail = $("#logRail"), thumb = rail.firstElementChild;
   let railGeo = "";
@@ -12847,7 +12917,9 @@ const BannerArt = (() => {
     const pendingChecks = Array.isArray(v.pendingChecks) ? v.pendingChecks : (v.pendingCheck ? [v.pendingCheck] : []);
     const isMine = (pc) => !pc.who || !s.players.find((x) => x.pid === pc.who)?.online || pc.who === s.me;
     const pendingMe = pendingChecks.filter(isMine);
-    if (changed("checks", v.checks, pendingChecks, s.retry, s.system, gmOnly, myChar, pendingMe.length, v.scene?.ending, !!s.result, app.endHidden, s.isHost)) {
+    const rk = s.retry ? `${s.retry.label}|${s.retry.cost}|${s.retry.push}` : null;   // 남은 시간은 같은 기회면 처음 받은 값으로 (스냅샷마다 다시 그리지 않음)
+    if (rk !== app.retryKey) { app.retryKey = rk; app.retryEnd = rk ? Date.now() + (s.retry.left ?? 30000) : 0; }
+    if (changed("checks", v.checks, pendingChecks, rk, s.system, gmOnly, myChar, pendingMe.length, v.scene?.ending, !!s.result, app.endHidden, s.isHost)) {
       const pb = $("#pendingBox");
       const parts = [];
       // 내가 굴릴 새 판정이 오면 작은 손종
@@ -12863,18 +12935,21 @@ const BannerArt = (() => {
       pb.replaceChildren(...parts);
       // 판정 알림: 대기 판정 · 방금 실패한 판정(밀어붙이기 · 행운)을 입력칸 위 말풍선으로. 굴리거나 GM이 서술하면 사라짐
       const tips = [], fail = [];
-      if (s.retry) fail.push(el("div", { class: "ck-tip fail" }, el("span", { class: "ck-k" }, "실패"), el("b", {}, s.retry.label),
+      if (s.retry) fail.push(el("div", { class: "ck-tip fail", style: `--dur:${Math.max(0, app.retryEnd - Date.now())}ms` }, el("span", { class: "ck-k" }, "실패"), el("b", {}, s.retry.label),
         s.retry.push ? el("button", { class: "pbtn", type: "button", title: "한 번 더 굴림. 또 실패하면 대가가 따름", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
-        s.retry.cost > 0 ? el("button", { class: "pbtn", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null));
-      // 한 줄로: 내 차례 → (실패) → 남의 차례
+        s.retry.cost > 0 ? el("button", { class: "pbtn", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null,
+        el("button", { class: "pbtn", type: "button", title: "밀어붙이거나 행운을 쓰지 않음 (30초가 지나도 넘긴 것으로 봄)", on: { click: () => send({ t: "skipRetry" }) } }, "넘기기")));
+      // 내 차례 → (실패) → 아래 줄에 남의 차례 칩
+      const others = [];
       for (const pc of [...pendingMe, ...pendingChecks.filter((x) => !isMine(x))]) {
         const mine = isMine(pc);
-        tips.push(el("div", { class: `ck-tip${mine ? "" : " wait"}`, "data-label": pc.label },
+        (mine ? tips : others).push(el("div", { class: `ck-tip${mine ? "" : " wait"}`, "data-label": pc.label, style: mine ? null : `--pc:${pc.who ? spineOf(pc.who) : "#8a7a62"}` },
           el("span", { class: "ck-k" }, pc.san ? "이성" : pc.improv ? "즉흥" : "판정"), el("b", {}, pc.label),
-          mine ? el("span", { class: "ck-t" }, [pc.skill || pc.san ? tagOf(pc) : "", pc.whoName && pc.who !== s.me ? pc.whoName : ""].filter(Boolean).join(" · ")) : el("span", { class: "ck-t" }, `${pc.whoName} 차례`),
-          mine ? el("button", { class: "pbtn navy", type: "button", on: { click: () => send({ t: "check", checkId: pc.checkId }) } }, iconSvg("die_line"), "굴리기") : null));
+          mine ? el("span", { class: "ck-t" }, [pc.skill || pc.san ? tagOf(pc) : "", pc.whoName && pc.who !== s.me ? pc.whoName : ""].filter(Boolean).join(" · ")) : el("span", { class: "ck-t" }, el("span", { class: "ck-who" }, pc.whoName), " 차례"),
+          mine ? el("button", { class: "pbtn go", type: "button", on: { click: () => send({ t: "check", checkId: pc.checkId }) } }, iconSvg("die_line"), "굴림") : null));
       }
-      tips.splice(pendingMe.length, 0, ...fail);
+      tips.push(...fail);
+      if (others.length) tips.push(el("div", { class: "ck-others" }, ...others));
       const box = $("#ckTips"); box.hidden = !tips.length; box.replaceChildren(...tips);
       if (s.retry) helpOnce(s.retry.push ? ["push", ...(s.retry.cost > 0 ? ["luck"] : [])] : ["luck"]);   // 처음 실패했을 때 밀어붙이기 · 행운 쪽지
     }

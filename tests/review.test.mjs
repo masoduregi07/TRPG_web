@@ -112,7 +112,7 @@ test("모델 이름 오류면 사용 가능한 모델을 알려 줌", async () =
 });
 
 test("AI 응답 대기 중 판정이 끝나면 그 응답은 버리고 다시 요청", async () => {
-  const m = load({ TRPG_AI_WAIT_MS: 5 });
+  const m = load({ TRPG_AI_WAIT_MS: 5, TRPG_RETRY_WAIT_MS: 5 });   // 실패해도 밀어붙이기 대기는 짧게
   const sc = sample(m); m.Engine.validateScenario(sc);
   const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
   let calls = 0, roll = null;
