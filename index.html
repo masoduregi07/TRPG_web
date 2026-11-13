@@ -4165,9 +4165,9 @@ const Engine = (() => {
           ...(n ? { 전투: { 체력: `${n.hp}/${n.hpMax}`, 상태: n.hp <= 0 ? "쓰러짐" : n.hp <= n.hpMax / 2 ? "중상" : "멀쩡", 기능: n.skills, 무기: n.weapons.map((w) => `${w.name} ${w.dmg}`), 피해보너스: n.db, 장갑: n.armor } } : {}) };
       }),
       이미공개된단서: st.revealedClues.map((c) => c.text),
-      아직공개안된단서: (s.clues ?? []).filter((c) => !st.revealedClues.some((r) => r.id === c.id)).map((c) => ({ id: c.id, 내용: c.text, 공개조건: c.reveal ?? "" })),
+      아직공개안된단서: (s.clues ?? []).filter((c) => !st.revealedClues.some((r) => r.id === c.id)).map((c) => ({ id: c.id, 내용: c.text, 공개조건: c.reveal ?? "", ...(c.handout && sc.handouts?.[c.handout]?.title ? { 핸드아웃: String(sc.handouts[c.handout].title) } : {}) })),
       GM전용메모: s.gm_only ?? "",
-      가능한판정: (s.checks ?? []).map((c) => ({ id: c.id, 설명: c.label ?? c.skill ?? "이성 판정", 기능: c.skill ?? "이성", ...(c.difficulty ? { 난이도: Rules.normDiff(c.difficulty) } : {}), ...(c.san ? { 이성손실: c.san } : {}), ...(c.success?.reveal && !(st.passedChecks ?? []).includes(c.id) ? { 성공시공개단서: c.success.reveal } : {}) })),
+      가능한판정: (s.checks ?? []).map((c) => ({ id: c.id, 설명: c.label ?? c.skill ?? "이성 판정", 기능: c.skill ?? "이성", ...(c.difficulty ? { 난이도: Rules.normDiff(c.difficulty) } : {}), ...(c.san ? { 이성손실: c.san } : {}), ...(c.success?.reveal && !(st.passedChecks ?? []).includes(c.id) ? { 성공시공개단서: c.success.reveal } : {}), ...(c.success?.give && !(st.passedChecks ?? []).includes(c.id) ? { 성공시물건: String(c.success.give) } : {}) })),
       이동가능한곳: availableExits(sc, st).map((e) => ({ id: e.to, 설명: e.label, 도입: sc.scenes[e.to]?.description ?? "" })),
       아직조건이안된다음사건: (s.exits ?? []).filter((e) => !condOk(e.when, st)).map((e) => ({ 제목: sceneTitle(sc, e.to), 조건: condText(e.when) })),
       이탈시유도문구: sc.deviation?.hooks ?? [],
@@ -4739,10 +4739,10 @@ const AI = (() => {
 13. 판정(request_check · improv_check)을 거는 응답의 narration은 판정 직전 상황까지만 쓰고, 성공이나 실패를 미리 서술하지 않는다. 판정과 move_to를 한 응답에 함께 넣지 않는다. 판정 who는 그 행동을 선언한 캐릭터. 여러 캐릭터가 각자 판정이 필요한 행동을 했으면 request_check · improv_check를 목록으로 캐릭터마다 하나씩 넣는다 (한 캐릭터에게는 하나).
 14. 즉흥 판정의 결과로 줄 수 있는 것은 분위기, NPC 반응, 작은 이득, 이미 드러난 사실의 확인까지다. 사건목표를 건너뛰거나, 아직공개안된단서를 공개조건 없이 주거나, 결말을 정하지 않는다.
 15. 주사위 굴림만 있고 행동 선언이 없으면 이야기를 진행하지 않는다 (move_to · new_place · left_place도 넣지 않는다). 판정 결과에는 그 판정의 행동만 서술한다. 결과 글에서 바로 이어지는 반응(그 NPC의 표정 · 말, 받은 물건을 살피는 모습 등)만 짧게 쓰고, 결과와 상관없는 분위기 전환이나 다른 장소로 향하는 서술은 하지 않는다. "직전판정" 결과 글에 이미 일어난 일(물건을 건넴, 문이 열림 등)은 다시 일어난 것처럼 서술하지 않고, 같은 물건을 이름을 바꿔 또 주지 않는다.
-16. 한 캐릭터가 판정에 실패하더라도 그 행동을 독립적으로 시도하는 다른 캐릭터에게 같은 판정을 요청할 수 있다. 이미 실패한 사람의 판정은 밀어붙이기 규칙과 구별한다. 판정 실패 뒤에는 성공 보상 단서나 소지품을 미리 공개하지 않는다.
+16. 한 캐릭터가 판정에 실패하더라도 그 행동을 독립적으로 시도하는 다른 캐릭터에게 같은 판정을 요청할 수 있다. 이미 실패한 사람의 판정은 밀어붙이기 규칙과 구별한다. "가능한판정"의 "실패한사람"에게는 그 판정을 다시 걸지 않고, 그 판정의 성공 보상("성공시공개단서" · "성공시물건", 이름만 바꾼 같은 물건 포함)을 주지 않는다. 단서의 공개조건에 판정 말고 다른 길(예: 술을 사 줌)이 있고 이번에 실제로 그 행동을 했으면 공개할 수 있다. 실패 뒤에 NPC가 마음을 바꾸려면 그 계기가 된 캐릭터의 행동이 있어야 한다.
 
 ― 단서 · 핸드아웃
-17. 단서는 그 "공개조건"이 실제로 충족됐을 때만 reveal_clue에 "아직공개안된단서"의 id를 넣고, 공개하는 단서의 내용은 이번 서술이나 NPC 대사에 드러낸다. "가능한판정"의 "성공시공개단서"는 그 판정을 거는 응답이나 그 판정을 기다리는 동안 reveal_clue로 넣지 않는다 (판정 성공으로 공개됨). 단서에 핸드아웃(편지 · 신문 · 사진 등 실물 자료)이 붙어 있으면 시나리오가 정한 범위에 저절로 공개된다. 이미 공개된 "핸드아웃"을 캐릭터가 다른 캐릭터나 NPC에게 보여 주거나 읽어 주면 show_handout에 {"id": "핸드아웃id", "to": ["캐릭터 또는 NPC 이름"]}(모두에게면 "all")을 넣는다. 핸드아웃을 보지 않은 캐릭터 · NPC는 그 내용을 모르는 것으로 서술한다.
+17. 단서는 그 "공개조건"이 실제로 충족됐을 때만 reveal_clue에 "아직공개안된단서"의 id를 넣고, 공개하는 단서의 내용은 이번 서술이나 NPC 대사에 드러낸다. "가능한판정"의 "성공시공개단서"는 그 판정을 거는 응답이나 그 판정을 기다리는 동안 reveal_clue로 넣지 않는다 (판정 성공으로 공개됨). 단서에 핸드아웃(편지 · 신문 · 사진 등 실물 자료)이 붙어 있으면 시나리오가 정한 범위에 저절로 공개된다. "아직공개안된단서"에 "핸드아웃"이 있는 단서를 공개할 때는 그 실물을 캐릭터가 건네받거나 발견하는 장면을 서술에 넣는다. 이미 공개된 "핸드아웃"을 캐릭터가 다른 캐릭터나 NPC에게 보여 주거나 읽어 주면 show_handout에 {"id": "핸드아웃id", "to": ["캐릭터 또는 NPC 이름"]}(모두에게면 "all")을 넣는다. 핸드아웃을 보지 않은 캐릭터 · NPC는 그 내용을 모르는 것으로 서술한다.
 
 ― 사건 · 장소
 18. 사건목표가 이뤄지고 플레이어가 그쪽으로 가거나 들어가겠다고 행동을 선언해서 "이동가능한곳"(넘어갈 수 있는 다음 사건) 중 하나로 이야기가 넘어갈 때만 move_to에 그 id를 넣는다. 목록에 없는 사건으로는 보내지 않는다. 이때 narration에는 지금 사건 안에서 일어난 일(이번 행동의 결과, 문을 열고 나서는 데까지)만 쓰고, 새 사건에 도착한 장면은 arrival에 그 사건의 "도입"을 바탕으로 따로 쓴다. 지금 사건의 NPC · 물건 · 단서 이야기를 arrival에 섞지 않는다. 이미 [장면 전환]과 도착 서술이 나온 사건이면 도착을 다시 서술하지 않는다. "아직조건이안된다음사건"은 플레이어가 조건을 채우도록 자연스럽게 이끄는 데만 참고한다.
@@ -5011,7 +5011,7 @@ const Turn = (() => {
     ["웃음", /웃(?:었|으며|음|는다|고는|더니)|미소/, true], ["고개를 끄덕임", /끄덕/, true],
   ];
   const LOOSE_GESTURES = new Set(GESTURES.filter((g) => g[2]).map((g) => g[0]));
-  function gestures(text, npcNames, charNames) {
+  function gestures(text, npcNames, charNames, dup = false) {
     const t = String(text ?? "").replace(QUOTE_RE, (m) => " ".repeat(m.length)), out = {};
     const short = (n) => (/^[가-힣]{3}$/.test(n) ? [n, n.slice(1)] : [n]);
     const npcs = (npcNames ?? []).map((n) => String(n ?? "").trim()).filter((n) => n.length >= 2 && !/^KPC$/i.test(n));
@@ -5020,10 +5020,10 @@ const Turn = (() => {
       for (const m of t.matchAll(new RegExp(re.source, "g"))) {
         let who = null, at = -1;
         for (const n of npcs) for (const f of short(n)) { const i = t.lastIndexOf(f, m.index); if (i > at) { at = i; who = n; } }
-        if (who && !others.some((f) => t.lastIndexOf(f, m.index) > at)) (out[who] ??= new Set()).add(label);
+        if (who && !others.some((f) => t.lastIndexOf(f, m.index) > at)) (out[who] ??= []).push(label);
       }
     }
-    return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, [...v]]));
+    return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, dup ? v : [...new Set(v)]]));
   }
   // 회피형 대답 ("모르겠다 · 당황스럽다 · 글쎄")
   // 회피형 대답: 모른다 · 당황 + 결론 없이 '짐작뿐' · '더 조사해 보자'로 미룸
@@ -5031,6 +5031,8 @@ const Turn = (() => {
   /* 문체 검사: 따옴표 속 대사는 빼고, 문장 끝이 정한 문체와 다른 문장 수를 셈.
    * 명사형이면 "~다 · ~요 · ~까"로 끝난 문장, 소설체면 받침 ㅁ(~함 · ~됨 · ~음)으로 끝난 문장이 어긋난 것 */
   const QUOTE_RE = /"[^"]*"|“[^”]*”|「[^」]*」|『[^』]*』|'[^'\n]*'|‘[^’]*’/g;
+  // 간접 인용으로 말을 옮긴 문장: "~다고 · ~라고 · ~냐고 대답함 · 말함 · 덧붙임" (대사 바로 뒤에 오면 되풀이)
+  const REPORT_RE = /(?:다|라|냐|자|까)고\s*(?:\S+\s+){0,2}(?:대답|답|말|대꾸|덧붙|중얼|읊조|설명|되뇌|일러|못박|잘라\s*말)[^\s]*[.!?…"”」]*$/;
   // 말을 건넸다는 것으로 끝나는 문장 (캐릭터가 한 말을 옮겨 쓴 서술)
   const SPEECH_END_RE = /(?:말을\s*(?:건넸다|건넴|건넨다|걸었다|걺|건다)|(?:되|캐)?(?:물었다|물음|묻는다)|말했다|말함|말한다|불렀다|부름|부른다|따졌다|따짐|부탁했다|부탁함|재촉했다|재촉함|권했다|권함|대꾸했다|대꾸함|쏘아붙였다|쏘아붙임)[.!?…"”」]*$/;
   function toneOff(text, tone) {
@@ -5131,6 +5133,14 @@ const Turn = (() => {
       if (info.clues.includes(r.reveal_clue)) plan.clue = r.reveal_clue;
       else soft(`없거나 이미 공개한 단서 '${r.reveal_clue}' → 무시`);
     }
+    // ---- 핸드아웃이 붙은 단서를 공개했는데 그 실물이 서술에 없음 (규칙 17). 마지막 시도는 통과 ----
+    if (plan.clue && info.clueHandouts?.[plan.clue]) {
+      const ho = info.clueHandouts[plan.clue], KIND = { letter: "편지", news: "신문", note: "쪽지", photo: "사진", map: "지도" };
+      const told = bare([plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).join(" "));
+      const words = [String(ho.title).split(/\s+/).filter((w) => bare(w).length >= 2).at(-1), KIND[ho.kind]].filter(Boolean).map(bare);
+      if (words.length && !words.some((w) => told.includes(w)))
+        (final ? soft : hard)(`단서 '${plan.clue}'에 핸드아웃 「${ho.title}」이(가) 붙어 있는데 그 실물이 서술에 없음 (규칙 17). 캐릭터가 그것을 건네받거나 발견하는 장면을 넣음`);
+    }
     // ---- 핸드아웃 보여 주기 (공개된 것만, 캐릭터 · NPC 이름으로) ----
     plan.showHandouts = [];
     for (const h of r.show_handout ?? []) {
@@ -5194,6 +5204,21 @@ const Turn = (() => {
     const failed = info.failedPids ?? (info.onlyFailedRolls ? plan.give.map((g) => g.pid) : []);
     for (const g of plan.give.filter((x) => failed.includes(x.pid))) soft(`${g.name}의 판정이 실패함 → 「${g.item}」 보상 무시`);
     plan.give = plan.give.filter((x) => !failed.includes(x.pid));
+    // ---- 실패한 판정의 성공 보상을 그 판정에 실패한 캐릭터에게 줌 (규칙 16). 마지막 시도는 통과 ----
+    {
+      const tail = (x) => bare(String(x ?? "").split(/\s+/).filter((w) => bare(w).length >= 2).at(-1) ?? x);
+      const acted = info.turnPids?.length ? info.turnPids : info.chars.map((c) => c.pid);
+      const nameOf = (pid) => info.chars.find((c) => c.pid === pid)?.name ?? "";
+      const hits = [];
+      for (const fr of info.failedRewards ?? []) {
+        if (fr.clue && plan.clue === fr.clue && acted.length && acted.every((pid) => fr.failedPids.includes(pid))) hits.push({ fr, what: `단서 '${fr.clue}'`, who: acted });
+        if (fr.item) for (const gv of plan.give) if (fr.failedPids.includes(gv.pid) && (same(gv.item, fr.item) || tail(gv.item) === tail(fr.item))) hits.push({ fr, what: `물건 「${gv.item}」(시나리오의 「${fr.item}」)`, who: [gv.pid] });
+      }
+      if (hits.length) {
+        const msg = hits.map((h) => `${h.fr.label} 판정에 실패한 ${[...new Set(h.who.map(nameOf))].join(", ")}에게 그 성공 보상인 ${h.what}`).join(" / ");
+        (final ? soft : hard)(`${msg}을(를) 줌 (규칙 16). 공개조건의 다른 길을 이번에 실제로 채운 게 아니면 reveal_clue · give_item을 비우고 실패에 맞는 반응을 서술 (다른 캐릭터의 시도 · 다른 방법은 가능)`);
+      }
+    }
     for (const t of r.take_item ?? []) {
       const c = charOf(t.to);
       if (!c) { soft(`물건 잃을 캐릭터 '${t.to}'을(를) 모름 → 무시`); continue; }
@@ -5359,7 +5384,19 @@ const Turn = (() => {
         const hit = labels.filter((l) => (LOOSE_GESTURES.has(l) ? last2.length >= 2 && last2.every((p) => p.includes(l)) : past.some((p) => p.includes(l))));
         return hit.length ? `${who}: ${hit.join(" · ")}` : null;
       }).filter(Boolean);
+      const twice = Object.entries(gestures([plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).join("\n"), info.npcNames, info.chars.map((c) => c.name), true))
+        .map(([who, ls]) => { const d2 = [...new Set(ls.filter((l, i) => !LOOSE_GESTURES.has(l) && ls.indexOf(l) !== i))]; return d2.length ? `${who}: ${d2.join(" · ")}` : null; }).filter(Boolean);
+      if (twice.length) (final ? soft : hard)(`한 서술 안에서 같은 몸짓을 두 번 씀 (${twice.join(" / ")}, 규칙 25 "몸짓 한 번 이하"). 하나만 남기거나 다른 행동으로`);
       if (rep.length) (final ? soft : hard)(`NPC가 최근 서술에서 쓴 몸짓 · 표정을 또 씀 (${rep.join(" / ")}, 규칙 28 "최근NPC몸짓"). 다른 몸짓 · 행동으로 바꾸거나 몸짓 없이 대사로`);
+    }
+    // ---- NPC 대사 바로 뒤 문장이 그 말을 "~다고 대답함"처럼 다시 요약 (규칙 38). 마지막 시도는 통과 ----
+    {
+      const echo = [plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).flatMap((t) => String(t).split("\n")).flatMap((line) => {
+        const ss = line.split(/(?<=[.!?…。]["”」』’']?)\s+/), out = [];
+        for (let i = 1; i < ss.length; i++) if (ss[i - 1].match(LINE_RE) && !ss[i].match(LINE_RE) && REPORT_RE.test(ss[i])) out.push(ss[i]);
+        return out;
+      });
+      if (echo.length) (final ? soft : hard)(`대사 바로 뒤에 같은 말을 다시 요약함 (「${echo[0].slice(0, 40)}」, 규칙 38). 대사로 이미 한 말은 되풀이하지 말고 그 문장을 빼거나 표정 · 행동으로`);
     }
     // ---- KPC 동행 (규칙 32): 이름이 정해진 KPC가 있을 때만 ----
     plan.kpcAway = info.kpcName && typeof r.kpc_away === "boolean" ? r.kpc_away : null;
@@ -5387,7 +5424,8 @@ const Turn = (() => {
       // 판정 이름의 마지막 동사 낱말(살피기 · 듣기 등)은 빼고 대상 낱말로만 견줌
       const target = (label) => String(label).replace(/\s*\S+(기|하기)$/, "").replace(/(의|을|를|에서|에)(?=\s|$)/g, "");
       const act = pairs(info.actTexts.join(" ")), place = pairs(info.sceneTitle ?? "");   // 사건 제목의 낱말(예: 계단)은 누구나 쓰므로 뺌
-      const hit = (info.openChecks ?? []).filter((c) => { const p = new Set([...pairs(target(c.label))].filter((g) => !place.has(g))); if (!p.size) return false; let h = 0; for (const g of p) if (act.has(g)) h++; return h / p.size >= 0.3; });
+      const acted = (info.actors ?? []).map((a) => a.pid);
+      const hit = (info.openChecks ?? []).filter((c) => !(acted.length && acted.every((pid) => (c.failedPids ?? []).includes(pid)))).filter((c) => { const p = new Set([...pairs(target(c.label))].filter((g) => !place.has(g))); if (!p.size) return false; let h = 0; for (const g of p) if (act.has(g)) h++; return h / p.size >= 0.3; });
       if (hit.length) (final ? soft : hard)(`이번 행동이 가능한판정(${hit.map((c) => `${c.id}: ${c.label}`).join(" / ")})과 맞아 보임. 맞으면 결과를 서술하지 말고 request_check로 그 판정을 검 (맞지 않으면 그대로)`);
     }
     // ---- 같은 NPC가 회피형 대답을 세 번 잇달아 함 (규칙 31 · 28) ----
@@ -6786,6 +6824,16 @@ class HostGame {
     Engine.kpcFollow(this.sc, g);
     const chars = Object.values(d.players).filter((p) => p.ready && p.character).map((p) => ({ ...p.character, player: p.name }));
     const ctx = Engine.aiContext(this.sc, g, chars);
+    // 가능한판정: 누가 실패했는지 · 누가 성공했는지 (실패한 사람에게 같은 판정 · 성공 보상을 다시 주지 않게, 규칙 16)
+    {
+      const nm = (pid) => d.players[pid]?.character?.name ?? "";
+      for (const c of ctx.가능한판정 ?? []) {
+        const tries = (g.checkAttempts ?? []).filter((a) => a.checkId === c.id && nm(a.pid));
+        const ok = tries.find((a) => a.ok), bad = tries.filter((a) => !a.ok).map((a) => nm(a.pid));
+        if (ok && (g.passedChecks ?? []).includes(c.id)) c.성공함 = nm(ok.pid);
+        else if (bad.length) c.실패한사람 = [...new Set(bad)];
+      }
+    }
     const hoName = (pid) => d.players[pid]?.character?.name ?? "";
     const hos = Object.entries(g.handouts ?? {}).filter(([id]) => this.handoutDef(id));
     if (hos.length) ctx.핸드아웃 = hos.map(([id, st]) => ({ id, 제목: this.handoutDef(id).title, 내용: String(this.handoutDef(id).text ?? "(그림)").slice(0, 300),
@@ -6866,7 +6914,14 @@ class HostGame {
       // 이번 차례 행동 원문 (판정이 걸려야 할 행동인지)
       actTexts: since.filter((e) => e.kind === "say" && e.style === "act" && e.byId).map((e) => String(e.text ?? "")),
       sceneTitle: String(s.title ?? ""),
-      openChecks: (s.checks ?? []).filter((c) => c.skill && !(g.passedChecks ?? []).includes(c.id)).map((c) => ({ id: c.id, label: String(c.label ?? c.skill) })),
+      openChecks: (s.checks ?? []).filter((c) => c.skill && !(g.passedChecks ?? []).includes(c.id)).map((c) => ({ id: c.id, label: String(c.label ?? c.skill),
+        failedPids: [...new Set((g.checkAttempts ?? []).filter((a) => a.checkId === c.id && !a.ok).map((a) => a.pid))] })),
+      // 실패한 판정의 성공 보상 (그 판정에 실패한 캐릭터에게 주려 하면 다시 물음, 규칙 16)
+      failedRewards: (s.checks ?? []).filter((c) => !(g.passedChecks ?? []).includes(c.id) && (c.success?.reveal || c.success?.give)).map((c) => ({
+        check: c.id, label: String(c.label ?? c.skill ?? c.id), clue: c.success.reveal ?? null, item: c.success.give ? String(c.success.give) : null,
+        failedPids: [...new Set((g.checkAttempts ?? []).filter((a) => a.checkId === c.id && !a.ok).map((a) => a.pid))] })).filter((x) => x.failedPids.length),
+      // 단서에 붙은 핸드아웃 (공개할 때 그 실물이 서술에 나와야 함, 규칙 17)
+      clueHandouts: Object.fromEntries((s.clues ?? []).filter((c) => c.handout && this.sc.handouts?.[c.handout]).map((c) => [c.id, { title: String(this.sc.handouts[c.handout].title ?? ""), kind: String(this.sc.handouts[c.handout].kind ?? "") }])),
       kpcName: (() => { const id = Engine.kpcIdOf(this.sc); const n = id && this.sc.npcs[id]?.name; return n && !/^KPC$/i.test(n) ? n : null; })(),
       // 이름이 아직 'KPC'인 자리표시자가 이 사건에 있음 (AI가 새 인물을 kpc로 안 보내면 다시 물음)
       kpcOpen: (s.npcs ?? []).some((id) => /^KPC$/i.test(String(this.sc.npcs?.[id]?.name ?? "").trim())),

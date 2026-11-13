@@ -340,3 +340,52 @@ test("지시문: 사실 유지 · 말 뒤집기 · 몸짓 · 문답 맴돎 안�
   for (const k of ["이미 정해진 것(색 · 냄새", "까닭 없이 뒤집지 않는다", "최근NPC몸짓", "문답만 이어짐"]) assert.ok(sys.includes(k), k);
   assert.deepEqual([...sys.matchAll(/^(\d+)\. /gm)].map((x) => +x[1]), Array.from({ length: 39 }, (_, i) => i + 1), "번호 1~39 그대로");
 });
+
+// ---- 실패한 판정의 성공 보상 잠금 (규칙 16) ----
+const FR = { check: "persuade", label: "어부 설득하기", clue: "c1", item: "녹슨 열쇠", failedPids: ["p1"] };
+test("실패 보상: 실패한 캐릭터에게 그 판정의 단서 · 같은 끝 낱말 물건을 주면 다시 요청, 마지막은 통과", () => {
+  const info = base({ failedRewards: [FR], turnPids: ["p1"] });
+  const a = run({ narration: "바르톨이 벽장 쪽을 가리킴. 판자 뒤에 오래된 항해 일지가 숨겨져 있음.", reveal_clue: "c1" }, info);
+  assert.ok(a.issues.some((i) => i.hard && /규칙 16/.test(i.msg)));
+  const b = run({ narration: "바르톨이 등대 열쇠를 바닥에 던짐. 한서가 열쇠를 주움.", give_item: { to: "한서", item: "등대 열쇠" } }, info);
+  assert.ok(b.issues.some((i) => i.hard && /등대 열쇠/.test(i.msg) && /녹슨 열쇠/.test(i.msg)));
+  const c = run({ narration: "바르톨이 등대 열쇠를 바닥에 던짐. 한서가 열쇠를 주움.", give_item: { to: "한서", item: "등대 열쇠" } }, info, true);
+  assert.ok(!c.issues.some((i) => i.hard));
+  assert.equal(c.plan.give.length, 1, "마지막 시도는 통과");
+});
+test("실패 보상: 멀티에서 실패하지 않은 캐릭터가 함께 행동했으면 단서는 그대로, 그 캐릭터가 받는 물건도 그대로", () => {
+  const chars = [{ pid: "p1", name: "한서", player: "가", items: [] }, { pid: "p2", name: "민우", player: "나", items: [] }];
+  const info = base({ chars, failedRewards: [FR], turnPids: ["p1", "p2"] });
+  const a = run({ narration: "민우가 벽장을 뒤짐. 판자 뒤에 오래된 항해 일지가 숨겨져 있음. 바르톨이 민우에게 녹슨 열쇠를 건넴.", reveal_clue: "c1", give_item: { to: "민우", item: "녹슨 열쇠" } }, info);
+  assert.ok(!a.issues.some((i) => /규칙 16/.test(i.msg)));
+});
+
+// ---- 핸드아웃이 붙은 단서 (규칙 17) ----
+test("핸드아웃 단서: 실물이 서술에 없으면 다시 요청, 쪽지가 나오면 통과", () => {
+  const info = base({ clueHandouts: { c1: { title: "미라의 쪽지", kind: "note" } } });
+  const a = run({ narration: "판자 뒤에 오래된 항해 일지가 숨겨져 있음.", reveal_clue: "c1" }, info);
+  assert.ok(a.issues.some((i) => i.hard && /미라의 쪽지/.test(i.msg)));
+  const b = run({ narration: "판자 뒤에 오래된 항해 일지가 숨겨져 있음. 일지 사이에 접힌 쪽지 한 장이 끼워져 있음.", reveal_clue: "c1" }, info);
+  assert.ok(!b.issues.some((i) => /핸드아웃/.test(i.msg)));
+});
+
+// ---- 한 서술 안 같은 몸짓 두 번 · 대사 뒤 간접 인용 요약 ----
+test("같은 몸짓을 한 서술에서 두 번 쓰면 다시 요청", () => {
+  const info = base({ npcNames: ["바르톨"] });
+  const a = run({ narration: "바르톨이 콧방귀를 뀌며 그물을 당김. \"누가 가겠나.\" 바르톨이 다시 콧방귀를 뀌며 돌아섬." }, info);
+  assert.ok(a.issues.some((i) => i.hard && /두 번/.test(i.msg)));
+});
+test("대사 바로 뒤에 '~다고 대답함'으로 같은 말을 요약하면 다시 요청", () => {
+  const info = base({ npcNames: ["바르톨"] });
+  const a = run({ narration: "바르톨이 낮게 읊조림. \"30년째 문이 잠겨 있는데 누가 가겠나.\" 바르톨이 문이 잠겨 있어 갈 수 없다고 대답함." }, info);
+  assert.ok(a.issues.some((i) => i.hard && /다시 요약/.test(i.msg)));
+  const b = run({ narration: "바르톨이 낮게 읊조림. \"30년째 문이 잠겨 있는데 누가 가겠나.\" 바람이 거세짐." }, info);
+  assert.ok(!b.issues.some((i) => /다시 요약/.test(i.msg)));
+});
+test("판정 누락: 행동한 캐릭터가 이미 실패한 판정은 다시 걸라고 하지 않음", () => {
+  const info = base({ actTexts: ["어부를 설득한다"], openChecks: [{ id: "k1", label: "어부 설득하기", failedPids: ["p1"] }] });
+  const a = run({ narration: "바르톨은 대꾸 없이 그물만 손질함." }, info);
+  assert.ok(!a.issues.some((i) => /가능한판정/.test(i.msg)));
+  const b = run({ narration: "바르톨은 대꾸 없이 그물만 손질함." }, base({ actTexts: ["어부를 설득한다"], openChecks: [{ id: "k1", label: "어부 설득하기", failedPids: [] }] }));
+  assert.ok(b.issues.some((i) => /가능한판정/.test(i.msg)));
+});
