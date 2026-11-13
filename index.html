@@ -2486,11 +2486,18 @@ html.has-3d .topbar { box-shadow: none; }
 .due td.d { font: 12px/26px var(--font); color: #2a3a8a; }
 .due td.d .seg { display: block; margin: auto; overflow: visible; fill: currentColor; }   /* 날짜 = 잉크 7세그먼트 (segNum) */
 /* 참가한 테이블(위) · 내 테이블(아래) 두 표. 머리 글은 참가한 테이블이 있을 때만 */
-.due-cap { margin: 0 0 4px; font: 12px/1.4 var(--font); color: var(--ink); }
-.due-cap.j { color: #8e2438; }
-#dueJoin table { margin-bottom: 12px; }
-#dueJoinRows td.d { color: #8e2438; }
-#dueJoin .c-d, #dueJoinRows td.d, #dueJoin tr.ask-row td:first-child { background-color: rgba(142, 36, 56, .07); }
+/* 참가한 테이블 = 이름 앞 와인색 봉투 아이콘 (선 1.25 · 둥근 끝은 아이콘 세트와 같게) */
+.due-env { display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; fill: none; stroke: #8e2438; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+/* 맨 위 = 가장 최근 접속: 날짜 대신 "n분 전 · n시간 전 · 어제 · n일 전"(일주일 안, 붉은 글씨) + 줄 네 모서리 붉은 코너캡 7px + 밝은 종이색 */
+.due { --due-cap: #a8251a; --due-cap-s: 7px; --due-lit: linear-gradient(rgba(255, 250, 235, .9), rgba(255, 250, 235, .9)); }
+.due tr.recent td { background-image: var(--due-lit); }
+.due tr.recent td.d.ago { font: 12px/26px var(--font); color: var(--due-cap); }
+.due tr.recent[data-room] td:first-child { background-image:
+  linear-gradient(135deg, var(--due-cap) 50%, transparent 50%), linear-gradient(45deg, var(--due-cap) 50%, transparent 50%), var(--due-lit);
+  background-position: 0 0, 0 100%, 0 0; background-size: var(--due-cap-s) var(--due-cap-s), var(--due-cap-s) var(--due-cap-s), auto; background-repeat: no-repeat; }
+.due tr.recent[data-room] td:last-child { background-image:
+  linear-gradient(225deg, var(--due-cap) 50%, transparent 50%), linear-gradient(315deg, var(--due-cap) 50%, transparent 50%), var(--due-lit);
+  background-position: 100% 0, 100% 100%, 0 0; background-size: var(--due-cap-s) var(--due-cap-s), var(--due-cap-s) var(--due-cap-s), auto; background-repeat: no-repeat; }
 /* 상태 = 정자세 테 도장: 캐릭터 작성중 황토 · 진행중 남색 · 완결 붉은색 */
 .due td.st { padding: 0; }
 .due-st { display: inline-block; padding: 0 4px; font: 11px/15px var(--font); white-space: nowrap; box-shadow: inset 0 0 0 1.5px currentColor; opacity: .9; }
@@ -2699,7 +2706,7 @@ html.has-3d .topbar { box-shadow: none; }
   </nav>
   <!-- 이어하기: 주머니를 누르면 대출 카드가 옆으로 쏟아져 테이블 목록 -->
   <section id="lbList" class="lb-list" hidden aria-label="이어하기">
-    <div id="myTables" class="due" tabindex="-1"><h4>시나리오 리스트</h4><div class="due-body"><div id="dueJoin" hidden><p class="due-cap j">참가한 테이블</p><table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-n">비고</th><th class="c-s">상태</th></tr></thead><tbody id="dueJoinRows"></tbody></table><p class="due-cap">내 테이블</p></div>
+    <div id="myTables" class="due" tabindex="-1"><h4>시나리오 리스트</h4><div class="due-body">
         <table><thead><tr><th class="c-d">날짜</th><th>이름</th><th class="c-n">비고</th><th class="c-s">상태</th></tr></thead><tbody id="dueRows"></tbody></table></div>
       <!-- 줄을 누르면 그 줄 바로 아래가 늘어나며 물음 한 줄 → 예 / 아니오에 잉크 동그라미 (평소엔 숨겨 둔 줄) -->
       <table hidden><tbody><tr id="dueAskRow" class="ask-row"><td></td><td colspan="3"><div id="dueAsk" class="due-ask" aria-live="polite"><div class="in"><p id="dueAskText"></p><span class="yn">[<button class="gp y" type="button" data-v="1">예</button>/<button class="gp" type="button" data-v="0">아니오</button>]</span></div></div></td></tr></tbody></table>
@@ -9703,7 +9710,7 @@ const BannerArt = (() => {
   }
   /** 목록 상태 도장: w 캐릭터 작성중 · p 진행중 · e 완결 (내 캐릭터가 아직이면 진행 중이어도 작성중) */
   function dueStatus(phase, ended, ready) { return ended ? "e" : phase === "play" && ready ? "p" : "w"; }
-  /** 참가한 테이블 = 플레이어로 앉은 방(trpg:me:<방>) 중 사본(마지막 화면)이 있는 것, 최근 3개. 내가 연 방은 뺌 */
+  /** 참가한 테이블 = 플레이어로 앉은 방(trpg:me:<방>) 중 사본(마지막 화면)이 있는 것, 최근 3개. 내가 연 방은 뺌 (목록에선 내 테이블과 한 표, 봉투 아이콘) */
   const JOIN_MAX = 3;
   async function loadJoined() {
     const rooms = [];
@@ -9816,6 +9823,17 @@ const BannerArt = (() => {
     t.innerHTML = `<svg class="seg" width="${(SW + 2).toFixed(1)}" height="${SH.toFixed(1)}" viewBox="-1 0 ${(SW + 2).toFixed(1)} ${SH.toFixed(1)}" aria-hidden="true"><g transform="skewX(-8)" transform-origin="0 ${SH.toFixed(1)}">${out}</g></svg>`;
     return t.content.firstChild;
   }
+  /** 맨 위 줄 날짜 대신: 1시간 안 n분 전 · 하루 안 n시간 전 · 어제 · n일 전(일주일까지), 그 뒤는 null(날짜 그대로) */
+  function agoLabel(ts, now = Date.now()) {
+    const m = Math.floor((now - ts) / 60000);
+    if (m < 1) return "방금 전";
+    if (m < 60) return `${m}분 전`;
+    if (m < 1440) return `${Math.floor(m / 60)}시간 전`;
+    const day = (t) => { const d = new Date(t); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); };
+    const d = Math.round((day(now) - day(ts)) / 86400000);
+    return d <= 1 ? "어제" : d <= 7 ? `${d}일 전` : null;
+  }
+  const envIcon = () => { const t = document.createElement("template"); t.innerHTML = '<svg class="due-env" viewBox="0 0 16 16" aria-label="참가한 테이블"><rect x="2" y="4" width="12" height="8.5"/><path d="M2.4 4.6 8 9l5.6-4.4"/></svg>'; return t.content.firstChild; };
   const ymd = (ts) => { const d = new Date(ts), p = (n) => String(n).padStart(2, "0"); return `${p(d.getFullYear() % 100)}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };   // 목록 날짜 yy-mm-dd (segNum으로 그림)
   const md = (ts) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`; };
   async function deleteTable(t, li = null) {
@@ -9869,21 +9887,20 @@ const BannerArt = (() => {
     const STAMP = { w: "캐릭터 작성중", p: "진행중", e: "완결" };
     const chap = (c) => !c ? "" : `${c.n ? `${c.n}장 ` : ""}${[...c.title].length > 4 ? `${[...c.title].slice(0, 4).join("").trimEnd()}…` : c.title}`;   // 챕터 제목은 4자까지
     const full = (c) => !c ? "" : `${c.n ? `${c.n}장 ` : ""}${c.title}`;
-    const row = (t) => el("tr", { "data-room": t.room, tabindex: "0",
+    const row = (t, i) => el("tr", { "data-room": t.room, tabindex: "0", ...(i === 0 ? { class: "recent" } : {}),
       on: { click: (e) => open(e.currentTarget, t), keydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) open(e.currentTarget, t); } } },
-      el("td", { class: "d", "aria-label": ymd(t.savedAt) }, segNum(ymd(t.savedAt))),
-      el("td", { class: "n", "data-full": t.title }, t.title),
+      ((a) => a ? el("td", { class: "d ago", title: ymd(t.savedAt) }, a) : el("td", { class: "d", "aria-label": ymd(t.savedAt) }, segNum(ymd(t.savedAt))))(i === 0 && agoLabel(t.savedAt)),
+      el("td", { class: "n", "data-full": t.title }, ...(t.joined ? [envIcon()] : []), t.title),
       el("td", { class: "c bg" }, el("div", { class: "due-bg" },
         el("span", { class: t.ch ? "ch" : "ch none" }, t.ch ?? "—"), el("i"), el("span", { class: "cp", "data-full": full(t.chapter) }, chap(t.chapter)))),
       el("td", { class: "st" }, el("span", { class: `due-st ${t.status ?? "w"}` }, STAMP[t.status ?? "w"])));
     const blank = () => el("tr", {}, el("td"), el("td"), el("td"), el("td"));
-    const joined = app.joined ?? [], jrows = joined.map(row), rows = list.map(row);
-    while (rows.length < Math.max(3, 9 - (joined.length ? joined.length + 2 : 0))) rows.push(blank());
+    // 내 테이블 + 참가한 테이블(봉투 아이콘)을 한 표에 최근 순. 맨 위 = 가장 최근 접속
+    const all = [...list, ...(app.joined ?? [])].sort((a, b) => b.savedAt - a.savedAt), rows = all.map(row);
+    while (rows.length < 9) rows.push(blank());
     cardAskDone?.(false, true); stashAsk();
-    $("#dueJoin").hidden = !joined.length;
-    $("#dueJoinRows").replaceChildren(...jrows);
     $("#dueRows").replaceChildren(...rows);
-    fitDueCols([...joined, ...list]);
+    fitDueCols(all);
     if (!$("#lbList").hidden) Desk.place();
   }
   /* 책 옆 물건: 주머니 → 대출 카드 목록(옆으로 쏟아짐), 봉투 → 초대장. Esc · 바깥 = 닫기 */
