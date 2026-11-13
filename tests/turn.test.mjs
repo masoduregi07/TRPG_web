@@ -490,3 +490,16 @@ test("길티마스 재현: NPC가 말만 바꿔 같은 변명을 되풀이하면
   const obj = { narration: "줄리언은 거친 숨을 내쉬며 고개를 가로저었다. \"…더 이상 묻지 마. 나도 위에서 시킨 대로만 한 것뿐이야!\"" };
   assert.ok(run(obj, info).issues.some((i) => i.hard && /되풀이/.test(i.msg)));
 });
+
+test("다인 차례: 결과가 각자 행동만 적고 반응이 없으면 재요청, NPC 대사가 있으면 통과, 마지막은 통과", () => {
+  const info = base({
+    chars: [{ pid: "p1", name: "엘로이", player: "가", items: [] }, { pid: "p2", name: "로니", player: "나", items: [] }],
+    actors: [{ pid: "p1", name: "엘로이" }, { pid: "p2", name: "로니" }], turnPids: ["p1", "p2"], order: ["p1", "p2"],
+    npcNames: ["허버트"], table: true,
+  });
+  const echo = { narration: "", results: [{ who: "엘로이", text: "엘로이는 집에 돌아갈 수 있는지 물으며 잠긴 정문 쪽을 바라보았다." }, { who: "로니", text: "로니는 극심한 공포 속에서 살려달라며 거듭 애원했다." }] };
+  assert.ok(run(echo, info).issues.some((i) => i.hard && /반응이 없음/.test(i.msg)));
+  assert.ok(!run(echo, info, true).issues.some((i) => i.hard));
+  const ok = { narration: "", results: [{ who: "엘로이", text: "허버트가 고개를 저었다. \"문은 밤새 열리지 않네.\"" }, { who: "로니", text: "애원은 복도에 메아리쳤다." }] };
+  assert.ok(!run(ok, info).issues.some((i) => i.hard && /반응이 없음/.test(i.msg)));
+});

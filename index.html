@@ -4817,7 +4817,7 @@ const AI = (() => {
 39. 실제 캐릭터 이름이 [게임 상황]에 있으면 대명사 '탐사자'를 남용하지 않고 각 캐릭터의 이름으로 서술한다. 누구의 행동인지 확실하지 않으면 임의로 특정하지 않는다. "플레이어캐릭터" · "등장NPC"에 없는 사람 이름을 쓰지 않는다 (새 인물은 29 · 30번대로 new_npcs에 올린 이름만).
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
-[출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 narration은 ""로 두고 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 행동표가 없으면 results는 [].
+[출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 narration은 ""로 두고 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 각 항목은 그 캐릭터가 한 행동 · 말 · 감정을 다시 적지 말고, 그에 대한 세계의 반응(NPC의 대답 · 행동은 따옴표 대사로, 주변 변화, 새로 보이는 것)만 쓴다. 한 차례에 NPC 반응이 하나도 없으면 안 된다. 행동표가 없으면 results는 [].
 {"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격","voice":"말투"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격","voice":"말투"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}, "kpc_away": null 또는 true 또는 false, "npc_card": [] 또는 [{"who": "NPC 이름", "knows": ["새로 알게 된 것"], "wants": "바뀐 바람", "relations": ["대상 — 관계"]}]}`;
   }
 
@@ -5521,6 +5521,13 @@ const Turn = (() => {
       const sents = String([plan.narration, plan.arrival].filter(Boolean).join("\n")).replace(QUOTE_RE, " ").split(SENT_RE).map((x) => x.trim()).filter((x) => /[가-힣]{2}/.test(x));
       if (ins.length && sents.length && !plan.check && sents.every(covers))
         (final ? soft : hard)("플레이어가 쓴 행동 · 말을 거의 그대로 되풀이만 함. 그 행동의 결과(주변의 변화 · NPC의 반응 · 새로 알게 된 것)를 서술하거나, 판정이 필요하면 request_check");
+    }
+    // ---- 여러 명 차례인데 반응이 없음: 결과가 전부 각자 행동 · 감정만 적고 NPC 대사 · NPC · 바깥 변화가 없으면 ----
+    if (plan.blocks.filter((b) => b.pid).length >= 2 && !plan.check && !plan.move && !info.rollOnly) {
+      const body = plan.blocks.map((b) => b.text).join("\n");
+      const npcs = (info.npcNames ?? []).map((x) => String(x).trim()).filter((x) => x.length >= 2 && !/^KPC$/i.test(x));
+      if (body.replace(QUOTE_RE, "") === body && !npcs.some((x) => body.includes(x)) && !plan.answers.length && !plan.clue && !plan.give.length && !plan.hurt.length)
+        (final ? soft : hard)("여러 명의 결과가 각자 행동 · 감정을 되풀이하기만 하고 반응이 없음. 각 결과에 그 행동에 대한 NPC의 대사 · 반응이나 주변의 변화 · 새로 드러난 것을 쓴다 (규칙 7)");
     }
     // ---- 판정이 걸려야 할 행동인데 판정 없이 넘어감 (규칙 12) ----
     // 공개조건을 채워 판정 보상이 아닌 단서를 공개했으면 그 행동은 판정 없이 풀린 것 (규칙 17)
