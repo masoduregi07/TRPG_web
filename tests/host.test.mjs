@@ -551,8 +551,8 @@ test("askGM: 캐릭터 말을 옮겨 쓴 서술 · 되풀이한 몸짓이면 이
   assert.match(asked[1].at(-1).content, /규칙 10/);
   assert.match(plan.narration, /세 개비/);
   plan = await g.askGM({ ctx: {}, info, recent: [] });
-  assert.match(asked[3].at(-1).content, /안경을 고쳐 씀/);
-  assert.match(plan.narration, /손등으로/);
+  assert.equal(asked.length, 3, "몸짓 반복은 다시 요청하지 않음");
+  assert.match(plan.narration, /안경을 고쳐 쓰며/);
 });
 
 test("askGM: 두 번 잇달아 캐릭터 말만 옮겨 쓰면 세 번째 응답을 씀", async () => {
