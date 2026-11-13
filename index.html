@@ -2539,18 +2539,22 @@ html.has-3d .topbar { box-shadow: none; }
 .inv-wrap.out { background: rgba(10, 5, 2, .45); }
 .inv-wrap.out .inv { visibility: visible; animation: inv-out .36s cubic-bezier(.2, .75, .3, 1) backwards; }
 @keyframes inv-out { from { translate: var(--fx, 0) var(--fy, 0); scale: var(--fs, .3); opacity: 0; } 30% { opacity: 1; } }
+/* 닫기(.back): 초대장이 봉투 자리로 작아지며 들어간 뒤 덮개가 닫힘 */
+.inv-wrap.back { background: transparent; pointer-events: none; }
+.inv-wrap.back .inv { visibility: visible; animation: inv-back .3s cubic-bezier(.5, 0, .75, .4) forwards; }
+@keyframes inv-back { 70% { opacity: 1; } to { translate: var(--fx, 0) var(--fy, 0); scale: var(--fs, .3); opacity: 0; } }
 .inv-paper { position: relative; padding: 18px 26px 20px; background: #f6eedb; color: var(--ink); box-shadow: 3px 8px 18px rgba(0, 0, 0, .6); }
 .inv-paper::before { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(30, 22, 16, .75); outline: 1px solid rgba(30, 22, 16, .75); outline-offset: -4px; pointer-events: none; }
 .inv-paper h2 { margin: 0; text-align: center; font: 22px/1.3 "Galmuri14", var(--font); font-weight: 400; color: #8e2438; letter-spacing: .3em; }
 .inv-sub { margin: 2px 0 10px; text-align: center; font: 11px/1.4 "Galmuri9", var(--font); color: #7a5a3a; }
 .inv-row { display: grid; grid-template-columns: 70px 1fr; align-items: center; min-height: 38px; cursor: text; }
 .inv-row > span { font: 12.5px/1.4 var(--font); }
-.inv-row input { height: 30px; padding: 0 4px; border: 0; border-bottom: 1px solid #1e1610; border-radius: 0; box-shadow: none; background: transparent; font: 15px/1.4 "Galmuri9", var(--font); color: #8e2438; }
-.inv-row input::placeholder { color: #cfa8b0; }
-.inv-row input:focus { outline: 0; box-shadow: inset 0 -2px 0 #1e1610; }
+.inv-row input, .inv-fld input { height: 30px; padding: 0 4px; border: 0; border-bottom: 1px solid #1e1610; border-radius: 0; box-shadow: none; background: transparent; font: 15px/1.4 "Galmuri9", var(--font); color: #8e2438; }
+.inv-row input::placeholder, .inv-fld input::placeholder { color: #cfa8b0; }
+.inv-row input:focus, .inv-fld input:focus { outline: 0; box-shadow: inset 0 -2px 0 #1e1610; }
 .inv .lend { margin: 8px 0 6px; }
 .inv .error { min-height: 0; margin: 4px 0 0; }
-@media (prefers-reduced-motion: reduce) { .inv-wrap.out .inv { animation: none; } .inv-wrap { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .inv-wrap.out .inv, .inv-wrap.back .inv { animation: none; } .inv-wrap { transition: none; } }
 /* 초대장 안 명단: 그 방에 이미 앉은 플레이어 · 캐릭터 (나는 빼고) */
 .lend .r { display: grid; grid-template-columns: 44px 1fr 1fr; border-bottom: 1px solid rgba(30, 22, 16, .7); font: 11.5px/26px var(--font); }
 .lend .r > span { padding-left: 5px; border-right: 1px solid rgba(30, 22, 16, .7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2562,14 +2566,18 @@ html.has-3d .topbar { box-shadow: none; }
 .lend .r.in > span:not(:first-child) { clip-path: inset(0 100% 0 0); animation: lend-write .5s steps(8) var(--d, 0s) forwards; }
 @keyframes lend-write { to { clip-path: inset(0 0 0 0); } }
 @media (prefers-reduced-motion: reduce) { .lend .r.in > span:not(:first-child) { animation: none; clip-path: none; } }
-/* 닉네임 줄 끝 서명 "참가하기": 누르면 붓선이 다시 그어지며 와인색 → 0.38초 뒤 입장 */
-.inv-name { display: flex; align-items: center; gap: 16px; min-width: 0; }
-.inv-name input { flex: 1; min-width: 0; }
-.inv-sig { position: relative; flex: none; display: grid; place-items: center; height: 30px; padding: 0 6px; border: 0; background: none; box-shadow: none; cursor: pointer; font: 19px/1 "Galmuri14", var(--font); color: #1e1610; transform: skewX(-14deg) rotate(-4deg); }
-.inv-sig svg { position: absolute; left: -2px; right: -2px; bottom: -2px; width: calc(100% + 4px); height: 10px; overflow: visible; }
+/* 아래 줄 = 서명란: 왼쪽 닉네임 기입선 · 오른쪽 "서명" 점선 칸 안의 기울인 "참가하기". 누르면 붓선이 다시 그어지며 와인색 → 0.38초 뒤 입장 */
+.inv-foot { display: grid; grid-template-columns: 1fr 132px; align-items: end; gap: 16px; margin-top: 12px; }
+.inv-fld { display: grid; gap: 4px; min-width: 0; }
+.inv-k { font: 11px/1.4 var(--font); color: #7a5a3a; }
+.inv-fld input { height: 40px; }   /* 서명 칸과 같은 높이 → 두 라벨 · 밑선이 한 줄에 */
+.inv-sig { display: grid; place-items: center; height: 40px; padding: 0; border: 0; cursor: pointer; background: none; color: #1e1610;
+  box-shadow: inset 0 0 0 1px rgba(30, 22, 16, .55); outline: 1px dashed rgba(30, 22, 16, .6); outline-offset: -4px; }
+.inv-sig b { position: relative; font: 19px/1 "Galmuri14", var(--font); font-weight: 400; transform: skewX(-14deg) rotate(-4deg); }
+.inv-sig svg { position: absolute; left: -4px; right: -4px; bottom: -6px; width: calc(100% + 8px); height: 10px; overflow: visible; }
 .inv-sig path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; vector-effect: non-scaling-stroke; stroke-dasharray: 1; }
-.inv-sig:hover, .inv-sig:focus-visible, .inv-sig.stamped { color: #8e2438; outline: 0; }
-.inv-sig:focus-visible { text-decoration: underline dotted 1px; text-underline-offset: 4px; }
+.inv-sig:hover, .inv-sig:focus-visible, .inv-sig.stamped { color: #8e2438; background: rgba(142, 36, 56, .06); }
+.inv-sig:focus-visible { box-shadow: inset 0 0 0 2px #8e2438; }
 .inv-sig.stamped path { animation: inv-sign .3s ease-out; }
 @keyframes inv-sign { from { stroke-dashoffset: 1; } }
 @media (prefers-reduced-motion: reduce) { .inv-sig.stamped path { animation: none; } }
@@ -2683,7 +2691,10 @@ html.has-3d .topbar { box-shadow: none; }
           <div class="r h"><span>No</span><span>플레이어</span><span>캐릭터</span></div>
           <div id="joinRows"></div>
         </div>
-        <div class="inv-row"><span>닉네임</span><span class="inv-name"><input id="bkJoinName" maxlength="16" placeholder="이름을 적어 주세요" autocomplete="nickname" /><button id="joinLinkBtn" class="inv-sig" type="button">참가하기<svg viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M2 9 C 20 3, 40 13, 62 7 S 100 2, 118 8" /></svg></button></span></div>
+        <div class="inv-foot">
+          <label class="inv-fld"><span class="inv-k">닉네임</span><input id="bkJoinName" maxlength="16" placeholder="이름을 적어 주세요" autocomplete="nickname" /></label>
+          <div class="inv-fld"><span class="inv-k" aria-hidden="true">서명</span><button id="joinLinkBtn" class="inv-sig" type="button"><b>참가하기<svg viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M2 9 C 20 3, 40 13, 62 7 S 100 2, 118 8" /></svg></b></button></div>
+        </div>
         <p id="inviteError" class="error" role="alert"></p>
       </div>
     </div>
@@ -9780,8 +9791,16 @@ const BannerArt = (() => {
     function close() {
       if (!open) return;
       cardAskDone?.(false);
-      if (open === "invite") Scene3D.envOpen(false);
-      list.hidden = true; inv.hidden = true; inv.classList.remove("out"); open = ""; setDel(false);
+      // 초대장: 꺼내 놓은 상태면 봉투 자리로 다시 들어간 뒤(0.3초) 덮개가 닫힘
+      if (open === "invite") {
+        const card = inv.querySelector(".inv"), shut = () => { inv.classList.remove("back"); inv.hidden = true; Scene3D.envOpen(false); };
+        if (inv.classList.contains("out") && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          inv.classList.replace("out", "back");
+          let done = false; const fin = () => { if (!done) { done = true; if (inv.classList.contains("back")) shut(); } };
+          card.addEventListener("animationend", fin, { once: true }); setTimeout(fin, 420);
+        } else { inv.classList.remove("out"); shut(); }
+      } else inv.hidden = true;
+      list.hidden = true; open = ""; setDel(false);
       removeEventListener("keydown", key, true); removeEventListener("pointerdown", away, true);
     }
     function show(which) {
@@ -9794,7 +9813,7 @@ const BannerArt = (() => {
         // 3D 봉투 덮개가 먼저 젖혀 열리고 → 초대장이 봉투 자리에서 빠져나와 가운데로
         const r = Book.rect("invite"), card = inv.querySelector(".inv");
         if (r) for (const [k, v] of [["--fx", `${Math.round(r.x + r.w / 2 - innerWidth / 2)}px`], ["--fy", `${Math.round(r.y + r.h / 2 - innerHeight / 2)}px`], ["--fs", Math.min(r.w / 440, .6).toFixed(3)]]) card.style.setProperty(k, v);
-        inv.hidden = false; Sfx.play("page"); $("#bkJoinName").value ||= LS.get(K.name) ?? "";
+        inv.classList.remove("back"); inv.hidden = false; Sfx.play("page"); $("#bkJoinName").value ||= LS.get(K.name) ?? "";
         Scene3D.envOpen(true).then(() => {
           if (open !== "invite") return;
           inv.classList.add("out");
