@@ -4768,7 +4768,7 @@ const AI = (() => {
 ― 입력 처리
 7. 플레이어 입력은 (대사), (NPC에게 대사), (행동), (GM에게 질문)으로 구분된다. 일반 대사는 캐릭터끼리 나눈 말로 상황 참고용이며, 명시적으로 NPC에게 건넨 대사에만 해당 NPC가 반응한다. 행동은 결과를 서술한다(행동 안의 따옴표는 대사). 여러 캐릭터의 행동이 쌓였으면 하나의 서술로 묶어 각각의 결과를 보여 준다.
 8. NPC에게 대사만 전달된 차례는 그 NPC의 대답 · 태도나 필요한 사회적 판정을 중심으로 다루고, 무관한 사건을 진행시키지 않는다 (20번 정체시진행은 예외). 단, NPC에게 사건의 단서 · 물건(문서 내용, 흔적, 정체 등)을 물었다면 그 확인에 맞는 판정(request_check · improv_check)을 걸거나, 공개조건이 충족된 단서는 reveal_clue로 공개할 수 있다. 같은 캐릭터가 같은 NPC에게 같은 주제를 다시 묻는데(다른 캐릭터가 같은 차례에 같은 것을 물은 것은 해당 없음) 그 답이 "가능한판정"의 어느 판정(추측 · 해석 · 기억 떠올리기 등)과 맞으면, NPC 대답으로 미루지 말고 그 판정을 request_check로 건다 (who = 물은 캐릭터). 그 캐릭터가 그 판정의 "실패한사람"이면 16번대로 다시 걸지 않고 26번대로 답한다.
-9. 질문은 이야기를 진행하지 말고, 캐릭터가 보고 알 수 있는 범위에서 GM으로서 짧게 답한다. 질문의 답은 narration에 넣지 않고 answers에 질문한 캐릭터마다 하나씩 {"to": "질문한 캐릭터 이름", "text": "답"}으로 넣는다 (여러 명이 물었으면 각자에게 따로). 질문에는 move_to · reveal_clue · request_check · improv_check · give_item · take_item 모두 null (34번의 소지품 바로잡기 give_item만 예외). "이번입력"이 질문뿐이면 반드시 그렇게 하고 narration은 ""로 둔다.
+9. 질문은 이야기를 진행하지 말고, 캐릭터가 보고 알 수 있는 범위에서 GM으로서 짧게 답한다. 질문의 답은 narration에 넣지 않고 answers에 질문한 캐릭터마다 하나씩 {"to": "질문한 캐릭터 이름", "text": "답"}으로 넣는다 (여러 명이 물었으면 각자에게 따로). 질문에는 move_to · reveal_clue · improv_check · give_item · take_item 모두 null (34번의 소지품 바로잡기 give_item만 예외). 질문이 문서 · 흔적 · 물건의 내용이나 숨은 사정을 알아내려는 것이면 answers에는 지금 눈에 보이는 것만 쓰고(그 캐릭터가 하는 행동을 서술하지 않는다) 맞는 판정을 request_check로 건다. 판정이 없으면 보이는 것만 답하고 더 알려면 어떤 행동이 필요한지 암시한다. "이번입력"이 질문뿐이면 반드시 그렇게 하고 narration은 ""로 둔다.
 10. "이번입력목록"에 있는 행동 · 질문 하나하나에 빠짐없이 응답한다. 행동한 캐릭터 이름은 그 결과 문장에 모두 나와야 한다. 다만 캐릭터가 이번에 한 말 · 행동은 이미 기록에 있으므로 그대로 옮겨 쓰지 않고, 그 결과(NPC의 반응 · 일어난 일)부터 쓴다 (예: "○○에게 앞으로의 일을 물었다"처럼 주어 없이 되풀이하는 문장도 금지). 그중 물건을 버리거나 건네거나 쓰는 행동이 있으면 그 결과를 서술하고 take_item(받는 쪽이 있으면 give_item도)을 넣는다.
 11. 플레이어 캐릭터의 행동이나 감정을 대신 정하지 않는다. 플레이어가 선언한 행동까지만 결과를 서술하고, 선언하지 않은 다음 행동(물건을 꺼내 쓴다, 문을 연다, 어딘가로 간다 등)을 대신 하지 않는다. 이번 차례에 입력이 없는 캐릭터(첫 서술 포함)는 "○○은/는/이/가 …했다"처럼 행동 · 감정 · 생각을 정해 주어로 서술하지 않고, 주변 묘사와 NPC의 말 · 행동으로만 장면을 연다. "최근발언적은캐릭터"가 있으면 NPC나 주변 변화를 통해 그 캐릭터에게 자연스럽게 기회를 준다.
 
@@ -5329,11 +5329,21 @@ const Turn = (() => {
       plan.answers.push({ toPid: c?.pid ?? null, toName: c?.name ?? a.to, text: a.text });
     }
 
+    // ---- 질문 답이 질문한 캐릭터의 행동 묘사뿐 (규칙 9 · 11): 보이는 것을 답하거나 판정을 걸어야 함 ----
+    if (info.askOnly && plan.answers.length && !plan.check) {
+      const ACT_END = /(?:보았다|보았음|살폈다|살핌|훑었다|가늠했다|가늠함|둘러보았다)[.!…]?$/;
+      const empty = plan.answers.filter((a) => {
+        const ss = String(a.text).split(SENT_RE).map((x) => x.trim()).filter(Boolean);
+        return ss.length && ss.every((x) => !x.match(LINE_RE) && ACT_END.test(x));
+      });
+      if (empty.length) (final ? soft : hard)(`질문의 답이 그 캐릭터가 살펴보았다는 행동 묘사뿐임 (「${empty[0].text.slice(0, 30)}」, 규칙 9 · 11). 지금 눈에 보이는 것을 구체적으로 답하거나, 알아내려면 판정이 필요한 일이면 request_check를 건다`);
+    }
+
     // ---- 질문뿐인 차례: 이야기 진행 금지 ----
     if (info.askOnly) {
-      const dropped = [plan.clue && "단서", plan.move && "이동", plan.check && "판정", plan.take.length && "물건 잃음", plan.place && "장소", (plan.hurt.length || plan.heal.length || plan.fate) && "피해 · 생사"].filter(Boolean);
+      const dropped = [plan.clue && "단서", plan.move && "이동", plan.take.length && "물건 잃음", plan.place && "장소", (plan.hurt.length || plan.heal.length || plan.fate) && "피해 · 생사"].filter(Boolean);
       if (dropped.length) soft(`질문뿐인 차례 → ${dropped.join(" · ")} 무시`);
-      Object.assign(plan, { clue: null, move: null, arrival: null, check: null, take: [], place: null, leavePlace: false, onTrack: null, hurt: [], heal: [], fate: null, newNpcs: [] });
+      Object.assign(plan, { clue: null, move: null, arrival: null, take: [], place: null, leavePlace: false, onTrack: null, hurt: [], heal: [], fate: null, newNpcs: [] });
       // 물건 바로잡기만 허용: 최근 서술 · 판정 결과에 그 물건을 받은 이야기가 있을 때
       plan.give = plan.give.filter((g) => bare(info.recentText).includes(bare(g.item)));
       if (!plan.answers.length && plan.narration && info.askers.length === 1) {
@@ -5519,6 +5529,20 @@ const Turn = (() => {
       const ins = (info.inputs ?? []).map(pairs).filter((x) => x.size >= 2);
       const covers = (sent) => { const t = pairs(sent); return ins.some((p) => { let h = 0; for (const g of p) if (t.has(g)) h++; return h / p.size >= 0.75; }); };
       const sents = String([plan.narration, plan.arrival].filter(Boolean).join("\n")).replace(QUOTE_RE, " ").split(SENT_RE).map((x) => x.trim()).filter((x) => /[가-힣]{2}/.test(x));
+      // 입력 행동을 한 서술 안에서 두 번 이상 되풀이한 문장(첫 문장 뒤에 같은 행동을 다시 씀)
+      const big = (x) => { const t = pairs(x); return t; };
+      const covN = (sent, p) => { const t = big(sent); let h = 0; for (const g of p) if (t.has(g)) h++; return h / p.size; };
+      const bigIns = (info.inputs ?? []).map(pairs).filter((x) => x.size >= 5);
+      const dupAct = [];
+      for (const p of bigIns) { const hits = sents.filter((x) => covN(x, p) >= 0.5); if (hits.length >= 2) dupAct.push(...hits.slice(1)); }
+      if (dupAct.length && sents.length > dupAct.length) {
+        if (!final) hard(`플레이어가 한 행동을 서술 안에서 두 번 되풀이함 (「${dupAct[0].slice(0, 30)}」). 같은 행동은 한 번만 쓰고 그 결과(새로 보이는 것 · 주변 변화 · NPC 반응)로 넘어간다`);
+        else {
+          const kill = new Set(dupAct); soft("입력 행동을 되풀이한 문장 삭제");
+          const cutT = (t) => String(t ?? "").split(/(?<=[.!?…。])\s+/).filter((x) => !kill.has(x.replace(QUOTE_RE, " ").trim())).join(" ");
+          plan.narration = cutT(plan.narration); if (plan.arrival) plan.arrival = cutT(plan.arrival);
+        }
+      }
       if (ins.length && sents.length && !plan.check && sents.every(covers))
         (final ? soft : hard)("플레이어가 쓴 행동 · 말을 거의 그대로 되풀이만 함. 그 행동의 결과(주변의 변화 · NPC의 반응 · 새로 알게 된 것)를 서술하거나, 판정이 필요하면 request_check");
     }

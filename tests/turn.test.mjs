@@ -503,3 +503,22 @@ test("다인 차례: 결과가 각자 행동만 적고 반응이 없으면 재�
   const ok = { narration: "", results: [{ who: "엘로이", text: "허버트가 고개를 저었다. \"문은 밤새 열리지 않네.\"" }, { who: "로니", text: "애원은 복도에 메아리쳤다." }] };
   assert.ok(!run(ok, info).issues.some((i) => i.hard && /반응이 없음/.test(i.msg)));
 });
+
+test("서류 뭉치 재현: 입력 행동을 서술 안에서 두 번 되풀이하면 재요청, 마지막은 반복 문장 삭제", () => {
+  const info = base({ inputs: ["빛바랜 서류 뭉치를 펼쳐 살펴본다"], actTexts: ["빛바랜 서류 뭉치를 펼쳐 살펴본다"] });
+  const obj = { narration: "빛바랜 서류 뭉치를 펼치자, 오래된 양피지 위로 수도원의 비밀스러운 기록과 알 수 없는 기호들이 어지럽게 눈에 들어왔다. 빛바랜 서류 뭉치를 펼쳐 빽빽하게 적힌 기록들을 살펴보았다." };
+  assert.ok(run(obj, info).issues.some((i) => i.hard && /두 번 되풀이/.test(i.msg)));
+  const f = run(obj, info, true);
+  assert.ok(!f.issues.some((i) => i.hard));
+  assert.ok(!/살펴보았다/.test(f.plan.narration) && /눈에 들어왔다/.test(f.plan.narration));
+});
+
+test("질문 답이 행동 묘사뿐이면 재요청, 판정을 걸면 질문 차례에도 유지", () => {
+  const info = base({ askOnly: true, askers: [{ pid: "p1", name: "한서" }], inputs: ["서류 뭉치에서 알 수 있는게 있을까?"], checks: ["k1"] });
+  const empty = { narration: "", answers: [{ to: "한서", text: "서류 뭉치 속 빼곡한 기록과 기호를 훑어보며 그 의미를 가늠해 보았다." }] };
+  assert.ok(run(empty, info).issues.some((i) => i.hard && /행동 묘사뿐/.test(i.msg)));
+  assert.ok(!run(empty, info, true).issues.some((i) => i.hard));
+  const ck = run({ ...empty, request_check: { id: "k1", who: "한서" } }, info);
+  assert.ok(!ck.issues.some((i) => i.hard && /행동 묘사뿐/.test(i.msg)));
+  assert.ok(ck.plan.check, "질문 차례에서도 판정 유지");
+});
