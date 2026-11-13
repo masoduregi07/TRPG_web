@@ -99,7 +99,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ---------------- 종이 카드 ---------------- */
 /* 찢긴 가장자리 + 접힌 귀퉁이 */
-.card, .panel, .block, .pending, .brand {
+.card, .panel, .block, .pending {
   background: var(--paper-bg);
   box-shadow: var(--paper-age);
   border-radius: 0;
@@ -185,22 +185,6 @@ textarea.code { font: 12px/1.6 var(--font); }
   background: radial-gradient(circle at 50% 36px, rgba(255, 190, 90, .26) 0 30px, rgba(255, 190, 90, .14) 30px 60px, rgba(255, 190, 90, .06) 60px 96px, transparent 96px);
   animation: glow 2.6s steps(1) infinite;
 }
-/* 초를 꽂으려면 위쪽은 자르지 않음 */
-.brand { position: relative; text-align: center; padding: 30px 24px 27px; clip-path: none; --flap: none; }
-.brand-mark { display: none; }
-/* 카드 위의 초 (6px 픽셀) */
-.brand::before {
-  content: ""; position: absolute; left: 50%; top: -57px; width: 18px; height: 48px; margin-left: -9px;
-  background: linear-gradient(90deg, #f3e9cf 0 12px, #c9b68e 12px);
-  box-shadow: 0 0 0 3px var(--ink);
-}
-.brand::after {
-  content: ""; position: absolute; left: 50%; top: -93px; width: 6px; height: 6px; margin-left: -9px;
-  --c: 6px; background: transparent;
-  animation: flame 1.3s steps(1) infinite;
-}
-.brand h1 { font-size: 36px; color: var(--ink); }
-.brand p { margin: 9px 0 0; color: var(--ink-2); font-family: var(--font); font-size: 12px; }
 .card { display: grid; }
 .card h2 { font-size: 24px; }
 
@@ -317,19 +301,11 @@ textarea.code { font: 12px/1.6 var(--font); }
 .gm h4 { font-size: 12px; color: var(--amber); }
 .gm .muted, .gm .small.muted { color: #a8977a; }
 .gm-note { margin: 0; white-space: pre-wrap; }
-.gm-goal { margin: 0; color: #f0d9a8; }
-.gm-goal b, .gm p.small b { font-weight: 400; color: var(--amber); }
+.gm p.small b { font-weight: 400; color: var(--amber); }
 .gm-hints summary { cursor: pointer; color: #a8977a; }
-.gm-cover { display: grid; gap: 6px; justify-items: start; padding: 12px; box-shadow: inset 0 0 0 2px #4a3a2a; background: repeating-linear-gradient(135deg, rgba(74, 58, 42, .25) 0 6px, transparent 6px 12px); }
-.gm-cover p { margin: 0; }
 .gm .ai-grid select, .gm .ai-grid input { font-size: 12px; }
 .scene-entry.brief .scene-entry-title { margin-bottom: 0; }
 .gm-hints ol, .gm-hints ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
-.gm-npc { border-top: 3px dotted #4a3a2a; }
-.secret-text { color: #e58f7d; }
-.gm-list { list-style: none; padding: 0; margin: 0; display: grid; }
-.gm-list li.done { opacity: .5; }
-.gm-list li.locked { opacity: .75; }
 .gm-actions { display: flex; flex-wrap: wrap; }
 .gm input, .gm select { color: var(--ink); }
 .gm .field > span { color: #a8977a; }
@@ -868,7 +844,6 @@ html.has-3d .layout { box-shadow: 0 0 0 3px #0c0705, 0 18px 40px rgba(0, 0, 0, .
   .log-pane::after { display: none; }
   .topbar { flex-wrap: wrap; }
   .top-actions { margin-left: auto; }
-  .brand h1 { font-size: 24px; }
 }
 @media (max-width: 600px) { .ai-grid { grid-template-columns: 1fr; }
   .top-actions { gap: 2px; }
@@ -876,7 +851,6 @@ html.has-3d .layout { box-shadow: 0 0 0 3px #0c0705, 0 18px 40px rgba(0, 0, 0, .
 }
 @media (prefers-reduced-motion: reduce) { #gmBox.gm { animation: none; } .polaroid.busy .polaroid-empty { animation: none; }
   body::before, .narrow::before, .thinking { animation: none; }
-  .brand::after { animation-play-state: paused; }
   .btn:active:not(:disabled) { transform: none; }
 }
 
@@ -931,16 +905,13 @@ textarea { resize: vertical; margin-top: 8px; }
 .gm { padding: 14px 14px; gap: 6px; }
 .gm h3 { color: var(--amber); font-size: 18px; }
 .gm h4 { margin-top: 6px; }
-.gm-npc { padding: 4px 0; }
-.gm-list { gap: 4px; }
-.gm-list li { border-bottom: 3px dotted #4a3a2a; font-size: 14px; padding: 5px 0 6px; }
 .gm-actions { gap: 8px; margin-top: 6px; }
 .ai-settings[open] summary { margin-bottom: 8px; }
 
 /* GM 노트 = 밝은 종이 수첩 (머리 · 지금 장면 요약 · 색인 탭 3개 · 탭 내용 스크롤 · 아래 [이야기 끝내기]).
    토큰: 글자 제목 18 · 장면 17 · 본문 14 · 보조 12 / 간격 4 단위, 카드 사이 8 · 묶음 사이 16 / 장부 줄은 첫 화면 테이블 설정과 같은 --lg-* */
 #gmBox.gm {
-  --gn-ink: #3a2412; --gn-sub: #7a5a3a; --gn-line: rgba(90, 60, 30, .35); --gn-dark: #5a3a22; --gn-red: #8e2438; --gn-card: #f6ecd2;
+  --gn-ink: #3a2412; --gn-sub: #7a5a3a; --gn-dark: #5a3a22; --gn-red: #8e2438; --gn-card: #f6ecd2;
   --lg-fs-k: 12px; --lg-fs-v: 13px; --lg-kw: 60px; --lg-kh: 20px; --lg-row: 30px; --lg-ctl: 24px; --lg-gap: 8px; --lg-grp: 12px;
   display: flex; flex-direction: column; gap: 0; padding: 0; overflow: hidden; font-family: var(--font); color: var(--gn-ink);
   background: radial-gradient(rgba(120, 80, 30, .07) 1px, transparent 1.5px) 0 0 / 5px 5px, #efe3c4;
@@ -1514,7 +1485,6 @@ html.has-3d .topbar { box-shadow: none; }
 .ready-stamp .seal-svg { display: block; }
 /* 반으로 접힘: 아래 절반이 위로 넘어오며 납작해짐 */
 
-@keyframes sheet-fold { 0% { scale: 1 1; filter: none; } 60% { scale: .98 .52; filter: brightness(.92); } 100% { scale: .5 .26; translate: 0 40%; opacity: .0; } }
 /* 이름표 옆 [작성 완료] 도장 */
 .plate-stamp { margin-left: 6px; padding: 0 5px; font-size: 10px; line-height: 1.5; letter-spacing: 1px; color: #a3221a; rotate: -6deg;
   box-shadow: inset 0 0 0 1.5px #a3221a, inset 0 0 0 3px rgba(232, 217, 176, 1), inset 0 0 0 3.5px rgba(163, 34, 26, .6); opacity: .9; }
@@ -1603,8 +1573,6 @@ html.has-3d .topbar { box-shadow: none; }
 .folded-card { height: 160px; padding-top: 12px; }
 /* 깃펜: 기다리는 동안 펜이 흔들리며 잉크 줄이 늘어남 (글을 쓰는 중) */
 .builder .sug-btn { position: relative; }
-@keyframes quill-write { 0% { rotate: -6deg; translate: -2px 0; } 25% { rotate: 4deg; translate: 0 -1px; } 50% { rotate: -3deg; translate: 2px 0; } 75% { rotate: 5deg; translate: 3px -1px; } 100% { rotate: -6deg; translate: -2px 0; } }
-@keyframes quill-ink { 0% { width: 0; opacity: 1; } 85% { width: 24px; opacity: 1; } 100% { width: 24px; opacity: 0; } }
 
 /* 머리글 규격: 왼쪽(서식) · 가운데(제목 + 바로 아래 영문 줄) · 오른쪽(기록 번호 · 담당 GM)을 한 줄 높이로, 괘선은 바로 아래 */
 .my-sheet:has(.form-head) { padding-top: 9px; }
@@ -2119,10 +2087,6 @@ html.has-3d .topbar { box-shadow: none; }
 .pending .btn:active:not(:disabled), .pending .btn.primary:active:not(:disabled), .memo-btn:active:not(:disabled) {
   transform: none; translate: 1px 1px; box-shadow: inset 4px 0 0 0 var(--blood), 0 0 0 2px #2b1a0c, 1px 1px 0 0 rgba(43, 26, 12, .35);
 }
-/* 굴리기: 주사위 아이콘 네모 칸 (이름표는 올리면) */
-.pending .ic-btn.roll-box { width: 48px; height: 48px; padding: 0 0 0 3px; place-items: center; flex: none; align-self: flex-start; }
-.pending .ic-btn.roll-box .ic-svg, .pending .ic-btn.roll-box:hover .ic-svg { filter: none; color: var(--ink); transform: none; }
-.pending .ic-btn.roll-box .ic-tip { right: auto; left: -3px; }
 /* 판정 메모: 굴린 판정은 글줄, 점선 아래 지금 판정 버튼 */
 /* 사진 맞추기 */
 .pic-edit { padding: 16px 18px; border: 3px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 6px 8px 0 rgba(0, 0, 0, .5); }
