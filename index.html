@@ -9801,7 +9801,7 @@ const BannerArt = (() => {
     const R = { a: [1, 0, 3, 1], b: [4, 1, 1, 3], c: [4, 5, 1, 3], d: [1, 8, 3, 1], e: [0, 5, 1, 3], f: [0, 1, 1, 3], g: [1, 4, 3, 1] };
     let x = 0, out = "";
     for (const ch of str) {
-      if (ch === "/") { out += `<path d="M${x + 2.6 * u} ${.6 * u}L${x + .4 * u} ${8.4 * u}"/>`; x += 4.2 * u; continue; }   // 빗금: 앞뒤 숫자와 틈을 같게
+      if (ch === "-") { out += `<rect x="${x + .15}" y="${4 * u + .15}" width="${2.4 * u}" height="${u - .3}"/>`; x += 4 * u; continue; }   // 구분 = 짧은 가운데 획 (1과 헷갈리지 않게)
       const one = ch === "1", ox = one ? -3.6 * u : 0;   // 1은 오른쪽 획만이라 좁은 글자로 (틈이 한쪽만 벌어지지 않게)
       for (const k of SEG[ch] ?? "") { const [rx, ry, w, h] = R[k]; out += `<rect x="${x + ox + rx * u + .15}" y="${ry * u + .15}" width="${w * u - .3}" height="${h * u - .3}"/>`; }
       x += one ? 2.6 * u : 6.6 * u;   // 글자 사이 틈 1.6칸
@@ -9810,7 +9810,7 @@ const BannerArt = (() => {
     t.innerHTML = `<svg class="seg" width="${(W + 2).toFixed(1)}" height="${H.toFixed(1)}" viewBox="-1 0 ${(W + 2).toFixed(1)} ${H.toFixed(1)}" aria-hidden="true"><g transform="skewX(-8)" transform-origin="0 ${H.toFixed(1)}" stroke-width="${(u * .9).toFixed(2)}">${out}</g></svg>`;
     return t.content.firstChild;
   }
-  const ymd = (ts) => { const d = new Date(ts), p = (n) => String(n).padStart(2, "0"); return `${p(d.getFullYear() % 100)}/${p(d.getMonth() + 1)}/${p(d.getDate())}`; };   // 목록 날짜 yy/mm/dd (segNum으로 그림)
+  const ymd = (ts) => { const d = new Date(ts), p = (n) => String(n).padStart(2, "0"); return `${p(d.getFullYear() % 100)}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };   // 목록 날짜 yy-mm-dd (segNum으로 그림)
   const md = (ts) => { const d = new Date(ts); return `${String(d.getMonth() + 1).padStart(2, "0")}·${String(d.getDate()).padStart(2, "0")}`; };
   async function deleteTable(t, li = null) {
     const ask = li ? "이 시나리오를 폐기할까?" : `「${t.title}」 기록을 지울까?`;
