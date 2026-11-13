@@ -49,6 +49,13 @@ test("플레이어용 화면 정보에 GM 전용 내용 없음", () => {
   for (const c of s.clues ?? []) assert.ok(!pub.includes(c.text), `미공개 단서 노출: ${c.id}`);
 });
 
+test("플레이어용 화면 정보에 지금 장 번호 (이어하기 목록 챕터)", () => {
+  const sc = sample(m); Engine.validateScenario(sc);
+  const st = Engine.newState(sc), ids = Object.keys(sc.scenes);
+  assert.equal(Engine.publicView(sc, st).scene.n, ids.indexOf(st.currentScene) + 1);
+  if (ids[1]) { Engine.move(sc, st, ids[1]); assert.equal(Engine.publicView(sc, st).scene.n, 2); }
+});
+
 test("http:// 이미지는 경고, https://는 경고 없음", () => {
   const warnOf = (url) => {
     const sc = sample(m);
