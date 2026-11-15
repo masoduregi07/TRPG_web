@@ -11,7 +11,8 @@ const base = (over = {}) => ({
   secrets: [{ kind: "NPC 비밀", text: SECRET }, { kind: "미공개 단서", clue: "c1", text: "벽장 안쪽 판자 뒤에 오래된 항해 일지가 숨겨져 있음" }], known: "",
   ...over,
 });
-const run = (obj, info = base(), final = false) => Turn.validate(AI.parseGM(JSON.stringify(obj)), info, { final });
+const PROMPT = "복도 끝에서 낮은 발소리가 들렸다.";
+const run = (obj, info = base(), final = false) => Turn.validate(AI.parseGM(JSON.stringify({ prompt: PROMPT, ...obj })), info, { final });
 
 test("leaks: 원문 그대로는 감지, 무관한 서술은 통과", () => {
   assert.ok(Turn.leaks("노인은 사실 등대 열쇠를 갖고 있음.", SECRET));
@@ -537,4 +538,18 @@ test("new_place가 갈 수 있는 사건(다른 방)이면 move_to로 바꿈, �
   assert.ok(!r.plan.place);
   const c = run({ narration: "한서가 도서관 문 앞에 섰다.", new_place: { name: "도서관" }, request_check: { id: "k1", who: "한서" } }, info);
   assert.ok(!c.plan.move, "판정을 거는 응답은 이동으로 바꾸지 않음");
+});
+
+test("다음 상황(prompt): 행동 차례에 비면 다시 요청 · 마지막은 통과, 질문 · 판정 차례는 없음, 서술 되풀이는 뺌", () => {
+  const empty = run({ narration: "바르톨이 그물을 내려놓았다. \"등대 말인가.\"", prompt: "" });
+  assert.ok(empty.issues.some((i) => i.hard && /prompt/.test(i.msg)));
+  assert.ok(!run({ narration: "바르톨이 그물을 내려놓았다.", prompt: "" }, base(), true).issues.some((i) => i.hard));
+  const ok = run({ narration: "바르톨이 그물을 내려놓았다." });
+  assert.equal(ok.plan.prompt, PROMPT);
+  const ask = run({ narration: "", answers: [{ to: "한서", text: "창밖은 어둡다." }], prompt: "" }, base({ askOnly: true, askers: [{ pid: "p1", name: "한서" }] }));
+  assert.ok(!ask.issues.some((i) => /prompt/.test(i.msg)));
+  const ck = run({ narration: "한서가 벽장 앞에 섰다.", request_check: { id: "k1", who: "한서" }, prompt: "" });
+  assert.ok(!ck.issues.some((i) => /prompt/.test(i.msg)));
+  const rep = run({ narration: "복도 끝에서 낮은 발소리가 들렸다. 바르톨이 고개를 들었다." });
+  assert.equal(rep.plan.prompt, "", "서술과 같으면 뺌");
 });

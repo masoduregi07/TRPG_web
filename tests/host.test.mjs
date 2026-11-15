@@ -683,6 +683,9 @@ test("[패스]: 모두 행동했거나 패스하면 바로 GM 차례, 패스만�
 });
 
 test("정체: on_track이 true여도 단서 · 플래그 없이 장소만 바뀌면 정체로 셈 → 힌트, 단서가 나오면 다시 셈", () => {
+});
+
+test("다음 상황(prompt)은 이번 차례 기록 맨 끝에 GM 줄로", () => {
   const m = load();
   const sc = sample(m); m.Engine.validateScenario(sc);
   const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
@@ -697,4 +700,8 @@ test("정체: on_track이 true여도 단서 · 플래그 없이 장소만 바뀌
   assert.match(g.turnContext().ctx.정체시진행, /정체/);
   const clue = (sc.scenes[sc.start].clues ?? [])[0];
   if (clue) { turn(plan({ clue: clue.id })); assert.equal(data.game.stallTurns, 0); assert.equal(data.game.offTrack, 0); }
+  g.applyPlan({ narration: "바람이 불었다.", prompt: "멀리서 종소리가 울렸다.", answers: [], give: [{ name: "한서", item: "성냥" }], take: [], hurt: [], heal: [], blocks: [], newNpcs: [], showHandouts: [] });
+  const ai = data.log.filter((e) => e.kind === "ai");
+  assert.equal(ai.at(-1).text, "멀리서 종소리가 울렸다.");
+  assert.ok(data.log.findIndex((e) => e.text === "멀리서 종소리가 울렸다.") > data.log.findIndex((e) => /성냥/.test(e.text ?? "")), "물건 기록 뒤");
 });

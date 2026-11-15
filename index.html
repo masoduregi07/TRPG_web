@@ -4762,7 +4762,7 @@ const AI = (() => {
     const npc = style.npcVoice === "vivid" ? "NPC는 말투와 버릇을 뚜렷하게 연기한다." : "NPC 대사는 짧고 담백하게.";
     const avoid = style.avoid ? `다음 소재는 묘사하지 않거나 화면 밖에서 처리한다: ${String(style.avoid).slice(0, 200)}` : "";
     return `너는 한국어 TRPG의 게임 마스터(GM)다. 친구 4명 이하가 함께 플레이한다. 이 시나리오는 "사건 흐름"으로 진행된다.
-너는 관찰자이자 진행자다. 응답은 풍성하게: NPC는 살아 있는 사람처럼 반응하고, 매 차례 장면에 작은 변화나 NPC의 한마디가 있어야 한다. 시나리오를 바탕으로 캐릭터의 행동에 알맞은 자유를 주되, 이야기를 결말까지 이끌 책임이 있다. 매 응답은 캐릭터 행동의 결과(주변의 변화 · NPC의 반응 · 새로 알게 된 것 · 판정 요청) 중 하나 이상을 담아 이야기를 한 걸음 나아가게 한다. 플레이어가 쓴 행동을 되풀이하는 것으로 응답을 채우지 않는다. 단, 질문만 있는 차례(9번)와 판정 결과만 있는 차례(15번)는 그 규칙대로 한다.
+너는 관찰자이자 진행자다. 응답은 풍성하게: NPC는 살아 있는 사람처럼 반응하고, 매 차례 장면에 작은 변화나 NPC의 한마디가 있어야 한다. 시나리오를 바탕으로 캐릭터의 행동에 알맞은 자유를 주되, 이야기를 결말까지 이끌 책임이 있다. 매 응답은 캐릭터 행동의 결과(주변의 변화 · NPC의 반응 · 새로 알게 된 것 · 판정 요청) 중 하나 이상을 담아 이야기를 한 걸음 나아가게 한다. 플레이어가 쓴 행동을 되풀이하는 것으로 응답을 채우지 않는다. 그리고 매 응답의 prompt에는 캐릭터들이 다음에 무엇을 할지 고르게 만드는 지금의 상황(새로 들리는 소리 · 다가오는 NPC나 NPC의 물음 · 눈에 띄는 물건 · 갈 수 있는 곳 · 다가오는 위협)을 이야기 속 말로 한두 문장 쓴다. "이동가능한곳"이나 아직 살펴보지 않은 것을 자연스럽게 짚되, 캐릭터의 행동을 대신 정하지 않고 아직공개안된단서 · 비밀은 드러내지 않는다. 단, 질문만 있는 차례(9번), 판정 결과만 있는 차례(15번), 판정을 거는 응답은 그 규칙대로 하고 prompt는 ""로 둔다.
 
 [반드시 지킬 규칙]
 ― 원칙 · 사실
@@ -4821,12 +4821,12 @@ const AI = (() => {
 
 ― 서술 형식
 37. 서술 분량: 평소 ${len[0]}문장. move_to를 넣을 때, reveal_clue를 넣을 때, "직전판정"이 대성공 · 대실패일 때, 결말장면일 때는 ${len[1]}문장으로 길고 생생하게. ${tone} NPC 대사만 따옴표 안에서 자연스러운 말투로.
-38. 군더더기 수식어, 설명조, 요약, 플레이어에게 묻는 말("어떻게 하시겠습니까?")은 쓰지 않는다. NPC 대사에 게임 밖 낱말(힌트 · 주사위 · 판정 · 플레이어 · 시나리오)을 쓰지 않는다.
+38. 군더더기 수식어, 설명조, 요약, 게임 밖 말투로 플레이어에게 묻는 말("어떻게 하시겠습니까?")은 쓰지 않는다 (다음 상황은 prompt에 이야기 속 말로). NPC 대사에 게임 밖 낱말(힌트 · 주사위 · 판정 · 플레이어 · 시나리오)을 쓰지 않는다.
 39. 실제 캐릭터 이름이 [게임 상황]에 있으면 대명사 '탐사자'를 남용하지 않고 각 캐릭터의 이름으로 서술한다. 누구의 행동인지 확실하지 않으면 임의로 특정하지 않는다. "플레이어캐릭터" · "등장NPC"에 없는 사람 이름을 쓰지 않는다 (새 인물은 29 · 30번대로 new_npcs에 올린 이름만).
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
 [출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 narration은 ""로 두고 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 각 항목은 그 캐릭터가 한 행동 · 말 · 감정을 다시 적지 말고, 그에 대한 세계의 반응(NPC의 대답 · 행동은 따옴표 대사로, 주변 변화, 새로 보이는 것)만 쓴다. 한 차례에 NPC 반응이 하나도 없으면 안 된다. 행동표가 없으면 results는 [].
-{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격","voice":"말투"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격","voice":"말투"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}, "kpc_away": null 또는 true 또는 false, "npc_card": [] 또는 [{"who": "NPC 이름", "knows": ["새로 알게 된 것"], "wants": "바뀐 바람", "relations": ["대상 — 관계"]}]}`;
+{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "prompt": "다음 선택을 부르는 지금의 상황 한두 문장 또는 \"\"", "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격","voice":"말투"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격","voice":"말투"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}, "kpc_away": null 또는 true 또는 false, "npc_card": [] 또는 [{"who": "NPC 이름", "knows": ["새로 알게 된 것"], "wants": "바뀐 바람", "relations": ["대상 — 관계"]}]}`;
   }
 
   function logLine(e) {
@@ -4888,7 +4888,7 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
       const rqs = asList(obj.request_check).map((rc) => (typeof rc === "string" ? { id: str(rc), who: "" } : rc && typeof rc === "object" && str(rc.id) ? { id: str(rc.id), who: (str(rc.who) ?? "").slice(0, 16) } : null)).filter((x) => x?.id).slice(0, 4);
       const ic = ics[0] ?? null, rq = rqs[0] ?? null;
       return { ok: true, error: "", res: {
-        narration: obj.narration.trim().slice(0, 3000), results,
+        narration: obj.narration.trim().slice(0, 3000), results, prompt: (str(obj.prompt) ?? "").trim().slice(0, 600),
         reveal_clue: str(obj.reveal_clue), request_check: rq, request_checks: rqs, improv_checks: ics, move_to: str(obj.move_to), arrival: (str(obj.arrival) ?? "").trim().slice(0, 3000) || null,
         improv_check: ic, new_place: np, new_npcs: newNpcs, left_place: obj.left_place === true,
         on_track: obj.on_track === true ? true : obj.on_track === false ? false : null,
@@ -4909,7 +4909,7 @@ ${[mood, improv, avoid].filter(Boolean).join("\n")}
       // JSON처럼 생긴 글이면 narration만 건지고, 못 건지면 비움 (원문 JSON을 서술로 보여 주지 않음)
       const narration = /^\{|"narration"\s*:|"[a-z_]+"\s*:\s*[\[{"]/.test(plain) ? salvageNarration(plain) : plain;
       return { ok: false, error: e instanceof SyntaxError ? "JSON 문법 오류" : e?.message || "형식 오류",
-        res: { narration: narration.slice(0, 3000), reveal_clue: null, request_check: null, move_to: null, arrival: null, improv_check: null, new_place: null, new_npcs: [], left_place: false, on_track: null, give_item: [], take_item: [], answers: [], show_handout: [], hurt: [], heal: [], fate: null } };
+        res: { narration: narration.slice(0, 3000), prompt: "", reveal_clue: null, request_check: null, move_to: null, arrival: null, improv_check: null, new_place: null, new_npcs: [], left_place: false, on_track: null, give_item: [], take_item: [], answers: [], show_handout: [], hurt: [], heal: [], fate: null } };
     }
   }
 
@@ -5141,7 +5141,7 @@ const Turn = (() => {
     const plan = {
       narration: (r.narration ?? "").trim(), arrival: null, answers: [], clue: null, move: null, check: null,
       give: [], take: [], place: null, leavePlace: false, onTrack: r.on_track ?? null,
-      hurt: [], heal: [], fate: null, newNpcs: [], blocks: [],
+      hurt: [], heal: [], fate: null, newNpcs: [], blocks: [], prompt: "",
     };
     // ---- 플레이어별 서술(results): 행동하지 않은 캐릭터 서술은 버리고, 같은 캐릭터는 합침 ----
     for (const b of r.results ?? []) {
@@ -5650,6 +5650,14 @@ const Turn = (() => {
       if (missing.length) (final ? soft : hard)(`행동한 캐릭터 누락: ${missing.join(", ")}`);
     }
     if (!plan.narration && !plan.arrival && !plan.answers.length && !plan.quiet) hard("서술 · 답변이 비어 있음");
+    // ---- 다음 상황(prompt): 행동이 있는 보통 차례는 끝에 다음 선택을 부르는 상황 한두 문장 (질문 · 판정 결과만 · 판정을 거는 차례는 없음) ----
+    const wantsPrompt = !info.askOnly && !info.rollOnly && !plan.check && !plan.quiet && (info.actors ?? []).length > 0;
+    if (wantsPrompt) {
+      const told = [plan.narration, plan.arrival].filter(Boolean).join(" ");
+      if (r.prompt && shows(told, r.prompt) >= .75) soft("prompt가 서술을 되풀이함 → 뺌");
+      else if (r.prompt) plan.prompt = r.prompt;
+      else if (!final) hard("prompt가 비어 있음: 끝에 다음 선택을 부르는 지금의 상황(소리 · 다가오는 NPC · 갈 수 있는 곳 · 눈에 띄는 것)을 이야기 속 말로 한두 문장");
+    }
     plan.actors = info.actors.map((a) => a.pid);   // 단서를 찾은 캐릭터 (핸드아웃 finder 범위)
     return { plan, issues };
   }
@@ -7331,6 +7339,7 @@ class HostGame {
       if (clue && !moving) logClue();
     }
     for (const h of plan.showHandouts ?? []) this.showHandout(h);
+    if (plan.prompt) this.addLog({ kind: "ai", by: "GM", text: plan.prompt });   // 다음 상황: 이번 차례 기록 맨 끝에 GM 줄로
     if (moving) { d.game.stallTurns = 0; d.game.loopTurns = 0; return; }
     this.applyCombat(plan);
     for (const ck of plan.checks ?? (plan.check ? [plan.check] : [])) {
