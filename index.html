@@ -6065,7 +6065,7 @@ class HostGame {
     this.ai.timer = null;
     this.ai.due = null;
     clearTimeout(this.ai.hold); this.ai.hold = null;   // 밀어붙이기 · 행운 결정 대기도 끊음 (되돌리기 · 강제 이동 뒤 AI가 저절로 돌지 않게)
-    this.ai.controller?.abort();
+    this.ai.controller?.abort(); this.askCtrl?.abort();
     this.ai.again = false; this.ai.passes.clear();
     if (discardPending) this.data.game.aiCursor = this.data.logSeq;
     this.broadcast({ t: "gather", ms: 0 });
@@ -6917,8 +6917,9 @@ class HostGame {
     const toNpc = sceneNpcNames.find((name) => text.startsWith(`@${name}`) && /^[\s:：,，]+\S/.test(text.slice(name.length + 1)));
     this.addLog({ kind: this.data.phase === "play" ? "say" : "ooc", byId: pid, by: this.data.phase === "play" ? by : this.data.players[pid].name, text,
       ...(this.data.phase === "play" ? { style, ...(toNpc ? { toNpc } : {}) } : {}) });
-    // 일행 간 대사는 AI 턴을 열지 않는다. NPC에게 대사·행동·질문은 GM이 처리한다.
-    if (style === "act" || style === "ask" || toNpc) this.queueAI();
+    // 일행 간 대사는 AI 턴을 열지 않는다. NPC에게 대사·행동은 GM 차례로, 질문(?)은 차례를 쓰지 않고 바로 답한다.
+    if (style === "ask" && this.data.phase === "play" && this.data.mode === "ai" && !toNpc) this.runAsk();
+    else if (style === "act" || style === "ask" || toNpc) this.queueAI();
   }
 
   /* ---------------- AI: 캐릭터 제안 ---------------- */
@@ -6972,15 +6973,55 @@ class HostGame {
   /** 지난 GM 응답 뒤 입력 (행동 · 질문 · 판정 결과) */
   sinceAI() {
     const d = this.data, cursor = d.game.aiCursor ?? 0;
-    // AI가 응답하는 사이 들어온 행동은 이전 AI 서술보다 앞에 기록돼도 남아 있어야 한다.
-    return d.log.filter((e) => e.seq > cursor && !e.aiOutput);
+    if (this.askSeqs) return d.log.filter((e) => this.askSeqs.has(e.seq));   // 바로 답하는 질문 맥락: 그 질문만
+    // AI가 응답하는 사이 들어온 행동은 이전 AI 서술보다 앞에 기록돼도 남아 있어야 한다. 바로 답한(답하는 중인) 질문은 차례에서 뺌
+    return d.log.filter((e) => e.seq > cursor && !e.aiOutput && !e.answered && !this.askPending?.has(e.seq));
+  }
+  /** 질문(?)은 GM 차례를 쓰지 않고 바로 답함 (answers만 적용). 판정이 필요한 질문 · 실패하면 다음 GM 차례로 넘김 */
+  async runAsk() {
+    const d = this.data;
+    if (d.mode !== "ai" || d.phase !== "play" || d.game?.result || !this.aiReady()) return this.queueAI();
+    if (this.askBusy) { this.askAgain = true; return; }
+    const qs = this.sinceAI().filter((e) => e.kind === "say" && e.style === "ask" && !e.toNpc);
+    if (!qs.length) return;
+    this.askBusy = true;
+    const seqs = new Set(qs.map((e) => e.seq));
+    this.askPending = seqs;
+    const epoch = this.ai.epoch, game = d.game, scene = game.currentScene;
+    const controller = new AbortController();
+    this.askCtrl = controller;
+    let toTurn = false;
+    try {
+      let context;
+      this.askSeqs = seqs;
+      try { context = this.turnContext(); } finally { this.askSeqs = null; }
+      const plan = await this.askGM(context, controller.signal);
+      if (controller.signal.aborted || epoch !== this.ai.epoch || d.game !== game || game.currentScene !== scene || game.result || d.phase !== "play" || d.mode !== "ai") return;   // 되돌리기 · 장면 이동 등으로 판이 바뀜 → 버림
+      if (!plan?.answers?.length || plan.check) { toTurn = true; return; }   // 답이 없거나 판정이 필요하면 GM 차례에서 처리
+      this.aiApplying = true;
+      try {
+        for (const e of qs) e.answered = true;
+        for (const a of plan.answers) this.addLog({ kind: "ai", by: "GM", text: a.text, to: a.toName, toId: a.toPid });
+      } finally { this.aiApplying = false; }
+      this.pushAll();
+    } catch (e) {
+      toTurn = !e.cancelled && epoch === this.ai.epoch;
+      if (!e.cancelled) this.note(`질문 바로 답하기 실패 → GM 차례로 (${Engine.clip(e.message ?? "", 60)})`);
+    } finally {
+      this.askPending = null; this.askBusy = false;
+      if (this.askCtrl === controller) this.askCtrl = null;
+      if (toTurn) this.queueAI();
+      if (this.askAgain) { this.askAgain = false; this.runAsk(); }
+    }
   }
   /** 접속한 준비된 캐릭터 모두가 이번 차례에 행동 · 질문 · 판정을 했는지 */
+  /** 질문을 차례 밖에서 바로 답하는지 (AI GM · 진행 중 · AI 준비됨) */
+  askFast() { const d = this.data; return d.mode === "ai" && d.phase === "play" && !d.game?.result && this.aiReady(); }
   turnComplete() {
     const d = this.data;
     const need = Object.entries(d.players).filter(([id, q]) => q.ready && q.character && !q.character.dead && !q.character.down && this.online(id) && !(this.isHost(id) && !d.hostPlays)).map(([id]) => id);
     if (!need.length) return false;
-    const done = new Set(this.sinceAI().filter((e) => (e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc)) || (e.kind === "roll" && e.result)).map((e) => e.byId));
+    const done = new Set(this.sinceAI().filter((e) => (e.kind === "say" && (e.style === "act" || (e.style === "ask" && !this.askFast()) || e.toNpc)) || (e.kind === "roll" && e.result)).map((e) => e.byId));
     return need.every((id) => done.has(id) || this.ai.passes.has(id));   // 행동했거나 [패스]한 사람
   }
   queueAI(now = false) {
@@ -7023,7 +7064,7 @@ class HostGame {
       if (/(조사|살펴|살핀|뒤져|찾|확인|관찰|읽|엿|조심스레|본다)/.test(t)) return "조사";
       return "행동";
     };
-    const input = (e) => (e.kind === "say" && (e.style === "act" || e.style === "ask" || e.toNpc)) || (e.kind === "roll" && e.result && !e.dmg);
+    const input = (e) => (e.kind === "say" && (e.style === "act" || (e.style === "ask" && !this.askFast()) || e.toNpc)) || (e.kind === "roll" && e.result && !e.dmg);
     const rows = players.map(([id, q]) => {
       const e = [...since].reverse().find((x) => x.byId === id && input(x));
       const first = since.find((x) => x.byId === id && input(x));
