@@ -705,3 +705,35 @@ test("다음 상황(prompt)은 이번 차례 기록 맨 끝에 GM 줄로", () =>
   assert.equal(ai.at(-1).text, "멀리서 종소리가 울렸다.");
   assert.ok(data.log.findIndex((e) => e.text === "멀리서 종소리가 울렸다.") > data.log.findIndex((e) => /성냥/.test(e.text ?? "")), "물건 기록 뒤");
 });
+
+test("질문(?)은 GM 차례를 쓰지 않고 바로 답함: 차례 모음 시작 안 함 · 행동표에 안 셈, 판정이 필요하면 GM 차례로", async () => {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  let reply = JSON.stringify({ narration: "", answers: [{ to: "한서", text: "창밖은 눈보라로 하얗다." }] });
+  const calls = [];
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {}, aiCall: async (msgs) => { if (JSON.stringify(msgs).includes("관찰자이자 진행자")) calls.push(msgs); return reply; } });
+  data.phase = "play"; data.game = m.Engine.newState(sc); g.aiReady = () => true;
+  data.players.p1 = { name: "가", ready: true, character: { name: "한서" } };
+  g.online = () => true;
+  const cursor = data.game.aiCursor ?? 0;
+  g.chat("p1", "?창밖에 뭐가 보여", false, { style: "ask" });
+  assert.equal(g.ai.timer ?? null, null, "차례 모음 안 함");
+  assert.ok(!g.turnComplete(), "질문은 행동으로 안 셈");
+  for (let i = 0; i < 20 && g.askBusy; i++) await new Promise((r) => setTimeout(r, 0));
+  assert.equal(calls.length, 1);
+  assert.equal(data.log.at(-1).text, "창밖은 눈보라로 하얗다.");
+  assert.equal(data.log.at(-1).toId, "p1");
+  assert.equal(data.game.aiCursor ?? 0, cursor, "차례 커서 그대로");
+  assert.ok(!g.sinceAI().some((e) => e.style === "ask"), "답한 질문은 다음 차례 입력에서 빠짐");
+  // 판정이 필요한 질문 → 답하지 않고 GM 차례로
+  const ck = (sc.scenes[sc.start].checks ?? [])[0];
+  if (ck) {
+    reply = JSON.stringify({ narration: "", answers: [{ to: "한서", text: "글씨가 흐리다." }], request_check: { id: ck.id, who: "한서" } });
+    g.chat("p1", "?종이에 뭐라고 써 있어", false, { style: "ask" });
+    for (let i = 0; i < 20 && g.askBusy; i++) await new Promise((r) => setTimeout(r, 0));
+    assert.ok(g.sinceAI().some((e) => e.style === "ask"), "GM 차례 입력으로 남음");
+    assert.ok(g.ai.timer, "GM 차례 모음 시작");
+    clearTimeout(g.ai.timer);
+  }
+});
