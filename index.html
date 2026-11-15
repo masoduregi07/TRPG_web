@@ -2211,7 +2211,7 @@ html.has-3d .topbar { box-shadow: none; }
 /* 단서 수첩 색인 탭 (입력칸 탭과 같은 사다리꼴): 고른 탭은 분류 색으로 칠하고 아래 선과 이어짐 */
 /* 머리 줄: [단서 수첩 (숫자 라벨)] ……… [전체 인물 장소], 아래 2px 선 하나 */
 .nb-head { display:flex; align-items:flex-end; gap:8px; margin:0 0 6px; border-bottom:2px solid #675137; }
-.block:is([data-memo="clues"],[data-memo="handouts"]) .nb-head h3 { display:flex; align-items:center; gap:6px; margin:0; padding-bottom:4px; flex:none; }
+.block:is([data-memo="clues"],[data-memo="handouts"],[data-memo="maps"]) .nb-head h3 { display:flex; align-items:center; gap:6px; margin:0; padding-bottom:4px; flex:none; }
 .nb-count { display:inline-block; min-width:18px; padding:0 5px; font:10px/16px var(--font); text-align:center; color:#f4ecd8; background:#675137; }
 .clue-tabs { display:flex; gap:3px; align-items:flex-end; margin-left:auto; padding-right:4px; }
 .clue-tabs button { --c:#675137; padding:2px 9px 1px; border:0; cursor:pointer; font:11px/1.5 var(--font); color:var(--ink-2); background:rgba(150, 105, 50, .18);
@@ -2254,6 +2254,14 @@ html.has-3d .topbar { box-shadow: none; }
 .cv-ho .ho-th { width:34px; height:26px; }
 .ho-k { display:inline-block; padding:0 5px; font:10px/1.6 var(--font); color:#f4ecd8; background:#2a3550; }
 /* 핸드아웃 메모: 섬네일(정자세) + [종류] 제목 + 첫 줄 */
+/* 지도 메모: 미니맵(방 이름 없이) + 내 위치 한 줄, 누르면 지도 창 */
+.map-box { margin:4px 0 0; }
+.map-mini { display:block; width:100%; padding:0; border:0; cursor:pointer; background:none; box-shadow:0 0 0 1px rgba(90, 60, 30, .45); }
+.map-mini:hover, .map-mini:focus-visible { outline:2px dotted #2b1a0c; outline-offset:2px; }
+.map-mini .ho-map { display:block; width:100%; height:auto; pointer-events:none; }
+.map-mini .hm-label, .map-mini .hm-tok text { display:none; }
+.map-where { display:flex; align-items:center; gap:6px; margin:8px 0 0; font:12px/1.5 var(--font); color:#5a4936; }
+.map-where i { flex:none; width:8px; height:8px; background:var(--pc, #5a4936); }
 .ho-list { margin:4px 0 0; padding:0; list-style:none; }
 .ho-list > li { border-bottom:1px dashed rgba(90, 60, 30, .35); }
 .ho-list > li::before { display:none; }
@@ -2938,6 +2946,7 @@ html.has-3d .topbar { box-shadow: none; }
         <div id="memoStack" class="memo-stack">
           <section class="block nb-paper" data-memo="clues"><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><div class="nb-head"><h3>단서 수첩 <span id="clueCount" class="nb-count">0</span></h3><nav id="clueBookmarks" class="clue-tabs" role="tablist" aria-label="단서 분류"><button type="button" id="clueAll" role="tab" data-group="all" aria-selected="true" aria-controls="clueBox">전체</button><button type="button" id="cluePerson" role="tab" data-group="person" aria-selected="false" aria-controls="clueBox" tabindex="-1">인물</button><button type="button" id="cluePlace" role="tab" data-group="place" aria-selected="false" aria-controls="clueBox" tabindex="-1">장소</button></nav></div><ul id="clueBox" class="clues clue-toc" role="tabpanel" aria-labelledby="clueAll"></ul><div id="clueView" class="clue-view" hidden></div></section>
           <section class="block nb-paper" data-memo="handouts" hidden><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><div class="nb-head"><h3>핸드아웃 <span id="hoCount" class="nb-count">0</span></h3></div><ul id="hoBox" class="ho-list"></ul></section>
+          <section class="block nb-paper" data-memo="maps" hidden><div class="memo-tear" data-sfx="none" role="button" tabindex="0" aria-label="메모 옮기기" title="윗부분을 끌어 옮기기 · 공책 밖에 놓으면 떼어 둠 · ↑↓ 키로 순서"></div><span class="nb-stitch" aria-hidden="true"></span><div class="nb-head"><h3>지도 <span id="mapCount" class="nb-count">0</span></h3><nav id="mapTabs" class="clue-tabs" role="tablist" aria-label="지도" hidden></nav></div><div id="mapBox" class="map-box"></div></section>
         </div>
       </div>
     </section>
@@ -11139,9 +11148,28 @@ const BannerArt = (() => {
     const src = h.kind === 'photo' || h.image ? handoutSrc(h.image) : null;
     return el('span',{class:`ho-th ho-th-${h.kind}`,'aria-hidden':'true','data-hid':h.id}, h.image ? el('img',{src:src ?? 'data:image/gif;base64,R0lGODlhAQABAAAAACw=','data-ref':h.image.startsWith('ho:')?h.image:null,alt:'',draggable:'false'}) : null);
   }
+  let mapTabId = null;
+  /** 지도 메모: 지도 한 장 = 미니맵 + 내 위치, 2장 이상이면 머리 줄에 탭. 누르면 지도 창(말 옮기기) */
+  function renderMapBox(maps) {
+    const block = document.querySelector('[data-memo="maps"]');
+    block.hidden = !maps.length;
+    $('#mapCount').textContent = String(maps.length);
+    if (!maps.length) { $('#mapBox').replaceChildren(); $('#mapTabs').replaceChildren(); return; }
+    const me = app.snap?.me;
+    if (!maps.some((h) => h.id === mapTabId)) mapTabId = (maps.find((h) => h.pos?.[me]) ?? maps[0]).id;
+    const cur = maps.find((h) => h.id === mapTabId), tabs = $('#mapTabs');
+    tabs.hidden = maps.length < 2;
+    tabs.replaceChildren(...maps.map((h) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(h.id === mapTabId), title: h.title, on: { click: () => { mapTabId = h.id; renderMapBox(maps); } } }, h.title.length > 4 ? `${h.title.slice(0, 4)}…` : h.title)));
+    const mine = app.snap?.players.find((q) => q.pid === me && q.character), pt = cur.pos?.[me];
+    const room = pt && (cur.rooms ?? []).find((r) => pt[0] >= r.at[0] && pt[0] <= r.at[0] + r.at[2] && pt[1] >= r.at[1] && pt[1] <= r.at[1] + r.at[3]);
+    const where = mine ? el('p', { class: 'map-where', style: `--pc:${spineOf(me)}` }, el('i'), pt ? [mine.character.name, room?.name].filter(Boolean).join(' · ') : '말을 아직 놓지 않았다.') : null;
+    $('#mapBox').replaceChildren(el('button', { type: 'button', class: 'map-mini', 'data-hid': cur.id, 'aria-label': `지도 열기 · ${cur.title}`, on: { click: () => { markClueSeen(`ho:${cur.id}`); openHandout(cur); } } }, mapSvg(cur)), ...(where ? [where] : []));
+  }
   function renderHandoutBox(v) {
     refreshMapFloats(v);
-    const hos = [...(v.handouts ?? [])].sort((a,b)=>(a.at??0)-(b.at??0)), block = document.querySelector('[data-memo="handouts"]');
+    const all = [...(v.handouts ?? [])].sort((a,b)=>(a.at??0)-(b.at??0)), block = document.querySelector('[data-memo="handouts"]');
+    const hos = all.filter((h) => h.kind !== 'map');   // 지도는 지도 메모로
+    renderMapBox(all.filter((h) => h.kind === 'map'));
     block.hidden = !hos.length;
     $('#hoCount').textContent = String(hos.length);
     const seen = LS.get(K.clueSeen(app.room)) ?? [];
@@ -11461,7 +11489,7 @@ const BannerArt = (() => {
   {
     let lp = null, suppress = false;
     // 기록 카드 · 메모 섬네일 · 단서 열람의 연결 핸드아웃 (크게 보기 창 안의 카드는 제외)
-    const SRC = ".ho:not(.big) .ho-img img, .ho-th img, .ho-map-card:not(.big) .ho-map, .ho-th-map .ho-map, .ho:not(.big), .ho-th, .cv-ho, .ho-row";
+    const SRC = ".ho:not(.big) .ho-img img, .ho-th img, .ho-map-card:not(.big) .ho-map, .ho-th-map .ho-map, .ho:not(.big), .ho-th, .cv-ho, .ho-row, .map-mini";
     // 꾹 누르기 → 움직이면 창이 손을 따라옴 (기록 · 메모 · 크게 보기 어디서든)
     document.addEventListener("pointerdown", (e) => {
       if (e.button !== 0 || e.target.closest?.(".ho-float, .hm-tok.mine")) return;
@@ -11480,7 +11508,7 @@ const BannerArt = (() => {
     const endLp = () => { if (lp) { clearTimeout(lp.timer); lp = null; } };
     addEventListener("pointerup", endLp); addEventListener("pointercancel", endLp);
     // 꾹 눌러 띄운 직후의 클릭(크게 보기)은 무시
-    document.addEventListener("click", (e) => { if (suppress && e.target.closest?.(".ho, .ho-row, .cv-ho")) { e.preventDefault(); e.stopPropagation(); } suppress = false; }, true);
+    document.addEventListener("click", (e) => { if (suppress && e.target.closest?.(".ho, .ho-row, .cv-ho, .map-mini")) { e.preventDefault(); e.stopPropagation(); } suppress = false; }, true);
     document.addEventListener("contextmenu", (e) => { if (lp && e.target.closest?.(".ho, .ho-th, .cv-ho")) e.preventDefault(); });
     // 브라우저 기본 이미지 · 글 끌기가 시작되면 pointercancel이 와서 창이 안 뜸 → 막음
     document.addEventListener("dragstart", (e) => { if (e.target.closest?.(SRC)) e.preventDefault(); });
