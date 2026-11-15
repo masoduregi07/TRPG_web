@@ -524,3 +524,17 @@ test("질문 답이 행동 묘사뿐이면 재요청, 판정을 걸면 질문 �
   assert.ok(!ck.issues.some((i) => i.hard && /행동 묘사뿐/.test(i.msg)));
   assert.ok(ck.plan.check, "질문 차례에서도 판정 유지");
 });
+
+test("new_place가 갈 수 있는 사건(다른 방)이면 move_to로 바꿈, 사건 안 장소 · 판정이 있으면 그대로", () => {
+  const exitTitles = [{ id: "library", title: "2층 — 도서관" }, { id: "dining", title: "2층 — 식당 입구의 막힌 문" }, { id: "mp", title: "2층 — 수도사 기도실" }, { id: "lp", title: "1층 — 신자용 기도실" }];
+  const info = base({ exits: exitTitles.map((e) => e.id), exitTitles, places: ["계단참", "오른쪽 벽의 글씨"] });
+  assert.equal(Turn.exitForPlace("도서관", info), "library");
+  assert.equal(Turn.exitForPlace("식당", info), "dining");
+  assert.equal(Turn.exitForPlace("기도실", info), null, "두 곳과 맞으면 모름");
+  assert.equal(Turn.exitForPlace("계단참", info), null, "지금 사건 안 장소");
+  const r = run({ narration: "한서가 도서관 문을 밀었다.", new_place: { name: "도서관" } }, info);
+  assert.equal(r.plan.move, "library");
+  assert.ok(!r.plan.place);
+  const c = run({ narration: "한서가 도서관 문 앞에 섰다.", new_place: { name: "도서관" }, request_check: { id: "k1", who: "한서" } }, info);
+  assert.ok(!c.plan.move, "판정을 거는 응답은 이동으로 바꾸지 않음");
+});

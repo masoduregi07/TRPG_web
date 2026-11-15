@@ -522,7 +522,7 @@ test("문답 맴돎: 변화 없는 서술이 네 차례 이어지면 정체시�
   const plan = (over = {}) => ({ narration: `${npc}이 한숨을 쉬었다. "글쎄요."`, answers: [], give: [], take: [], hurt: [], heal: [], blocks: [], newNpcs: [], showHandouts: [], onTrack: true, ...over });
   const turn = (p) => { g.applyPlan(p); data.game.aiCursor = data.logSeq; };
   for (let i = 0; i < 3; i++) turn(plan());
-  assert.equal(g.turnContext().ctx.정체시진행, "정상 진행");
+  assert.match(g.turnContext().ctx.정체시진행, /사건이 정체됨/, "단서 없이 세 차례면 정체 안내");
   turn(plan());
   const { ctx, info } = g.turnContext();
   assert.match(ctx.정체시진행, /문답만 이어짐/);
@@ -654,9 +654,9 @@ test("지금줄힌트: 한 단계의 힌트는 한 번만 넘김 · 실패한 �
   assert.equal(g.turnContext().ctx.지금줄힌트, undefined, "넘긴 단계는 다시 안 넘김");
   turn(plan()); turn(plan());
   assert.match(g.turnContext().ctx.지금줄힌트, /둘째 힌트/, "다음 단계는 넘김");
-  turn(plan({ onTrack: true }));
+  turn(plan({ give: [{ name: "한서", item: "성냥" }] }));
   for (let i = 0; i < 3; i++) turn(plan());
-  assert.match(g.turnContext().ctx.지금줄힌트, /첫 힌트/, "다시 맴돌면 처음부터");
+  assert.match(g.turnContext().ctx.지금줄힌트, /첫 힌트/, "진전(물건)이 있은 뒤 다시 맴돌면 처음부터");
   // 판정 표시
   const ck = () => g.turnContext().ctx.가능한판정;
   assert.equal(ck().find((c) => c.id === "zz_san").아직안검, true);
@@ -680,4 +680,21 @@ test("[패스]: 모두 행동했거나 패스하면 바로 GM 차례, 패스만�
   assert.equal(JSON.stringify(t.g.turnBoard().map((r) => r.kind)), JSON.stringify(["행동", "패스"]));
   assert.ok(t.g.ai.due - Date.now() < 1000, "바로 진행(50ms 안)");
   t.stop();
+});
+
+test("정체: on_track이 true여도 단서 · 플래그 없이 장소만 바뀌면 정체로 셈 → 힌트, 단서가 나오면 다시 셈", () => {
+  const m = load();
+  const sc = sample(m); m.Engine.validateScenario(sc);
+  const data = m.HostGame.create({ roomId: "room000001", hostName: "호스트", hostKey: "hosthosthosthost", hostPlays: false, mode: "ai", scenario: sc });
+  const g = new m.HostGame(data, { transport: { send() {}, close() {} }, onLocal() {}, aiCall: async () => "{}" });
+  data.phase = "play"; data.game = m.Engine.newState(sc);
+  data.players.p1 = { name: "가", ready: true, character: { name: "한서" } };
+  const plan = (over = {}) => ({ narration: "바람이 불었다.", answers: [], give: [], take: [], hurt: [], heal: [], blocks: [], newNpcs: [], showHandouts: [], onTrack: true, ...over });
+  const turn = (p) => { g.applyPlan(p); data.game.aiCursor = data.logSeq; };
+  for (const n of ["복도", "창고", "계단"]) turn(plan({ place: { name: n } }));
+  assert.equal(data.game.stallTurns, 3);
+  assert.equal(data.game.offTrack, 3);
+  assert.match(g.turnContext().ctx.정체시진행, /정체/);
+  const clue = (sc.scenes[sc.start].clues ?? [])[0];
+  if (clue) { turn(plan({ clue: clue.id })); assert.equal(data.game.stallTurns, 0); assert.equal(data.game.offTrack, 0); }
 });
