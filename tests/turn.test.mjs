@@ -315,7 +315,11 @@ test("캐릭터가 NPC에게 한 말을 풀어 쓴 문장(…에게 …말을 �
   const echo = { narration: "어두운 예배당 안에서 한진우에게 어두워서 무언가를 하기 어렵다고 말을 건넸다." };
   assert.ok(run(echo, info).issues.some((i) => i.hard && /규칙 10/.test(i.msg)));
   assert.ok(run({ narration: "김나윤은 한진우에게 어깨의 얼룩이 무엇인지 물었다. 한진우가 어깨를 털었다." }, info).issues.some((i) => i.hard && /규칙 10/.test(i.msg)), "캐릭터가 주어여도");
-  assert.equal(run({ narration: "김나윤은 한진우에게 어깨의 얼룩이 무엇인지 물었다. 한진우가 어깨를 털었다. \"빗물이겠죠.\"" }, info, true).plan.narration, "한진우가 어깨를 털었다. \"빗물이겠죠.\"", "마지막 시도는 그 문장만 삭제");
+  assert.equal(run({ narration: "김나윤은 한진우에게 어깨의 얼룩이 무엇인지 물었다. 한진우가 어깨를 털었다. \"빗물이겠죠.\" 낡은 창틀에서 빗방울이 떨어져 바닥을 적셨다." }, info, true).plan.narration, "한진우가 어깨를 털었다. \"빗물이겠죠.\" 낡은 창틀에서 빗방울이 떨어져 바닥을 적셨다.", "마지막 시도는 그 문장만 삭제");
+  const thin = "김나윤은 한진우에게 어깨의 얼룩이 무엇인지 물었다. 한진우가 웃었다.";
+  const t = run({ narration: thin }, info, true);
+  assert.equal(t.plan.narration, thin, "지우면 절반 넘게 사라지면 그대로 둠");
+  assert.ok(t.issues.some((i) => /절반/.test(i.msg)));
   for (const ok of ["한진우는 김나윤에게 손전등이 없느냐고 물었다.", "관리인이 한진우에게 다가와 낮게 말했다. \"문 닫을 시간이오.\"", "김나윤이 묻자 한진우는 천장을 올려다보았다. \"위에서 떨어진 거네요.\"", "한진우에게서 쇠 냄새가 났다."])
     assert.ok(!run({ narration: ok }, chapel({ npcNames: ["한진우", "관리인"] })).issues.some((i) => /규칙 10/.test(i.msg)), ok);
 });
@@ -445,9 +449,9 @@ test("성역 예배당 기록: 주어 없는 되풀이 · 재촉 반복 · 없�
   const hardOf = (obj, i, final = false) => run(obj, i, final).issues.filter((x) => x.hard).map((x) => x.msg).join("\n");
   const allOf = (obj, i) => run(obj, i).issues.map((x) => x.msg).join("\n");
   // 주어 없이 캐릭터 말을 옮긴 문장
-  const echo = { narration: '로렌스는 천장을 노려보았다. "진짜 피 같다니까요?" 로렌스의 머리에 떨어진 액체가 피라는 사실을 지적하며 불안감을 내비쳤다.' };
+  const echo = { narration: '로렌스는 천장을 노려보았다. "진짜 피 같다니까요?" 로렌스의 머리에 떨어진 액체가 피라는 사실을 지적하며 불안감을 내비쳤다. 천장 틈에서 검붉은 방울이 또 하나 맺혀 떨어지려 했다.' };
   assert.match(hardOf(echo, info()), /규칙 10/);
-  assert.equal(run(echo, info(), true).plan.narration, '로렌스는 천장을 노려보았다. "진짜 피 같다니까요?"');
+  assert.equal(run(echo, info(), true).plan.narration, '로렌스는 천장을 노려보았다. "진짜 피 같다니까요?" 천장 틈에서 검붉은 방울이 또 하나 맺혀 떨어지려 했다.');
   assert.match(hardOf({ narration: '로렌스는 고개를 들었다. "피 맞아요." 로렌스의 머리에 떨어진 검붉은 액체의 정체에 대해 거듭 물었다.' }, info()), /규칙 10/);
   for (const ok of ['로렌스는 이예준의 소매를 붙잡았다. 그리고 낮게 물었다. "들었어요?"', "로렌스가 벽의 얼룩을 가리키며 불안감을 내비쳤다.", "이예준이 로렌스의 어깨를 짚으며 물었다."])
     assert.doesNotMatch(hardOf({ narration: ok }, info()), /규칙 10/, ok);
@@ -581,4 +585,9 @@ test("캐릭터 물음을 간접 화법으로 되풀이하면 다시 요청 · �
   assert.ok(r.issues.some((i) => i.hard && /간접 화법/.test(i.msg)));
   const f = run({ narration: "남자의 괜찮냐는 물음에 바르톨이 고개를 끄덕였다. \"괜찮소.\"" }, base(), true);
   assert.equal(f.plan.narration, "바르톨이 고개를 끄덕였다. \"괜찮소.\"");
+});
+
+test("비밀 노출 검사: 장면 글 · 이번 입력에 이미 나온 낱말은 노출로 세지 않음", () => {
+  assert.ok(Turn.leaks("등대 지하 창고에 시체가 있는 것 같다", "등대 지하 창고에 시체가 숨겨져 있다"), "기준선");
+  assert.ok(!Turn.leaks("등대 지하 창고에 시체가 있는 것 같다", "등대 지하 창고에 시체가 숨겨져 있다", "등대 지하 창고"), "이미 아는 낱말은 뺌");
 });
