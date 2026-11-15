@@ -87,7 +87,10 @@ test("여러 명 행동표면 블록 유지, 분위기 narration은 남김", () 
   const info = turn({ chars, actors: chars.map(({ pid, name }) => ({ pid, name })), table: true, checkReveals: [] });
   const r = run({ narration: "바람이 거세짐.", results: [{ who: "한서", text: "한서가 문을 엶." }, { who: "도윤", text: "도윤이 등불을 듦." }] }, info);
   assert.equal(r.plan.blocks.length, 3);
-  assert.equal(r.plan.blocks[0].text, "바람이 거세짐.");
+  assert.equal(r.plan.blocks[2].text, "바람이 거세짐.", "공통 반응은 각자 결과 뒤에");
+  assert.equal(r.plan.blocks[0].pid, "p1");
+  const dup = run({ narration: "클레멘트가 안경을 치켜올리며 멋쩍게 웃음을 지었다. 바람이 거세짐.", results: [{ who: "한서", text: "클레멘트가 안경을 치켜올리며 멋쩍게 웃었다." }, { who: "도윤", text: "도윤이 등불을 듦." }] }, info);
+  assert.equal(dup.plan.blocks.at(-1).text, "바람이 거세짐.", "결과와 같은 일을 되풀이한 공통 문장은 지움");
 });
 
 test("문체: 명사형인데 ~다로 끝나면 다시 요청, 따옴표 속 대사는 예외", () => {
