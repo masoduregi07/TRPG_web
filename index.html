@@ -5129,6 +5129,13 @@ const Turn = (() => {
       give: [], take: [], place: null, leavePlace: false, onTrack: r.on_track ?? null,
       hurt: [], heal: [], fate: null, newNpcs: [], blocks: [], prompt: "",
     };
+    // 문장을 지우는 정리(비밀 노출 제외)가 서술을 절반 넘게 없애면 지우지 않고 그대로 둠 (빈약한 답 방지)
+    const bodyLen = () => [plan.narration, plan.arrival, ...plan.blocks.map((b) => b.text)].filter(Boolean).join("").length;
+    const guardCut = (fn) => {
+      const snap = { n: plan.narration, a: plan.arrival, b: plan.blocks.map((x) => ({ ...x })) }, len0 = bodyLen();
+      fn();
+      if (len0 && bodyLen() < len0 * .5) { plan.narration = snap.n; plan.arrival = snap.a; plan.blocks = snap.b; soft("지우면 서술이 절반 넘게 사라짐 → 그대로 둠"); }
+    };
     // ---- 플레이어별 서술(results): 행동하지 않은 캐릭터 서술은 버리고, 같은 캐릭터는 합침 ----
     for (const b of r.results ?? []) {
       const c = charOf(b.who);
@@ -5462,11 +5469,11 @@ const Turn = (() => {
           const cut = (t) => sentsOf(t).filter((x) => !bad(x)).join(" ").trim();
           const nar = plan.blocks.length ? plan.blocks.map((b) => ({ ...b, text: cut(b.text) })).filter((b) => b.text) : null;
           const narration = nar ? nar.map((b) => b.text).join("\n") : cut(plan.narration), arrival = plan.arrival ? cut(plan.arrival) || null : null;
-          if (narration || arrival || plan.answers.length) {
+          if (narration || arrival || plan.answers.length) guardCut(() => {
             soft("입력 없는 캐릭터의 행동 · 캐릭터 말을 되풀이한 문장 삭제");
             if (nar) plan.blocks = nar;
             plan.narration = narration; plan.arrival = arrival;
-          }
+          });
         }
       }
     }
@@ -5570,7 +5577,7 @@ const Turn = (() => {
         else {
           const kill = new Set(dupAct); soft("입력 행동을 되풀이한 문장 삭제");
           const cutT = (t) => String(t ?? "").split(/(?<=[.!?…。])\s+/).filter((x) => !kill.has(x.replace(QUOTE_RE, " ").trim())).join(" ");
-          plan.narration = cutT(plan.narration); if (plan.arrival) plan.arrival = cutT(plan.arrival);
+          guardCut(() => { plan.narration = cutT(plan.narration); if (plan.arrival) plan.arrival = cutT(plan.arrival); });
         }
       }
       if (ins.length && sents.length && !plan.check && sents.every(covers))
@@ -5629,7 +5636,9 @@ const Turn = (() => {
     }
     // ---- 비공개 정보 노출: 이번에 공개하는 단서는 제외. 마지막 시도면 새는 문장만 뺌 ----
     const secrets = (info.secrets ?? []).filter((x) => !(x.clue && x.clue === plan.clue));
-    const leakIn = (t) => secrets.filter((x) => leaks(t, x.text, info.known));
+    // 장면 글 · 공개된 단서 · 이번 입력에 이미 나온 낱말은 노출로 세지 않음
+    const knownAll = [info.known, info.sceneText, ...(info.inputs ?? [])].filter(Boolean).join(" ");
+    const leakIn = (t) => secrets.filter((x) => leaks(t, x.text, knownAll));
     const all = [plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).join("\n");
     const leaked = [...new Set(leakIn(all).map((x) => x.kind))];
     if (leaked.length) {
