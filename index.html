@@ -360,7 +360,7 @@ textarea.code { font: 12px/1.6 var(--font); }
 
 .entry.say .who { --c: var(--blood); color: var(--c); font-size: 17px; background: none; box-shadow: none; padding: 0; margin-right: 6px; }
 /* 플레이어 대사 = 들여쓰기 + 플레이어 색 막대, 내 대사는 옅은 바탕 띠 */
-.entry.say { --c: var(--blood); margin-left: 22px; padding: 1px 0 1px 12px; box-shadow: inset 3px 0 0 var(--c); }
+.entry.say { --c: var(--blood); margin-left: 22px; padding: 3px 0 1px 12px; box-shadow: inset 3px 0 0 var(--c); }
 .entry.say.mine { padding-right: 40px; background: linear-gradient(90deg, rgba(255, 248, 228, .5), rgba(255, 248, 228, 0)); }
 .entry.say .who::after { color: rgba(90, 60, 30, .45); content: ""; }
 /* GM 서술 속 NPC 대사 */
@@ -1023,35 +1023,16 @@ textarea { resize: vertical; margin-top: 8px; }
 #chatForm.stale { opacity: .5; }
 .focus-tag { display: block; margin: 0 0 2px; color: var(--c, var(--blood)); font-family: var(--font); font-size: 12px; font-weight: 700; }
 .entry.ai.focus { margin-top: 4px; }
-/* 여러 명 행동 결과: 한 장짜리 표 (입력 순서). 2명은 모두 펼침, 3명 이상은 내 줄만 펼치고 나머지는 두 줄까지 */
-.entry.turn-res { margin: 2px 0; border: 2px solid var(--paper-lo); background: var(--paper-hi); box-shadow: 2px 3px 0 rgba(60, 40, 20, .2); font-family: var(--font); }
-.turn-res .tr-row { --c: var(--blood); display: grid; grid-template-columns: 62px 1fr 14px; gap: 2px 8px; align-items: baseline; padding: 6px 10px 6px 9px; box-shadow: inset 3px 0 0 var(--c); border-top: 1px dashed rgba(90, 60, 30, .28); }
-/* 이름 칸 폭 = 표 안 가장 긴 이름(최소 64px, subgrid로 줄끼리 맞춤), 이름은 칸 가운데 · 결과 글 첫 줄 높이 */
-.entry.turn-res { display: grid; grid-template-columns: minmax(64px, max-content) minmax(0, 1fr) 14px; }
-.turn-res .tr-row { grid-column: 1 / -1; grid-template-columns: subgrid; align-items: start; column-gap: 12px; padding-left: 13px; }
-.turn-res .tr-x { align-self: center; }
-/* 장부 줄(B1+B4): 바깥 상자 없이 위아래 가는 선 · 줄 사이 점선, 이름은 왼쪽 여백에 오른쪽 맞춤, 글 왼쪽에 플레이어 색 2px 세로선 */
-.entry.turn-res { border: 0; border-top: 1px solid rgba(90, 60, 30, .75); border-bottom: 1px solid rgba(90, 60, 30, .75); background: none; box-shadow: none; }
-.turn-res .tr-row { padding: 6px 0; column-gap: 10px; box-shadow: none; border-top: 1px dotted rgba(90, 60, 30, .35); }
-.turn-res .tr-row:first-child { border-top: 0; }
-.turn-res .tr-row.mine { background: none; }
-.turn-res .tr-name { color: var(--c); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; max-width: 6em; line-height: 19px; justify-self: end; text-align: right; align-self: center; }
-.turn-res .tr-body { min-width: 0; padding-left: 10px; box-shadow: inset 2px 0 0 var(--c); }
-/* 표 전체 옅은 크림 바탕(E3) + 내 줄은 이름에 형광펜(M3) */
-.entry.turn-res { background: rgba(255, 248, 225, .45); }
-.turn-res .tr-row.mine .tr-name { padding: 0 3px; background: linear-gradient(transparent 55%, rgba(240, 200, 60, .55) 55% 90%, transparent 90%); }
-.turn-res .tr-q { display: none; margin: 0 0 2px; font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
-.turn-res .tr-q:not(:empty)::before { content: "“"; } .turn-res .tr-q:not(:empty)::after { content: "”"; }
-.turn-res .tr-row.mine .tr-q, .turn-res .tr-row.open .tr-q { display: block; }
-.turn-res .tr-text { display: block; font-size: 17px; line-height: 1.55; color: #120c08; overflow-wrap: anywhere; }
-.turn-res.many .tr-row:not(.mine):not(.open) .tr-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.turn-res .tr-x { color: var(--ink-2); font-size: 11px; visibility: hidden; }
-.turn-res.many .tr-row:not(.mine).cut .tr-x, .turn-res.many .tr-row:not(.mine).open .tr-x { visibility: visible; }
-.turn-res.many .tr-row:not(.mine) { cursor: pointer; }
-.turn-res.many .tr-row:not(.mine):focus-visible { outline: 2px solid var(--blood); outline-offset: -2px; }
-.entry.say.in-res { display: none; }
+/* 여러 명 행동 결과(A 구조 · B 모양): 사람마다 [이번 입력 줄(평소 대사 모양 그대로) → 그 결과] 한 묶음. 표 바탕 · 선 없음, 플레이어 색 막대가 입력에서 결과까지 이어짐 */
+.entry.turn-res { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; font-family: var(--font); }
+.turn-res .tr-row { --c: var(--blood); display: flex; flex-direction: column; }
+.turn-res .tr-row > .entry.say { margin-top: 0; margin-bottom: 0; }
+.turn-res .tr-res { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; align-items: baseline; margin-left: 22px; padding: 3px 0 1px 12px; box-shadow: inset 3px 0 0 var(--c); }
+.turn-res .tr-res > .who { grid-column: 1 / -1; }
+.turn-res .tr-arrow { color: #8a7a62; font-size: 15px; }
+.turn-res .tr-text { display: block; line-height: 1.5; color: #120c08; overflow-wrap: anywhere; }
 /* 결과 표 줄 꼬리표: 그 사람에게 생긴 일 (누르면 그 기록으로) */
-.turn-res .tr-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.turn-res .tr-tags { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .turn-res .tr-tags:empty { display: none; }
 .tr-tag { --k: #6f5230; display: inline-flex; align-items: center; padding: 0 6px; font: 11px/1.7 var(--font); color: var(--k); border: 1px solid var(--k); background: rgba(255, 250, 235, .6); white-space: nowrap; cursor: pointer; }
 .tr-tag.t-it { --k: #3c5a2a; } .tr-tag.t-hp { --k: #8a1c14; } .tr-tag.t-ck { --k: #2a3550; }
@@ -2070,10 +2051,9 @@ html.has-3d .topbar { box-shadow: none; }
 #log .scene-entry p, #log .entry.ai .text, #log .turn-res .tr-text, #log .entry.say .text, #log .entry.roll .roll-detail b { font-size: 18px; }
 #log .entry.roll .roll-label, #log .entry.roll .roll-result, #log .entry.clue .text, #log .entry.handout-line .ho-body { font-size: 15px; }
 #log .entry.handout-line .ho-body { line-height: 22px; max-height: 22px; }
-#log .turn-res .tr-name, #log .turn-res .tr-q, #log .turn-res .tr-tag, #log .entry.roll .who, #log .entry.roll .roll-detail, #log .entry.roll .rr-lv,
+#log .turn-res .tr-tag, #log .entry.roll .who, #log .entry.roll .roll-detail, #log .entry.roll .rr-lv,
 #log .entry.clue .who, #log .entry.handout-line .ho-cap, #log .entry.item-line .il-who, #log .entry.item-line .il-tag, #log .entry.system .text, #log .entry.say .who,
 #log .entry.system:not(.item-line):not(.place-line)::before { font-size: 12px; }
-#log .turn-res .tr-name { line-height: 21px; }
 
 /* ===== 메모 버튼: 종이 칸 + 잉크 테두리 + 왼쪽 붉은 띠 (굴리기 · 지금 판정 · 밀어붙이기 등) ===== */
 .pending .btn, .pending .btn.primary, .memo-btn {
@@ -4825,7 +4805,7 @@ const AI = (() => {
 39. 실제 캐릭터 이름이 [게임 상황]에 있으면 대명사 '탐사자'를 남용하지 않고 각 캐릭터의 이름으로 서술한다. 누구의 행동인지 확실하지 않으면 임의로 특정하지 않는다. "플레이어캐릭터" · "등장NPC"에 없는 사람 이름을 쓰지 않는다 (새 인물은 29 · 30번대로 new_npcs에 올린 이름만).
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
-[출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 narration은 ""로 두고 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 각 항목은 그 캐릭터가 한 행동 · 말 · 감정을 다시 적지 말고, 그에 대한 세계의 반응(NPC의 대답 · 행동은 따옴표 대사로, 주변 변화, 새로 보이는 것)만 쓴다. 한 차례에 NPC 반응이 하나도 없으면 안 된다. 행동표가 없으면 results는 [].
+[출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 그 캐릭터 행동의 직접 결과만 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 여러 캐릭터에게 함께 일어난 일(주변 변화 · 여럿을 향한 NPC 반응)은 narration에 한 번만 쓰고(없으면 ""), results와 같은 일을 narration에 다시 쓰지 않는다. 각 항목은 그 캐릭터가 한 행동 · 말 · 감정을 다시 적지 말고, 그에 대한 세계의 반응(NPC의 대답 · 행동은 따옴표 대사로, 주변 변화, 새로 보이는 것)만 쓴다. 한 차례에 NPC 반응이 하나도 없으면 안 된다. 행동표가 없으면 results는 [].
 {"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "prompt": "다음 선택을 부르는 지금의 상황 한두 문장 또는 \"\"", "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격","voice":"말투"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격","voice":"말투"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}, "kpc_away": null 또는 true 또는 false, "npc_card": [] 또는 [{"who": "NPC 이름", "knows": ["새로 알게 된 것"], "wants": "바뀐 바람", "relations": ["대상 — 관계"]}]}`;
   }
 
@@ -5157,12 +5137,19 @@ const Turn = (() => {
     const rank = (pid) => { const i = (info.order ?? []).indexOf(pid); return i < 0 ? Infinity : i; };
     plan.blocks.sort((a, b) => rank(a.pid) - rank(b.pid));
     if (plan.blocks.length) {
-      // 행동표 응답에서 narration은 비워야 함. 캐릭터 행동을 되풀이한 narration은 버림 (분위기 서술만 남김)
-      if (plan.narration && info.chars.some((c) => plan.narration.includes(c.name))) { soft("results와 narration에 같은 행동을 되풀이 → narration 삭제"); plan.narration = ""; }
+      // narration = 여럿에게 함께 일어난 일(공통 반응). 결과 블록과 같은 일을 다시 쓴 문장은 버림 (두 글자 조각 60% 이상)
+      const single = plan.blocks.length === 1 && !info.table;
+      if (single && plan.narration && info.chars.some((c) => plan.narration.includes(c.name))) { soft("results와 narration에 같은 행동을 되풀이 → narration 삭제"); plan.narration = ""; }
+      else if (plan.narration) {
+        const res = plan.blocks.map((b) => b.text).join(" ");
+        const keep = plan.narration.split(SENT_RE).filter((x) => x.trim() && shows(res, x) < .6);
+        const left = keep.join(" ").trim();
+        if (left !== plan.narration) { soft("narration이 results와 같은 일을 되풀이 → 그 문장 삭제"); plan.narration = left; }
+      }
       // 행동한 사람이 한 명이면 ▶ 블록 없이 한 덩어리로
       if (plan.blocks.length === 1 && !info.table) { plan.narration = [plan.narration, plan.blocks[0].text].filter(Boolean).join(" "); plan.blocks = []; }   // 아래에서 겹친 문장 지움
       else {
-        if (plan.narration) plan.blocks.unshift({ pid: null, name: "", text: plan.narration });
+        if (plan.narration) plan.blocks.push({ pid: null, name: "", text: plan.narration });   // 공통 반응은 각자 결과 뒤에
         plan.narration = plan.blocks.map((b) => b.text).join("\n");
       }
     }
@@ -11683,13 +11670,12 @@ const BannerArt = (() => {
     setText(job.node, job.text);
     job.node.classList.remove("typing");
     job.node.removeAttribute("aria-label");
-    markCut(job.node.closest?.(".tr-row"));   // 결과 표 줄: 다 찍힌 뒤 두 줄을 넘는지
     nextType();
   }
   function skipTyping() {
     if (!typing) return;
     const stick = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 80;
-    for (const j of [typing, ...typeQueue.splice(0)]) { j.started = true; j.node.closest?.(".entry")?.classList.remove("queued"); j.done = true; clearTimeout(j.timer); setText(j.node, j.text); j.node.classList.remove("typing"); j.node.removeAttribute("aria-label"); markCut(j.node.closest?.(".tr-row")); }
+    for (const j of [typing, ...typeQueue.splice(0)]) { j.started = true; j.node.closest?.(".entry")?.classList.remove("queued"); j.done = true; clearTimeout(j.timer); setText(j.node, j.text); j.node.classList.remove("typing"); j.node.removeAttribute("aria-label"); }
     typing = null;
     if (stick) logBox.scrollTop = logBox.scrollHeight;
     afterTyping();
@@ -11822,17 +11808,7 @@ const BannerArt = (() => {
     else if (live) unread++;
     requestAnimationFrame(updateBottomButton);
   }
-  /* 여러 명 행동 결과 표: 이어지는 "▶ 이름" 결과를 한 장에 줄로 모음. 바로 앞의 그 사람 입력 줄은 표 안 인용으로 접어 넣음 */
-  const RES_OPEN = () => `trpg:resOpen:${app.room}`;
-  let resOpen = null, resRoom = null;   // 펼친 줄 (기기별 · 방별 저장)
-  const openSet = () => { if (resRoom !== app.room) { resRoom = app.room; try { resOpen = new Set(JSON.parse(localStorage.getItem(RES_OPEN())) ?? []); } catch { resOpen = new Set(); } } return resOpen; };
-  const saveResOpen = () => { try { localStorage.setItem(RES_OPEN(), JSON.stringify([...openSet()].slice(-200))); } catch {} };
-  const cutObs = typeof ResizeObserver === "function" ? new ResizeObserver((list) => { for (const it of list) markCut(it.target.closest(".tr-row")); }) : null;
-  function markCut(row) {
-    if (!row) return;
-    const t = row.querySelector(".tr-text");
-    row.classList.toggle("cut", !!t && t.scrollHeight - t.clientHeight > 2);
-  }
+  /* 여러 명 행동 결과: 이어지는 "▶ 이름" 결과를 사람마다 [이번 입력 줄 → 결과] 묶음으로. 바로 앞의 그 사람 입력 줄(행동 · 질문 · @NPC)을 묶음 안으로 옮김 */
   function resultRow(e, textNode, body, animate, atBottom, live) {
     let table = logBox.lastElementChild;
     if (!table?.classList.contains("turn-res")) {
@@ -11852,21 +11828,13 @@ const BannerArt = (() => {
     const pid = e.focusId, mine = !!pid && pid === app.snap?.me;
     const color = pid && app.snap?.players.some((p) => p.pid === pid) ? spineOf(pid) : "#8a1c14";
     const mineIn = (table.inputs ?? []).filter((n) => n.dataset.by === pid);
-    const quote = mineIn.map((n) => (n.querySelector(".text")?.textContent ?? "").trim().replace(/^[「“"]\s*([\s\S]*?)\s*[」”"]$/, "$1")).filter(Boolean).join(" / ");
-    for (const n of mineIn) n.classList.add("in-res");
-    const row = el("div", { class: `tr-row${mine ? " mine" : ""}${openSet().has(e.id) ? " open" : ""}`, style: `--c:${color}`, "data-id": e.id, "data-pid": pid ?? null },
-      el("span", { class: "tr-name" }, e.focus),
-      el("span", { class: "tr-body" }, el("span", { class: "tr-q" }, quote), (textNode.classList.add("tr-text"), textNode), el("span", { class: "tr-tags" })),
-      el("span", { class: "tr-x", "aria-hidden": "true" }, openSet().has(e.id) ? "▴" : "▾"));
+    const row = el("div", { class: `tr-row${mine ? " mine" : ""}`, style: `--c:${color}`, "data-id": e.id, "data-pid": pid ?? null },
+      ...mineIn,   // 그 사람의 이번 입력 (평소 대사 모양 그대로)
+      el("div", { class: "tr-res" },
+        mineIn.length ? null : el("span", { class: "who", style: `color:${color}` }, e.focus),   // 입력 줄이 없으면(굴림 · 일행 대사) 이름만
+        el("span", { class: "tr-arrow", "aria-hidden": "true" }, "→"), (textNode.classList.add("tr-text"), textNode), el("div", { class: "tr-tags" })));
     table.append(row);
     lastRes = table;
-    const many = table.querySelectorAll(".tr-row").length >= 3;
-    table.classList.toggle("many", many);
-    for (const r of table.querySelectorAll(".tr-row:not(.mine)")) {
-      if (many) { r.tabIndex = 0; r.setAttribute("role", "button"); r.setAttribute("aria-expanded", String(r.classList.contains("open"))); }
-    }
-    cutObs?.observe(textNode);
-    requestAnimationFrame(() => table.querySelectorAll(".tr-row").forEach(markCut));
     if (atBottom) logBox.scrollTop = logBox.scrollHeight;
     else if (live) unread++;
     requestAnimationFrame(updateBottomButton);
@@ -11900,18 +11868,6 @@ const BannerArt = (() => {
               keydown: (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.currentTarget.click(); } } } }, text));
     }
   }
-  logBox.addEventListener("click", (ev) => {
-    const row = ev.target.closest(".turn-res.many .tr-row:not(.mine)");
-    if (!row) return;
-    const on = row.classList.toggle("open");
-    row.setAttribute("aria-expanded", String(on));
-    row.querySelector(".tr-x").textContent = on ? "▴" : "▾";
-    if (on) openSet().add(row.dataset.id); else openSet().delete(row.dataset.id);
-    saveResOpen();
-  });
-  logBox.addEventListener("keydown", (ev) => {
-    if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches?.(".turn-res.many .tr-row:not(.mine)")) { ev.preventDefault(); ev.target.click(); }
-  });
   function renderLogAll() {
     skipTyping(); DiceFX.skip(); cancelReleases(); held.splice(0);
     logBox.replaceChildren();
