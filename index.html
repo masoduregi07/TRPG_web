@@ -4742,7 +4742,7 @@ const AI = (() => {
     const npc = style.npcVoice === "vivid" ? "NPC는 말투와 버릇을 뚜렷하게 연기한다." : "NPC 대사는 짧고 담백하게.";
     const avoid = style.avoid ? `다음 소재는 묘사하지 않거나 화면 밖에서 처리한다: ${String(style.avoid).slice(0, 200)}` : "";
     return `너는 한국어 TRPG의 게임 마스터(GM)다. 친구 4명 이하가 함께 플레이한다. 이 시나리오는 "사건 흐름"으로 진행된다.
-너는 관찰자이자 진행자다. 응답은 풍성하게: NPC는 살아 있는 사람처럼 반응하고, 매 차례 장면에 작은 변화나 NPC의 한마디가 있어야 한다. 시나리오를 바탕으로 캐릭터의 행동에 알맞은 자유를 주되, 이야기를 결말까지 이끌 책임이 있다. 매 응답은 캐릭터 행동의 결과(주변의 변화 · NPC의 반응 · 새로 알게 된 것 · 판정 요청) 중 하나 이상을 담아 이야기를 한 걸음 나아가게 한다. 플레이어가 쓴 행동을 되풀이하는 것으로 응답을 채우지 않는다. 그리고 매 응답의 prompt에는 캐릭터들이 다음에 무엇을 할지 고르게 만드는 지금의 상황(새로 들리는 소리 · 다가오는 NPC나 NPC의 물음 · 눈에 띄는 물건 · 갈 수 있는 곳 · 다가오는 위협)을 이야기 속 말로 한두 문장 쓴다. "이동가능한곳"이나 아직 살펴보지 않은 것을 자연스럽게 짚되, 캐릭터의 행동을 대신 정하지 않고 아직공개안된단서 · 비밀은 드러내지 않는다. 단, 질문만 있는 차례(9번), 판정 결과만 있는 차례(15번), 판정을 거는 응답은 그 규칙대로 하고 prompt는 ""로 둔다.
+너는 관찰자이자 진행자다. 응답은 풍성하게: NPC는 살아 있는 사람처럼 반응하고, 매 차례 장면에 작은 변화나 NPC의 한마디가 있어야 한다. 시나리오를 바탕으로 캐릭터의 행동에 알맞은 자유를 주되, 이야기를 결말까지 이끌 책임이 있다. 매 응답은 캐릭터 행동의 결과(주변의 변화 · NPC의 반응 · 새로 알게 된 것 · 판정 요청) 중 하나 이상을 담아 이야기를 한 걸음 나아가게 한다. 플레이어가 쓴 행동을 되풀이하는 것으로 응답을 채우지 않는다. 그리고 매 응답의 prompt에는 캐릭터들이 다음에 무엇을 할지 고르게 만드는, 지금 실제로 일어나는 일 하나(새로 들리는 소리 · NPC의 몸짓이나 물음 · 눈에 띄게 된 물건 · 다가오는 위협)를 이야기 속 말로 한두 문장 쓴다. "~하거나 ~하거나 ~할 수 있다"처럼 할 수 있는 일을 나열하지 않고, 직전 prompt와 같은 내용을 되풀이하지 않는다. "이동가능한곳"이나 아직 살펴보지 않은 것은 그런 일을 통해 자연스럽게 짚되, 캐릭터의 행동을 대신 정하지 않고 아직공개안된단서 · 비밀은 드러내지 않는다. 단, 질문만 있는 차례(9번), 판정 결과만 있는 차례(15번), 판정을 거는 응답은 그 규칙대로 하고 prompt는 ""로 둔다.
 
 [반드시 지킬 규칙]
 ― 원칙 · 사실
@@ -4806,7 +4806,7 @@ const AI = (() => {
 ${[mood, improv, avoid].filter(Boolean).join("\n")}
 
 [출력 형식] 아래 JSON 하나만 출력한다. "이번차례행동표"가 있으면 results에 행동표의 순서 그대로 행동한 캐릭터마다 한 항목씩 그 캐릭터 행동의 직접 결과만 쓴다 (행동표에 없는 캐릭터는 넣지 않는다). 여러 캐릭터에게 함께 일어난 일(주변 변화 · 여럿을 향한 NPC 반응)은 narration에 한 번만 쓰고(없으면 ""), results와 같은 일을 narration에 다시 쓰지 않는다. 각 항목은 그 캐릭터가 한 행동 · 말 · 감정을 다시 적지 말고, 그에 대한 세계의 반응(NPC의 대답 · 행동은 따옴표 대사로, 주변 변화, 새로 보이는 것)만 쓴다. 한 차례에 NPC 반응이 하나도 없으면 안 된다. 행동표가 없으면 results는 [].
-{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "prompt": "다음 선택을 부르는 지금의 상황 한두 문장 또는 \"\"", "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격","voice":"말투"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격","voice":"말투"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}, "kpc_away": null 또는 true 또는 false, "npc_card": [] 또는 [{"who": "NPC 이름", "knows": ["새로 알게 된 것"], "wants": "바뀐 바람", "relations": ["대상 — 관계"]}]}`;
+{"narration": "서술", "results": [] 또는 [{"who": "캐릭터 이름", "text": "그 캐릭터 행동의 결과 서술"}], "prompt": "다음 선택을 부르는, 지금 일어나는 일 한두 문장(할 수 있는 일 나열 금지) 또는 \"\"", "reveal_clue": null 또는 "단서id", "request_check": null 또는 {"id": "판정id", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "improv_check": null 또는 {"skill": "기능", "difficulty": "보통", "dice": 0, "reason": "행동", "who": "캐릭터"} 또는 {"san": "0/1d3", "reason": "본 것", "who": "캐릭터"} 또는 그 목록(캐릭터마다 하나), "move_to": null 또는 "사건id", "arrival": null 또는 "move_to일 때 새 사건 도착 서술", "new_place": null 또는 {"name": "장소 이름"}, "new_npcs": [] 또는 [{"name":"새 인물","job":"직업","look":"외모","personality":"성격","voice":"말투"}] 또는 [{"id":"kpc","name":"KPC 이름","look":"외모","personality":"성격","voice":"말투"}], "left_place": false, "on_track": true, "give_item": null 또는 {"to": "캐릭터", "item": "물건", "note": "물건 설명 한 줄"} 또는 그 목록, "take_item": null 또는 {"to": "캐릭터", "item": "물건"} 또는 그 목록, "answers": [] 또는 [{"to": "질문한 캐릭터", "text": "답"}], "show_handout": null 또는 {"id": "핸드아웃id", "to": ["이름"] 또는 "all"}, "hurt": null 또는 [{"to": "이름", "dice": "1d6+DB", "by": "무기"}], "heal": null 또는 [{"to": "캐릭터", "dice": "1"}], "fate": null 또는 {"to": "캐릭터", "state": "회복"}, "kpc_away": null 또는 true 또는 false, "npc_card": [] 또는 [{"who": "NPC 이름", "knows": ["새로 알게 된 것"], "wants": "바뀐 바람", "relations": ["대상 — 관계"]}]}`;
   }
 
   function logLine(e) {
@@ -5029,6 +5029,12 @@ const Turn = (() => {
   }
   /* 따옴표 대사의 주인: 대사 앞에서 가장 가까이 나온 NPC 이름 (없으면 모름 → 뺌) */
   const LINE_RE = /"[^"]{2,}"|“[^”]{2,}”|「[^」]{2,}」/g;
+  // prompt 선택지 나열: "~하거나, ~하거나, ~할 수 있다"
+  const CHOICE_RE = /거나[^.!?]*?수\s*있다|(?:할|볼|갈|걸|살필)\s*수\s*있다[.!…]*\s*$/;
+  // NPC 대답을 대사 없이 요약: "대답하며 · 답하며 · 이야기를 전해 준다"
+  const REPORTED_RE = /(?:대답하|대꾸하|답하)(?:며|고|였|여|면서)|대답한다|답한다|이야기를\s*(?:전해|들려)/;
+  // 캐릭터의 물음을 간접 화법으로 옮김: "누구냐고 묻자," · "괜찮냐는 물음에"
+  const INDIRECT_RE = /(?:냐|느냐|으냐|니|는지|까)고\s*(?:묻자|물으니|물어보자|하자)\s*,?|(?:냐|느냐|으냐|자|라)는\s*(?:물음|질문|말|부탁|요청)에\s*,?/;
   function npcLines(text, names) {
     const t = String(text ?? ""), out = [];
     for (const m of t.matchAll(LINE_RE)) {
@@ -5464,6 +5470,20 @@ const Turn = (() => {
         }
       }
     }
+    // ---- 캐릭터의 물음을 간접 화법으로 되풀이 ("누구냐고 묻자," · "괜찮냐는 물음에", 규칙 10). 마지막 시도면 그 부분만 뺌 ----
+    {
+      const head = (x) => { const t = String(x); const q = t.search(/["“「『]/); const m = INDIRECT_RE.exec(t); return m && (q < 0 || m.index < q) ? m : null; };
+      const texts = [plan.narration, plan.arrival, ...plan.blocks.map((b) => b.text)].filter(Boolean);
+      if ((info.order?.length || info.actors.length) && texts.some((t) => t.split(SENT_RE).some(head))) {
+        if (!final) hard("캐릭터의 물음 · 말을 \"~냐고 묻자 · ~냐는 물음에\"처럼 간접 화법으로 되풀이함 (규칙 10). 입력은 옮기지 말고 그에 대한 반응부터 쓴다");
+        else {
+          const strip = (t) => t && t.split(SENT_RE).map((x) => { const m = head(x); if (!m) return x; const rest = x.slice(m.index + m[0].length).trimStart(); const pre = x.slice(0, m.index); return rest ? rest : pre; }).join(" ").trim();
+          plan.narration = strip(plan.narration); if (plan.arrival) plan.arrival = strip(plan.arrival) || null;
+          for (const b of plan.blocks) b.text = strip(b.text) || b.text;
+          soft("간접 화법으로 입력을 되풀이한 부분 삭제");
+        }
+      }
+    }
     // ---- NPC가 직전에 한 대사를 거의 그대로 되풀이 (규칙 27) ----
     {
       const quotes = (t) => String(t ?? "").match(QUOTE_RE) ?? [];
@@ -5590,6 +5610,9 @@ const Turn = (() => {
       const spoken = [plan.narration, plan.arrival, ...plan.answers.map((a) => a.text)].filter(Boolean).join("\n");
       const mute = (info.askNpc ?? []).filter((n) => (info.npcNames ?? []).includes(n) && !said.some((x) => x.who === n));
       // 판정을 거는 응답은 판정 직전까지만 서술하므로 (규칙 13) 대답은 결과 뒤에 옴 → 대사가 없어도 됨
+      // 행동 입력으로 NPC에게 말을 걸거나 물었는데(info.askAct) · 또는 "대답하며 · 이야기를 전해 준다"로 요약만 했는데 대사가 하나도 없음
+      if (!mute.length && !plan.checks.length && !spoken.match(LINE_RE) && (info.npcNames ?? []).length && (info.askAct || REPORTED_RE.test(spoken.replace(QUOTE_RE, " "))))
+        (final ? soft : hard)("NPC에게 말을 걸거나 물었는데 NPC의 대답을 \"대답하며 · 이야기를 전해 준다\"처럼 요약만 하고 따옴표 대사가 없음 (규칙 27). 그 NPC가 실제로 한 말을 따옴표 대사로 쓴다");
       if (mute.length && !plan.checks.length && !spoken.match(LINE_RE)) (final ? soft : hard)(`${mute.join(", ")}에게 물음을 건넸는데 대사로 대답하지 않음 (규칙 27). 몸짓만으로 넘기지 말고 그 물음에 대한 대답(아는 것 · 모르는 이유 · 말하지 않는 까닭)을 따옴표 대사로`);
       if (stuck.length) (final ? soft : hard)(`${stuck.join(", ")}이(가) "모르겠다 · 당황스럽다" 같은 대답이나 "더 조사해 보자"로 미루는 대답을 세 번째 되풀이함 (규칙 28 · 31). 이번엔 자기 짐작(틀려도 됨) · 의견 · 기억을 말하거나, 맞는 가능한판정이 있으면 request_check로 검 (미공개 사실을 확정하지는 않음)`);
     }
@@ -5641,9 +5664,13 @@ const Turn = (() => {
     const wantsPrompt = !info.askOnly && !info.rollOnly && !plan.check && !plan.quiet && (info.actors ?? []).length > 0;
     if (wantsPrompt) {
       const told = [plan.narration, plan.arrival].filter(Boolean).join(" ");
+      const menu = r.prompt && CHOICE_RE.test(r.prompt.replace(QUOTE_RE, " "));
       if (r.prompt && shows(told, r.prompt) >= .75) soft("prompt가 서술을 되풀이함 → 뺌");
+      else if (r.prompt && (info.prevPrompts ?? []).some((p) => shows(p, r.prompt) >= .6)) soft("prompt가 직전 prompt를 되풀이함 → 뺌");
+      else if (menu && !final) hard("prompt에 할 수 있는 일을 나열함(\"~하거나 … ~할 수 있다\"). 선택지 목록 대신 지금 실제로 일어나는 일 하나(소리 · NPC의 몸짓이나 물음 · 눈에 띄게 된 것)를 이야기 속 말로");
+      else if (menu) soft("prompt가 선택지 나열 → 뺌");
       else if (r.prompt) plan.prompt = r.prompt;
-      else if (!final) hard("prompt가 비어 있음: 끝에 다음 선택을 부르는 지금의 상황(소리 · 다가오는 NPC · 갈 수 있는 곳 · 눈에 띄는 것)을 이야기 속 말로 한두 문장");
+      else if (!final) hard("prompt가 비어 있음: 끝에 다음 선택을 부르는, 지금 실제로 일어나는 일 하나(소리 · NPC의 몸짓이나 물음 · 눈에 띄게 된 것)를 이야기 속 말로 한두 문장");
     }
     plan.actors = info.actors.map((a) => a.pid);   // 단서를 찾은 캐릭터 (핸드아웃 finder 범위)
     return { plan, issues };
@@ -5655,7 +5682,13 @@ const Turn = (() => {
 
   /** 물음인지: 물음표 · 의문 어미(~까 · ~니 · ~냐 · ~나요 · ~가요 · ~는지 · ~던가) · 의문사(왜 · 누구 · 뭐 · 무엇 · 어디 · 언제 · 어떻게 · 얼마) */
   const isQuestion = (t) => { const x = String(t ?? "").trim(); return /\?/.test(x) || /(까|니|냐|나요|가요|는지|던가)[.!…]*$/.test(x) || /(^|\s)(왜|누구|누가|뭐|무엇|무슨|어디|언제|어떻게|얼마)/.test(x); };
-  return { validate, feedback, same, bare, leaks, toneOff, shows, npcLines, gestures, dedupSentences, isQuestion, exitForPlace, EVADE_RE };
+  /** 행동 글이 NPC에게 말을 걸거나 묻는지: NPC 이름 또는 사람 지칭(그 남자 · 노인 · 그녀 …)에 + 말 걸기 · 물음 · 물음표 */
+  const talksToNpc = (t, names = []) => {
+    const x = String(t ?? "");
+    const who = names.some((n) => String(n).length >= 2 && x.includes(n)) || /(?:남자|여자|사내|노인|아이|소녀|소년|그녀|그|신부|수녀|사람)(?:에게|한테|께|를\s*향해)/.test(x);
+    return who && (/말을\s*(?:건|걸|붙)|물(?:어|었|음|으)|묻(?:는|고|자|다)|\?/.test(x) || /["“「]/.test(x));
+  };
+  return { validate, feedback, same, bare, leaks, toneOff, shows, npcLines, gestures, dedupSentences, isQuestion, talksToNpc, exitForPlace, EVADE_RE };
 })();
 
 
@@ -7227,7 +7260,10 @@ class HostGame {
       // 이번 차례 NPC에게 말을 건 캐릭터 (NPC 이름 → 캐릭터 이름들)
       talkTo: since.reduce((o, e) => { const n = e.kind === "say" && e.toNpc && d.players[e.byId]?.character?.name; if (n) (o[e.toNpc] ??= []).push(n); return o; }, {}),
       // 이번 차례 @NPC로 물음을 건넨 NPC (물음표 · 의문 어미 · 의문사)
+      prevPrompts: pastGm.filter((e) => e.prompt).slice(-2).map((e) => e.text),
       askNpc: [...new Set(since.filter((e) => e.kind === "say" && e.toNpc && Turn.isQuestion(e.text)).map((e) => e.toNpc))],
+      // 행동 입력으로 NPC에게 말을 걸거나 물음 (NPC 이름 · "그 남자에게" 같은 지칭 + 말 걸기 · 물음)
+      askAct: since.some((e) => e.kind === "say" && e.style === "act" && Turn.talksToNpc(e.text, (s.npcs ?? []).map((id) => this.sc.npcs?.[id]?.name).filter(Boolean))),
       // NPC마다 그 NPC가 나온 최근 서술 3개의 몸짓 · 표정 (같은 몸짓을 또 쓰는지)
       npcGestures: (() => {
         const names = (s.npcs ?? []).map((id) => this.sc.npcs?.[id]?.name).filter((n) => n && !/^KPC$/i.test(n)), o = {};
@@ -7367,7 +7403,7 @@ class HostGame {
       if (clue && !moving) logClue();
     }
     for (const h of plan.showHandouts ?? []) this.showHandout(h);
-    if (plan.prompt) this.addLog({ kind: "ai", by: "GM", text: plan.prompt });   // 다음 상황: 이번 차례 기록 맨 끝에 GM 줄로
+    if (plan.prompt) this.addLog({ kind: "ai", by: "GM", text: plan.prompt, prompt: true });   // 다음 상황: 이번 차례 기록 맨 끝에 GM 줄로
     if (moving) { d.game.stallTurns = 0; d.game.loopTurns = 0; return; }
     this.applyCombat(plan);
     for (const ck of plan.checks ?? (plan.check ? [plan.check] : [])) {
