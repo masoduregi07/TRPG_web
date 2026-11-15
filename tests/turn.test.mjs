@@ -556,3 +556,28 @@ test("다음 상황(prompt): 행동 차례에 비면 다시 요청 · 마지막�
   const rep = run({ narration: "복도 끝에서 낮은 발소리가 들렸다. 바르톨이 고개를 들었다." });
   assert.equal(rep.plan.prompt, "", "서술과 같으면 뺌");
 });
+
+test("prompt: 할 수 있는 일 나열이면 다시 요청 · 마지막은 뺌, 직전 prompt 되풀이는 뺌", () => {
+  const menu = "고해소 안에 묶여 있는 수상한 남자에게 더 말을 걸거나, 주변의 은촛대를 살펴보거나, 다른 곳으로 이동할 수 있다.";
+  assert.ok(run({ narration: "바르톨이 그물을 내려놓았다.", prompt: menu }).issues.some((i) => i.hard && /나열/.test(i.msg)));
+  assert.equal(run({ narration: "바르톨이 그물을 내려놓았다.", prompt: menu }, base(), true).plan.prompt, "");
+  const prev = base({ prevPrompts: ["남자가 묶인 손목을 내려다보며 은촛대 쪽으로 눈짓했다."] });
+  assert.equal(run({ narration: "바르톨이 그물을 내려놓았다.", prompt: "남자가 묶인 손목을 내려다보며 은촛대 쪽으로 눈짓했다." }, prev).plan.prompt, "");
+});
+
+test("행동으로 NPC에게 말을 걸었는데 대사 없이 요약만 하면 다시 요청", () => {
+  assert.ok(Turn.talksToNpc("그 남자에게 말을 건다. 누구세요?"));
+  assert.ok(Turn.talksToNpc("바르톨에게 괜찮냐고 물어봄", ["바르톨"]));
+  assert.ok(!Turn.talksToNpc("은촛대를 집어 든다."));
+  const info = base({ askAct: true, npcNames: ["바르톨"] });
+  assert.ok(run({ narration: "바르톨은 차분하고 나긋한 목소리로 대답하며 기묘한 여유를 보였다." }, info).issues.some((i) => i.hard && /요약/.test(i.msg)));
+  assert.ok(!run({ narration: "바르톨이 웃었다. \"나는 그냥 어부요.\"" }, info).issues.some((i) => /요약/.test(i.msg)));
+  assert.ok(run({ narration: "바르톨은 식당에 관해 들은 이야기를 전해 주었다." }, base({ npcNames: ["바르톨"] })).issues.some((i) => i.hard && /요약/.test(i.msg)), "물음이 없어도 요약만 있으면");
+});
+
+test("캐릭터 물음을 간접 화법으로 되풀이하면 다시 요청 · 마지막은 그 부분만 삭제", () => {
+  const r = run({ narration: "남자를 향해 누구냐고 묻자, 바르톨이 웃었다. \"그냥 어부요.\"" });
+  assert.ok(r.issues.some((i) => i.hard && /간접 화법/.test(i.msg)));
+  const f = run({ narration: "남자의 괜찮냐는 물음에 바르톨이 고개를 끄덕였다. \"괜찮소.\"" }, base(), true);
+  assert.equal(f.plan.narration, "바르톨이 고개를 끄덕였다. \"괜찮소.\"");
+});
