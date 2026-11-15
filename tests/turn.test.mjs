@@ -225,11 +225,12 @@ test("플레이어 입력을 되풀이만 한 서술이면 다시 물음", () =>
   assert.ok(!run({ narration: "따라가지 않고 버팀." }, info, true).issues.some((i) => i.hard), "마지막은 통과");
 });
 
-test("판정과 맞는 행동인데 판정 없이 서술하면 다시 물음", () => {
+test("판정과 맞는 행동인데 판정 없이 서술하면 알림만 (다시 묻지 않음)", () => {
   const info = base({ actTexts: ["계단 벽의 글씨를 살펴봄"], sceneTitle: "1층과 2층 사이 — 낡은 계단",
     openChecks: [{ id: "stair_listen", label: "계단의 이중 소리 듣기" }, { id: "stair_graffiti_spot", label: "벽글씨 원문 살피기" }] });
   const a = run({ narration: "벽의 비뚤어진 글씨를 유심히 살핌." }, info);
-  assert.ok(a.issues.some((i) => i.hard && /stair_graffiti_spot/.test(i.msg) && !/stair_listen/.test(i.msg)), "사건 제목 낱말(계단)만 겹친 판정은 빼고");
+  assert.ok(a.issues.some((i) => !i.hard && /stair_graffiti_spot/.test(i.msg) && !/stair_listen/.test(i.msg)), "사건 제목 낱말(계단)만 겹친 판정은 빼고");
+  assert.ok(!a.issues.some((i) => i.hard && /가능한판정/.test(i.msg)), "다시 묻지 않음");
   assert.ok(!run({ narration: "벽 쪽으로 다가감.", request_check: { id: "k1", who: "한서" } }, base({ ...info, checks: ["k1"] })).issues.some((i) => i.hard && /가능한판정/.test(i.msg)), "판정을 걸면 통과");
   assert.ok(!run({ narration: "계단을 천천히 오름." }, base({ ...info, actTexts: ["계단을 오른다"] })).issues.some((i) => i.hard && /가능한판정/.test(i.msg)));
   // 공개조건을 채운(판정 보상이 아닌) 단서를 공개하면 통과, 판정 보상 단서면 그대로 다시 물음
