@@ -2128,7 +2128,6 @@ html.has-3d .topbar { box-shadow: none; }
 .npc-pick[hidden] { display:none; }
 .npc-pick .np-row { display:flex; align-items:baseline; gap:6px; padding:5px 10px; cursor:pointer; white-space:nowrap; }
 .npc-pick .np-row.on { background:#6f5230; color:#f4ecd8; }
-.npc-pick .np-job { font-size:11px; opacity:.7; }
 .to-tag[data-npc] { cursor:pointer; }
 /* 설정 창 안 AI 연결 (호스트만) */
 .sound-pop:has(#sndAi:not([hidden])), .sound-pop:has(#sndIce[open]) { width: 280px; }
@@ -3234,7 +3233,7 @@ scenes:
 npcs:
   fisherman:
     name: 바르톨      # 부르는 이름만. 직업·수식어는 job · look에
-    job: 늙은 어부    # 선택. @목록에서 이름 옆에 작게 (없으면 -)
+    job: 늙은 어부    # 선택. 직업·신분
     look: 그물을 손질하는 백발의 어부
     personality: 무뚝뚝하고 말수가 적지만, 술을 사 주거나 진심으로 대하면 말이 많아짐
     secret: 등대지기가 맡겨 둔 등대 열쇠를 갖고 있지만 먼저 말하지 않음
@@ -11976,7 +11975,7 @@ const BannerArt = (() => {
   function drawNpcPick() {
     const box = $("#npcPick");
     box.replaceChildren(...npcPickList.map((n, i) => el("div", { class: `np-row${i === npcPickSel ? " on" : ""}`, role: "option", "aria-selected": i === npcPickSel ? "true" : "false",
-      on: { pointerdown: (ev) => { ev.preventDefault(); fillNpc(n.name); } } }, el("span", {}, n.name), el("span", { class: "np-job" }, n.job || "-"))));
+      on: { pointerdown: (ev) => { ev.preventDefault(); fillNpc(n.name); } } }, el("span", {}, n.name))));
   }
   function updateNpcPick() {
     const m = /^@(\S*)$/.exec($("#chatInput").value);
