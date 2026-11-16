@@ -8446,7 +8446,9 @@ void main() {
     // 카드 · 앞판은 윗면만 그림: 옆면은 판 깊이 전체에 걸쳐 그려져(투명한 윗부분 자리까지) 카드 둘레에 흰 점선 테두리처럼 비침
     const topOnly = (m, t, em) => { gl.uniformMatrix4fv(U.u_model, false, m); gl.uniform1f(U.u_emissive, em); gl.bindTexture(gl.TEXTURE_2D, t); drawMesh(SL.top); };
     if (desk.count > 0) {
-      drawSlab(pk, DT.pocket.t, T_pocketIn, T_pocketIn, lit("pocket"));
+      // 뒤판은 앞판 위로 나온 부분을 반만(판 자체를 짧게: 그림만 비우면 그 자리로 판 아랫면이 검게 비침)
+      const cut = 29 / 140;
+      drawSlab(chain(pk, M.T(0, 0, cut / 2), M.S(1, 1, 1 - cut)), DT.pocket.t, T_pocketIn, T_pocketIn, lit("pocket"));
       topOnly(chain(slide(1, -cardsUp * .07 / DK.pocket.d), M.S(1, .5, 1)), DT.cards.t, lit("pocket") + .04);
     } else {   // 빈 포켓: 속은 윗면만(옆면 · 아랫면을 그리면 빈 자리에 테두리 조각이 비침), 카드 없음
       gl.uniformMatrix4fv(U.u_model, false, pk); gl.uniform1f(U.u_emissive, lit("pocket"));
