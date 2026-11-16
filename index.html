@@ -361,7 +361,9 @@ textarea.code { font: 12px/1.6 var(--font); }
 
 .entry.say .who { --c: var(--blood); color: var(--c); font-size: 17px; background: none; box-shadow: none; padding: 0; margin-right: 6px; }
 /* 플레이어 대사 = 들여쓰기 + 플레이어 색 막대, 내 대사는 옅은 바탕 띠 */
-.entry.say { --c: var(--blood); margin-left: 22px; padding: 3px 0 1px 12px; box-shadow: inset 3px 0 0 var(--c); }
+.entry.say { --c: var(--blood); position: relative; margin-left: 22px; padding: 3px 0 1px 12px; box-shadow: inset 1px 0 0 color-mix(in srgb, var(--c) 35%, transparent); }
+/* 책갈피 탭(B3): 이름 앞 4×16 플레이어 색, 첫 줄(위 여백 3 + 줄 27) 가운데. 이어지는 줄은 옅은 1px 선 */
+.entry.say::before { content: ""; position: absolute; left: 0; top: calc(3px + (27px - 16px) / 2); width: 4px; height: 16px; background: var(--c); }
 .entry.say.mine { padding-right: 40px; background: linear-gradient(90deg, rgba(255, 248, 228, .5), rgba(255, 248, 228, 0)); }
 .entry.say .who::after { color: rgba(90, 60, 30, .45); content: ""; }
 /* GM 서술 속 NPC 대사 */
@@ -1040,7 +1042,7 @@ textarea { resize: vertical; margin-top: 8px; }
 .entry.turn-res { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; font-family: var(--font); }
 .turn-res .tr-row { --c: var(--blood); display: flex; flex-direction: column; }
 .turn-res .tr-row > .entry.say { margin-top: 0; margin-bottom: 0; }
-.turn-res .tr-res { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; align-items: baseline; margin-left: 22px; padding: 3px 0 1px 12px; box-shadow: inset 3px 0 0 var(--c); }
+.turn-res .tr-res { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; align-items: baseline; margin-left: 22px; padding: 3px 0 1px 12px; box-shadow: inset 1px 0 0 color-mix(in srgb, var(--c) 35%, transparent); }
 .turn-res .tr-res > .who { grid-column: 1 / -1; }
 .turn-res .tr-arrow { color: #8a7a62; font-size: 15px; }
 .turn-res .tr-text { display: block; line-height: 1.5; color: #120c08; overflow-wrap: anywhere; }
@@ -1048,8 +1050,9 @@ textarea { resize: vertical; margin-top: 8px; }
 .turn-res .tr-tags { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .turn-res .tr-tags:empty { display: none; }
 /* GM에게 한 말 묶음: 사람 사이 점선(위아래 4px), 답 앞 남색 GM 라벨 */
-.ask-res { gap: 0; }
-.ask-res .tr-row + .tr-row { position: relative; margin-top: 4px; padding-top: 4px; }
+/* 답 묶음: 앞뒤 대사와 같은 8px 간격, 사람 사이 점선은 위 글자 끝 ↔ 점선 ↔ 아래 글자 머리가 같게(위 1 + 6 / 아래 4 + 3, 줄 여백은 양쪽 같음) */
+.entry.turn-res.ask-res { gap: 0; margin: 0; }
+.ask-res .tr-row + .tr-row { position: relative; margin-top: 6px; padding-top: 4px; }
 .ask-res .tr-row + .tr-row::before { content: ""; position: absolute; top: 0; left: 22px; right: 0; border-top: 1px dashed rgba(90, 60, 30, .45); }
 .gm-mini { display: inline-block; vertical-align: middle; margin-right: 8px; padding: 0 5px; font: 11px/16px var(--font); color: #f4ecd8; background: var(--gm); }
 /* 상태 줄 "GM 답변하는 중 ···": 점 세 개가 차례로 진해짐 */
