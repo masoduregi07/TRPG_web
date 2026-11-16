@@ -8368,6 +8368,7 @@ void main() {
   const desk = { count: -1, date: "", hover: "", envOpen: 0 };
   const DK = { pocket: { x: .9, z: -1.12, w: .62, d: .78, th: .006, rot: -.16 }, env: { x: .86, z: -.42, w: .6, d: .36, th: .006, rot: .12 } };   // 책 오른쪽에 바짝, 비스듬히
   const T_kraft = tex(16, (g, s) => noise(g, s, [176, 132, 76], .2));
+  const T_pocketIn = tex(16, (g, s) => noise(g, s, [78, 53, 25], .2));   // 주머니 속 판의 옆 · 아랫면 (밝은 크라프트면 윗변에 밝은 테가 비침)
   const SEAL_IMG = new Image(); SEAL_IMG.src = "img/seal.png";
   const DT = {
     // 대출 카드 포켓(L1) = 세 겹: 속(어두운 안쪽) · 카드(B 색인 카드: 붉은 머리줄 + 남색 괘선, 테이블 수만큼 최대 3장) · 앞판(반달 홈 북포켓 + 인쇄 + 최근 날짜 도장).
@@ -8435,16 +8436,17 @@ void main() {
     gl.uniform1f(U.u_alphaTest, .5);
     gl.uniform3f(U.u_tint, .74, .76, .86);   // 촛불 바로 앞: 노랗게 날아가지 않게 따뜻한 빛을 덜어 냄
     const pk = deskModel("pocket"), slide = (dy, dz) => chain(pk, M.T(0, dy, dz));   // 주머니 판 안 좌표 (판 두께 1 = .006)
+    // 카드 · 앞판은 윗면만 그림: 옆면은 판 깊이 전체에 걸쳐 그려져(투명한 윗부분 자리까지) 카드 둘레에 흰 점선 테두리처럼 비침
+    const topOnly = (m, t, em) => { gl.uniformMatrix4fv(U.u_model, false, m); gl.uniform1f(U.u_emissive, em); gl.bindTexture(gl.TEXTURE_2D, t); drawMesh(SL.top); };
     if (desk.count > 0) {
-      drawSlab(pk, DT.pocket.t, T_kraft, T_kraft, lit("pocket"));
-      drawSlab(chain(slide(1, -cardsUp * .07 / DK.pocket.d), M.S(1, .5, 1)), DT.cards.t, DT.cards.t, DT.cards.t, lit("pocket") + .04);
+      drawSlab(pk, DT.pocket.t, T_pocketIn, T_pocketIn, lit("pocket"));
+      topOnly(chain(slide(1, -cardsUp * .07 / DK.pocket.d), M.S(1, .5, 1)), DT.cards.t, lit("pocket") + .04);
     } else {   // 빈 포켓: 속은 윗면만(옆면 · 아랫면을 그리면 빈 자리에 테두리 조각이 비침), 카드 없음
       gl.uniformMatrix4fv(U.u_model, false, pk); gl.uniform1f(U.u_emissive, lit("pocket"));
       gl.bindTexture(gl.TEXTURE_2D, DT.pocket.t); drawMesh(SL.top);
     }
     const fr = chain(slide(1.5, 0), M.S(1, .5, 1));
-    if (desk.count > 0) drawSlab(fr, DT.front.t, DT.front.t, DT.front.t, lit("pocket"));
-    else { gl.uniformMatrix4fv(U.u_model, false, fr); gl.bindTexture(gl.TEXTURE_2D, DT.front.t); drawMesh(SL.top); }
+    topOnly(fr, DT.front.t, lit("pocket"));
     gl.uniform3f(U.u_tint, 1, 1, 1);
     drawSlab(deskModel("env"), DT.env.t, T_kraft, T_kraft, lit("env"));
     // 덮개: 봉투 먼 쪽 변이 경첩. 열면(envOpen 0→1) 위로 젖혀져 봉투 뒤 탁자 쪽으로 넘어감
