@@ -40,6 +40,7 @@
   --flame-y: #ffd75a;
   --flame-o: #f08a2a;
   --flame-w: #fff3c4;
+  --gm: #34503f;   /* GM(말 걸기 · 답) 색: 소나무 녹색 */
   --blood: #8a1c14;
   --blood-hi: #b8382a;
   --blood-lo: #520e0a;
@@ -638,7 +639,7 @@ html.calm-item .dos-items .item.lost { display: none; }
 .npc-chip { position: absolute; left: 40px; top: 50%; translate: 0 -50%; z-index: 2; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 7px; border: 0; background: #6f5230; color: #f4ecd8; box-shadow: 1px 1px 0 rgba(0, 0, 0, .3); font-family: var(--font); font-size: 12px; line-height: 1.4; cursor: pointer; }
 .npc-chip:hover, .npc-chip:focus-visible { background: #8a1c14; outline: 0; }
 .npc-chip[hidden] { display: none; }
-.npc-chip.gm-to { left: 9px; background: #2a3550; }   /* GM에게 말 걸기: 모드 아이콘 자리에 GM 라벨 */
+.npc-chip.gm-to { left: 9px; background: var(--gm); }   /* GM에게 말 걸기: 모드 아이콘 자리에 GM 라벨 */
 .say-box[data-mode="ask"] .say-mode { display: none; }
 /* 보내기 = 입력칸 안 오른쪽 끝 테두리 글자 (I-1 + S2): 모드 색 테 · 굵은 글씨 + 모드 색 28% 채움, 호버는 모드 색 칠. 빈 칸 · 잠금이면 흐림(.7) */
 .say-send { position: absolute; right: 6px; top: 50%; translate: 0 -50%; z-index: 2; display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px; border: 1px solid var(--say); background: color-mix(in srgb, var(--say) 28%, transparent); color: var(--say); font: 700 12px/1 var(--font); white-space: nowrap; cursor: pointer; }
@@ -655,7 +656,7 @@ html.calm-item .dos-items .item.lost { display: none; }
 .say-send .ss-ic { font-weight: 400; }   /* 굵은 갈무리엔 ↵가 없어 작게 대체됨 → 보통 굵기로 */
 .say-box[data-mode="talk"] .say-mode { color: var(--say); }
 .say-box[data-mode="act"] { --say: var(--blood); }
-.say-box[data-mode="ask"] { --say: #2a3550; }
+.say-box[data-mode="ask"] { --say: var(--gm); }
 .say-box[data-mode="cmd"] { --say: #5a4a2a; }
 /* 입력 종류 탭: 공책 색인 탭 + 단축키, 고른 탭은 입력칸 테 색으로 이어짐 */
 .say-tabs { flex-basis: 100%; display: flex; gap: 3px; align-items: flex-end; margin-bottom: -12px; padding-left: 6px; }
@@ -664,7 +665,7 @@ html.calm-item .dos-items .item.lost { display: none; }
 .say-tab:hover { background: rgba(150, 105, 50, .32); }
 .say-tab.on { padding-bottom: 3px; color: #f4ecd8; background: var(--ink); }
 .say-tab.on[data-m="act"] { background: var(--blood); }
-.say-tab.on[data-m="ask"] { background: #2a3550; }
+.say-tab.on[data-m="ask"] { background: var(--gm); }
 .say-tab.on[data-m="cmd"] { background: #5a4a2a; }
 .say-tab.on kbd { color: #f6d27a; }
 .say-tip { margin-left: 8px; align-self: center; font: 11px var(--font); color: var(--ink-2); opacity: .8; }
@@ -674,7 +675,7 @@ html.calm-item .dos-items .item.lost { display: none; }
 .entry.s-talk .text { font-family: var(--font-talk); font-size: 18px; color: var(--ink); }
 .entry.s-act .text { font-family: var(--font-act); font-size: 17px; color: #5a3a1e; }
 .entry.s-act .text::before { content: "▸ "; color: rgba(90, 58, 30, .6); }
-.entry.s-ask .text { font-family: var(--font-ask); font-size: 16px; color: #2a3550; }
+.entry.s-ask .text { font-family: var(--font-ask); font-size: 16px; color: var(--gm); }
 /* 생각은 대사·행동과 구별하되 기존 글꼴·16비트 질감은 그대로 사용 */
 .entry.s-think .text { color: #665640; opacity: .88; }
 .entry.s-think .text::before { content: "(속마음) "; color: #8a7152; }
@@ -1050,9 +1051,12 @@ textarea { resize: vertical; margin-top: 8px; }
 .ask-res { gap: 0; }
 .ask-res .tr-row + .tr-row { position: relative; margin-top: 4px; padding-top: 4px; }
 .ask-res .tr-row + .tr-row::before { content: ""; position: absolute; top: 0; left: 22px; right: 0; border-top: 1px dashed rgba(90, 60, 30, .45); }
-.gm-mini { display: inline-block; vertical-align: middle; margin-right: 8px; padding: 0 5px; font: 11px/16px var(--font); color: #f4ecd8; background: #2a3550; }
+.gm-mini { display: inline-block; vertical-align: middle; margin-right: 8px; padding: 0 5px; font: 11px/16px var(--font); color: #f4ecd8; background: var(--gm); }
 /* 상태 줄 "GM 답변하는 중 ···": 점 세 개가 차례로 진해짐 */
-.turn-status .answering { display: inline-flex; align-items: center; gap: 0; color: #2a3550; }
+/* GM 답 표시: 쪽지 아이콘(H1), 글자 첫 줄 가운데 */
+.ans-note { display: inline-block; vertical-align: middle; margin-right: 8px; color: var(--gm); line-height: 0; }
+.ans-note svg { display: block; width: 16px; height: 16px; }
+.turn-status .answering { display: inline-flex; align-items: center; gap: 0; color: var(--gm); }
 .ans-dots { display: inline-flex; gap: 2px; margin-left: 6px; }
 .ans-dots i { width: 3px; height: 3px; background: currentColor; opacity: .25; animation: ans-dot 1.2s steps(1) infinite; }
 .ans-dots i:nth-child(2) { animation-delay: .4s; } .ans-dots i:nth-child(3) { animation-delay: .8s; }
@@ -1345,7 +1349,7 @@ html.has-3d .topbar { box-shadow: none; }
 .my-sheet .b-left .f-chars { gap: 9px; }
 
 /* GM 답변: 질문한 사람 꼬리표 (@이름, 그 사람 색) */
-.entry.ai.answer { font-size: 16px; box-shadow: inset 3px 0 0 #2a3550; }
+.entry.ai.answer { font-size: 16px; box-shadow: inset 3px 0 0 var(--gm); }
 .to-tag { display: inline-block; margin-right: 9px; padding: 0 6px; font-family: var(--font); font-size: 13px; line-height: 1.6; color: #f4ecd8; background: var(--c); box-shadow: 0 0 0 1px rgba(0, 0, 0, .35); vertical-align: 2px; }
 /* 초상 = 폴라로이드를 누르면 사진 붙이기. 비어 있으면 가운데 [+], 올리면 아래로 이름표 */
 .pic-drop { position: relative; display: inline-block; cursor: pointer; }
@@ -11901,11 +11905,11 @@ const BannerArt = (() => {
       // 말한 사람: 상자 없이 플레이어 색 잉크 이름 + 줄표
       const ink = e.kind === "say" && e.byId && app.snap?.players.some((p) => p.pid === e.byId) ? spineOf(e.byId) : null;
       // GM이 질문에 답할 때: 질문한 사람을 플레이어 색 꼬리표로
-      const toInk = e.toId && app.snap?.players.some((p) => p.pid === e.toId) ? spineOf(e.toId) : "#2a3550";
+      const toInk = e.toId && app.snap?.players.some((p) => p.pid === e.toId) ? spineOf(e.toId) : "var(--gm)";
       if (e.kind === "ai" && e.focus) return void resultRow(e, textNode, body, animate, atBottom, live);
       if (e.kind === "ai" && e.reply?.length) return void askRow(e, textNode, atBottom, live);
       node = el("div", { "data-by": e.kind === "say" ? e.byId ?? null : null, "data-id": e.kind === "say" ? e.id ?? null : null, class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}${e.kind === "say" && e.byId && e.byId === app.snap?.me ? " mine" : ""}`, style: ink ? `--c:${ink}` : null }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
-        e.style === "ask" ? el("span", { class: "to-tag", style: "--c:#2a3550" }, "@GM") : null,
+        e.style === "ask" ? el("span", { class: "to-tag", style: "--c:var(--gm)" }, "@GM") : null,
         e.toNpc ? el("span", { class: "to-tag", style: "--c:#6f5230", "data-npc": e.toNpc, title: `${e.toNpc}에게 말하기` }, `@${e.toNpc}`) : null,
         e.to ? el("span", { class: "to-tag", style: `--c:${toInk}` }, `@${e.to}`) : null,
         e.focus ? el("span", { class: "focus-tag", style: `--c:${e.focusId && app.snap?.players.some((p) => p.pid === e.focusId) ? spineOf(e.focusId) : "#8a1c14"}` }, `▶ ${e.focus}`) : null, placeIc, textNode);
@@ -11963,14 +11967,14 @@ const BannerArt = (() => {
       logBox.append(box);
     }
     const pid = e.toId, own = !!pid && app.snap?.players.some((p) => p.pid === pid);
-    const color = own ? spineOf(pid) : "#2a3550";
+    const color = own ? spineOf(pid) : "var(--gm)";
     const qs = e.reply.map((id) => logBox.querySelector(`.entry.say[data-id="${CSS.escape(id)}"]`)).filter(Boolean);
     textNode.classList.add("tr-text-in");
     box.append(el("div", { class: `tr-row${own && pid === app.snap?.me ? " mine" : ""}`, style: `--c:${color}`, "data-id": e.id }, ...qs,
       el("div", { class: "tr-res" },
         qs.length ? null : el("span", { class: "who", style: `color:${color}` }, e.to ?? ""),
         el("span", { class: "tr-arrow", "aria-hidden": "true" }, "→"),
-        el("span", { class: "tr-text" }, el("span", { class: "gm-mini" }, "GM"), textNode))));
+        el("span", { class: "tr-text" }, el("span", { class: "ans-note", title: "GM 답", "aria-label": "GM 답" }, svg("svg", { viewBox: "0 0 12 12", "shape-rendering": "crispEdges", "aria-hidden": "true" }, svg("path", { fill: "currentColor", d: "M1 1h10v1H1zM1 2h1v5H1zM10 2h1v5h-1zM3 3h6v1H3zM3 5h5v1H3zM1 7h10v1H1zM2 8h2v1H2zM2 9h1v1H2z" }))), textNode))));
     if (atBottom) logBox.scrollTop = logBox.scrollHeight;
     else if (live) unread++;
     requestAnimationFrame(updateBottomButton);
