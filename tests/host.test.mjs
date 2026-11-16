@@ -737,3 +737,28 @@ test("질문(?)은 GM 차례를 쓰지 않고 바로 답함: 차례 모음 시�
     clearTimeout(g.ai.timer);
   }
 });
+
+test("GM에게 말 걸기(!): 답한 말은 바로 끝, 답이 없는 진행 요청은 다음 GM 차례 입력으로", async () => {
+  let reply = "";
+  const t = aiTable(async () => reply);
+  t.seat("c1", KEY, "가", "한서"); t.seat("c2", KEY2, "나", "도윤");
+  t.g.hostAction({ t: "start" }); t.g.invalidateAI();
+  const settle = async () => { for (let i = 0; i < 20 && (t.g.askBusy || t.g.askAgain); i++) await new Promise((r) => setTimeout(r, 0)); };
+  reply = JSON.stringify({ narration: "", answers: [{ to: "한서", text: "지금까지 찾은 것은 젖은 발자국 하나다." }] });
+  t.g.onMessage("c1", { t: "chat", text: "지금까지 나온 단서 정리해 줘", style: "ask" });
+  await settle();
+  const q1 = t.data.log.find((e) => e.text === "지금까지 나온 단서 정리해 줘");
+  assert.equal(q1.answered, true);
+  assert.equal(t.data.log.some((e) => e.kind === "ai" && e.to === "한서"), true);
+  reply = JSON.stringify({ narration: "", answers: [] });
+  t.g.onMessage("c2", { t: "chat", text: "다음 날 아침으로 넘어가자", style: "ask" });
+  await settle();
+  t.stop();
+  const q2 = t.data.log.find((e) => e.text === "다음 날 아침으로 넘어가자");
+  assert.equal(q2.gmReq, true);
+  assert.notEqual(q2.answered, true);
+  const { ctx, info } = t.g.turnContext();
+  assert.equal(info.askOnly, false);
+  assert.ok(ctx.이번입력목록.some((x) => x.includes("GM에게 진행 요청") && x.includes("다음 날 아침")));
+  assert.ok(!ctx.이번입력목록.some((x) => x.includes("단서 정리")));
+});
