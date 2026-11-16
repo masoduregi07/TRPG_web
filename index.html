@@ -40,7 +40,8 @@
   --flame-y: #ffd75a;
   --flame-o: #f08a2a;
   --flame-w: #fff3c4;
-  --gm: #34503f;   /* GM(말 걸기 · 답) 색: 소나무 녹색 */
+  --gm: #34503f;
+  --px-cut: polygon(4px 0, calc(100% - 4px) 0, calc(100% - 4px) 2px, calc(100% - 2px) 2px, calc(100% - 2px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 2px) calc(100% - 4px), calc(100% - 2px) calc(100% - 2px), calc(100% - 4px) calc(100% - 2px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 2px), 2px calc(100% - 2px), 2px calc(100% - 4px), 0 calc(100% - 4px), 0 4px, 2px 4px, 2px 2px, 4px 2px);   /* 도트 버튼: 2칸 계단 모서리 */   /* GM(말 걸기 · 답) 색: 소나무 녹색 */
   --blood: #8a1c14;
   --blood-hi: #b8382a;
   --blood-lo: #520e0a;
@@ -644,8 +645,11 @@ html.calm-item .dos-items .item.lost { display: none; }
 .npc-chip.gm-to { left: 9px; background: var(--gm); }   /* GM에게 말 걸기: 모드 아이콘 자리에 GM 라벨 */
 .say-box[data-mode="ask"] .say-mode { display: none; }
 /* 보내기 = 입력칸 안 오른쪽 끝 테두리 글자 (I-1 + S2): 모드 색 테 · 굵은 글씨 + 모드 색 28% 채움, 호버는 모드 색 칠. 빈 칸 · 잠금이면 흐림(.7) */
-.say-send { position: absolute; right: 6px; top: 50%; translate: 0 -50%; z-index: 2; display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px; border: 1px solid var(--say); background: color-mix(in srgb, var(--say) 28%, transparent); color: var(--say); font: 700 12px/1 var(--font); white-space: nowrap; cursor: pointer; }
-.say-send:hover:not(:disabled), .say-send:focus-visible { background: var(--say); color: #f4ecd8; outline: 0; }
+.say-send { position: absolute; right: 6px; top: 50%; translate: 0 -50%; z-index: 2; display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px 2px; border: 0; clip-path: var(--px-cut);
+  background: color-mix(in srgb, var(--say) 22%, #f3e9c8); color: var(--say); box-shadow: inset 0 0 0 2px var(--say), inset 0 -4px 0 color-mix(in srgb, var(--say) 55%, transparent);
+  font: 11px/1 var(--font); white-space: nowrap; cursor: pointer; }   /* 도트 버튼(D2): 2px 테 · 계단 모서리 · 아래 4px 턱, 화살표 12×10 · 글자 11px(갈무리 원래 크기) */
+.say-send:hover:not(:disabled), .say-send:focus-visible { background: var(--say); color: #f4ecd8; outline: 0; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--say) 70%, #000), inset 0 3px 0 rgba(0, 0, 0, .25); }
+.say-send .ss-ic { display: block; width: 12px; height: 10px; }
 .say-box > input:placeholder-shown ~ .say-send, .say-send:disabled { opacity: .7; }
 /* 입력칸 초점(F4): 바깥 링 대신 네 귀에 모드 색 꺾쇠 (보내기 · 라벨에 초점이 가도 유지) */
 .say-box > input:focus { outline: 0; }
@@ -655,7 +659,6 @@ html.calm-item .dos-items .item.lost { display: none; }
     var(--cc) 0 100% / var(--cl) var(--ct), var(--cc) 0 100% / var(--ct) var(--cl), var(--cc) 100% 100% / var(--cl) var(--ct), var(--cc) 100% 100% / var(--ct) var(--cl);
   background-repeat: no-repeat; }
 .say-send:disabled { cursor: not-allowed; }
-.say-send .ss-ic { font-weight: 400; }   /* 굵은 갈무리엔 ↵가 없어 작게 대체됨 → 보통 굵기로 */
 .say-box[data-mode="talk"] .say-mode { color: var(--say); }
 .say-box[data-mode="act"] { --say: var(--blood); }
 .say-box[data-mode="ask"] { --say: var(--gm); }
@@ -1007,9 +1010,9 @@ textarea { resize: vertical; margin-top: 8px; }
 /* AI GM 행동 모음 대기: 모래시계 + "지켜보는 중…" */
 .gather { display: flex; align-items: center; gap: 6px; color: var(--ink-2); animation: none; }
 .gather[hidden] { display: none; }
-.gather .gather-now { --t: 0%; margin: 0 0 0 8px; padding: 1px 9px 0; border: 0; cursor: pointer; font: 11px/1.6 var(--font); color: var(--blood);
-  background: linear-gradient(90deg, rgba(138, 28, 20, .26) var(--t), transparent var(--t)); box-shadow: inset 0 0 0 1px var(--blood); }
-.gather .gather-now:hover, .gather .gather-now:focus-visible { color: #f4ecd8; background: var(--blood); outline: 0; }
+.gather .gather-now { --t: 0%; display: inline-flex; align-items: center; height: 24px; margin: 0 0 0 12px; padding: 0 10px 2px; border: 0; cursor: pointer; clip-path: var(--px-cut); font: 11px/1 var(--font); color: #4a3220;
+  background: linear-gradient(90deg, rgba(138, 28, 20, .28) var(--t), transparent var(--t)), #f3e9c8; box-shadow: inset 0 0 0 2px #4a3220, inset 0 -4px 0 rgba(74, 50, 32, .45); }   /* 도트 버튼(K4-B) + 지난 대기 시간만큼 면이 참(G1) */
+.gather .gather-now:hover:not(:disabled), .gather .gather-now:focus-visible { translate: 0 1px; height: 22px; outline: 0; background: linear-gradient(90deg, rgba(138, 28, 20, .28) var(--t), transparent var(--t)), #e9dcb4; box-shadow: inset 0 0 0 2px #4a3220, inset 0 -2px 0 rgba(74, 50, 32, .45); }   /* 호버 = 눌림(H3) */
 .gather .gather-now:disabled { opacity: .5; cursor: default; }
 .gather .gather-now .gi { margin-right: 4px; }   /* ▸ 패스 · ▸▸ 지금 진행 */
 .gather .hg { width: 18px; height: 18px; color: var(--blood); display: inline-block; transition: rotate .2s steps(2); }
@@ -2945,7 +2948,7 @@ html.has-3d .topbar { box-shadow: none; }
           <button id="npcChip" class="npc-chip" type="button" hidden title="누르면 지움"></button>
           <input id="chatInput" maxlength="800" autocomplete="off" aria-describedby="sayHint" placeholder="캐릭터에 맞는 대사 ex) 무슨 일이야?" />
           <span id="sayGhost" class="say-ghost" aria-hidden="true" hidden></span>
-          <button class="say-send" type="submit"><span class="ss-ic" aria-hidden="true">↵</span>보내기</button>
+          <button class="say-send" type="submit"><svg class="ss-ic" viewBox="0 0 6 5" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5 0h1v4H5zM1 3h4v1H1zM0 3h1v1H0zM1 2h1v1H1zM1 4h1v1H1z"/></svg>보내기</button>
         </div>
       </form>
     </section>
