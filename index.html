@@ -8368,13 +8368,20 @@ void main() {
   const desk = { count: -1, date: "", hover: "", envOpen: 0 };
   const DK = { pocket: { x: .9, z: -1.12, w: .62, d: .78, th: .006, rot: -.16 }, env: { x: .86, z: -.42, w: .6, d: .36, th: .006, rot: .12 } };   // 책 오른쪽에 바짝, 비스듬히
   const T_kraft = tex(16, (g, s) => noise(g, s, [176, 132, 76], .2));
-  const T_pocketIn = tex(16, (g, s) => noise(g, s, [78, 53, 25], .2));   // 주머니 속 판의 옆 · 아랫면 (밝은 크라프트면 윗변에 밝은 테가 비침)
+  const T_pocketIn = tex(16, (g, s) => noise(g, s, [150, 126, 84], .2));   // 주머니 뒤판의 옆 · 아랫면 = 뒤판 종이보다 조금 어둡게 (밝은 크라프트면 윗변에 밝은 테가 비침)
   const SEAL_IMG = new Image(); SEAL_IMG.src = "img/seal.png";
   const DT = {
     // 대출 카드 포켓(L1) = 세 겹: 속(어두운 안쪽) · 카드(B 색인 카드: 붉은 머리줄 + 남색 괘선, 테이블 수만큼 최대 3장) · 앞판(반달 홈 북포켓 + 인쇄 + 최근 날짜 도장).
     // 카드 판만 따로 움직여 호버하면 위로 더 빠져나옴
     // 테이블이 0개면 포켓만: 속은 반달 홈으로만 보이고(앞판 윗변 위로 안 나옴) 카드 · 옆면 없음
-    pocket: ctex(112, 140, (g, w, h) => { const top = 58, y = desk.count > 0 ? top - 12 : top; g.fillStyle = "#4e3519"; g.fillRect(0, y, w, h - y); }),
+    // 속(뒤판) = 앞판과 같은 봉투 종이, 안쪽 그늘만큼 조금 어둡게
+    pocket: ctex(112, 140, (g, w, h) => {
+      // 카드가 있으면 뒤판 전체를 채움: 비워 두면 그 자리로 판 아랫면(빛이 안 닿아 검정)이 비쳐 보였음
+      const top = 58, y = desk.count > 0 ? 0 : top;
+      const tmp = document.createElement("canvas"); tmp.width = w; tmp.height = h - y;
+      grain(tmp.getContext("2d"), w, h - y, [188, 160, 108], .1, 1);
+      g.drawImage(tmp, 0, y);
+    }),
     cards: ctex(112, 140, (g, w, h) => {
       const top = 58, n = Math.min(3, desk.count);
       for (let i = 0; i < n; i++) {
