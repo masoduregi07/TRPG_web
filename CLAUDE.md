@@ -50,6 +50,7 @@
 - 삭제된 방 등록부(`server/registry`, Cloudflare Workers + KV, 배포 안내 README): 호스트가 테이블을 지우면(`deleteTable`) `Registry.markDeleted(방)`으로 "삭제됨" 표시(방 코드 + 시각만, 1년) → 플레이어가 그 방 링크를 열 때(`startPlayer`) `Registry.isDeleted`가 true면 `forgetRoom`(사본 `trpg:copy` · 참가 정보 `trpg:me` · 작성본 · 단서 · 소지품 · 보관 기록 · 화면 설정 삭제) + "삭제된 테이블" 안내 화면. 확인 실패(꺼짐 · 오프라인 · 오류 · 2.5초 초과)는 모름 → 아무것도 안 지움. 표시를 못 보냈으면 `trpg:regPending`에 두고 다음 `route()`에서 다시 보냄. 같은 방 코드로 사본 복구하면 `Registry.revive`로 표시 해제. `REGISTRY_URL`이 비어 있으면 전부 꺼짐(배포 뒤 index.html에 주소를 넣음). 아래 "지운 테이블" 응답과 함께 씀
 - 지운 테이블 응답(M2, 서버 없이): 호스트가 지우면 방 코드를 이 브라우저의 `trpg:closedRooms`(7일 · 최대 6개)에 두고, 사이트를 켜 둔 동안(첫 화면 · 다른 테이블 포함, `syncBeacons` 30초마다 다시 봄) `Net.closedBeacon(방)`이 그 방 주소로 대기하며 `join` · `peek`에 `{t:"closed"}`로 답함(주소를 다른 곳이 쓰면 30초 뒤 다시). 같은 방 세이브가 다시 생기면(사본 복구 · 세이브 불러오기) 목록에서 뺌. 플레이어는 `closed`를 받으면 재접속을 멈추고 `trpg:closed:<방>` 기록 → 그 방을 열면 접속하지 않고 쪽지만. 호스트가 사이트를 안 켜면 늦게 온 플레이어는 모름
 - 추방 기능 없음(친구끼리라 삭제). 예전 세이브의 `banned`는 불러올 때 지움
+- 스크립트를 처음 읽는 중(최상위 줄)에는 `svg()` · `readySeal` · `iconSvg` 등을 부르지 않음: `SVG_NS`가 스크립트 뒤쪽에 `const`로 선언돼 그 전에 부르면 TDZ 오류로 스크립트 전체가 멈춤(#224에서 첫 화면이 안 뜸). 화면을 띄우는 함수(`showHome` 등) 안에서 채움
 - 자동 저장 0.4초 묶음(창 닫기·탭 숨김은 즉시). 호스트 탭 잠금 = Web Locks(없으면 localStorage 심장박동). 보관함 병합 결과는 `logSeq`가 같으면 재사용
 - 저장: IndexedDB(호스트 세이브·플레이어 사본), localStorage(설정, 단서 `trpg:clueKind/clueOrder/clueSeen:<room>`, 작성 중 기록지 `trpg:draft:<room>` = {scenario, draft}, 서식 보관 `trpg:character-profiles:v1`, 최근 NPC `trpg:recentNpc:<room>`)
 

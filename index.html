@@ -10397,6 +10397,7 @@ const BannerArt = (() => {
     return { get delMode() { return delMode; }, place, close, show, invite(code) { $("#joinLinkInput").value = code; $("#joinLinkInput").dispatchEvent(new Event("input")); show("invite"); } };
   })();
   function showHome({ invite = null } = {}) {
+    fillOpenSeal();
     show("home");
     Book.show();
     Desk.close();
@@ -10678,10 +10679,14 @@ const BannerArt = (() => {
   }
   for (const r of document.querySelectorAll('input[name="mode"]')) r.addEventListener("change", () => { if (r.checked && r.value === "ai") $("#hostPlaysInput").checked = true; });   // AI GM이면 호스트도 플레이하는 게 자연스러움
 
-  // 날인란 관인: 호버 자국 · 찍을 도장 (찍을 때 그날 날짜로 다시 그림)
+  // 날인란 관인: 호버 자국 · 찍을 도장 (찍을 때 그날 날짜로 다시 그림).
+  // 스크립트를 처음 읽는 중엔 svg()의 SVG_NS가 아직 없으므로(뒤에 선언) 첫 화면을 띄울 때(showHome) 채움
   const openSeal = () => readySeal(new Date(), "", "개시", "CASE OPENED");
-  $("#openTableBtn .ghost").append(openSeal());
-  $("#openTableBtn .ink").append(openSeal());
+  function fillOpenSeal() {
+    const btn = $("#openTableBtn");
+    if (!btn.querySelector(".ghost").firstChild) btn.querySelector(".ghost").append(openSeal());
+    if (!btn.querySelector(".ink").firstChild) btn.querySelector(".ink").append(openSeal());
+  }
   $("#openTableBtn").addEventListener("click", async () => {
     const sc = validScenario ?? validate();
     const o = hostOptions();
