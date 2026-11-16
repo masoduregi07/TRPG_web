@@ -2601,14 +2601,15 @@ html.has-3d .topbar { box-shadow: none; }
 .pask-box p { margin: 0 0 14px; font: 15px/1.5 var(--font); word-break: keep-all; }
 .pask-row { display: flex; justify-content: center; gap: 10px; }
 .pask-row .pbtn { min-width: 72px; }
-/* 테이블 열기 = 날인란: 점선 칸 + 흐린 開 자국, 누르면 붉은 도장이 쾅 */
+/* 테이블 열기 = 날인란: 점선 칸 + 흐린 관인 자국(탐사자 협회 · 개시 · CASE OPENED), 누르면 칸보다 큰 붉은 관인이 쾅 */
 .seal-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: transparent; box-shadow: none; cursor: pointer; }
 .seal-btn .cap { font: 13px/1.4 var(--font); color: #5a4128; letter-spacing: .1em; }
 .seal-btn .box { position: relative; width: 84px; height: 84px; border: 2px dashed #7a3020; background: rgba(168, 37, 26, .04); }
-.seal-btn .ghost, .seal-btn .ink { position: absolute; inset: 10px; display: grid; place-items: center; border: 3px double; font: 34px/1 "Galmuri14", var(--font); rotate: -6deg; }
-.seal-btn .ghost { border-color: rgba(168, 37, 26, .3); color: rgba(168, 37, 26, .3); opacity: 0; transition: opacity .15s; }
-.seal-btn .ink { border-color: #9a1d12; color: #9a1d12; background: rgba(154, 29, 18, .1); border-width: 4px; opacity: 0; scale: 1.5; mix-blend-mode: multiply; font-weight: 700; }
-.seal-btn:hover:not(:disabled) .ghost, .seal-btn:focus-visible .ghost { opacity: 1; }   /* 빈 칸 → 호버하면 흐린 도장 자국 */
+.seal-btn .ghost, .seal-btn .ink { position: absolute; inset: 4px; rotate: -6deg; }
+.seal-btn .seal-svg { display: block; width: 100%; height: 100%; }
+.seal-btn .ghost { opacity: 0; transition: opacity .15s; }
+.seal-btn:hover:not(:disabled) .ghost, .seal-btn:focus-visible .ghost { opacity: .3; }   /* 빈 칸 → 호버하면 흐린 도장 자국 */
+.seal-btn .ink { inset: -14px; opacity: 0; scale: 1.5; mix-blend-mode: multiply; }   /* 찍힌 관인은 칸보다 크게(112px) → 둘레 글자가 읽힘 */
 .seal-btn.stamped .ghost { opacity: 0; }
 .seal-btn:focus-visible { outline: 0; }
 .seal-btn:focus-visible .box { outline: 2px dotted #2b1a0c; outline-offset: 3px; }
@@ -2638,7 +2639,8 @@ html.has-3d .topbar { box-shadow: none; }
   .bk-nav { margin-top: 8px; }
   .seal-btn { flex-direction: row; gap: 10px; }
   .seal-btn .box { width: 64px; height: 64px; }
-  .seal-btn .ghost, .seal-btn .ink { inset: 7px; font-size: 26px; }
+  .seal-btn .ghost { inset: 3px; }
+  .seal-btn .ink { inset: -10px; }
   .bk-folio { bottom: 8px; }
 }
 .bk-head { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 8px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
@@ -2743,7 +2745,7 @@ html.has-3d .topbar { box-shadow: none; }
       <div id="setupAi"></div>
       <details class="lg-fold"><summary><span class="lg-k">성향</span><span id="styleSum" class="lg-sum"></span></summary><div id="setupStyle" class="lg-sub"></div></details>
       <p id="setupError" class="error" role="alert"></p>
-      <div class="bk-nav end"><button id="openTableBtn" class="seal-btn" type="button" disabled><span class="cap">테이블 열기</span><span class="box"><span class="ghost">開</span><span class="ink">開</span></span></button></div>
+      <div class="bk-nav end"><button id="openTableBtn" class="seal-btn" type="button" disabled><span class="cap">테이블 열기</span><span class="box"><span class="ghost"></span><span class="ink"></span></span></button></div>
       <div class="bk-folio">2</div>
     </section>
   </div>
@@ -10672,6 +10674,10 @@ const BannerArt = (() => {
   }
   for (const r of document.querySelectorAll('input[name="mode"]')) r.addEventListener("change", () => { if (r.checked && r.value === "ai") $("#hostPlaysInput").checked = true; });   // AI GM이면 호스트도 플레이하는 게 자연스러움
 
+  // 날인란 관인: 호버 자국 · 찍을 도장 (찍을 때 그날 날짜로 다시 그림)
+  const openSeal = () => readySeal(new Date(), "", "개시", "CASE OPENED");
+  $("#openTableBtn .ghost").append(openSeal());
+  $("#openTableBtn .ink").append(openSeal());
   $("#openTableBtn").addEventListener("click", async () => {
     const sc = validScenario ?? validate();
     const o = hostOptions();
@@ -10681,6 +10687,7 @@ const BannerArt = (() => {
     if (!(await DB.set(K.host(room), data))) return ($("#setupError").textContent = "브라우저 저장 공간이 모자라다.");
     // 날인란에 도장이 쾅 → 방으로
     const btn = $("#openTableBtn");
+    btn.querySelector(".ink").replaceChildren(openSeal());
     btn.classList.add("stamped"); btn.disabled = true; Sfx.play("stamp");
     await new Promise((r) => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 380));
     Book.leave(`room=${room}`);
