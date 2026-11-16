@@ -1064,6 +1064,9 @@ textarea { resize: vertical; margin-top: 8px; }
 @media (prefers-reduced-motion: reduce) { .ans-dots i { animation: none; opacity: .6; } }
 /* 이름 · @꼬리표 세로 가운데 맞춤 */
 .entry.say > .who, .entry > .to-tag { display: inline-block; vertical-align: middle; }
+/* 대사 줄의 이름 · 꼬리표: 높이 20px 상자를 본문 첫 줄(18px × 1.5 = 27px) 가운데에 */
+#log .entry.say > .who, #log .entry.say > .to-tag { vertical-align: top; line-height: 20px; margin-top: calc((27px - 20px) / 2); }
+.to-tag .at { margin-right: 1px; }
 .tr-tag { --k: #6f5230; display: inline-flex; align-items: center; padding: 0 6px; font: 11px/1.7 var(--font); color: var(--k); border: 1px solid var(--k); background: rgba(255, 250, 235, .6); white-space: nowrap; cursor: pointer; }
 .tr-tag.t-it { --k: #3c5a2a; } .tr-tag.t-hp { --k: #8a1c14; } .tr-tag.t-ck { --k: #2a3550; }
 .tr-tag:hover, .tr-tag:focus-visible { background: rgba(255, 250, 235, .95); outline: none; box-shadow: 0 0 0 1px var(--k); }
@@ -11909,9 +11912,9 @@ const BannerArt = (() => {
       if (e.kind === "ai" && e.focus) return void resultRow(e, textNode, body, animate, atBottom, live);
       if (e.kind === "ai" && e.reply?.length) return void askRow(e, textNode, atBottom, live);
       node = el("div", { "data-by": e.kind === "say" ? e.byId ?? null : null, "data-id": e.kind === "say" ? e.id ?? null : null, class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}${e.kind === "say" && e.byId && e.byId === app.snap?.me ? " mine" : ""}`, style: ink ? `--c:${ink}` : null }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
-        e.style === "ask" ? el("span", { class: "to-tag", style: "--c:var(--gm)" }, "@GM") : null,
-        e.toNpc ? el("span", { class: "to-tag", style: "--c:#6f5230", "data-npc": e.toNpc, title: `${e.toNpc}에게 말하기` }, `@${e.toNpc}`) : null,
-        e.to ? el("span", { class: "to-tag", style: `--c:${toInk}` }, `@${e.to}`) : null,
+        e.style === "ask" ? el("span", { class: "to-tag", style: "--c:var(--gm)" }, el("span", { class: "at" }, "@"), "GM") : null,
+        e.toNpc ? el("span", { class: "to-tag", style: "--c:#6f5230", "data-npc": e.toNpc, title: `${e.toNpc}에게 말하기` }, el("span", { class: "at" }, "@"), e.toNpc) : null,
+        e.to ? el("span", { class: "to-tag", style: `--c:${toInk}` }, el("span", { class: "at" }, "@"), e.to) : null,
         e.focus ? el("span", { class: "focus-tag", style: `--c:${e.focusId && app.snap?.players.some((p) => p.pid === e.focusId) ? spineOf(e.focusId) : "#8a1c14"}` }, `▶ ${e.focus}`) : null, placeIc, textNode);
     }
     if (e.kind === "clue" && e.told) {   // 서술에 이미 나온 단서: 한 줄로 접고 누르면 펼침
