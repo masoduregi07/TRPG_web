@@ -749,7 +749,10 @@ test("GM에게 말 걸기(!): 답한 말은 바로 끝, 답이 없는 진행 요
   await settle();
   const q1 = t.data.log.find((e) => e.text === "지금까지 나온 단서 정리해 줘");
   assert.equal(q1.answered, true);
-  assert.equal(t.data.log.some((e) => e.kind === "ai" && e.to === "한서"), true);
+  const ans1 = t.data.log.find((e) => e.kind === "ai" && e.to === "한서");
+  assert.ok(ans1);
+  assert.equal(JSON.stringify(ans1.reply), JSON.stringify([q1.id]));   // 화면에서 [질문 → 답] 묶음
+  assert.equal(typeof ans1.run, "string");
   reply = JSON.stringify({ narration: "", answers: [] });
   t.g.onMessage("c2", { t: "chat", text: "다음 날 아침으로 넘어가자", style: "ask" });
   await settle();

@@ -1046,6 +1046,20 @@ textarea { resize: vertical; margin-top: 8px; }
 /* 결과 표 줄 꼬리표: 그 사람에게 생긴 일 (누르면 그 기록으로) */
 .turn-res .tr-tags { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .turn-res .tr-tags:empty { display: none; }
+/* GM에게 한 말 묶음: 사람 사이 점선(위아래 4px), 답 앞 남색 GM 라벨 */
+.ask-res { gap: 0; }
+.ask-res .tr-row + .tr-row { position: relative; margin-top: 4px; padding-top: 4px; }
+.ask-res .tr-row + .tr-row::before { content: ""; position: absolute; top: 0; left: 22px; right: 0; border-top: 1px dashed rgba(90, 60, 30, .45); }
+.gm-mini { display: inline-block; vertical-align: middle; margin-right: 8px; padding: 0 5px; font: 11px/16px var(--font); color: #f4ecd8; background: #2a3550; }
+/* 상태 줄 "GM 답변하는 중 ···": 점 세 개가 차례로 진해짐 */
+.turn-status .answering { display: inline-flex; align-items: center; gap: 0; color: #2a3550; }
+.ans-dots { display: inline-flex; gap: 2px; margin-left: 6px; }
+.ans-dots i { width: 3px; height: 3px; background: currentColor; opacity: .25; animation: ans-dot 1.2s steps(1) infinite; }
+.ans-dots i:nth-child(2) { animation-delay: .4s; } .ans-dots i:nth-child(3) { animation-delay: .8s; }
+@keyframes ans-dot { 0% { opacity: 1; } 33% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .ans-dots i { animation: none; opacity: .6; } }
+/* 이름 · @꼬리표 세로 가운데 맞춤 */
+.entry.say > .who, .entry > .to-tag { display: inline-block; vertical-align: middle; }
 .tr-tag { --k: #6f5230; display: inline-flex; align-items: center; padding: 0 6px; font: 11px/1.7 var(--font); color: var(--k); border: 1px solid var(--k); background: rgba(255, 250, 235, .6); white-space: nowrap; cursor: pointer; }
 .tr-tag.t-it { --k: #3c5a2a; } .tr-tag.t-hp { --k: #8a1c14; } .tr-tag.t-ck { --k: #2a3550; }
 .tr-tag:hover, .tr-tag:focus-visible { background: rgba(255, 250, 235, .95); outline: none; box-shadow: 0 0 0 1px var(--k); }
@@ -2903,7 +2917,7 @@ html.has-3d .topbar { box-shadow: none; }
       <div id="turnBoard" class="turn-board" hidden></div>
       <div id="gather" class="thinking gather" hidden role="status"><span id="gatherIcon" class="hg"></span><span>GM이 행동을 지켜보는 중…</span><button id="gatherNow" class="gather-now" type="button" title="행동을 더 기다리지 않고 바로 GM 차례로">지금 진행</button></div>
       <div id="staleBar" class="stale-bar" hidden role="status">연결 중… 마지막으로 저장된 화면이다. 호스트와 연결되면 최신 상태로 바뀐다.</div>
-      <div id="turnStatus" class="turn-status" hidden><span id="thinking" hidden>GM이 숨을 고르는 중…</span><span id="typingPresence" hidden aria-live="polite"></span></div>
+      <div id="turnStatus" class="turn-status" hidden><span id="thinking" hidden>GM이 숨을 고르는 중…</span><span id="answering" class="answering" hidden><span class="gm-mini">GM</span>답변하는 중<span class="ans-dots" aria-hidden="true"><i></i><i></i><i></i></span></span><span id="typingPresence" hidden aria-live="polite"></span></div>
       <div id="npcPick" class="npc-pick" role="listbox" aria-label="말 걸 NPC" hidden></div>
       <!-- 판정 알림: 입력칸을 가리키는 말풍선 (굴릴 때까지 유지, 점선 손잡이로 좌우 이동) -->
       <div id="ckTips" class="ck-tips" hidden></div>
@@ -6516,6 +6530,7 @@ class HostGame {
     // 새로고침 · 재접속: 행동을 모으는 중이면 남은 시간, GM이 쓰는 중이면 그 표시도 이어서
     if (this.ai.timer) { this.emit(pid, { t: "gather", ms: Math.max(0, (this.ai.due ?? Date.now()) - Date.now()) }); this.emit(pid, { t: "board", rows: this.turnBoard() }); }
     if (this.ai.busy) this.emit(pid, { t: "thinking", on: true });
+    if (this.askBusy) this.emit(pid, { t: "answering", on: true });
   }
 
   /* ---------------- 연결 ---------------- */
@@ -7029,6 +7044,7 @@ class HostGame {
     const qs = this.sinceAI().filter((e) => e.kind === "say" && e.style === "ask" && !e.toNpc);
     if (!qs.length) return;
     this.askBusy = true;
+    this.broadcast({ t: "answering", on: true });   // 상태 줄 "GM 답변하는 중"
     const seqs = new Set(qs.map((e) => e.seq));
     this.askPending = seqs;
     const epoch = this.ai.epoch, game = d.game, scene = game.currentScene;
@@ -7051,7 +7067,12 @@ class HostGame {
       try {
         for (const e of reqs) e.gmReq = true;
         for (const e of qs) if (!reqs.includes(e)) e.answered = true;
-        for (const a of plan.answers) this.addLog({ kind: "ai", by: "GM", text: a.text, to: a.toName, toId: a.toPid });
+        // 답마다 그 사람이 한 질문(reply = 질문 기록 id)을 붙임 → 화면에서 [질문 → 답] 한 묶음. 같은 번(run)의 답끼리는 한 덩어리
+        const run = randomId(8);
+        for (const a of plan.answers) {
+          const mine = qs.filter((e) => !reqs.includes(e) && (all || e.byId === a.toPid));
+          this.addLog({ kind: "ai", by: "GM", text: a.text, to: a.toName, toId: a.toPid, reply: mine.map((e) => e.id), run });
+        }
       } finally { this.aiApplying = false; }
       this.pushAll();
     } catch (e) {
@@ -7059,6 +7080,7 @@ class HostGame {
       if (!e.cancelled) this.note(`질문 바로 답하기 실패 → GM 차례로 (${Engine.clip(e.message ?? "", 60)})`);
     } finally {
       this.askPending = null; this.askBusy = false;
+      this.broadcast({ t: "answering", on: false });
       if (this.askCtrl === controller) this.askCtrl = null;
       if (toTurn) this.queueAI();
       if (this.askAgain) { this.askAgain = false; this.runAsk(); }
@@ -10925,7 +10947,7 @@ const BannerArt = (() => {
 
   let typingPresenceTimer;
   function syncTurnStatus() {
-    $("#turnStatus").hidden = $("#thinking").hidden && $("#typingPresence").hidden;
+    $("#turnStatus").hidden = $("#thinking").hidden && $("#answering").hidden && $("#typingPresence").hidden;
     updateBottomButton();
   }
   function updateTypingPresence() {
@@ -11027,6 +11049,7 @@ const BannerArt = (() => {
         else if (app.snap?.view) drawBanner(app.snap);
         return;
       case "notice": renderEntry({ kind: "system", text: msg.text }); unstamp(msg.text); return;
+      case "answering": keepBottom(() => { $("#answering").hidden = !msg.on; syncTurnStatus(); }); return;
       case "thinking": keepBottom(() => { $("#thinking").hidden = !msg.on; if (msg.on) showGather(0); syncTurnStatus(); }); return;
       case "typing": {
         if (msg.pid !== app.snap?.me && typeof msg.pid === "string") {
@@ -11880,7 +11903,8 @@ const BannerArt = (() => {
       // GM이 질문에 답할 때: 질문한 사람을 플레이어 색 꼬리표로
       const toInk = e.toId && app.snap?.players.some((p) => p.pid === e.toId) ? spineOf(e.toId) : "#2a3550";
       if (e.kind === "ai" && e.focus) return void resultRow(e, textNode, body, animate, atBottom, live);
-      node = el("div", { "data-by": e.kind === "say" ? e.byId ?? null : null, class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}${e.kind === "say" && e.byId && e.byId === app.snap?.me ? " mine" : ""}`, style: ink ? `--c:${ink}` : null }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
+      if (e.kind === "ai" && e.reply?.length) return void askRow(e, textNode, atBottom, live);
+      node = el("div", { "data-by": e.kind === "say" ? e.byId ?? null : null, "data-id": e.kind === "say" ? e.id ?? null : null, class: `entry ${e.kind}${e.style ? ` s-${e.style}` : ""}${e.to ? " answer" : ""}${e.focus ? " focus" : ""}${placeIc ? " place-line" : ""}${e.kind === "say" && e.byId && e.byId === app.snap?.me ? " mine" : ""}`, style: ink ? `--c:${ink}` : null }, who ? el("span", { class: "who", style: ink ? `--c:${ink}` : null }, who) : null,
         e.style === "ask" ? el("span", { class: "to-tag", style: "--c:#2a3550" }, "@GM") : null,
         e.toNpc ? el("span", { class: "to-tag", style: "--c:#6f5230", "data-npc": e.toNpc, title: `${e.toNpc}에게 말하기` }, `@${e.toNpc}`) : null,
         e.to ? el("span", { class: "to-tag", style: `--c:${toInk}` }, `@${e.to}`) : null,
@@ -11907,6 +11931,7 @@ const BannerArt = (() => {
       const inputs = [];
       let ai = 0;
       for (let n = logBox.lastElementChild; n && inputs.length < 24; n = n.previousElementSibling) {
+        if (n.classList.contains("ask-res")) continue;   // GM에게 한 말 묶음은 건너뜀 (그 사이 행동 줄도 모음)
         if (n.classList.contains("turn-res") || n.classList.contains("scene-entry") || n.classList.contains("focus")) break;
         if (n.classList.contains("ai") && ++ai > 1) break;
         // 행동 · 질문 · @NPC 대사만 (일행끼리 나눈 대사는 기록에 그대로 둠)
@@ -11925,6 +11950,27 @@ const BannerArt = (() => {
         el("span", { class: "tr-arrow", "aria-hidden": "true" }, "→"), (textNode.classList.add("tr-text"), textNode), el("div", { class: "tr-tags" })));
     table.append(row);
     lastRes = table;
+    if (atBottom) logBox.scrollTop = logBox.scrollHeight;
+    else if (live) unread++;
+    requestAnimationFrame(updateBottomButton);
+  }
+  /* GM에게 한 말(!)의 답(L1): 그 사람의 질문 줄(reply)을 답 바로 위로 옮겨 [질문 → GM 답] 한 묶음.
+   * 같은 번(run)에 답한 다른 사람은 같은 덩어리에 이어 붙이고 사이에 점선 (CSS .ask-res) */
+  function askRow(e, textNode, atBottom, live) {
+    let box = logBox.lastElementChild;
+    if (!(box?.classList.contains("ask-res") && box.dataset.run === (e.run ?? ""))) {
+      box = el("div", { class: "entry turn-res ask-res", "data-run": e.run ?? "" });
+      logBox.append(box);
+    }
+    const pid = e.toId, own = !!pid && app.snap?.players.some((p) => p.pid === pid);
+    const color = own ? spineOf(pid) : "#2a3550";
+    const qs = e.reply.map((id) => logBox.querySelector(`.entry.say[data-id="${CSS.escape(id)}"]`)).filter(Boolean);
+    textNode.classList.add("tr-text-in");
+    box.append(el("div", { class: `tr-row${own && pid === app.snap?.me ? " mine" : ""}`, style: `--c:${color}`, "data-id": e.id }, ...qs,
+      el("div", { class: "tr-res" },
+        qs.length ? null : el("span", { class: "who", style: `color:${color}` }, e.to ?? ""),
+        el("span", { class: "tr-arrow", "aria-hidden": "true" }, "→"),
+        el("span", { class: "tr-text" }, el("span", { class: "gm-mini" }, "GM"), textNode))));
     if (atBottom) logBox.scrollTop = logBox.scrollHeight;
     else if (live) unread++;
     requestAnimationFrame(updateBottomButton);
