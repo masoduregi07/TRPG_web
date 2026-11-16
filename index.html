@@ -655,7 +655,7 @@ html.calm-item .dos-items .item.lost { display: none; }
 .say-tab.on[data-m="ask"] { background: #2a3550; }
 .say-tab.on[data-m="cmd"] { background: #5a4a2a; }
 .say-tab.on kbd { color: #f6d27a; }
-.say-tip { margin-left: auto; align-self: center; font: 11px var(--font); color: var(--ink-2); opacity: .8; }
+.say-tip { margin-left: 8px; align-self: center; font: 11px var(--font); color: var(--ink-2); opacity: .8; }
 .say-tip b { font-weight: 400; color: var(--blood); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* 기록: 대사 「」 · 행동 · 질문 */
@@ -2897,9 +2897,9 @@ html.has-3d .topbar { box-shadow: none; }
       <form id="chatForm" class="chat">
         <div class="say-tabs" role="toolbar" aria-label="입력 종류">
           <button type="button" class="say-tab on" data-m="talk">대사</button>
-          <button type="button" class="say-tab" data-m="act">행동<kbd>*</kbd></button>
-          <button type="button" class="say-tab" data-m="ask">GM<kbd>!</kbd></button>
-          <button type="button" class="say-tab" data-m="cmd">주사위<kbd>/r</kbd></button>
+          <button type="button" class="say-tab" data-m="act"><kbd>*</kbd>행동</button>
+          <button type="button" class="say-tab" data-m="ask"><kbd>!</kbd>GM</button>
+          <button type="button" class="say-tab" data-m="cmd"><kbd>/r</kbd>주사위</button>
           <span id="sayHint" class="say-tip"><b>@</b> NPC 지정</span>
         </div>
         <div class="say-box" data-mode="talk">
