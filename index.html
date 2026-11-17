@@ -999,6 +999,36 @@ textarea { resize: vertical; margin-top: 8px; }
 .roll { padding: 4px 0 6px; }
 .thinking { padding: 4px 44px 4px 48px; }
 .chat { gap: 12px; padding: 10px 44px 12px 48px; }
+/* 판정 알림(Q1 크림 · F1 · 남의 차례 A): 내 판정 · 실패는 입력칸 자리의 큰 도트 버튼, 대사 · 행동 탭을 누르면 입력칸으로(보내면 다시 버튼) */
+.chat .ck-panel { display: none; flex-basis: 100%; }
+.chat.ck-on:not(.ck-typing) .ck-panel { display: block; }
+.chat.ck-on:not(.ck-typing) .say-box { display: none; }
+.ckb { --c: #4a3220; width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; height: 48px; padding: 0 14px 4px; border: 0; clip-path: var(--px-cut); font: 14px/1 var(--font); color: #4a3220;
+  background: #efe3c4; box-shadow: inset 0 0 0 2px var(--c), inset 0 -6px 0 rgba(74, 50, 32, .45); cursor: pointer; }
+button.ckb:hover, button.ckb:focus-visible { translate: 0 1px; outline: 0; background: #e9dcb4; box-shadow: inset 0 0 0 2px var(--c), inset 0 -3px 0 rgba(74, 50, 32, .45); }
+.ckb-k { flex: none; padding: 2px 6px 1px; font-size: 12px; color: #f6edd6; background: var(--c); }
+.ckb-nm { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 15px; }
+.ckb-sk { flex: none; font-size: 12px; color: #8a7a62; white-space: nowrap; }
+.ckb-go { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 28px; padding-left: 14px; border-left: 2px dashed rgba(74, 50, 32, .45); }
+.ckb-go .ic-svg { width: 16px; height: 16px; }
+.ckb.fail { --c: #a5321e; cursor: default; box-shadow: inset 0 0 0 2px var(--c);
+  background: linear-gradient(var(--c), var(--c)) left bottom / 100% 6px no-repeat, linear-gradient(rgba(165, 50, 30, .25), rgba(165, 50, 30, .25)) left bottom / 100% 6px no-repeat, #efe3c4;
+  animation: ckb-drain var(--dur, 30s) linear forwards; }   /* 아래 턱 = 남은 결정 시간 */
+@keyframes ckb-drain { to { background-size: 0 6px, 100% 6px, auto; } }
+.ckb-acts { flex: none; display: flex; align-items: center; height: 28px; padding-left: 6px; border-left: 2px dashed rgba(165, 50, 30, .45); }
+.ckb-acts button { padding: 0 10px; border: 0; background: none; font: 14px/1 var(--font); color: #4a3220; cursor: pointer; }
+.ckb-acts button + button { border-left: 1px solid rgba(74, 50, 32, .3); }
+.ckb-acts button:hover, .ckb-acts button:focus-visible { text-decoration: underline; outline: 0; }
+.ckb-acts button.main { color: var(--c); }
+.ckb-acts button.skip { font-size: 12px; color: #8a7a62; }
+@media (prefers-reduced-motion: reduce) { .ckb.fail { animation: none; } }
+/* 남의 차례: 입력칸 위 점선에 걸친 칩(왼쪽부터, 4명 이상은 두 명 + 외 n명). 칩이 있을 때만 점선 ↔ 탭 사이 7px 더 */
+.ck-line { position: absolute; left: 48px; top: 0; translate: 0 -50%; z-index: 5; display: flex; gap: 8px; max-width: calc(100% - 92px); }
+.ck-line[hidden] { display: none; }
+.chat.has-oc { padding-top: 18px; }
+.ck-oc { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 20px; padding: 0 8px; font: 12px/1 var(--font); color: #5a4630; background: #efe3c4; box-shadow: inset 0 0 0 1px rgba(90, 65, 40, .45); white-space: nowrap; }
+.ck-oc.who::before { content: ""; width: 8px; height: 8px; background: var(--pc); }
+.ck-oc b { font-weight: 700; color: var(--pc); }
 
 /* 나가기 쪽지 */
 .exit-pop { position: absolute; top: calc(100% + 10px); right: -6px; z-index: 40; width: 250px; font-family: var(--font); font-size: 12px; line-height: 1.55; color: var(--ink); text-align: left; background: #f1e5c2; background-image: radial-gradient(rgba(120, 80, 30, .08) 1px, transparent 1.5px); background-size: 5px 5px; box-shadow: inset 0 0 0 1px rgba(90, 65, 40, .5), 3px 4px 0 rgba(0, 0, 0, .35); padding: 14px 16px 12px; }
@@ -2936,6 +2966,7 @@ html.has-3d .topbar { box-shadow: none; }
       <!-- 판정 알림: 입력칸을 가리키는 말풍선 (굴릴 때까지 유지, 점선 손잡이로 좌우 이동) -->
       <div id="ckTips" class="ck-tips" hidden></div>
       <form id="chatForm" class="chat">
+        <div id="ckLine" class="ck-line" hidden></div>
         <div class="say-tabs" role="toolbar" aria-label="입력 종류">
           <button type="button" class="say-tab on" data-m="talk">대사</button>
           <button type="button" class="say-tab" data-m="act"><kbd>*</kbd>행동</button>
@@ -2950,6 +2981,7 @@ html.has-3d .topbar { box-shadow: none; }
           <span id="sayGhost" class="say-ghost" aria-hidden="true" hidden></span>
           <button class="say-send" type="submit"><svg class="ss-ic" viewBox="0 0 6 5" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5 0h1v4H5zM1 3h4v1H1zM0 3h1v1H0zM1 2h1v1H1zM1 4h1v1H1z"/></svg>보내기</button>
         </div>
+        <div id="ckPanel" class="ck-panel"></div>
       </form>
     </section>
 
@@ -12011,7 +12043,7 @@ const BannerArt = (() => {
       if (cls === "ck") node.hidden = true;
       const lb = e.reqLabel ?? "";
       const target = () => cls !== "ck" ? node
-        : [...document.querySelectorAll("#ckTips .ck-tip")].find((t) => t.dataset.label === lb)
+        : [...document.querySelectorAll("#ckPanel .ckb")].find((t) => t.dataset.label === lb)
           ?? [...logBox.querySelectorAll(".entry.roll")].find((r) => (node.compareDocumentPosition(r) & Node.DOCUMENT_POSITION_FOLLOWING) && r.querySelector(".roll-label")?.textContent.includes(lb));
       box.append(el("span", { class: `tr-tag t-${cls}`, role: "button", tabindex: "0", title: cls === "ck" ? "판정으로" : "그 기록으로",
         on: { click: (ev) => { ev.stopPropagation(); const t = target(); if (!t?.isConnected || t.closest("[hidden]")) return; t.scrollIntoView({ block: "center", behavior: reduceMotionUI() ? "auto" : "smooth" }); t.classList.remove("flash"); void t.offsetWidth; t.classList.add("flash"); },
@@ -12098,6 +12130,7 @@ const BannerArt = (() => {
   // 탭을 누르면 앞 글자를 바꿔 끼움 (대사 = 앞 글자 없음, GM = 입력칸 앞 라벨)
   const SAY_PREFIX = { talk: "", act: "* ", ask: "", cmd: "/r " };
   for (const t of document.querySelectorAll(".say-tab")) t.addEventListener("click", () => {
+    $("#chatForm").classList.add("ck-typing");   // 판정 버튼이 떠 있어도 탭을 누르면 입력칸으로
     const input = $("#chatInput");
     const rest = input.value.trimStart().replace(/^(\/\S*|[*＊!！])\s*/, "");
     if (gmChip) setGmChip(false);
@@ -12237,7 +12270,9 @@ const BannerArt = (() => {
     setNpcChip(""); setGmChip(false);
     if (npc) prefillRecentNpc();
     $("#chatInput").focus();
+    $("#chatForm").classList.remove("ck-typing");   // 보내면 판정 버튼으로 돌아감
   });
+  $("#chatInput").addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !ev.target.value && $("#chatForm").classList.contains("ck-on")) $("#chatForm").classList.remove("ck-typing"); });
 
   /* ---------------- 테이블 렌더 ---------------- */
   const SPINES = ["#6e2420", "#2f4a35", "#26344d", "#7d5426"];
@@ -13444,24 +13479,31 @@ const BannerArt = (() => {
         el("button", { class: "btn small primary", type: "button", title: "모두에게 결과 정리 화면을 띄움", on: { click: async () => (await paperAsk("이야기를 여기서 끝내고 결과 정리 화면을 띄울까?")) && send({ t: "finish" }) } }, "이야기 끝내기")));
       pb.hidden = !parts.length;
       pb.replaceChildren(...parts);
-      // 판정 알림: 대기 판정 · 방금 실패한 판정(밀어붙이기 · 행운)을 입력칸 위 말풍선으로. 굴리거나 GM이 서술하면 사라짐
-      const tips = [], fail = [];
-      if (s.retry) fail.push(el("div", { class: "ck-tip fail", style: `--dur:${Math.max(0, app.retryEnd - Date.now())}ms` }, el("span", { class: "ck-k" }, "실패"), el("b", {}, s.retry.label),
-        s.retry.push ? el("button", { class: "pbtn", type: "button", title: "한 번 더 굴린다. 또 실패하면 대가가 따른다", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
-        s.retry.cost > 0 ? el("button", { class: "pbtn", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null,
-        el("button", { class: "pbtn", type: "button", title: "밀어붙이거나 행운을 쓰지 않는다 (30초가 지나도 넘긴 것으로 본다)", on: { click: () => send({ t: "skipRetry" }) } }, "넘기기")));
-      // 내 차례 → (실패) → 아래 줄에 남의 차례 칩
-      const others = [];
-      for (const pc of [...pendingMe, ...pendingChecks.filter((x) => !isMine(x))]) {
-        const mine = isMine(pc);
-        (mine ? tips : others).push(el("div", { class: `ck-tip${mine ? "" : " wait"}`, "data-label": pc.label, style: mine ? null : `--pc:${pc.who ? spineOf(pc.who) : "#8a7a62"}` },
-          el("span", { class: "ck-k" }, pc.san ? "이성" : pc.improv ? "즉흥" : "판정"), el("b", {}, pc.label),
-          mine ? el("span", { class: "ck-t" }, [pc.skill || pc.san ? tagOf(pc) : "", pc.whoName && pc.who !== s.me ? pc.whoName : ""].filter(Boolean).join(" · ")) : el("span", { class: "ck-t" }, el("span", { class: "ck-who" }, pc.whoName), " 차례"),
-          mine ? el("button", { class: "pbtn go", type: "button", on: { click: () => send({ t: "check", checkId: pc.checkId }) } }, iconSvg("die_line"), "굴림") : null));
-      }
-      tips.push(...fail);
-      if (others.length) tips.push(el("div", { class: "ck-others" }, ...others));
-      const box = $("#ckTips"); box.hidden = !tips.length; box.replaceChildren(...tips);
+      // 판정 알림: 내 판정 · 방금 실패한 판정 = 입력칸 자리의 큰 버튼(실패가 먼저), 남의 차례 = 입력칸 위 점선에 걸친 칩
+      const form = $("#chatForm"), panel = $("#ckPanel"), line = $("#ckLine");
+      const mine0 = pendingMe[0];
+      let big = null;
+      if (s.retry) big = el("div", { class: "ckb fail", "data-label": s.retry.label, style: `--dur:${Math.max(0, app.retryEnd - Date.now())}ms` }, el("span", { class: "ckb-k" }, "실패"), el("span", { class: "ckb-nm" }, s.retry.label),
+        el("span", { class: "ckb-acts" },
+          s.retry.push ? el("button", { class: "main", type: "button", title: "한 번 더 굴린다. 또 실패하면 대가가 따른다", on: { click: () => send({ t: "push" }) } }, "밀어붙이기") : null,
+          s.retry.cost > 0 ? el("button", { class: s.retry.push ? "" : "main", type: "button", title: `행운 ${s.retry.cost}을 써서 성공으로 (보유 ${s.retry.luck})`, on: { click: () => send({ t: "luck" }) } }, `행운 ${s.retry.cost} 쓰기`) : null,
+          el("button", { class: "skip", type: "button", title: "밀어붙이거나 행운을 쓰지 않는다 (30초가 지나도 넘긴 것으로 본다)", on: { click: () => send({ t: "skipRetry" }) } }, "넘기기")));
+      else if (mine0) big = el("button", { class: "ckb", type: "button", "data-label": mine0.label, on: { click: () => send({ t: "check", checkId: mine0.checkId }) } },
+        el("span", { class: "ckb-k" }, mine0.san ? "이성" : mine0.improv ? "즉흥" : "판정"), el("span", { class: "ckb-nm" }, mine0.label),
+        ...[[mine0.skill || mine0.san ? tagOf(mine0) : "", mine0.whoName && mine0.who !== s.me ? mine0.whoName : ""].filter(Boolean).join(" · ")].filter(Boolean).map((t) => el("span", { class: "ckb-sk" }, t)),
+        el("span", { class: "ckb-go" }, iconSvg("die_line"), "굴림"));
+      const bigKey = s.retry ? `r|${rk}` : mine0 ? `c|${mine0.checkId}|${mine0.who ?? ""}` : null;
+      if (bigKey !== app.ckBigKey) { app.ckBigKey = bigKey; form.classList.remove("ck-typing"); }   // 새 판정 · 실패가 오면 다시 버튼으로
+      form.classList.toggle("ck-on", !!big);
+      panel.replaceChildren(...(big ? [big] : []));
+      // 남의 차례 칩: 3명까지 다 보이고, 4명 이상 · 줄이 넘치면 두 명(또는 한 명) + 외 n명(호버하면 전체)
+      const others = pendingChecks.filter((x) => !isMine(x));
+      const oc = (pc) => el("span", { class: "ck-oc who", style: `--pc:${pc.who ? spineOf(pc.who) : "#8a7a62"}`, title: `${pc.whoName ?? ""} · ${pc.label}` }, el("b", {}, pc.whoName ?? "누군가"), ` ${pc.label} 차례`);
+      const all = others.map((pc) => `${pc.whoName ?? "누군가"} · ${pc.label}`).join("\n");
+      const fill = (n) => line.replaceChildren(...others.slice(0, n).map(oc), ...(others.length > n ? [el("span", { class: "ck-oc", title: all }, `외 ${others.length - n}명`)] : []));
+      line.hidden = !others.length; form.classList.toggle("has-oc", !!others.length);
+      if (others.length) { fill(others.length > 3 ? 2 : 3); for (const n of [2, 1]) if (line.scrollWidth > line.clientWidth + 1 && others.length > n) fill(n); }
+      $("#ckTips").hidden = true;
       if (s.retry) helpOnce(s.retry.push ? ["push", ...(s.retry.cost > 0 ? ["luck"] : [])] : ["luck"]);   // 처음 실패했을 때 밀어붙이기 · 행운 쪽지
     }
 
