@@ -1002,11 +1002,19 @@ textarea { resize: vertical; margin-top: 8px; }
 /* 판정 알림(Q1 크림 · F1 · 남의 차례 A): 내 판정 · 실패는 입력칸 자리의 큰 도트 버튼, 대사 · 행동 탭을 누르면 입력칸으로(보내면 다시 버튼) */
 .chat .ck-panel { display: none; flex-basis: 100%; }
 .chat.ck-on:not(.ck-typing) .ck-panel { display: block; }
+.ck-panel { position: relative; --say: #4a3220; }
+.ck-panel:has(.fail) { --say: #a5321e; }
+/* 호버 · 초점 = 대사 칸 초점과 같은 네 귀 꺾쇠(F4) */
+.ck-panel:hover::after, .ck-panel:focus-within::after { content: ""; position: absolute; inset: calc(var(--p) * -3); pointer-events: none; z-index: 3;
+  --cl: 12px; --ct: 3px; --cc: linear-gradient(var(--say), var(--say));
+  background: var(--cc) 0 0 / var(--cl) var(--ct), var(--cc) 0 0 / var(--ct) var(--cl), var(--cc) 100% 0 / var(--cl) var(--ct), var(--cc) 100% 0 / var(--ct) var(--cl),
+    var(--cc) 0 100% / var(--cl) var(--ct), var(--cc) 0 100% / var(--ct) var(--cl), var(--cc) 100% 100% / var(--cl) var(--ct), var(--cc) 100% 100% / var(--ct) var(--cl);
+  background-repeat: no-repeat; }
 .chat.ck-on:not(.ck-typing) .say-box { display: none; }
-.ckb { --c: #4a3220; width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; height: 38px; padding: 0 14px 4px;   /* 대사 칸(입력칸 38px) 안쪽 크기 그대로 */ border: 0; clip-path: var(--px-cut); font: 14px/1 var(--font); color: #4a3220;
+.ckb { --c: #4a3220; width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; height: 38px; padding: 0 14px 4px;   /* 대사 칸(입력칸 38px) 안쪽 크기 그대로 */ border: 0; clip-path: var(--px-cut); font: 14px/20px var(--font); color: #4a3220;
   background: #efe3c4; box-shadow: inset 0 0 0 2px var(--c), inset 0 -4px 0 rgba(74, 50, 32, .45); cursor: pointer; }
 button.ckb:hover, button.ckb:focus-visible { translate: 0 1px; outline: 0; background: #e9dcb4; box-shadow: inset 0 0 0 2px var(--c), inset 0 -2px 0 rgba(74, 50, 32, .45); }
-.ckb-k { flex: none; padding: 2px 6px 1px; font-size: 12px; color: #f6edd6; background: var(--c); }
+.ckb-k { flex: none; padding: 0 6px; font-size: 12px; line-height: 18px; color: #f6edd6; background: var(--c); }   /* 줄 높이를 글자보다 넉넉히(위 글자 잘림 방지) */
 .ckb-nm { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 15px; }
 .ckb-sk { flex: none; font-size: 12px; color: #8a7a62; white-space: nowrap; }
 .ckb-go { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 20px; padding-left: 14px; border-left: 2px dashed rgba(74, 50, 32, .45); }
@@ -1016,7 +1024,7 @@ button.ckb:hover, button.ckb:focus-visible { translate: 0 1px; outline: 0; backg
   animation: ckb-drain var(--dur, 30s) linear forwards; }   /* 아래 턱 = 남은 결정 시간 */
 @keyframes ckb-drain { to { background-size: 0 4px, 100% 4px, auto; } }
 .ckb-acts { flex: none; display: flex; align-items: center; height: 20px; padding-left: 6px; border-left: 2px dashed rgba(165, 50, 30, .45); }
-.ckb-acts button { padding: 0 10px; border: 0; background: none; font: 14px/1 var(--font); color: #4a3220; cursor: pointer; }
+.ckb-acts button { padding: 0 10px; border: 0; background: none; font: 14px/20px var(--font); color: #4a3220; cursor: pointer; }
 .ckb-acts button + button { border-left: 1px solid rgba(74, 50, 32, .3); }
 .ckb-acts button:hover, .ckb-acts button:focus-visible { text-decoration: underline; outline: 0; }
 .ckb-acts button.main { color: var(--c); }
